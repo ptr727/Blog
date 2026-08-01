@@ -88,28 +88,31 @@ Everything the site does not render is the web server's job, and the workload co
 - **The query string must be matchable.** 110 `?p=<id>` shortlinks redirect on the query alone. A server that matches on the path only would resolve `/?p=123` as `/`, redirect the homepage, and carry the query through to it.
 - **There must be a lookup primitive.** 279 of the 917 resolve through map files rather than patterns, since no rule can derive their destination, and the five maps carry 661 entries between them. A linear scan of that many rules per request is the wrong shape.
 
-The 917 redirects are **13 `redir` directives** reading **5 map files** through **3 `map` blocks**. Ten directives match on a pattern and three resolve through a map lookup, which is used wherever no pattern can derive the destination from the input.
+The Caddyfile carries **13 `redir` directives**, reading **5 map files** through **3 `map` blocks**. Ten directives match on a pattern and three resolve through a map lookup, which is used wherever no pattern can derive the destination from the input.
 
-Each row names the Caddy matcher, so the table can be checked against [`Caddyfile`](./Caddyfile) by grep rather than by trust.
+Directives and URL classes are not one to one, in both directions. `@mapped` is a single directive serving three classes, because their key spaces are disjoint and merging them keeps one lookup on the hot path. `@uploads` is one directive covering a URL set that is gated separately.
 
-| Matcher | Covers | Shape |
+Each row below is a **URL class**, named by the matcher that serves it, so the table can be checked against [`Caddyfile`](./Caddyfile) by grep rather than by trust.
+
+| Matcher | Class size | Shape |
 | --- | --- | --- |
 | `@post_child` | 216 | `/YYYY/MM/DD/post/<child>/` -> the post, attachment pages |
 | `@term_feed` | 192 | `/tag/<t>/feed/` and `/category/<c>/feed/` -> the term archive |
 | `@post_id` | 110 | `/?p=<id>` -> the permalink, via `p-ids.map` |
 | `@post_child_feed` | 107 | `/YYYY/MM/DD/post/<child>/feed/` -> the post, ordered **before** `@post_child` |
-| `@mapped` | 107 | bare `/<attachment-slug>/` -> best destination, via `slugs.map` |
+| `@mapped` via `slugs.map` | 107 | bare `/<attachment-slug>/` -> best destination |
 | `@date_archive` | 83 | `/YYYY/`, `/YYYY/MM/`, and their pagination -> `/all/` |
-| `@mapped` | 59 | `/YYYY/MM/slug.html` -> the current post, via `blogger.map` |
+| `@mapped` via `blogger.map` | 59 | `/YYYY/MM/slug.html` -> the current post |
 | `@blogger_archive` | 21 | `/YYYY_MM_01_archive.html` -> `/all/`, any date, including ones never covered |
 | `@author` | 12 | `/author/<name>/`, its pagination and feed -> `/` |
-| `@uploads` | 778 | `/wp-content/uploads/(.*)` -> `/media/$1`, preserving every legacy image URL |
 | `@site_feed` | 3 | `/feed/`, `/comments/feed/`, `/about/feed/` -> `/feed.xml` |
-| `@mapped` | 3 | the three empty term archives, via `terms.map` |
+| `@mapped` via `terms.map` | 3 | the three empty term archives |
 | `@blogger_feed` | 2 | `/feeds/posts/default` -> `/feed.xml`, Blogger's Atom feed |
 | `@blogger_page` | 2 | `/p/<slug>.html` -> `/<slug>/`, Blogger's static-page shape |
 
-`@uploads` covers the 778 legacy image URLs, which are gated by `golden-media-legacy.txt` rather than counted in the 917. The remaining rows sum to 917.
+**Those thirteen classes sum to 917**, which is the line count of [`checks/redirect-urls.txt`](../checks/redirect-urls.txt) and the whole redirect contract.
+
+`@uploads` is deliberately absent from that table and from the 917. It rewrites `/wp-content/uploads/(.*)` to `/media/$1`, preserving all 778 legacy image URLs, which are gated by `golden-media-legacy.txt` on their own. Counting them here would double-count a set that has its own list.
 
 `@label` is the fourteenth class and is deliberately **not** in the contract. `/search/label/<Label>` was never a redirect: the old platform answered it with a generic search page that returns 200 for a label that never existed, so it is a soft 404 that looks alive. `labels.map` sends each label to its term archive and defaults anything unmatched to `/all/`, which is a choice rather than a preservation.
 

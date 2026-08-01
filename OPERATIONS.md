@@ -45,8 +45,13 @@ So release to the local mirror and run the live check **before** opening a pull 
 ```sh
 set -a; . secrets/.env; set +a
 deploy/make-release.sh
+docker restart "$CADDY_CONTAINER"   # required: see below
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
+
+**The restart is not optional, and omitting it produces a false pass.** Caddy expands `import` at config-parse time, both for the site config and for the `map` blocks that read `maps/*.map`. It does not watch those files. Swapping the `current` symlink therefore changes what a *static file* request resolves to, per request, but the redirect rules and map tables stay exactly as they were when Caddy last loaded. Verified against the running mirror: a new map entry present in the live release on disk returned 404 until the container was restarted, then 301.
+
+That is the failure this whole loop exists to catch, so it is worth being blunt about. Change a redirect, release, and check without reloading, and the check exercises the **previous** rules. A broken redirect reports `PASS` while the shipped artifact is broken.
 
 Sourcing `secrets/.env` first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then takes no arguments, and it refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows all 1,245 URLs against the running mirror, checking each redirect's destination rather than trusting its status code.
 
@@ -81,9 +86,12 @@ Point `current` at the previous release. The swap is a single rename, so a reque
 ```sh
 ln -sfn "releases/<previous>" "<deploy-root>/.current.tmp"
 mv -Tf "<deploy-root>/.current.tmp" "<deploy-root>/current"
+docker restart "$CADDY_CONTAINER"
 ```
 
-No restart and no reload. The container mounts the parent directory, so the kernel resolves `current` per request and the change is visible immediately.
+The content reverts on the rename alone, because the container mounts the parent directory and the kernel resolves `current` per request. **The rules do not.** Caddy holds the Caddyfile and the maps as parsed config, so without the restart a rollback serves the previous release's content under the current release's redirects, which is precisely the mismatch that shipping the config inside the bundle exists to prevent.
+
+The restart is therefore part of the rollback, not an optional follow-up. It costs a few seconds of downtime on a static site, which is the cheaper half of the trade.
 
 Verify with `checks/check-live-urls.sh` against the environment before considering the rollback finished.
 
@@ -118,10 +126,10 @@ Because it sits outside the bundle, no release updates it. Install or refresh it
 ```sh
 set -a; . secrets/.env; set +a
 install -m 644 deploy/bootstrap.Caddyfile "$CADDY_APPDATA/config/Caddyfile"
-docker restart blog
+docker restart "$CADDY_CONTAINER"
 ```
 
-The restart is needed only when the bootstrap itself changes. A normal release needs none, because the `current` symlink is resolved per request.
+A restart is needed whenever **any** Caddy config changes, not only this file. That includes `deploy/Caddyfile` and anything under `deploy/maps/`, because both are expanded at config-parse time and Caddy does not watch them. Only static file requests follow the `current` symlink per request. See "Local Verification Before a Pull Request" above, where skipping the restart is the difference between a real check and a false pass.
 
 `CADDY_APPDATA` is recorded in `secrets/.env` for exactly this reason. No script reads it, so a rebuild would otherwise depend on someone remembering where the bootstrap goes.
 
