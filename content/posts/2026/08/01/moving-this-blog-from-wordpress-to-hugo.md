@@ -196,9 +196,15 @@ Everything that is not a rendered page is the web server's job, so the choice of
 
 I evaluated static-web-server and ruled it out. Its redirect matching looks at the path only, and the query string is never an input. This blog has 110 legacy `/?p=<id>` shortlinks, so `/?p=123` would have matched `/`, redirected the homepage, and carried the query through. It also does a linear regex scan per request with no lookup primitive.
 
-Caddy handles it in **11 regex rules and 5 map files**. Maps are the right structure for the cases where no pattern can derive the answer: the Blogger permalinks, the `?p=` ids, and the attachment slugs.
+Caddy handles it in **13 redirect directives and 5 map files**. Maps are the right structure for the cases where no pattern can derive the answer: the Blogger permalinks, the `?p=` ids, and the attachment slugs.
 
-The deploy is deliberately boring. A release is a directory containing the built site, the Caddy config, and the redirect maps *together*, and going live is swapping one symlink. Shipping the config inside the release is what makes a rollback honest, because the redirect rules and the content they point at move as one unit. Rolling back cannot leave yesterday's site being served by today's rules.
+The deploy is deliberately boring. A release is a directory containing the built site, the Caddy config, and the redirect maps *together*, and going live is swapping one symlink. Shipping the config inside the release is what makes a rollback honest, because the redirect rules and the content they point at move as one unit.
+
+**With one catch I got wrong at first, and it is worth knowing if you build this.** Swapping the symlink reverts the *content* immediately, because the kernel resolves the link per request. It does not revert the *rules*. Caddy expands its config, including the imported map files, when it loads, and it does not watch those files afterwards. So a rollback without a reload gives you yesterday's pages served by today's redirects, which is the exact mismatch the bundle was supposed to prevent.
+
+Worse, it makes verification lie. Change a redirect, deploy, run your checker without reloading, and the checker exercises the *old* rules and reports a pass while the thing you shipped is broken. I found this by adding a deliberate probe entry to a map, deploying it, and watching the URL keep returning 404 until I restarted the container, at which point it returned the 301 it should have all along.
+
+The fix is one line, a restart after any deploy or rollback that touches the config. The lesson is the general one: an atomic swap is only atomic for the thing that actually reads through it per request.
 
 Unchanged files are hard-linked from the previous release, so ten retained releases cost about 600 MB rather than 5.6 GB.
 
