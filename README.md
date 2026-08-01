@@ -27,7 +27,6 @@ See [Release History][history] for the full history.
 ## Table of Contents <!-- omit from toc -->
 
 - [Use Cases](#use-cases)
-- [History](#history)
 - [Configuration](#configuration)
 - [Questions or Issues](#questions-or-issues)
 - [Development Environment Setup](#development-environment-setup)
@@ -44,17 +43,9 @@ Three parts, each with a distinct job:
 - **The URL contract**, the full set of addresses the site answers, and the gates that prove it still answers them.
 - **The deploy tooling**, which builds a release, verifies it, and swaps it into place atomically.
 
-The site answers far more addresses than it renders pages, and the extra ones are redirects the web server satisfies. That is what makes the contract worth enforcing: a missing page is obvious, while a missing redirect is silent and surfaces months later as traffic that stopped arriving. Two gates cover it. One checks the built output before a release is installed, and one checks a running server, because a redirect is the server's job and no build can prove it.
+The site answers far more addresses than it renders pages, because it has served the same domain across earlier platforms whose address shapes are still in search indexes and in other people's links. The extra addresses are redirects the web server satisfies, and they are why the contract is enforced rather than assumed: a missing page is obvious, while a missing redirect is silent and surfaces months later as traffic that stopped arriving. Two gates cover it. One checks the built output before a release is installed, and one checks a running server, because a redirect is the server's job and no build can prove it.
 
 Deployment is a release directory plus a symlink. A build is installed alongside its predecessors, verified, and made live by swapping one link, so a rollback is the same swap in reverse. See [OPERATIONS.md][operations].
-
-## History
-
-Context for why the URL contract exists, rather than a description of how the site works today.
-
-The blog has answered at the same domain since 2008, across three platforms. It started on Blogger, moved to WordPress in mid-2012, and is a Hugo static site now. Each move kept the domain and changed the address shapes underneath it, and each earlier platform's addresses are still in search indexes, in feed readers, and in other people's links.
-
-Nothing in a static site generator reproduces those older shapes. They are preserved deliberately, as redirect rules and lookup tables that map an old address onto the page that answers it now. That is the whole reason the repository holds a URL contract and gates it in CI, rather than simply holding content.
 
 ## Configuration
 
@@ -101,7 +92,6 @@ Commits are signed. A greenfield repository signs from its first commit, because
 | [Hugo][hugo-link] | static site generator | Apache-2.0 |
 | [PaperMod][papermod-link] | theme, vendored under `themes/` | MIT |
 | [Caddy][caddy-link] | web server, serving the built site and the redirects | Apache-2.0 |
-| [wp2hugo][wp2hugo-link] | one-time WordPress export conversion | Apache-2.0 |
 
 ## License
 
@@ -139,4 +129,3 @@ See [LICENSE][license].
 [caddy-link]: https://caddyserver.com/
 [hugo-link]: https://gohugo.io/
 [papermod-link]: https://github.com/adityatelange/hugo-PaperMod
-[wp2hugo-link]: https://github.com/ashishb/wp2hugo

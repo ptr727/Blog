@@ -1,6 +1,6 @@
 # Instructions for AI Coding Agents
 
-**Blog** is the source and deployment pipeline for a personal technical blog, a Hugo static site migrated from WordPress and served by Caddy behind a reverse proxy. It holds the content, the media, the URL contract the migration must honor, and the release tooling that builds and publishes it.
+**Blog** is the source and deployment pipeline for a personal technical blog, a Hugo static site served by Caddy behind a reverse proxy. It holds the content, the media, the URL contract the site must honor, and the release tooling that builds and publishes it.
 
 This file is the entry point every coding agent reads first, and it holds only two things: the rules for managing context and delegation, which apply to every task, and a map of where every other rule lives. The rule text itself is in [`GOVERNANCE.md`](./GOVERNANCE.md), one section per topic. Code style lives in [`CODESTYLE.md`](./CODESTYLE.md), the CI/CD workflow contract in [`WORKFLOW.md`](./WORKFLOW.md), and the deploy, rollback, and server procedures in [`OPERATIONS.md`](./OPERATIONS.md).
 
@@ -8,11 +8,11 @@ Treat this file and `GOVERNANCE.md` as authoritative for cross-cutting rules, an
 
 ## Project Conventions
 
-The site migrated from a live WordPress blog, and the migration's whole risk is silent URL loss. These bind every change.
+This site has served the same domain across earlier platforms, so its whole risk is silent URL loss. These bind every change.
 
-- **The URL contract is ground truth.** [`checks/golden-urls.txt`](./checks/golden-urls.txt) and [`checks/redirect-urls.txt`](./checks/redirect-urls.txt) record URLs verified against the live site before it was replaced. The lists are append-only. Nothing legitimately removes a URL the old site served.
-- **Never populate media over HTTP.** The source export is the only trustworthy media source, and the live site serves optimized derivatives at the same filename and path. Verify by content hash, never by file count.
-- **`content/` is an imported archive.** It carries sixteen years of third-party text. Prose, spelling, and style sweeps do not reach it, and rewriting it corrupts provenance rather than improving style.
+- **The URL contract is ground truth.** [`checks/golden-urls.txt`](./checks/golden-urls.txt) and [`checks/redirect-urls.txt`](./checks/redirect-urls.txt) record URLs verified with a live request. The lists are append-only. Nothing legitimately removes a URL the site has served.
+- **Never populate media over HTTP.** The source export is the only trustworthy media source, because a hosted platform serves optimized derivatives at the same filename and path. Verify by content hash, never by file count.
+- **`content/` is an archive.** It carries sixteen years of text. Prose, spelling, and style sweeps do not reach it, and rewriting it corrupts provenance rather than improving style.
 - **A gate proves itself by failing.** Every check here is demonstrated against a deliberate break before it is trusted, because a gate that has only ever passed is indistinguishable from one that checks nothing.
 
 ## Context and Delegation Discipline

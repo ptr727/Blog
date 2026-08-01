@@ -81,11 +81,12 @@ every build for that reason.
     maps/        p-ids, slugs, blogger, labels, terms
 ```
 
-## Why Caddy, and how the redirects are expressed
+## How the redirects are expressed
 
-Everything the site does not render is the web server's job, so the server was chosen on which one could express the redirect workload, specifically the query-string class.
+Everything the site does not render is the web server's job, and the workload constrains which server can serve it. Two requirements are load-bearing, so a replacement has to meet both:
 
-**static-web-server was evaluated and disqualified.** Its redirect matching reads `uri.path()` only, so the query string is never an input, and it then force-appends the client's query to the destination. `/?p=123` would match `/`, redirect the homepage, and carry `?p=123` through. It also has no lookup primitive, so redirects are a linear regex scan per request. nginx is functionally equal to Caddy here but costs more maintenance, since `map_hash_bucket_size` must be tuned or it refuses to start and the stock image ships no brotli module.
+- **The query string must be matchable.** 110 `?p=<id>` shortlinks redirect on the query alone. A server that matches on the path only would resolve `/?p=123` as `/`, redirect the homepage, and carry the query through to it.
+- **There must be a lookup primitive.** 279 of the 917 resolve through map files rather than patterns, since no rule can derive their destination, and the five maps carry 661 entries between them. A linear scan of that many rules per request is the wrong shape.
 
 The 917 redirects are 11 regex rules plus 5 map files. A map is used wherever no pattern can derive the answer from the input.
 

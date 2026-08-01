@@ -47,7 +47,7 @@ The deploy credentials live in the `staging` and `production` GitHub Environment
 
 ## 3. The URL Contract
 
-The migration's whole risk is silent URL loss, so the contract is audited like any other ground truth. Both gates are demonstrated failing before they are trusted.
+This site's whole risk is silent URL loss, so the contract is audited like any other ground truth. Both gates are demonstrated failing before they are trusted.
 
 ```sh
 hugo --gc --minify --panicOnWarning
@@ -59,7 +59,7 @@ checks/check-live-urls.sh <base-url>
 - **The live gate** proves the redirects, which the build cannot: a redirect is the web server's job. It follows each redirect to its destination rather than trusting the status code, because a redirect into a hole returns a perfectly healthy 301.
 - **The floor assertions** fail when a list is truncated. Without them a shortened list makes every check below it pass while covering nothing.
 
-A **missing** URL is a failure. An **extra** URL is reported and is not. New posts, tags, and pagination legitimately add URLs, and nothing legitimately removes one the old site served.
+A **missing** URL is a failure. An **extra** URL is reported and is not. New posts, tags, and pagination legitimately add URLs, and nothing legitimately removes one the site has served.
 
 ## Reporting
 
