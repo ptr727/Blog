@@ -116,7 +116,6 @@ Carried forward rather than closed:
 - The live redirect gate has not run against this build, so 917 of the 1,245 contracted URLs are asserted rather than proven.
 - `publish-release.yml` has never been dispatched, so the release path is untested.
 - No deploy exists, so the publish surface stays deferred and the registry entry stays `publish: []`.
-- `merge-bot-pull-request.yml` is not carried. Dependabot is configured and its pull requests will sit open until either the merge bot is added or they are merged by hand. The App secrets it needs are now in place, so this is no longer blocked, only undone.
 - `checks/README.md` carries a small prose backlog of `dash` and `semicolon` findings, left for the next edit of that file per the correct-as-you-next-edit rule.
 
 <!-- Repo -->
