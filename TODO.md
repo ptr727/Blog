@@ -23,7 +23,6 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 ## Next, in dependency order
 
 - Dispatch `publish-release.yml` once to prove the release path, which exists but has never run.
-- Decide on `merge-bot-pull-request.yml`. Dependabot is configured and its pull requests will otherwise sit open, and the App secrets it needs are now in place.
 - Provision the VPS: an unprivileged `blogdeploy` user, the deploy root, and `unattended-upgrades` with automatic reboot.
 - Restrict the deploy key with `restrict,command=...`, no pty and no forwarding, so it can do nothing but rsync into `releases/` and swap the symlink. Generate per-environment keys so staging cannot reach production.
 - Choose the staging FQDN, add its DNS record, and expose it through Pangolin as a public resource with **no auth**, since CI's live-URL check has to reach it. Authentication defaults to on for a public resource and has to be turned off deliberately.
@@ -38,7 +37,6 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 - The staging FQDN name.
 - `/robots.txt/` and `/osd.xml/` currently sit in `slugs.map` pointing at `/`. The first would be better pointing at the real `/robots.txt`.
 - Whether the 78 legacy date-archive redirects should point at `/all/` rather than `/`, so a visitor following a `/2015/` link lands somewhere they can find 2015 posts. It is a one-line change to rule R3.
-- Whether to carry `merge-bot-pull-request.yml`. Dependabot is configured and its PRs will sit open without it, but it needs the App secrets, so it cannot be proven until those exist.
 
 ## Deliberate deviations from the fleet baseline
 
