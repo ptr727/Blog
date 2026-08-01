@@ -1,0 +1,102 @@
+# Redirect rules and site config, shipped inside the release so they roll back with the content.
+# See OPERATIONS.md for the bundle layout and the redirect design.
+
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	root * /srv/blog/current/site
+
+	# One map serves three classes because their key spaces are disjoint.
+	# Merging them keeps a single lookup on the hot path.
+	map {path} {mapped} {
+		import /srv/blog/current/maps/blogger.map
+		import /srv/blog/current/maps/slugs.map
+		import /srv/blog/current/maps/terms.map
+		default ""
+	}
+
+	# WordPress shortlinks, keyed on the query string rather than the path.
+	map {query.p} {by_id} {
+		import /srv/blog/current/maps/p-ids.map
+		default ""
+	}
+
+	@post_id expression {by_id} != ""
+	@mapped expression {mapped} != ""
+
+	# Blogger label archives, defaulting to a real destination.
+	# A label that never became a term still deserves a landing page rather than a 404.
+	map {re.label.1} {by_label} {
+		import /srv/blog/current/maps/labels.map
+		default /all/
+	}
+
+	route {
+		redir @post_id {by_id} 301
+
+		# A per-post comment feed and an attachment page share a shape under a post date.
+		# The longer pattern is tested first, or the broader rule claims both.
+		@post_child_feed path_regexp pcf ^(/\d{4}/\d{2}/\d{2}/[^/]+)/[^/]+/feed/?$
+		redir @post_child_feed {re.pcf.1}/ 301
+
+		@post_child path_regexp pc ^(/\d{4}/\d{2}/\d{2}/[^/]+)/[^/]+/?$
+		redir @post_child {re.pc.1}/ 301
+
+		@term_feed path_regexp tf ^(/(?:tag|category)/[^/]+)/feed/?$
+		redir @term_feed {re.tf.1}/ 301
+
+		# Hugo emits /feed.xml, named by the RSS outputFormat baseName.
+		@site_feed path_regexp sf ^/(?:feed|comments/feed|about/feed)/?$
+		redir @site_feed /feed.xml 301
+
+		@blogger_feed path /feeds/posts/default /feeds/posts/default/
+		redir @blogger_feed /feed.xml 301
+
+		# Every monthly archive path answers, including dates the blog never covered.
+		# The archive index is where a visitor can actually find the month.
+		@blogger_archive path_regexp ^/\d{4}_\d{2}_01_archive\.html$
+		redir @blogger_archive /all/ 301
+
+		@blogger_page path_regexp bp ^/p/([^/]+)\.html$
+		redir @blogger_page /{re.bp.1}/ 301
+
+		# Hugo builds no year or month archive.
+		# The archive index beats the home page for someone following a dated link.
+		@date_archive path_regexp ^/\d{4}(/\d{2})?(/page/\d+)?/?$
+		redir @date_archive /all/ 301
+
+		# Single-author blog, so every author URL duplicates the home page.
+		# The author feed belongs to this class and 404s if the pattern omits it.
+		@author path_regexp ^/author/[^/]+(/(page/\d+|feed))?/?$
+		redir @author / 301
+
+		@label path_regexp label ^/search/label/([^/]+)/?$
+		redir @label {by_label} 301
+
+		# The media tree lives under a different prefix than the one the old site served.
+		# This rule keeps every legacy image URL alive for hotlinks and search results.
+		@uploads path_regexp up ^/wp-content/uploads/(.*)$
+		redir @uploads /media/{re.up.1} 301
+
+		redir @mapped {mapped} 301
+
+		# The proxy forwards Accept-Encoding unchanged and adds no compression of its own.
+		# Serving the precompressed siblings here is what reaches the client.
+		file_server {
+			precompressed br gzip
+		}
+	}
+
+	handle_errors {
+		rewrite * /404.html
+		file_server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

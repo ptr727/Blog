@@ -1,0 +1,41 @@
+{
+  "version": "0.2",
+  "language": "en-US",
+  "ignorePaths": [
+    ".git/**",
+    "content/**",
+    "static/**",
+    "themes/**",
+    "deploy/maps/**",
+    "checks/*.txt",
+    "**/*.min.*"
+  ],
+  "ignoreRegExpList": [
+    "/```mermaid[\\s\\S]*?```/g"
+  ],
+  "words": [
+    "attachmentpage",
+    "backblaze",
+    "blogdeploy",
+    "blogdotinsanegenius",
+    "brotli",
+    "caddyfile",
+    "codegen",
+    "dependabot",
+    "goldmark",
+    "insanegenius",
+    "nbgv",
+    "nonroot",
+    "pangolin",
+    "papermod",
+    "permalinks",
+    "photon",
+    "proxmox",
+    "racknerd",
+    "taxonomies",
+    "traefik",
+    "unattended",
+    "viljoen",
+    "wxr"
+  ]
+}

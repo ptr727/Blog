@@ -1,0 +1,79 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Lint: Markdown",
+      "type": "process",
+      "command": "markdownlint-cli2",
+      "args": [
+        "**/*.md"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Lint: Spelling",
+      "type": "process",
+      "command": "cspell",
+      "args": [
+        "--no-progress",
+        "README.md",
+        "HISTORY.md"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Lint: Shell",
+      "type": "process",
+      "command": "shellcheck",
+      "args": [
+        "deploy/make-release.sh",
+        "checks/check-live-urls.sh"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Lint: Shell Format",
+      "type": "process",
+      "command": "shfmt",
+      "args": [
+        "-d",
+        "deploy/make-release.sh",
+        "checks/check-live-urls.sh"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Build: Site",
+      "type": "process",
+      "command": "hugo",
+      "args": [
+        "--gc",
+        "--minify",
+        "--panicOnWarning"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Check: URL Parity",
+      "type": "process",
+      "command": "checks/check-url-parity.py",
+      "args": [
+        "public"
+      ],
+      "dependsOn": "Build: Site",
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean Compile",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Lint: Markdown",
+        "Lint: Spelling",
+        "Lint: Shell",
+        "Lint: Shell Format",
+        "Check: URL Parity"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

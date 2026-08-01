@@ -1,0 +1,5 @@
+
+<video controls preload="metadata">
+  <source src="{{ .Get "src" }}" type="video/{{ replace (path.Ext (.Get "src")) "." ""}}">
+  Your browser does not support the video element.
+</video>

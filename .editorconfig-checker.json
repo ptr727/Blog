@@ -1,0 +1,16 @@
+{
+  "Exclude": [
+    "^static/media/",
+    "^static/external/",
+    "^themes/",
+    "\\.(ico|png|jpg|jpeg|gif|webp|mov|zip)$"
+  ],
+  "Disable": {
+    "Charset": true,
+    "Indentation": true,
+    "IndentSize": true,
+    "TrimTrailingWhitespace": true,
+    "InsertFinalNewline": true,
+    "MaxLineLength": true
+  }
+}

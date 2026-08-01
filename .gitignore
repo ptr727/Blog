@@ -1,0 +1,36 @@
+# Hugo generated roots.
+# `public/` is the rendered site, larger than the source that produces it.
+# `resources/_gen/` is the asset-pipeline cache.
+# Both are rebuilt by every `hugo` invocation, so committing either recovers no information.
+public/
+resources/_gen/
+.hugo_build.lock
+hugo_stats.json
+
+# There is deliberately no blanket `*.br` or `*.gz` rule.
+# CI precompresses into `public/`, which is already ignored above.
+# Such a rule would guard nothing while silently swallowing any archive the content links to.
+# `static/media/` already carries three `.zip` downloads.
+
+# Editor and OS
+.idea
+.vs
+.DS_Store
+*.user
+.claude
+
+# Python byproducts from the check and redirect-map generators under `checks/`.
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Host-specific values: deploy roots, base URLs, container names, and uids.
+# Each names one particular machine rather than the project.
+# The whole directory is ignored so a value added later lands ignored by default.
+# `deploy/env.example` is the committed template and sits outside the directory.
+secrets/
+**/secrets
+.env

@@ -1,0 +1,8 @@
+# The only Caddy file outside the release bundle.
+# It belongs in the container's stable config directory, wherever the orchestrator mounts /config.
+#
+# It carries no rules of its own.
+# Everything describing the site ships inside the release, so a rollback reverts rules and content together.
+# Rules held here instead would leave a rolled-back site being served by the current release's redirects.
+
+import /srv/blog/current/Caddyfile

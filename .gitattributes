@@ -1,0 +1,41 @@
+# Git stays passive on line endings by default.
+# The .editorconfig end_of_line rules guide what the editor writes.
+# The pins below are git's own enforcement for execution-sensitive files.
+# - git config --global core.autocrlf false
+# - git add --renormalize .
+# - git ls-files --eol
+* -text
+
+# This repo declares LF, so .editorconfig already defaults every file to LF.
+# That does not make the pins below redundant.
+# `* -text` keeps git passive, so .editorconfig binds only the editor.
+# An explicit `text eol=lf` is what binds git on checkout and on renormalize.
+# Execution-sensitive files therefore get both.
+
+# A CRLF shebang breaks execution, so scripts stay LF regardless of the default.
+*.sh text eol=lf
+
+# The URL-parity and redirect-map generators are shebang-executable and run by path in CI.
+# They are pinned individually rather than by a blanket `*.py` rule.
+checks/build-redirects.py text eol=lf
+checks/check-url-parity.py text eol=lf
+
+# These formats are parsed line by line by a daemon rather than by a shell.
+# Caddy and OpenSSH both reject or silently mis-parse a CRLF file.
+# The deploy shell is an extensionless shebang script that matches no rule above.
+deploy/Caddyfile text eol=lf
+deploy/blog-deploy-shell text eol=lf
+deploy/authorized_keys text eol=lf
+
+# Caddy map files are tabular data read by `map` directives.
+# They stay LF for the same reason as the Caddyfile.
+deploy/maps/*.map text eol=lf
+
+# Media is 566 MB of images, video, and archives across two trees.
+# `* -text` already stops git normalizing them.
+# `binary` additionally suppresses textual diff and merge.
+# That keeps a `git log -p` or a bad merge from rendering a 4 MB PNG as text.
+# Extensions present are png, jpg, gif, webp, mov, zip, and ico, with nothing textual.
+static/media/** binary
+static/external/** binary
+*.ico binary

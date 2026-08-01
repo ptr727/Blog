@@ -1,0 +1,87 @@
+baseURL: https://blog.insanegenius.com/
+locale: en
+title: Pieter Viljoen's Blog
+theme: PaperMod
+
+# The map is singular to plural, and the plural is also the front-matter key.
+# Renaming these to singular matches nothing and generates zero term pages.
+# The URL shape is corrected under permalinks instead.
+taxonomies:
+  category: categories
+  tag: tags
+
+# The old site serves singular term paths and Hugo defaults to plural.
+# Without these every archive URL breaks silently.
+permalinks:
+  posts: /:year/:month/:day/:slug/
+  taxonomy:
+    categories: /category/
+    tags: /tag/
+  term:
+    categories: /category/:slug/
+    tags: /tag/:slug/
+
+# An unresolved ref is a broken internal link, so the build fails rather than ships it.
+refLinksErrorLevel: ERROR
+
+# The deploy rebuilds the site rather than receiving it as an artifact, so the build stays reproducible.
+enableGitInfo: false
+
+params:
+  description: My discoveries, frustrations, and delights
+  defaultTheme: auto
+  disableThemeToggle: true
+  showReadingTime: true
+  showToc: true
+  tocOpen: false
+  showBreadCrumbs: true
+  showCodeCopyButtons: true
+  showPostNavLinks: true
+  hideFooter: false
+  # Read-only archive, with no comments, sharing, or interaction of any kind.
+  comments: false
+  showShareButtons: false
+  assets:
+    favicon: /favicon.ico
+    favicon16x16: /favicon-16x16.png
+    favicon32x32: /favicon-32x32.png
+    apple_touch_icon: /apple-touch-icon.png
+    # No vector source exists for a mask icon, so this points at the PNG rather than a 404.
+    safari_pinned_tab: /apple-touch-icon.png
+    disableHLJS: true
+  # The theme prints this value directly, so a map renders as a literal Go map on every page.
+  author: Pieter Viljoen
+
+markup:
+  highlight:
+    codeFences: true
+    guessSyntax: true
+    style: monokai
+  goldmark:
+    renderer:
+      # Imported posts are years of raw HTML, which is stripped without this and renders as plain text.
+      unsafe: true
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON
+
+outputFormats:
+  RSS:
+    mediaType: application/rss+xml
+    # The old site served the feed at a path with no extension, and this name keeps the redirect trivial.
+    baseName: feed
+
+menu:
+  main:
+    - name: Archive
+      url: /all/
+      weight: 10
+    - name: Search
+      url: /search/
+      weight: 20
+    - name: About
+      url: /about/
+      weight: 30
