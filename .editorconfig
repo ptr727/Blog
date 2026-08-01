@@ -21,6 +21,11 @@ indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
+# Shell scripts indent with tabs, which is the shell convention and what `<<-` heredocs require.
+# The formatter reads this file, so declaring it here is what keeps `shfmt -d` agreeing with the scripts.
+[*.sh]
+indent_style = tab
+
 # Two trailing spaces are a hard line break in Markdown.
 # Trimming them silently rewrites the content.
 [*.md]

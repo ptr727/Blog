@@ -1,0 +1,67 @@
+name: Publish project release action
+
+on:
+  workflow_dispatch:
+
+# A publish is a deliberate dispatch, so runs serialize on one group and queue rather than cancel.
+# That keeps a run from being left with a half-created GitHub release.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+
+  # The same reusable gate the PR runs - a dispatch cannot release a ref that fails validation.
+  validate:
+    name: Validate sources job
+    uses: ./.github/workflows/validate-task.yml
+    permissions:
+      contents: read
+
+  # Publish the dispatched branch, where main is a release and develop a prerelease.
+  # NBGV computes the tag from the ref, then a GitHub release is created.
+  # The release is the tag plus the auto source archive, README, and LICENSE.
+  # This is a source-only repo, so there are no build targets.
+  publish:
+    name: Publish project release job
+    runs-on: ubuntu-latest
+    needs: [ validate ]
+    permissions:
+      contents: write
+
+    steps:
+
+      - name: Assert dispatch ref step
+        run: |
+          set -Eeuo pipefail
+          if [ "${{ github.ref_name }}" != "main" ] && [ "${{ github.ref_name }}" != "develop" ]; then
+            echo "::error::Dispatch publish-release from main (release) or develop (prerelease); got ${{ github.ref_name }}."
+            exit 1
+          fi
+
+      # Full history for NBGV; pin the dispatch-time commit - a push landing after dispatch must not release unvalidated.
+      - name: Checkout code step
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      # NBGV versions the dispatched ref: main is the public-release ref (clean X.Y.Z), develop a prerelease.
+      # The action brings its own toolchain, so this repo needs no .NET SDK of its own.
+      - name: Compute version step
+        id: nbgv
+        uses: dotnet/nbgv@master
+
+      # Create-or-refresh: every trigger here is a dispatch, so an existing tag is refreshed, never skipped.
+      # The target_commitish input pins the tag to the exact built commit, not the default branch.
+      # The release is the tag plus GitHub's auto source archive, README, and LICENSE, with no build assets.
+      - name: Create GitHub release step
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
+        with:
+          generate_release_notes: true
+          tag_name: ${{ steps.nbgv.outputs.SemVer2 }}
+          target_commitish: ${{ steps.nbgv.outputs.GitCommitId }}
+          prerelease: ${{ github.ref_name != 'main' }}
+          files: |
+            LICENSE
+            README.md

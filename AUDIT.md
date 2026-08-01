@@ -6,7 +6,12 @@ The ground truth is what this repo commits: the payloads in [`repo-config/`](./r
 
 ## Scope
 
-This repo declares `types: ["source-only"]` and `workflowModel: operational` with `lineEndings: "lf"`.
+This repo declares `types: ["source-only"]` and `workflowModel: release` with `lineEndings: "lf"`.
+
+Two of those three are deliberate deviations from what the fleet spec would predict, recorded here rather than left to be rediscovered as drift:
+
+- **`lineEndings: "lf"` on a `release` repo.** [`GOVERNANCE.md` "Line Endings"](./GOVERNANCE.md#line-endings) grants the native-platform default to operational repos only and holds `release` repos to the CRLF fleet default. Every consumer here is Linux: Hugo builds in CI, Caddy and OpenSSH read their config on Ubuntu, and the deploy scripts run there. Taking CRLF would mean an LF override for the shell scripts, the workflow YAML, the Caddyfile, the generated Caddy maps, and the content tree, which is the over-normalization that rule exists to prevent. The rule ties the ending to the workflow model when the thing that actually determines it is the consuming platform.
+- **`types: ["source-only"]` rather than `docs`.** `docs` detects a "governance-only repo" and asserts that CI runs linting only with no build. Both are false here, since this repo builds a site with Hugo and gates it on a URL contract. `source-only` detects "no `build-*-task.yml`", which is true, and its checks describe the release shape this repo actually has. Both selectors resolve to the same 24 baseline files, so the choice costs nothing and only one of them is honest.
 
 Three dimensions, each independently checkable:
 
@@ -17,14 +22,14 @@ Three dimensions, each independently checkable:
 ## 1. Settings and Rulesets
 
 ```sh
-repo-config/configure.sh check ptr727/Blog operational
+repo-config/configure.sh check ptr727/Blog release
 ```
 
 Exits non-zero on any drift. It asserts rule presence, merge methods, and required checks rather than diffing bytes, so a ruleset GitHub has normalized does not false-positive.
 
 Two facts specific to this repo:
 
-- The `develop` payload is [`repo-config/operational/develop.json`](./repo-config/operational/develop.json), which permits direct signed pushes. `repo-config/develop.json` is the `release` variant and is **absent** here. Carrying it would apply the wrong ruleset.
+- The `develop` payload is [`repo-config/develop.json`](./repo-config/develop.json), the `release` variant, which gates `develop` behind a pull request and the required status check. The `operational/develop.json` variant permits direct signed pushes and is **absent** here. Carrying it would apply the wrong ruleset.
 - The required check binds by name, `Check pull request workflow status job`, and turns green only after the pull request workflow has run once.
 
 ## 2. Secrets

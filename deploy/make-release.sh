@@ -33,7 +33,10 @@ ROOT="${1:-${DEPLOY_ROOT:-}}"
 # CI passes the version so a release directory traces back to a commit rather than to a clock.
 VERSION="${2:-$(date -u +%Y%m%d-%H%M%S)}"
 
-command -v hugo >/dev/null || { echo "hugo not found on PATH" >&2; exit 1; }
+command -v hugo >/dev/null || {
+	echo "hugo not found on PATH" >&2
+	exit 1
+}
 
 cd "$REPO"
 
@@ -124,7 +127,11 @@ bad_files=$(find "$STAGE/site" "$STAGE/maps" -type f ! -perm -o=r | head -20)
 bad_dirs=$(find "$STAGE/site" "$STAGE/maps" -type d ! -perm -o=x | head -20)
 if [ -n "$bad_files" ] || [ -n "$bad_dirs" ]; then
 	echo "release is not world-readable, so Caddy would 403 on these paths:" >&2
+	# Each value holds many lines, and the substitution prefixes every one of them.
+	# Parameter expansion replaces within a single string, so it does not express this.
+	# shellcheck disable=SC2001
 	if [ -n "$bad_files" ]; then echo "$bad_files" | sed 's/^/  file /' >&2; fi
+	# shellcheck disable=SC2001
 	if [ -n "$bad_dirs" ]; then echo "$bad_dirs" | sed 's/^/  dir  /' >&2; fi
 	echo "if these arrived via --link-dest, rebuild once with NO_LINK_DEST=1 to break the chain" >&2
 	exit 1
@@ -167,6 +174,9 @@ if [ "$remaining" -gt "$KEEP_RELEASES" ]; then
 	echo "prune failed: $remaining releases remain, expected at most $KEEP_RELEASES" >&2
 	exit 1
 fi
-[ -d "$ROOT/current/site" ] || { echo "current/ does not resolve to a release" >&2; exit 1; }
+[ -d "$ROOT/current/site" ] || {
+	echo "current/ does not resolve to a release" >&2
+	exit 1
+}
 
 echo "==> done: $VERSION live, $remaining release(s) retained, $removed pruned"

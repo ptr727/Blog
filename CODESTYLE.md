@@ -351,7 +351,7 @@ Follow the scope hierarchy in [Analyzer Diagnostics and Suppressions][analyzer-d
 
 The deploy and check scripts are Bash. They run on a Linux host and in CI, never on Windows, so `.gitattributes` and `.editorconfig` pin them to LF.
 
-### Toolchain
+### Linter and Formatter
 
 `shellcheck` is the linter and `shfmt` the formatter. The clean-compile is `shellcheck` clean at default severity plus `shfmt -d`, both reporting nothing before a commit.
 

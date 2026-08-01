@@ -1,0 +1,101 @@
+name: Validate task
+
+# The single validation gate, reused by test-pull-request (feeding the required check) and publish-release.
+
+on:
+  workflow_call:
+
+env:
+  # Hugo is pinned by version and checksum rather than installed from a floating action.
+  # The site build is only reproducible if the generator is, and a minor Hugo bump can change output.
+  # Update both values together, from the checksums file on the Hugo release.
+  HUGO_VERSION: 0.164.0
+  HUGO_SHA256: 8325f3653032d0fc536503691f4833dc4eb6c6be02ee62466758f3f37a7f2fcd
+
+jobs:
+
+  # Source-only repo: lint plus a site build gated on the URL contract, using the same configs the editor uses.
+  # There are no unit tests, because the thing under test is a set of URLs rather than a library.
+  lint:
+    name: Lint sources job
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+
+      - name: Checkout code step
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # Doc linters run as pinned action wrappers.
+      # The editorconfig-checker action is install-only, so it runs via Docker instead.
+      # The markdown glob excludes the imported archive and the vendored theme.
+      # Neither is authored here, and .markdownlint-cli2.jsonc is carried verbatim so it cannot scope them.
+      - name: Lint Markdown step
+        uses: DavidAnson/markdownlint-cli2-action@8de2aa07cae85fd17c0b35642db70cf5495f1d25 # v24.0.0
+        with:
+          globs: |
+            **/*.md
+            !content/**
+            !themes/**
+            !public/**
+
+      # The cspell gate covers README + HISTORY only.
+      # Gating all *.md would mean endlessly padding cspell.json for technical terms.
+      # Broad live spell-check is the editor extension's job.
+      # See CODESTYLE.md "Markdown and Spelling".
+      - name: Spell check step
+        uses: streetsidesoftware/cspell-action@de2a73e963e7443969755b648a1008f77033c5b2 # v8.4.0
+        with:
+          files: |
+            README.md
+            HISTORY.md
+          incremental_files_only: false
+
+      - name: Lint workflows step
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+
+      - name: Check EditorConfig step
+        run: docker run --rm --pull=always -v "$PWD":/check --workdir /check mstruebing/editorconfig-checker:latest
+
+      # The shell clean-compile is shellcheck at default severity plus `shfmt -d`, both reporting nothing.
+      # The formatter reads .editorconfig, which pins these scripts to tabs.
+      - name: Lint shell scripts step
+        run: |
+          set -Eeuo pipefail
+          scripts=(checks/check-live-urls.sh deploy/make-release.sh)
+          docker run --rm --pull=always -v "$PWD":/mnt --workdir /mnt \
+            koalaman/shellcheck:stable "${scripts[@]}"
+          docker run --rm --pull=always -v "$PWD":/mnt --workdir /mnt \
+            mvdan/shfmt:latest -d "${scripts[@]}"
+
+      - name: Validate config step
+        run: |
+          set -Eeuo pipefail
+          for f in repo-config/*.json spec/*.json version.json .editorconfig-checker.json; do
+            jq empty "$f"
+          done
+          python3 -c 'import yaml,sys; yaml.safe_load(open("hugo.yaml"))'
+
+      # Pinned by checksum, so a tampered or moved artifact fails here rather than producing a wrong site.
+      - name: Install Hugo step
+        run: |
+          set -Eeuo pipefail
+          deb="hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          curl -sSLf -o "$deb" \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${deb}"
+          echo "${HUGO_SHA256}  ${deb}" | sha256sum --check --strict
+          sudo dpkg --install "$deb"
+          hugo version
+
+      # --panicOnWarning is the real gate.
+      # Two PaperMod templates are overridden in layouts/ precisely so it can stay on.
+      - name: Build site step
+        run: |
+          set -Eeuo pipefail
+          hugo --gc --minify --panicOnWarning
+
+      # The URL contract is this repo's reason to exist, so a build that drops a legacy URL fails here.
+      # 328 URLs must render, 778 legacy image URLs must resolve, and every local asset reference must exist.
+      - name: Check URL contract step
+        run: python3 checks/check-url-parity.py public

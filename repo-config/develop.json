@@ -10,12 +10,12 @@
         "ref_name": {
             "exclude": [],
             "include": [
-                "refs/heads/main"
+                "refs/heads/develop"
             ]
         }
     },
     "enforcement": "active",
-    "name": "main",
+    "name": "develop",
     "rules": [
         {
             "type": "deletion"
@@ -24,12 +24,15 @@
             "type": "non_fast_forward"
         },
         {
+            "type": "required_linear_history"
+        },
+        {
             "type": "required_signatures"
         },
         {
             "parameters": {
                 "allowed_merge_methods": [
-                    "merge"
+                    "squash"
                 ],
                 "dismiss_stale_reviews_on_push": true,
                 "require_code_owner_review": false,
