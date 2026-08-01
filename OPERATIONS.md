@@ -37,8 +37,8 @@ So release to the local mirror and run the live check **before** opening a pull 
 
 | Path | Why it needs a running server |
 | --- | --- |
-| [`deploy/Caddyfile`](./deploy/Caddyfile) | The 11 redirect rules. Rule order is load-bearing, and a regex that matches too much is silent. |
-| [`deploy/maps/`](./deploy/maps/) | The 5 lookup tables. A regenerated map can lose entries and still parse. |
+| [`deploy/Caddyfile`](./deploy/Caddyfile) | The redirect rules. Rule order is load-bearing, and a regex that matches too much is silent. |
+| [`deploy/maps/`](./deploy/maps/) | The lookup tables. A regenerated map can lose entries and still parse. |
 | `content/`, `static/` | A moved or renamed page turns a redirect destination into a 404, which the build gate does not follow. |
 | `hugo.yaml`, `layouts/` | Permalink and taxonomy changes move URLs underneath the redirects that point at them. |
 
