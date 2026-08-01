@@ -49,9 +49,11 @@ docker restart "$CADDY_CONTAINER"   # required: see below
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
-**The restart is not optional, and omitting it produces a false pass.** Caddy expands `import` at config-parse time, both for the site config and for the `map` blocks that read `maps/*.map`. It does not watch those files. Swapping the `current` symlink therefore changes what a *static file* request resolves to, per request, but the redirect rules and map tables stay exactly as they were when Caddy last loaded. Verified against the running mirror: a new map entry present in the live release on disk returned 404 until the container was restarted, then 301.
+**Restart every time, even though only some changes strictly need it.** Caddy expands `import` at config-parse time, both for the site config and for the `map` blocks that read `maps/*.map`, and it does not watch those files. Swapping the `current` symlink therefore changes what a *static file* request resolves to, per request, while the redirect rules and map tables stay exactly as they were when Caddy last loaded. Verified against the running mirror: a new map entry present in the live release on disk returned 404 until the container was restarted, then 301.
 
-That is the failure this whole loop exists to catch, so it is worth being blunt about. Change a redirect, release, and check without reloading, and the check exercises the **previous** rules. A broken redirect reports `PASS` while the shipped artifact is broken.
+So the failure is specific. **When the release changed `deploy/Caddyfile` or anything under `deploy/maps/`**, checking without a restart exercises the **previous** rules, and a broken redirect reports `PASS` while the shipped artifact is broken. A content-only release does not have this problem, because the rules Caddy already holds are still the right ones.
+
+The step is unconditional anyway, for two reasons. Deciding correctly means knowing whether anything reached the config, which is easy to get wrong when a change spans several paths or a map was regenerated as a side effect. And getting it wrong is silent, since the wrong answer is a green check rather than an error. A restart costs a few seconds on a static site, which is cheaper than reasoning about it each time.
 
 Sourcing `secrets/.env` first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then takes no arguments, and it refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows all 1,245 URLs against the running mirror, checking each redirect's destination rather than trusting its status code.
 
