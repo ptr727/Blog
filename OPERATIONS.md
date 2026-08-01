@@ -55,7 +55,9 @@ So the failure is specific. **When the release changed `deploy/Caddyfile` or any
 
 The step is unconditional anyway, for two reasons. Deciding correctly means knowing whether anything reached the config, which is easy to get wrong when a change spans several paths or a map was regenerated as a side effect. And getting it wrong is silent, since the wrong answer is a green check rather than an error. A restart costs a few seconds on a static site, which is cheaper than reasoning about it each time.
 
-Sourcing `secrets/.env` first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then takes no arguments, and it refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows all 1,245 URLs against the running mirror, checking each redirect's destination rather than trusting its status code.
+Sourcing `secrets/.env` first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and [Deploying](#deploying) below passes them explicitly, which is what CI does so a pipeline run names the commit it built rather than the clock. Either form works locally, and the argument wins over the environment.
+
+It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows all 1,245 URLs against the running mirror, checking each redirect's destination rather than trusting its status code.
 
 Expect `PASS - 1245 URLs honored`. Anything less is a finding, and the output names each URL that failed and what it answered.
 
