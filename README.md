@@ -22,6 +22,14 @@ The site itself is not distributed as a package. It is built from this source an
 
 ### Release Notes <!-- omit from toc -->
 
+**Version: 1.0**:
+
+**Summary**:
+
+- First public release. The content, media, URL contract, and deploy tooling are published as a repository for the first time.
+- The URL contract is committed ground truth and gated in CI: 328 addresses that must render, 917 that must redirect, and 778 legacy image URLs that must resolve.
+- The site is not yet serving its public address. This release is the source and its pipeline, not the cutover.
+
 See [Release History][history] for the full history.
 
 ## Table of Contents <!-- omit from toc -->

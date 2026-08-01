@@ -21,6 +21,7 @@
     "brotli",
     "caddyfile",
     "codegen",
+    "cutover",
     "dependabot",
     "goldmark",
     "insanegenius",
