@@ -80,7 +80,15 @@ Floor assertions are present and below the real counts, so a truncated list fail
 checks/check-live-urls.sh:18  FLOOR=(["golden-urls.txt"]=320 ["redirect-urls.txt"]=900)
 ```
 
-**The live redirect gate has still not run.** `checks/check-live-urls.sh` is what proves the 917 redirects, and a redirect is the web server's job that no build can prove. It has passed against the local mirror for all 1,245 URLs, but not against this build and not from CI. The redirect half of the contract remains asserted rather than currently proven, and it stays that way until the VPS exists.
+**The redirect half is proven, against a running server rather than a build.** `deploy/make-release.sh` installs the build on the local mirror, then `checks/check-live-urls.sh` follows all 1,245 URLs against it, checking each redirect's destination rather than trusting its status code:
+
+```text
+==> checking 328 URLs that must render
+==> checking 917 URLs that must redirect
+PASS - 1245 URLs honored
+```
+
+That is a local mirror, not CI and not production. CI cannot run it, because the validation workflow has no server to point at, so this remains a pre-pull-request step documented in [OPERATIONS.md](../../OPERATIONS.md) rather than an automated gate. It becomes automatable once staging exists.
 
 ## Baseline File Presence
 
@@ -113,7 +121,7 @@ Both are recorded in [AUDIT.md](../../AUDIT.md) and reported upstream, so neithe
 
 Carried forward rather than closed:
 
-- The live redirect gate has not run against this build, so 917 of the 1,245 contracted URLs are asserted rather than proven.
+- The redirect half of the contract is proven only against the local mirror, by hand, before a pull request. CI has no server to point at, so nothing enforces it automatically until staging exists.
 - `publish-release.yml` has never been dispatched, so the release path is untested.
 - No deploy exists, so the publish surface stays deferred and the registry entry stays `publish: []`.
 - `checks/README.md` carries a small prose backlog of `dash` and `semicolon` findings, left for the next edit of that file per the correct-as-you-next-edit rule.

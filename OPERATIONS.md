@@ -29,6 +29,31 @@ Shipping the config inside the release is what makes a rollback honest. The rule
 
 `current` is a **relative** symlink. That frees the host path, so one bundle works at whatever root each environment mounts, with no rewriting.
 
+## Local Verification Before a Pull Request
+
+**CI cannot prove a redirect.** The validation workflow builds the site and checks the render half of the contract, which is every URL that must return a page. The other 917 URLs are the web server's job, and nothing in a build exercises them. A change to the Caddy config or to a generated map is therefore invisible to CI: the workflow goes green while the redirect it broke stays broken until someone follows a sixteen-year-old link.
+
+So release to the local mirror and run the live check **before** opening a pull request that touches any of these:
+
+| Path | Why it needs a running server |
+| --- | --- |
+| [`deploy/Caddyfile`](./deploy/Caddyfile) | The redirect rules. Rule order is load-bearing, and a regex that matches too much is silent. |
+| [`deploy/maps/`](./deploy/maps/) | The lookup tables. A regenerated map can lose entries and still parse. |
+| `content/`, `static/` | A moved or renamed page turns a redirect destination into a 404, which the build gate does not follow. |
+| `hugo.yaml`, `layouts/` | Permalink and taxonomy changes move URLs underneath the redirects that point at them. |
+
+```sh
+set -a; . secrets/.env; set +a
+deploy/make-release.sh
+checks/check-live-urls.sh "$HUGO_BASEURL"
+```
+
+Sourcing `secrets/.env` first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then takes no arguments, and it refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows all 1,245 URLs against the running mirror, checking each redirect's destination rather than trusting its status code.
+
+Expect `PASS - 1245 URLs honored`. Anything less is a finding, and the output names each URL that failed and what it answered.
+
+A documentation-only or workflow-only change does not need this. A change to the four paths above does, because for those CI's green is not evidence.
+
 ## Deploying
 
 ```sh
