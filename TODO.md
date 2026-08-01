@@ -4,34 +4,31 @@ Running backlog for this repo, kept in a committed file so the work survives acr
 
 ## State
 
-The site is built, gated, and proven against a real server. It is not yet on GitHub and not yet serving its public address.
+The site is built and gated in CI. It is on GitHub, and it is not yet serving its public address.
 
 | Piece | State |
 | --- | --- |
 | Content and media | done. 514 pages, 778 media files hash-verified against the export tar |
 | URL contract | done. 328 render, 917 redirect, 778 legacy image URLs, all gated |
 | Deploy shape | done and proven against a running Caddy, on a local mirror |
-| CI workflows | written and locally verified, never yet run on GitHub |
-| GitHub repo | does not exist |
+| CI workflows | green. Validation runs on every pull request and feeds the required check |
+| GitHub repo | public, both rulesets active, `configure.sh check` exits 0 |
 | VPS | untouched |
 
 ## Blocked on the maintainer
 
-- Create `ptr727/Blog` as a **public** repo, since an outward-facing write needs explicit per-repo permission. Everything below the first push depends on it, and nothing local can reveal the problems that only appear once CI runs for real.
-- Install the GitHub App and set `CODEGEN_APP_CLIENT_ID` and `CODEGEN_APP_PRIVATE_KEY` in **both** the Actions and Dependabot stores. The App must be installed rather than only created, and `CODEGEN_APP_ID` must stay absent because it is a `forbids` and the deprecated input silently does nothing.
 - Install `shellcheck`, `shfmt`, `nodejs`, and `npm`, then `markdownlint-cli2` and `cspell`, so the lint gate can run locally instead of only in CI. Every one of them currently runs here through Docker, which works but is slower than it should be for an edit loop.
+- Read the migration post before it ships, since it is written in the maintainer's voice and has not been reviewed.
 
 ## Next, in dependency order
 
-- Push `main` and `develop`, then let the pull request workflow run **once** before any ruleset is applied. The `main` ruleset requires a check named `Check pull request workflow status job`, which binds by name and only reports after a run, so applying rulesets first deadlocks the first pull request.
-- Run `repo-config/configure.sh apply ptr727/Blog release`, then `check` until it exits 0. Going public also enables Discussions, which `configure.sh` derives from visibility.
-- Run `AUDIT.md` end to end and commit the result to `reports/Blog/audit.md`, recording the publish and release dimensions as deferred rather than passing.
+- Dispatch `publish-release.yml` once to prove the release path, which exists but has never run.
+- Decide on `merge-bot-pull-request.yml`. Dependabot is configured and its pull requests will otherwise sit open, and the App secrets it needs are now in place.
 - Provision the VPS: an unprivileged `blogdeploy` user, the deploy root, and `unattended-upgrades` with automatic reboot.
 - Restrict the deploy key with `restrict,command=...`, no pty and no forwarding, so it can do nothing but rsync into `releases/` and swap the symlink. Generate per-environment keys so staging cannot reach production.
 - Choose the staging FQDN, add its DNS record, and expose it through Pangolin as a public resource with **no auth**, since CI's live-URL check has to reach it. Authentication defaults to on for a public resource and has to be turned off deliberately.
 - Write `deploy-site.yml` and prove it: a dry run that mutates nothing, then a real run, then a forced mid-deploy failure to confirm rollback keeps the site up. Report the measured deploy shape back to [ProjectTemplate#456][hub-issue], which is waiting on it before the publish type can be defined.
 - Deploy to a temporary production FQDN and validate there before touching the live record. Lower the `blog` A-record TTL to 60s a day ahead, then flip it to the VPS, unproxied.
-- Read the migration post once more before it ships, since it is written in the maintainer's voice and has not been reviewed.
 - Watch server logs for 404s daily for the first week, because real traffic finds what the golden list missed. Append anything new to `checks/golden-urls.txt` and add a redirect.
 - Add the weekly non-blocking external-link-check workflow, which is the one gate that cannot be blocking because it fails on other people's outages.
 - Decommission WordPress.com only after **30 clean days**, and downgrade to free rather than deleting, which keeps the media reachable as a safety net and preserves the ability to re-export. Do not start sooner: the conversion fetched media over HTTP from the live site.
