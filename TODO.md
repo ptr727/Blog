@@ -36,7 +36,7 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 
 - The staging FQDN name.
 - `/robots.txt/` and `/osd.xml/` currently sit in `slugs.map` pointing at `/`. The first would be better pointing at the real `/robots.txt`.
-- Whether the 78 legacy date-archive redirects should point at `/all/` rather than `/`, so a visitor following a `/2015/` link lands somewhere they can find 2015 posts. It is a one-line change to rule R3.
+- Whether the 78 legacy date-archive redirects should point at `/all/` rather than `/`, so a visitor following a `/2015/` link lands somewhere they can find 2015 posts. It is a one-line change to the `@date_archive` rule in the Caddyfile.
 
 ## Deliberate deviations from the fleet baseline
 

@@ -67,7 +67,7 @@ From the first run on `main`:
 hugo v0.164.0+extended            (pinned by version and sha256)
 Pages 514 | Total in 858 ms       (zero warnings under --panicOnWarning)
 render : 328/328 golden URLs built
-media  : 778/778 legacy image URLs resolve after the R8 rewrite
+media  : 778/778 legacy image URLs resolve after the @uploads rewrite
 assets : 1012/1012 local asset references resolve
 PASS - the built site honors the URL contract
 ```

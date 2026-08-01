@@ -62,10 +62,10 @@ def check_media(public):
     for url in legacy:
         rewritten = re.sub(r"^/wp-content/uploads/", "/media/", url)
         if rewritten == url:
-            missing.append(f"{url} (does not match the R8 rewrite prefix)")
+            missing.append(f"{url} (does not match the @uploads rewrite prefix)")
         elif not (public / rewritten.lstrip("/")).is_file():
             missing.append(url)
-    print(f"media  : {len(legacy) - len(missing)}/{len(legacy)} legacy image URLs resolve after the R8 rewrite")
+    print(f"media  : {len(legacy) - len(missing)}/{len(legacy)} legacy image URLs resolve after the @uploads rewrite")
     return missing
 
 
