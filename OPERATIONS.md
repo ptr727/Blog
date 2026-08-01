@@ -101,6 +101,30 @@ The container mounts the deploy root **read-only**, and mounts the **parent** ra
 
 Routing differs by environment and the bundle does not. Traefik on the home host has the Docker provider enabled, so container labels route. Pangolin's Traefik on the VPS does not, so routing there is created in the Pangolin UI and labels are silently ignored.
 
+### The bootstrap, and why it is not in the release
+
+The container reads three host paths, and only one of them a release ever writes:
+
+| Host path | Mounted at | Written by |
+| --- | --- | --- |
+| `$DEPLOY_ROOT` | `/srv/blog`, read-only | every release |
+| `$CADDY_APPDATA/config` | `/config` | placed once, by hand |
+| `$CADDY_APPDATA/data` | `/data` | Caddy itself, persisting state across a recreate |
+
+[`deploy/bootstrap.Caddyfile`](./deploy/bootstrap.Caddyfile) goes in the `config` directory and is the **only** Caddy file outside the release bundle. It carries a single `import` and no rules of its own, deliberately: everything describing the site ships inside the release, so a rollback reverts the rules and the content together. Rules held here instead would leave a rolled-back site being served by the current release's redirects.
+
+Because it sits outside the bundle, no release updates it. Install or refresh it explicitly:
+
+```sh
+set -a; . secrets/.env; set +a
+install -m 644 deploy/bootstrap.Caddyfile "$CADDY_APPDATA/config/Caddyfile"
+docker restart blog
+```
+
+The restart is needed only when the bootstrap itself changes. A normal release needs none, because the `current` symlink is resolved per request.
+
+`CADDY_APPDATA` is recorded in `secrets/.env` for exactly this reason. No script reads it, so a rebuild would otherwise depend on someone remembering where the bootstrap goes.
+
 ## Redirects
 
 The site answers roughly a thousand addresses it does not render. They are satisfied by eleven regular-expression rules and five map files, all inside the bundle.
