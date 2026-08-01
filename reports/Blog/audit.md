@@ -80,7 +80,7 @@ Floor assertions are present and below the real counts, so a truncated list fail
 checks/check-live-urls.sh:18  FLOOR=(["golden-urls.txt"]=320 ["redirect-urls.txt"]=900)
 ```
 
-**The redirect half is proven, against a running server rather than a build.** `checks/check-live-urls.sh` releases to the local mirror and follows all 1,245 URLs, checking each redirect's destination rather than trusting its status code:
+**The redirect half is proven, against a running server rather than a build.** `deploy/make-release.sh` installs the build on the local mirror, then `checks/check-live-urls.sh` follows all 1,245 URLs against it, checking each redirect's destination rather than trusting its status code:
 
 ```text
 ==> checking 328 URLs that must render

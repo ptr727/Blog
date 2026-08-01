@@ -43,11 +43,12 @@ So release to the local mirror and run the live check **before** opening a pull 
 | `hugo.yaml`, `layouts/` | Permalink and taxonomy changes move URLs underneath the redirects that point at them. |
 
 ```sh
+set -a; . secrets/.env; set +a
 deploy/make-release.sh
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
-Both values come from `secrets/.env`, so neither needs an argument locally. The first command refuses to install a release that fails the build gate, and the second follows all 1,245 URLs against the running mirror, checking each redirect's destination rather than trusting its status code.
+Sourcing `secrets/.env` first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then takes no arguments, and it refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows all 1,245 URLs against the running mirror, checking each redirect's destination rather than trusting its status code.
 
 Expect `PASS - 1245 URLs honored`. Anything less is a finding, and the output names each URL that failed and what it answered.
 
