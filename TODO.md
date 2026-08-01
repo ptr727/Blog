@@ -23,7 +23,6 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 ## Next, in dependency order
 
 - Dispatch `publish-release.yml` once to prove the release path, which exists but has never run.
-- Re-derive the rule counts in `deploy/README.md`. It says "11 regex rules plus 5 map files", while the Caddyfile carries 13 `redir` directives, so the R1 to R11 numbering does not map one-to-one onto what the file actually does. Found by review on #5, where the same count was quoted and has since been dropped rather than guessed at.
 - Provision the VPS: an unprivileged `blogdeploy` user, the deploy root, and `unattended-upgrades` with automatic reboot.
 - Restrict the deploy key with `restrict,command=...`, no pty and no forwarding, so it can do nothing but rsync into `releases/` and swap the symlink. Generate per-environment keys so staging cannot reach production.
 - Choose the staging FQDN, add its DNS record, and expose it through Pangolin as a public resource with **no auth**, since CI's live-URL check has to reach it. Authentication defaults to on for a public resource and has to be turned off deliberately.

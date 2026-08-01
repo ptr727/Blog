@@ -45,8 +45,15 @@ So release to the local mirror and run the live check **before** opening a pull 
 ```sh
 set -a; . secrets/.env; set +a
 deploy/make-release.sh
+docker restart "$CADDY_CONTAINER"   # required: see below
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
+
+**Restart every time, even though only some changes strictly need it.** Caddy expands `import` at config-parse time, both for the site config and for the `map` blocks that read `maps/*.map`, and it does not watch those files. Swapping the `current` symlink therefore changes what a *static file* request resolves to, per request, while the redirect rules and map tables stay exactly as they were when Caddy last loaded. Verified against the running mirror: a new map entry present in the live release on disk returned 404 until the container was restarted, then 301.
+
+So the failure is specific. **When the release changed `deploy/Caddyfile` or anything under `deploy/maps/`**, checking without a restart exercises the **previous** rules, and a broken redirect reports `PASS` while the shipped artifact is broken. A content-only release does not have this problem, because the rules Caddy already holds are still the right ones.
+
+The step is unconditional anyway, for two reasons. Deciding correctly means knowing whether anything reached the config, which is easy to get wrong when a change spans several paths or a map was regenerated as a side effect. And getting it wrong is silent, since the wrong answer is a green check rather than an error. A restart costs a few seconds on a static site, which is cheaper than reasoning about it each time.
 
 Sourcing `secrets/.env` first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then takes no arguments, and it refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows all 1,245 URLs against the running mirror, checking each redirect's destination rather than trusting its status code.
 
@@ -81,9 +88,12 @@ Point `current` at the previous release. The swap is a single rename, so a reque
 ```sh
 ln -sfn "releases/<previous>" "<deploy-root>/.current.tmp"
 mv -Tf "<deploy-root>/.current.tmp" "<deploy-root>/current"
+docker restart "$CADDY_CONTAINER"
 ```
 
-No restart and no reload. The container mounts the parent directory, so the kernel resolves `current` per request and the change is visible immediately.
+The content reverts on the rename alone, because the container mounts the parent directory and the kernel resolves `current` per request. **The rules do not.** Caddy holds the Caddyfile and the maps as parsed config, so without the restart a rollback serves the previous release's content under the current release's redirects, which is precisely the mismatch that shipping the config inside the bundle exists to prevent.
+
+The restart is therefore part of the rollback, not an optional follow-up. It costs a few seconds of downtime on a static site, which is the cheaper half of the trade.
 
 Verify with `checks/check-live-urls.sh` against the environment before considering the rollback finished.
 
@@ -101,9 +111,33 @@ The container mounts the deploy root **read-only**, and mounts the **parent** ra
 
 Routing differs by environment and the bundle does not. Traefik on the home host has the Docker provider enabled, so container labels route. Pangolin's Traefik on the VPS does not, so routing there is created in the Pangolin UI and labels are silently ignored.
 
+### The bootstrap, and why it is not in the release
+
+The container reads three host paths, and only one of them a release ever writes:
+
+| Host path | Mounted at | Written by |
+| --- | --- | --- |
+| `$DEPLOY_ROOT` | `/srv/blog`, read-only | every release |
+| `$CADDY_APPDATA/config` | `/config` | placed once, by hand |
+| `$CADDY_APPDATA/data` | `/data` | Caddy itself, persisting state across a recreate |
+
+[`deploy/bootstrap.Caddyfile`](./deploy/bootstrap.Caddyfile) goes in the `config` directory and is the **only** Caddy file outside the release bundle. It carries a single `import` and no rules of its own, deliberately: everything describing the site ships inside the release, so a rollback reverts the rules and the content together. Rules held here instead would leave a rolled-back site being served by the current release's redirects.
+
+Because it sits outside the bundle, no release updates it. Install or refresh it explicitly:
+
+```sh
+set -a; . secrets/.env; set +a
+install -m 644 deploy/bootstrap.Caddyfile "$CADDY_APPDATA/config/Caddyfile"
+docker restart "$CADDY_CONTAINER"
+```
+
+A restart is needed whenever **any** Caddy config changes, not only this file. That includes `deploy/Caddyfile` and anything under `deploy/maps/`, because both are expanded at config-parse time and Caddy does not watch them. Only static file requests follow the `current` symlink per request. See "Local Verification Before a Pull Request" above, where skipping the restart is the difference between a real check and a false pass.
+
+`CADDY_APPDATA` is recorded in `secrets/.env` for exactly this reason. No script reads it, so a rebuild would otherwise depend on someone remembering where the bootstrap goes.
+
 ## Redirects
 
-The site answers roughly a thousand addresses it does not render. They are satisfied by eleven regular-expression rules and five map files, all inside the bundle.
+The site answers 917 addresses it does not render, satisfied by 13 `redir` directives reading 5 map files, all inside the bundle. [`deploy/README.md`](./deploy/README.md) carries the per-class breakdown and the counts; this section covers the operational shape only, so the two do not restate each other.
 
 Ordering is load-bearing, so every redirect lives in a single `route` block. Outside one, Caddy sorts directives by its own precedence rather than by file order, and the broad attachment rule claims the per-post comment feeds that the narrower rule must match first.
 
