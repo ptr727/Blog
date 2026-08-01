@@ -22,7 +22,7 @@ The site itself is not distributed as a package. It is built from this source an
 
 ### Release Notes <!-- omit from toc -->
 
-**Version: 1.0**:
+**Version**: 1.0
 
 **Summary**:
 
