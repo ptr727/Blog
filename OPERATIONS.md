@@ -29,6 +29,12 @@ Shipping the config inside the release is what makes a rollback honest. The rule
 
 `current` is a **relative** symlink. That frees the host path, so one bundle works at whatever root each environment mounts, with no rewriting.
 
+## The URL Contract
+
+This site has served the same domain across earlier platforms, so its whole operational risk is silent URL loss. Everything below exists to make that risk visible.
+
+**The contract is ground truth.** [`checks/golden-urls.txt`](./checks/golden-urls.txt) and [`checks/redirect-urls.txt`](./checks/redirect-urls.txt) record URLs verified with a live request, not predicted from the content tree. The lists are **append-only**: nothing legitimately removes a URL the site has served, so a change that would drop one is a change to reject rather than a list to shorten. A list-driven check also carries a length floor, or a truncated list passes while checking almost nothing.
+
 ## Local Verification Before a Pull Request
 
 **CI cannot prove a redirect.** The validation workflow builds the site and checks the render half of the contract, which is every URL that must return a page. The other 917 URLs are the web server's job, and nothing in a build exercises them. A change to the Caddy config or to a generated map is therefore invisible to CI: the workflow goes green while the redirect it broke stays broken until someone follows a sixteen-year-old link.
