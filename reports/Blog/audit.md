@@ -108,7 +108,7 @@ Eight carried files arrived CRLF and were normalized to LF to satisfy this repos
 
 This repository will deploy a built site to a VPS over SSH, which is a release surface the fleet spec has no type for. The measured shape will be reported to [ProjectTemplate#456][hub-issue] once CI has run a deploy, rather than predicted now. The VPS does not exist, so there is nothing to measure.
 
-`publish-release.yml` exists and is dispatch-only, but has never been dispatched. The release path is therefore untested.
+`publish-release.yml` is dispatch-only and proven end to end: release `1.0.11` on 2026-08-01 carries the tag, the source archive, the README, and the LICENSE.
 
 ## Deliberate Deviations
 
@@ -122,8 +122,7 @@ Both are recorded in [AUDIT.md](../../AUDIT.md) and reported upstream, so neithe
 Carried forward rather than closed:
 
 - The redirect half of the contract is proven only against the local mirror, by hand, before a pull request. CI has no server to point at, so nothing enforces it automatically until staging exists.
-- `publish-release.yml` has never been dispatched, so the release path is untested.
-- No deploy exists, so the publish surface stays deferred and the registry entry stays `publish: []`.
+- No deploy exists, so the publish surface stays deferred. The hub registry declares the GitHub release, which is the only channel that currently ships, and the VPS target is revisited when a deploy has actually run.
 - `checks/README.md` carries a small prose backlog of `dash` and `semicolon` findings, left for the next edit of that file per the correct-as-you-next-edit rule.
 
 <!-- Repo -->
