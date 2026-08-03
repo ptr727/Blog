@@ -3,7 +3,7 @@
 Self-audit of this repository against its own committed ground truth, per [AUDIT.md](../../AUDIT.md). Read-only, and confined to this repository.
 
 **Date:** 2026-08-01
-**Hub ref carried:** `ptr727/ProjectTemplate` `main` `6501479`
+**Hub ref carried:** `ptr727/ProjectTemplate` `main` `3a7cc64`
 **Declared:** `types: ["source-only"]`, `workflowModel: release`, `lineEndings: "lf"`
 
 ## Verdict
