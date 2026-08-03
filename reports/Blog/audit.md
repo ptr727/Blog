@@ -10,7 +10,7 @@ Self-audit of this repository against its own committed ground truth, per [AUDIT
 
 **Operational.** Every applicable check passes against the live repository.
 
-The publish and release surface is **deferred**, not failed. That deferral is declared rather than hidden, and is tracked in [ProjectTemplate#456][hub-issue], which [`STANDUP.md` section 5][standup] permits.
+The release surface passes. The **deploy** to the VPS is **deferred**, not failed, and that deferral is declared rather than hidden, tracked in [ProjectTemplate#456][hub-issue], which [`STANDUP.md` section 5][standup] permits.
 
 | Dimension | Result |
 | --- | --- |
@@ -19,7 +19,8 @@ The publish and release surface is **deferred**, not failed. That deferral is de
 | 3. The URL contract | **Pass.** Enforced by CI, not only locally |
 | Baseline file presence | **Pass.** 23 of 23 |
 | Verbatim fidelity | **Pass.** 4 of 4 |
-| Publish and release | **Deferred**, deliberately |
+| Release | **Pass.** Dispatch-only, proven by release `1.0.11` |
+| Deploy to the VPS | **Deferred**, deliberately |
 
 ## 1. Settings and Rulesets
 
@@ -102,13 +103,13 @@ That is a local mirror, not CI and not production. CI cannot run it, because the
 
 Eight carried files arrived CRLF and were normalized to LF to satisfy this repository's declared `lineEndings`. That is governed drift rather than a fidelity deviation, and it is reported upstream as an onboarding trap, since nothing in the standup text says to normalize after carrying.
 
-## Publish and Release: Deferred
+## Release Proven, Deploy Deferred
 
-`publish` is empty and `releaseTrigger` is `none`, deliberately.
+The two are separate and only one of them is outstanding.
 
-This repository will deploy a built site to a VPS over SSH, which is a release surface the fleet spec has no type for. The measured shape will be reported to [ProjectTemplate#456][hub-issue] once CI has run a deploy, rather than predicted now. The VPS does not exist, so there is nothing to measure.
+**The release is proven.** `publish-release.yml` is dispatch-only, and release `1.0.11` on 2026-08-01 carries the tag, the source archive, the README, and the LICENSE. The hub registry declares it accordingly: `publish` names the GitHub release and `releaseTrigger` is `dispatch-only`.
 
-`publish-release.yml` exists and is dispatch-only, but has never been dispatched. The release path is therefore untested.
+**The deploy is deferred.** This repository will deploy a built site to a VPS over SSH, which is a release surface the fleet spec has no type for. The measured shape will be reported to [ProjectTemplate#456][hub-issue] once CI has run a deploy, rather than predicted now. The VPS does not exist, so there is nothing to measure.
 
 ## Deliberate Deviations
 
@@ -122,8 +123,7 @@ Both are recorded in [AUDIT.md](../../AUDIT.md) and reported upstream, so neithe
 Carried forward rather than closed:
 
 - The redirect half of the contract is proven only against the local mirror, by hand, before a pull request. CI has no server to point at, so nothing enforces it automatically until staging exists.
-- `publish-release.yml` has never been dispatched, so the release path is untested.
-- No deploy exists, so the publish surface stays deferred and the registry entry stays `publish: []`.
+- No deploy exists, so the VPS deploy surface stays deferred. The GitHub release is the only channel that currently ships, which is what the hub registry declares, and the VPS target is revisited when a deploy has actually run.
 - `checks/README.md` carries a small prose backlog of `dash` and `semicolon` findings, left for the next edit of that file per the correct-as-you-next-edit rule.
 
 <!-- Repo -->

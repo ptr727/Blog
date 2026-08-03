@@ -139,7 +139,7 @@ A restart is needed whenever **any** Caddy config changes, not only this file. T
 
 ## Redirects
 
-The site answers 917 addresses it does not render, satisfied by 13 `redir` directives reading 5 map files, all inside the bundle. [`deploy/README.md`](./deploy/README.md) carries the per-class breakdown and the counts; this section covers the operational shape only, so the two do not restate each other.
+The site answers 917 addresses it does not render, satisfied by 13 `redir` directives reading 5 map files, all inside the bundle. [`deploy/README.md`](./deploy/README.md) carries the per-class breakdown and the counts. This section covers the operational shape only, so the two do not restate each other.
 
 Ordering is load-bearing, so every redirect lives in a single `route` block. Outside one, Caddy sorts directives by its own precedence rather than by file order, and the broad attachment rule claims the per-post comment feeds that the narrower rule must match first.
 

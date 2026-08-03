@@ -13,6 +13,7 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 | Deploy shape | done and proven against a running Caddy, on a local mirror |
 | CI workflows | green. Validation runs on every pull request and feeds the required check |
 | GitHub repo | public, both rulesets active, `configure.sh check` exits 0 |
+| Release pipeline | proven end to end. Release `1.0.11` carries the tag, source archive, README, and LICENSE |
 | VPS | untouched |
 
 ## Blocked on the maintainer
@@ -22,7 +23,6 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 
 ## Next, in dependency order
 
-- Dispatch `publish-release.yml` once to prove the release path, which exists but has never run.
 - Provision the VPS: an unprivileged `blogdeploy` user, the deploy root, and `unattended-upgrades` with automatic reboot.
 - Restrict the deploy key with `restrict,command=...`, no pty and no forwarding, so it can do nothing but rsync into `releases/` and swap the symlink. Generate per-environment keys so staging cannot reach production.
 - Choose the staging FQDN, add its DNS record, and expose it through Pangolin as a public resource with **no auth**, since CI's live-URL check has to reach it. Authentication defaults to on for a public resource and has to be turned off deliberately.
