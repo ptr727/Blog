@@ -49,7 +49,7 @@ Both are recorded in [AUDIT.md](./AUDIT.md) and reported to [ProjectTemplate#456
 
 Reconverged 2026-08-03. This repo is cataloged in [`registry/repos.json`][hub-registry] and the hub authored [`reports/blog/audit.md`][hub-report]. Before that it was in no registry, so no hub tool had ever measured it and the fleet ledger under-counted by exactly this repo.
 
-**Measured against hub `main` `3b802b9`**, and the ref is named because `main` moves, which is the trap below. Every verbatim section of `AGENTS.md` and `GOVERNANCE.md` byte-matches, as do both ruleset payloads and `.markdownlint-cli2.jsonc`. The one exception is `repo-config/configure.sh`, one commit behind on [ProjectTemplate#553][pr-553], which fixes the jq portability defect this repo reported as [#549][issue-549] and is owed a re-vendor. Both links above are pinned to that same ref rather than to `main`, so this record stays checkable after the hub moves again.
+**Measured against hub `main` `3b802b9eb9a841c0149d018f4db6ffa1b9419051`**, and the ref is named because `main` moves, which is the trap below. Every verbatim section of `AGENTS.md` and `GOVERNANCE.md` byte-matches, as do both ruleset payloads and `.markdownlint-cli2.jsonc`. The one exception is `repo-config/configure.sh`, one commit behind on [ProjectTemplate#553][pr-553], which fixes the jq portability defect this repo reported as [#549][issue-549] and is owed a re-vendor. Both links above are pinned to that same ref rather than to `main`, so this record stays checkable after the hub moves again.
 
 Four findings are open at the hub. None is work this repo can do, and each changes what a fleet audit of this repo means, which is why they are recorded here rather than only in the issues.
 
@@ -108,8 +108,8 @@ Secrets and variables, per environment. The App-token pair is repository-scoped 
 <!-- External -->
 
 [hub-issue]: https://github.com/ptr727/ProjectTemplate/issues/456
-[hub-registry]: https://github.com/ptr727/ProjectTemplate/blob/3b802b9/registry/repos.json
-[hub-report]: https://github.com/ptr727/ProjectTemplate/blob/3b802b9/reports/blog/audit.md
+[hub-registry]: https://github.com/ptr727/ProjectTemplate/blob/3b802b9eb9a841c0149d018f4db6ffa1b9419051/registry/repos.json
+[hub-report]: https://github.com/ptr727/ProjectTemplate/blob/3b802b9eb9a841c0149d018f4db6ffa1b9419051/reports/blog/audit.md
 [issue-549]: https://github.com/ptr727/ProjectTemplate/issues/549
 [issue-550]: https://github.com/ptr727/ProjectTemplate/issues/550
 [issue-552]: https://github.com/ptr727/ProjectTemplate/issues/552
