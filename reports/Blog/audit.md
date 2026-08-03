@@ -123,7 +123,7 @@ Both are recorded in [AUDIT.md](../../AUDIT.md) and reported upstream, so neithe
 Carried forward rather than closed:
 
 - The redirect half of the contract is proven only against the local mirror, by hand, before a pull request. CI has no server to point at, so nothing enforces it automatically until staging exists.
-- No deploy exists, so the publish surface stays deferred. The hub registry declares the GitHub release, which is the only channel that currently ships, and the VPS target is revisited when a deploy has actually run.
+- No deploy exists, so the VPS deploy surface stays deferred. The GitHub release is the only channel that currently ships, which is what the hub registry declares, and the VPS target is revisited when a deploy has actually run.
 - `checks/README.md` carries a small prose backlog of `dash` and `semicolon` findings, left for the next edit of that file per the correct-as-you-next-edit rule.
 
 <!-- Repo -->
