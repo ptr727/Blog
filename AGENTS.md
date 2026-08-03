@@ -2,18 +2,9 @@
 
 **Blog** is the source and deployment pipeline for a personal technical blog, a Hugo static site served by Caddy behind a reverse proxy. It holds the content, the media, the URL contract the site must honor, and the release tooling that builds and publishes it.
 
-This file is the entry point every coding agent reads first, and it holds only four things: this project's own conventions, the bootstrap that says where the canonical rules live and which procedure to follow for the state this repository is actually in, the rules for managing context and delegation, which apply to every task, and a map of where every other rule lives. The rule text itself is in [`GOVERNANCE.md`](./GOVERNANCE.md), one section per topic. Code style lives in [`CODESTYLE.md`](./CODESTYLE.md), the CI/CD workflow contract in [`WORKFLOW.md`](./WORKFLOW.md), and the deploy, rollback, and server procedures in [`OPERATIONS.md`](./OPERATIONS.md).
+This file is the entry point every coding agent reads first, and it holds only three things: the bootstrap that says where the canonical rules live and which procedure to follow for the state this repository is actually in, the rules for managing context and delegation, which apply to every task, and a map of where every other rule lives. The rule text itself is in [`GOVERNANCE.md`](./GOVERNANCE.md), one section per topic. Code style lives in [`CODESTYLE.md`](./CODESTYLE.md), the CI/CD workflow contract in [`WORKFLOW.md`](./WORKFLOW.md), and the deploy, rollback, and server procedures in [`OPERATIONS.md`](./OPERATIONS.md).
 
 Treat this file and `GOVERNANCE.md` as authoritative for cross-cutting rules, and do not restate their rules elsewhere. This project's own conventions and behavioral contracts live here, **not** in [`.github/copilot-instructions.md`](./.github/copilot-instructions.md), because that file targets GitHub Copilot / VS Code specifically, while this file and `GOVERNANCE.md` are the agent-agnostic ones every coding agent is directed to read, so any rule a reviewer must honor has to live in one of those two files to be provider-independent.
-
-## Project Conventions
-
-This site has served the same domain across earlier platforms, so its whole risk is silent URL loss. These bind every change.
-
-- **The URL contract is ground truth.** [`checks/golden-urls.txt`](./checks/golden-urls.txt) and [`checks/redirect-urls.txt`](./checks/redirect-urls.txt) record URLs verified with a live request. The lists are append-only. Nothing legitimately removes a URL the site has served.
-- **Never populate media over HTTP.** The source export is the only trustworthy media source, because a hosted platform serves optimized derivatives at the same filename and path. Verify by content hash, never by file count.
-- **`content/` is an archive.** It carries sixteen years of text. Prose, spelling, and style sweeps do not reach it, and rewriting it corrupts provenance rather than improving style.
-- **A gate proves itself by failing.** Every check here is demonstrated against a deliberate break before it is trusted, because a gate that has only ever passed is indistinguishable from one that checks nothing.
 
 ## Fleet Bootstrap
 
