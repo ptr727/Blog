@@ -14,6 +14,7 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 | CI workflows | green. Validation runs on every pull request and feeds the required check |
 | GitHub repo | public, both rulesets active, `configure.sh check` exits 0 |
 | Release pipeline | proven end to end. Release `1.0.11` carries the tag, source archive, README, and LICENSE |
+| Fleet conformance | cataloged in the hub registry, audited, and carrying the current canonical |
 | VPS | untouched |
 
 ## Blocked on the maintainer
@@ -44,6 +45,21 @@ Both are recorded in [AUDIT.md](./AUDIT.md) and reported to [ProjectTemplate#456
 - `lineEndings: "lf"` on a `release` repo, where the rule grants the native-platform default to operational repos only. Every consumer here is Linux.
 - `types: ["source-only"]` rather than the `docs` the hub proposed, because both `docs` predicates are false for a repo that builds a site and gates a URL contract.
 
+## Hub conformance, and what is open against the hub
+
+Reconverged 2026-08-03. This repo is cataloged in [`registry/repos.json`][hub-registry], the hub authored [`reports/blog/audit.md`][hub-report], and every verbatim unit byte-matches the canonical. Before that it was in no registry, so no hub tool had ever measured it and the fleet ledger under-counted by exactly this repo.
+
+Four findings are open at the hub. None is work this repo can do, and each changes what a fleet audit of this repo means, which is why they are recorded here rather than only in the issues.
+
+| Issue | What it means here |
+| --- | --- |
+| [#550][issue-550] | Nothing detects a repo missing from the registry, which is how this repo stayed invisible. Three other repos are still absent. |
+| [#552][issue-552] | The audit flags any carried `AGENTS.md` naming the template repo, and the byte-locked `Fleet Bootstrap` section names it. Carrying the canonical correctly cannot pass. |
+| [#554][issue-554] | `spec/audit.py` still compares `bypass_actors` after the payloads stopped declaring it, so this repo reports two DEFECTs that no agent action can clear. |
+| [#456][hub-issue] | The static-site type, still waiting on a measured deploy shape from the VPS work below. |
+
+**The live ruleset bypass is deliberate and stays.** Both rulesets carry the `RepositoryRole` admin entry. The owner is automatically an admin and holds that capability regardless, so the entry grants nothing new, and the payloads stopped declaring it because code should not be in the business of granting a bypass at all. `configure.sh check` reports it as unmanaged and exits 0. Only `spec/audit.py` disagrees, which is [#554][issue-554].
+
 ## Traps
 
 Each of these was hit or nearly hit, and each is cheap to re-trip.
@@ -56,7 +72,8 @@ Each of these was hit or nearly hit, and each is cheap to re-trip.
 - **`content/` is an imported archive.** Prose, spelling, and style sweeps do not reach it, and `cspell.json` ignores it deliberately.
 - **A gate is trusted only after it has been demonstrated failing.** Every gate here has been. A list-driven check also needs a length floor, or a truncated list passes while checking almost nothing.
 - **Do not name any workflow `build-*-task.yml`** while the repo declares `source-only`, since `detect` is literally `["no build-*-task.yml"]`.
-- **Do not edit `.markdownlint-cli2.jsonc`, `repo-config/configure.sh`, or the two ruleset payloads.** They are carried verbatim and byte-matched against the hub. Scope a glob in the workflow instead.
+- **Do not edit `.markdownlint-cli2.jsonc`, `repo-config/configure.sh`, or the two ruleset payloads.** They are carried verbatim and byte-matched against the hub. Scope a glob in the workflow instead. A reviewer finding a real defect in one of them is answered by declining locally and filing it at the hub, never by editing the file to satisfy the review.
+- **The hub's `main` can promote while a convergence pull request is open**, so ground truth moves underneath work that was correct when it started. It happened twice in one session on 2026-08-03, and the second time added drift the branch could not have known about. Re-run the audit against the hub ref actually carried before claiming convergence, and name that ref in the change, or the claim ages into a false one.
 - **`gh pr merge --delete-branch` on a `develop -> main` promotion deletes `develop`.** Use a plain `gh pr merge --merge`.
 
 ## Reference
@@ -89,3 +106,8 @@ Secrets and variables, per environment. The App-token pair is repository-scoped 
 <!-- External -->
 
 [hub-issue]: https://github.com/ptr727/ProjectTemplate/issues/456
+[hub-registry]: https://github.com/ptr727/ProjectTemplate/blob/main/registry/repos.json
+[hub-report]: https://github.com/ptr727/ProjectTemplate/blob/main/reports/blog/audit.md
+[issue-550]: https://github.com/ptr727/ProjectTemplate/issues/550
+[issue-552]: https://github.com/ptr727/ProjectTemplate/issues/552
+[issue-554]: https://github.com/ptr727/ProjectTemplate/issues/554
