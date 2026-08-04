@@ -22,6 +22,11 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # The first argument overrides the root, being read after this.
 DEFAULT_ENV_FILE="$REPO/secrets/.env"
 ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
+# Anchored under the repo, so a relative name resolves the same from any working directory.
+case "$ENV_FILE" in
+/*) ;;
+*) ENV_FILE="$REPO/$ENV_FILE" ;;
+esac
 if [ -f "$ENV_FILE" ]; then
 	echo "==> environment: $ENV_FILE"
 	set -a
