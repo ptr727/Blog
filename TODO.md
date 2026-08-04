@@ -99,6 +99,7 @@ Each of these was hit or nearly hit, and each is cheap to re-trip.
 - **Do not name any workflow `build-*-task.yml`** while the repo declares `source-only`, since `detect` is literally `["no build-*-task.yml"]`.
 - **Do not edit `.markdownlint-cli2.jsonc`, `repo-config/configure.sh`, or the two ruleset payloads.** They are carried verbatim and byte-matched against the hub. Scope a glob in the workflow instead. A reviewer finding a real defect in one of them is answered by declining locally and filing it at the hub, never by editing the file to satisfy the review.
 - **The hub's `main` can promote while a convergence pull request is open**, so ground truth moves underneath work that was correct when it started. It happened twice in one session on 2026-08-03, and the second time added drift the branch could not have known about. Re-run the audit against the hub ref actually carried before claiming convergence, and name that ref in the change, or the claim ages into a false one.
+- **A query that matches nothing reads as a clean result.** It has cost three separate false passes: a review-thread poll that could not see suppressed findings, a reviewer filter written in the wrong API's login form, and an audit loop whose `jq` path had moved. Each returned empty, and empty looked like nothing to report. Assert the query matched before reading what it returned, which is what `jq -e` and a non-empty check are for.
 - **The hub authors `scripts/pr_review.py`, and hand-rolling the review loop re-discovers its bugs.** One `status` call reports rounds, head coverage, unresolved threads, suppressed findings across every round, and whether a request was ever picked up. `wait` runs the backoff in-process, so a review wait costs one turn rather than one per poll. It is read-only by design and the mutations stay explicit, so fetch and run it rather than reimplementing it. Its README documents the traps below as the reason it exists.
 - **A review request can sit forever without being picked up, which looks exactly like patience.** Copilot raises a `copilot_work_started` timeline event within about half a minute of accepting; a request that never draws one is not slow, it is inert, and elapsed time cannot tell them apart. The event is REST-only. Recover by clearing the request with `union: false` and an empty `botIds`, then requesting again, after reading the pending set so a human reviewer is not dropped.
 - **The Copilot reviewer's login differs by API, and a wrong-form filter reads as a clean review.** REST reports `copilot-pull-request-reviewer[bot]`, GraphQL omits the suffix. A filter written in the other form matches nothing, and an empty result is indistinguishable from no findings. Assert the filter matched before trusting what it returned.
@@ -125,11 +126,13 @@ Secrets and variables, per environment. The App-token pair is repository-scoped 
 | --- | --- |
 | `DEPLOY_SSH_PRIVATE_KEY` | secret |
 | `DEPLOY_SSH_HOST`, `DEPLOY_SSH_USER`, `DEPLOY_SSH_KNOWN_HOSTS` | variable |
-| `DEPLOY_ROOT`, `HUGO_BASEURL` | variable |
+| `HUGO_BASEURL` | variable |
 | `PANGOLIN_ACCESS_TOKEN_ID`, `PANGOLIN_ACCESS_TOKEN` | secret, staging only |
 | `CODEGEN_APP_CLIENT_ID`, `CODEGEN_APP_PRIVATE_KEY` | secret, both stores |
 
-`DEPLOY_SSH_PRIVATE_KEY` now holds the same key in both environments, per the decision above. The environment split still carries the deploy root, the base URL, and the staging-only token pair, so it is not decorative.
+`DEPLOY_SSH_PRIVATE_KEY` holds the same key in both environments, per the decision above. The environment split still carries the base URL, the SSH endpoint, and the staging-only token pair, so it is not decorative.
+
+The deploy root is deliberately absent from this table. The rsync destination is anchored at the deploy key's confinement root, so the workflow names an environment rather than a host path, and a declared-but-unread name is drift no audit can tell from a missing one. The local `DEPLOY_ROOT` in `secrets/<environment>.env` is a different value and is still read.
 
 <!-- Repo -->
 
