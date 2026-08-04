@@ -33,6 +33,21 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 - Add the weekly non-blocking external-link-check workflow, which is the one gate that cannot be blocking because it fails on other people's outages.
 - Decommission WordPress.com only after **30 clean days**, and downgrade to free rather than deleting, which keeps the media reachable as a safety net and preserves the ability to re-export. Do not start sooner: the conversion fetched media over HTTP from the live site.
 
+## Owed to the hub
+
+The hub is owed a spec update for this repo's publishing type, tracked in [ProjectTemplate#456][hub-issue]. The measured deploy shape is reported there.
+
+**Frame it as a variant of the existing registry-push leaf, not a new release surface.** A NuGet or PyPI leaf builds an artifact and pushes it to its own destination, contributing no `release-asset-*`. This repo does exactly that. Only two things differ, and neither changes the seam:
+
+| Same as NuGet and PyPI | Unique here |
+| --- | --- |
+| A leaf builds, then pushes to its own destination | The build is Hugo rather than a language toolchain |
+| No `release-asset-*` contributed | The transport is rsync over SSH to a host the project owns |
+| Publish is dispatch-gated, never a merge | The destination is a filesystem, so the artifact carries its own version |
+| Credentials come from a GitHub Environment | Two environments serve the same artifact, so a deploy must prove which one answered |
+
+What the type genuinely needs is therefore small: a destination row in `Output Seam by Destination`, and one guarantee that a deploy is verified against the running host by release rather than by transport success. The release model, the branching model, and the never-publish-on-merge rule all hold unchanged.
+
 ## Open decisions
 
 - `/robots.txt/` and `/osd.xml/` currently sit in `slugs.map` pointing at `/`. The first would be better pointing at the real `/robots.txt`.
