@@ -65,7 +65,7 @@ check_redirect() {
 	case "$code" in
 	301 | 308) ;;
 	*)
-		echo "redirect $url expected 301, got $code" >>"$FAILED"
+		echo "redirect $url expected 301 or 308, got $code" >>"$FAILED"
 		return
 		;;
 	esac

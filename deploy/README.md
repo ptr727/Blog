@@ -51,10 +51,12 @@ checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
 The deploy root and the base URL are the only host-specific values, and they pair per
-environment. Copy [`env.example`](./env.example) to `secrets/<environment>.env` and set both.
-`secrets/` is gitignored as a whole directory, so a value naming one machine cannot reach a
-public repo by being added to a file nobody remembered to ignore. CI passes them explicitly
-instead, which keeps a pipeline run self-describing:
+environment. Copy [`env.example`](./env.example) to `secrets/.env`, which is the file read when
+`ENV_FILE` is unset, and add `secrets/<environment>.env` for each further environment. A single
+environment therefore needs `secrets/.env` and nothing else, since a differently named file is
+read only when `ENV_FILE` names it. `secrets/` is gitignored as a whole directory, so a value
+naming one machine cannot reach a public repo by being added to a file nobody remembered to
+ignore. CI passes them explicitly instead, which keeps a pipeline run self-describing:
 
 ```sh
 HUGO_BASEURL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"

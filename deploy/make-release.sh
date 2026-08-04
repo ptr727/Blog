@@ -11,7 +11,8 @@ KEEP_RELEASES=10
 
 usage() {
 	echo "usage: $0 [deploy-root] [version]" >&2
-	echo "       deploy-root defaults to DEPLOY_ROOT, from the environment or secrets/.env" >&2
+	echo "       deploy-root defaults to DEPLOY_ROOT, from the environment or \$ENV_FILE" >&2
+	echo "       ENV_FILE defaults to secrets/.env, and a relative path resolves against the repo" >&2
 	exit 2
 }
 
