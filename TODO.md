@@ -35,7 +35,7 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 
 ## Owed to the hub
 
-The hub is owed a spec update for this repo's publishing type. The change is [ProjectTemplate#558][hub-spec-issue], carrying proposed wording for both additions, and [#456][hub-issue] holds the intake questions and the measured answers.
+The hub is owed a spec update for this repo's publishing type. The change is [ProjectTemplate#558][hub-spec-issue], carrying proposed wording for both additions, and [ProjectTemplate#456][hub-issue] holds the intake questions and the measured answers.
 
 **Frame it as a variant of the existing registry-push leaf, not a new release surface.** A NuGet or PyPI leaf builds an artifact and pushes it to its own destination, contributing no `release-asset-*`. This repo does exactly that. Only two things differ, and neither changes the seam:
 
