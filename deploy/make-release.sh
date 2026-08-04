@@ -11,27 +11,66 @@ KEEP_RELEASES=10
 
 usage() {
 	echo "usage: $0 [deploy-root] [version]" >&2
-	echo "       deploy-root defaults to DEPLOY_ROOT, from the environment or secrets/.env" >&2
+	echo "       deploy-root defaults to DEPLOY_ROOT, from the environment or \$ENV_FILE" >&2
+	echo "       ENV_FILE defaults to secrets/.env, and a relative path resolves against the repo" >&2
 	exit 2
 }
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
-# CI passes both explicitly, and a local run reads them from an untracked secrets/.env.
-# That directory is gitignored whole, so nothing naming this machine reaches a public repo.
-if [ -f "$REPO/secrets/.env" ]; then
+# ENV_FILE selects the environment, because `set -a` overwrites a value the caller exported.
+# The first argument overrides the root, being read after this.
+DEFAULT_ENV_FILE="$REPO/secrets/.env"
+ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
+# A relative name resolves against the repo, so it means the same from any working directory.
+# Traversal is refused rather than resolved, since a relative name is meant to reach secrets/.
+case "$ENV_FILE" in
+/*) ;;
+*..*)
+	echo "ENV_FILE must not traverse: $ENV_FILE" >&2
+	exit 1
+	;;
+*) ENV_FILE="$REPO/$ENV_FILE" ;;
+esac
+if [ -f "$ENV_FILE" ]; then
+	echo "==> environment: $ENV_FILE"
 	set -a
-	# shellcheck disable=SC1091
-	. "$REPO/secrets/.env"
+	# shellcheck disable=SC1090,SC1091
+	. "$ENV_FILE"
 	set +a
+elif [ "$ENV_FILE" != "$DEFAULT_ENV_FILE" ]; then
+	# The default file is optional, because CI passes every value explicitly and reads no file.
+	# A named file is not, since a typo would fall through to the other environment's root.
+	echo "environment file not found: $ENV_FILE" >&2
+	exit 1
 fi
 
-ROOT="${1:-${DEPLOY_ROOT:-}}"
+# This script installs to a local path, so a remote environment's DEPLOY_ROOT would be built here.
+# The guard is on the fallback rather than the variable.
+# An explicit first argument names a local path and is always honoured, which is what CI passes.
+ROOT_ARG="${1:-}"
+if [ -z "$ROOT_ARG" ] && [ -n "${DEPLOY_SSH_HOST:-}" ]; then
+	echo "$ENV_FILE names DEPLOY_SSH_HOST=$DEPLOY_SSH_HOST, so its DEPLOY_ROOT is a path on that" >&2
+	echo "host and this script would create it here instead. Pass a local path as the first" >&2
+	echo "argument to assemble a bundle for shipping, or use a local environment file." >&2
+	exit 1
+fi
+
+ROOT="${ROOT_ARG:-${DEPLOY_ROOT:-}}"
 [ -n "$ROOT" ] || usage
 
 # CI passes the version so a release directory traces back to a commit rather than to a clock.
 VERSION="${2:-$(date -u +%Y%m%d-%H%M%S)}"
+
+# Constrained because the value becomes a directory name, a symlink target, and a sed replacement.
+# A separator or a traversal would place the release outside releases/ or corrupt the stamp.
+case "$VERSION" in
+"" | *[!A-Za-z0-9._-]* | *..* | -*)
+	echo "version must be one or more of A-Z a-z 0-9 . _ -, without '..' or a leading '-'" >&2
+	exit 1
+	;;
+esac
 
 command -v hugo >/dev/null || {
 	echo "hugo not found on PATH" >&2
@@ -120,6 +159,21 @@ echo "==> installing release $VERSION"
 rsync -a --no-g --chmod=D2755,F644 --delete "${LINK_SITE[@]}" public/ "$STAGE/site/"
 rsync -a --no-g --chmod=D2755,F644 --delete "${LINK_MAPS[@]}" "$REPO/deploy/maps/" "$STAGE/maps/"
 install -m 644 "$REPO/deploy/Caddyfile" "$STAGE/Caddyfile"
+
+# Stamp the release into the config it ships with, so a response names the rules answering.
+# A stale config otherwise passes the URL contract against rules that were never shipped.
+# Asserted before substituting, because sed reports success when it matches nothing.
+# A Caddyfile that lost the placeholder would otherwise ship unstamped, and the live check would
+# then blame a dead config watcher for a bundle that never carried a release id.
+if ! grep -q "@@RELEASE@@" "$REPO/deploy/Caddyfile"; then
+	echo "deploy/Caddyfile carries no @@RELEASE@@ placeholder to stamp" >&2
+	exit 1
+fi
+sed -i "s/@@RELEASE@@/$VERSION/" "$STAGE/Caddyfile"
+if grep -q "@@RELEASE@@" "$STAGE/Caddyfile"; then
+	echo "release stamp was not substituted into the shipped Caddyfile" >&2
+	exit 1
+fi
 
 # --chmod and --no-g govern only the files rsync newly transfers.
 # A file supplied by --link-dest keeps its original inode's mode, so the result is inspected rather than assumed.

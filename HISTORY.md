@@ -5,7 +5,7 @@ Pieter Viljoen's blog, and the tooling that builds, verifies, and deploys it.
 ## Release History
 
 - Version 1.0:
-  - First public release. The blog's content, media, URL contract, and deploy tooling are published as a repository for the first time, having previously lived inside a hosted blogging platform.
+  - The blog's content, media, URL contract, and deploy tooling live in one repository, under version control and gated by CI.
   - 108 posts and 2 pages as Hugo content, in a tree that mirrors the URLs it serves, with 778 media files carried at their original bytes.
   - The URL contract as committed ground truth: 328 addresses that must render, 917 that must redirect, and 778 legacy image URLs that must resolve, each verified with a live request rather than predicted.
   - CI gates that contract on every pull request, alongside the doc, shell, and workflow linters, with the Hugo version pinned by checksum so a build is reproducible.

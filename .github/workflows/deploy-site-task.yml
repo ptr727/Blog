@@ -1,0 +1,148 @@
+name: Deploy site task
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: The GitHub Environment to deploy to, production or staging.
+        required: true
+        type: string
+
+env:
+  # Pinned by version and checksum, because the site is reproducible only if the generator is.
+  # Update both values together.
+  HUGO_VERSION: 0.164.0
+  HUGO_SHA256: 8325f3653032d0fc536503691f4833dc4eb6c6be02ee62466758f3f37a7f2fcd
+
+jobs:
+
+  # The name selects a GitHub Environment and lands in a remote path, and a workflow_call caller
+  # is not bound by the dispatch choice list.
+  # A separate job, because the environment binding below resolves before any step runs.
+  assert-environment:
+    name: Assert environment name job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert environment is known step
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          set -Eeuo pipefail
+          case "$ENVIRONMENT" in
+          production | staging) ;;
+          *)
+            echo "::error::environment must be production or staging; got '$ENVIRONMENT'."
+            exit 1
+            ;;
+          esac
+
+  # Host-specific values come from the environment, so this file names no host, path, or address.
+  deploy:
+    name: Deploy site job
+    runs-on: ubuntu-latest
+    needs: [ assert-environment ]
+    environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+
+    steps:
+
+      # Full history, because a shallow clone silently changes page metadata if git info is on.
+      - name: Checkout code step
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install Hugo step
+        run: |
+          set -Eeuo pipefail
+          deb="hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          curl -sSLf -o "$deb" \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${deb}"
+          echo "${HUGO_SHA256}  ${deb}" | sha256sum --check --strict
+          sudo dpkg --install "$deb"
+          hugo version
+
+      # REQUIRE_BROTLI below makes a missing binary fatal, so this keeps the build from failing.
+      - name: Install brotli step
+        run: |
+          set -Eeuo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends brotli
+
+      # Derived once and used three times, as the directory name, the stamp, and EXPECT_RELEASE.
+      # Deriving it twice yields ids seconds apart, and the gate then asserts a phantom version.
+      - name: Resolve release id step
+        id: release
+        run: |
+          set -Eeuo pipefail
+          echo "id=$(date -u +%Y%m%d-%H%M%S)" >> "$GITHUB_OUTPUT"
+
+      # Assembled to a scratch path, since the environment's deploy root is on the far host.
+      # Naming the root explicitly also marks this a bundle for shipping rather than an install.
+      - name: Assemble release bundle step
+        env:
+          HUGO_BASEURL: ${{ vars.HUGO_BASEURL }}
+          REQUIRE_BROTLI: '1'
+        run: |
+          set -Eeuo pipefail
+          deploy/make-release.sh "${RUNNER_TEMP}/bundle" "${{ steps.release.outputs.id }}"
+
+      - name: Install deploy key step
+        env:
+          DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+          DEPLOY_SSH_KNOWN_HOSTS: ${{ vars.DEPLOY_SSH_KNOWN_HOSTS }}
+        run: |
+          set -Eeuo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_PRIVATE_KEY" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      # The destination is anchored at the key's confinement root.
+      # A full host path is remapped beneath that root and fails as an IO error.
+      # - link-dest points at current, which still resolves to the previous release until the flip.
+      # - mkpath creates releases/, which does not exist on a fresh environment.
+      # - delete is omitted, since at an environment root it silently removes rollback targets.
+      - name: Upload release step
+        env:
+          DEPLOY_SSH_USER: ${{ vars.DEPLOY_SSH_USER }}
+          DEPLOY_SSH_HOST: ${{ vars.DEPLOY_SSH_HOST }}
+          RELEASE_ID: ${{ steps.release.outputs.id }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          set -Eeuo pipefail
+          rsync -az --mkpath --no-g --chmod=D2755,F644 \
+            --link-dest="/${ENVIRONMENT}/current/" \
+            -e "ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes" \
+            "${RUNNER_TEMP}/bundle/releases/${RELEASE_ID}/" \
+            "${DEPLOY_SSH_USER}@${DEPLOY_SSH_HOST}:/${ENVIRONMENT}/releases/${RELEASE_ID}/"
+
+      # Separate from the upload, so a failed transfer cannot half-publish a site.
+      # rsync replaces the symlink through a temporary and a rename, so it is never absent.
+      - name: Flip current step
+        env:
+          DEPLOY_SSH_USER: ${{ vars.DEPLOY_SSH_USER }}
+          DEPLOY_SSH_HOST: ${{ vars.DEPLOY_SSH_HOST }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          set -Eeuo pipefail
+          rsync -a --no-recursive \
+            -e "ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes" \
+            "${RUNNER_TEMP}/bundle/current" \
+            "${DEPLOY_SSH_USER}@${DEPLOY_SSH_HOST}:/${ENVIRONMENT}/"
+
+      # The only step that observes the running site.
+      # An upload succeeds against a container serving nothing, and a flip without a config reload.
+      # The token pair is set on staging alone, since production answers unauthenticated.
+      - name: Verify URL contract step
+        env:
+          EXPECT_SITE_ENV: ${{ inputs.environment }}
+          EXPECT_RELEASE: ${{ steps.release.outputs.id }}
+          PANGOLIN_ACCESS_TOKEN_ID: ${{ secrets.PANGOLIN_ACCESS_TOKEN_ID }}
+          PANGOLIN_ACCESS_TOKEN: ${{ secrets.PANGOLIN_ACCESS_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          checks/check-live-urls.sh "${{ vars.HUGO_BASEURL }}"

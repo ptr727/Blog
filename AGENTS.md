@@ -2,18 +2,22 @@
 
 **Blog** is the source and deployment pipeline for a personal technical blog, a Hugo static site served by Caddy behind a reverse proxy. It holds the content, the media, the URL contract the site must honor, and the release tooling that builds and publishes it.
 
-This file is the entry point every coding agent reads first, and it holds only two things: the rules for managing context and delegation, which apply to every task, and a map of where every other rule lives. The rule text itself is in [`GOVERNANCE.md`](./GOVERNANCE.md), one section per topic. Code style lives in [`CODESTYLE.md`](./CODESTYLE.md), the CI/CD workflow contract in [`WORKFLOW.md`](./WORKFLOW.md), and the deploy, rollback, and server procedures in [`OPERATIONS.md`](./OPERATIONS.md).
+This file is the entry point every coding agent reads first, and it holds only three things: the bootstrap that says where the canonical rules live and which procedure to follow for the state this repository is actually in, the rules for managing context and delegation, which apply to every task, and a map of where every other rule lives. The rule text itself is in [`GOVERNANCE.md`](./GOVERNANCE.md), one section per topic. Code style lives in [`CODESTYLE.md`](./CODESTYLE.md), the CI/CD workflow contract in [`WORKFLOW.md`](./WORKFLOW.md), and the deploy, rollback, and server procedures in [`OPERATIONS.md`](./OPERATIONS.md).
 
-Treat this file and `GOVERNANCE.md` as authoritative for cross-cutting rules, and do not restate their rules elsewhere. This project's own conventions and behavioral contracts live here, **not** in [`.github/copilot-instructions.md`](./.github/copilot-instructions.md), because that file targets GitHub Copilot / VS Code specifically, while this file and `GOVERNANCE.md` are the agent-agnostic ones every coding agent is directed to read, so any rule a reviewer must honor has to live in one of those two files to be provider-independent.
+Treat this file and `GOVERNANCE.md` as authoritative for cross-cutting rules, and do not restate their rules elsewhere. This project's own conventions and behavioral contracts live in the topical doc that owns them, [`OPERATIONS.md`](./OPERATIONS.md) for how the site is run and verified and [`CODESTYLE.md`](./CODESTYLE.md) for how it is written, and **never** in [`.github/copilot-instructions.md`](./.github/copilot-instructions.md), because that file targets GitHub Copilot / VS Code specifically while the rest are agent-agnostic, so any rule a reviewer must honor has to live outside it to be provider-independent.
 
-## Project Conventions
+## Fleet Bootstrap
 
-This site has served the same domain across earlier platforms, so its whole risk is silent URL loss. These bind every change.
+This repository is governed by a shared template, and the canonical rules, machine-readable spec, and procedures live in `github.com/ptr727/ProjectTemplate`. Fetch that repository before acting on anything about conformance, carried content, repository settings, or standing a repository up, because a carried copy here can be stale or absent and the hub is the only authority on what this repository is supposed to hold. This section is byte-locked across every repository in the fleet, so it reads identically wherever it is found, and it is the entry point whenever nothing else present says where the rules are.
 
-- **The URL contract is ground truth.** [`checks/golden-urls.txt`](./checks/golden-urls.txt) and [`checks/redirect-urls.txt`](./checks/redirect-urls.txt) record URLs verified with a live request. The lists are append-only. Nothing legitimately removes a URL the site has served.
-- **Never populate media over HTTP.** The source export is the only trustworthy media source, because a hosted platform serves optimized derivatives at the same filename and path. Verify by content hash, never by file count.
-- **`content/` is an archive.** It carries sixteen years of text. Prose, spelling, and style sweeps do not reach it, and rewriting it corrupts provenance rather than improving style.
-- **A gate proves itself by failing.** Every check here is demonstrated against a deliberate break before it is trusted, because a gate that has only ever passed is indistinguishable from one that checks nothing.
+Route by what this repository currently holds rather than by what it is expected to hold, since the two differ exactly when this section matters most.
+
+- **No repository yet, or a local tree with no remote.** Follow the hub's `STANDUP.md` from section 0. That file is hub-only and deliberately not carried, because a repository needing it cannot be relied on to hold a current copy. Note that nothing in it creates the GitHub repository, which is an outward-facing write requiring explicit permission, so section 0A is the list handed to the maintainer before anything else starts.
+- **A repository with no carried instruction set, or a partial one.** Carry the baseline per the hub's `STANDUP.md` sections 1A and 2, which resolve what this repository is owed from its declared types and workflow model. Absent files are not drift to re-vendor, they are a baseline that never arrived, and the two are fixed differently.
+- **A repository with the instruction set, current or stale.** Follow the hub's `AUDIT.md` end to end, then apply what it finds per its section 10. An audit that reports drift and stops is half the procedure.
+- **A repository that believes it is conformant.** Run the audit anyway and commit the report, because conformance asserted without a report is conformance nobody can check. This is the same procedure as the case above and is listed separately only because it is the one most often skipped.
+
+Two rules bound every path above. **Read the hub's `main` branch as ground truth**, since that is the promoted and gated state, and read `develop` only to detect divergence. And **the audit is read-only**: it produces a report and never edits the repository it measures, so a fix is a separate, reviewable change.
 
 ## Context and Delegation Discipline
 
@@ -22,7 +26,7 @@ An agent session is billed on the context it carries, not the work it does. Ever
 ### Session Scope
 
 - **One deliverable, one session.** A session covers one branch and one deliverable, and ends when that work merges. A multi-step task is one deliverable and stays in one session. Two unrelated tasks are two sessions even when they run back to back.
-- **End a session at any of these, without being asked:** the branch changes, the pull request merges, the next task is unrelated to the last, or a third review round opens on the same pull request.
+- **End a session at any of these, without being asked:** the branch changes, the pull request merges, or the next task is unrelated to the last. A review round is none of them. A loop still producing findings is the deliverable in progress, and a round count is not a reason to leave one open.
 - **Hand off in a file, never in context.** Close a session by writing at most 2 KB to a scratch file: branch, pull request link, what is done, the next command. A summary held in context is re-billed until the session ends, and a summary on disk is read once by whoever needs it.
 - **Re-derive state, do not carry it.** "This session already has the context" is the signal to split, not to continue. Context that has gone stale is worse than absent, because a file read hundreds of requests ago no longer describes the file.
 - **Compaction is a fallback, not the strategy.** It restarts context from a floor and climbs again, where a fresh session starts from zero.
@@ -54,6 +58,7 @@ If a rule you were given does not cover what you find, stop and report it. Do no
 ```
 
 - **Wait in a background process, not in a poll loop.** A review or CI wait is a sequence of near-identical requests, each billed for whatever context it happens to carry. Run the wait as one backgrounded command that returns when the condition is met.
+- **A wait separates three outcomes, and says which one it reached.** The condition was met, it has not been met yet, and the wait cannot reach it at all are three different results, and a backgrounded wait that emits nothing renders all three identically. Run the command once in the foreground and read its output before backgrounding it, because a wait is only as good as the command inside it, and an unsupported flag on the installed tool version exits non-zero with an empty stdout that every naive test reads as "nothing yet". Never let a fallback stand in for a failed command, since `|| echo '[]'`, `|| true`, and `2>/dev/null` convert an error into that same reading, which is the suppression the write-safety rules already forbid on a mutation. Make the wait emit on failure as loudly as on success, so silence means "still running" and nothing else, and bound it, so a condition that is never coming ends in a report rather than in another wait.
 
 ## Where the Rules Live
 
@@ -64,6 +69,7 @@ Every rule below is a level-two section of [`GOVERNANCE.md`](./GOVERNANCE.md). R
 | Why the rules are shaped this way | `Foundational Principles` |
 | Recording a durable lesson or updating governance | `Durable Knowledge and Self-Improvement` |
 | Any push, API mutation, comment, label, or merge | `Repository Boundaries and Write Safety` |
+| Quoting data into a comment, commit, test, or doc | `Representative Data in Agent-Authored Text` |
 | Committing, signing, rebasing, force-pushing | `Git and Commit Rules` |
 | Branch choice, promotion, keeping branches in sync | `Branching Model` |
 | Releasing, version bumps, publishing | `Release Model` |

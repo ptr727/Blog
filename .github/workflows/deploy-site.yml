@@ -1,0 +1,51 @@
+name: Deploy site action
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Which environment to deploy.
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+# Runs queue rather than cancel, because a cancelled deploy leaves a release uploaded and unflipped.
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+
+  # Staging deploys from any ref, since proving a branch before it merges is what staging is for.
+  # First, so a mis-dispatched production deploy fails before anything is installed or written.
+  assert-ref:
+    name: Assert deploy ref job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert ref matches environment step
+        run: |
+          set -Eeuo pipefail
+          if [ "${{ inputs.environment }}" = "production" ] && [ "${{ github.ref_name }}" != "main" ]; then
+            echo "::error::Deploy production from main; got ${{ github.ref_name }}."
+            exit 1
+          fi
+
+  # The same gate the pull request and a release run.
+  validate:
+    name: Validate sources job
+    needs: [ assert-ref ]
+    uses: ./.github/workflows/validate-task.yml
+    permissions:
+      contents: read
+
+  deploy:
+    name: Deploy site job
+    needs: [ validate ]
+    uses: ./.github/workflows/deploy-site-task.yml
+    with:
+      environment: ${{ inputs.environment }}
+    permissions:
+      contents: read
+    secrets: inherit
