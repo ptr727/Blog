@@ -114,7 +114,7 @@ jobs:
           ENVIRONMENT: ${{ inputs.environment }}
         run: |
           set -Eeuo pipefail
-          rsync -az --mkpath --chmod=D755,F644 \
+          rsync -az --mkpath --no-g --chmod=D2755,F644 \
             --link-dest="/${ENVIRONMENT}/current/" \
             -e "ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes" \
             "${RUNNER_TEMP}/bundle/releases/${RELEASE_ID}/" \
