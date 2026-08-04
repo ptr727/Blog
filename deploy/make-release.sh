@@ -23,9 +23,14 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # The first argument overrides the root, being read after this.
 DEFAULT_ENV_FILE="$REPO/secrets/.env"
 ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
-# Anchored under the repo, so a relative name resolves the same from any working directory.
+# A relative name resolves against the repo, so it means the same from any working directory.
+# Traversal is refused rather than resolved, since a relative name is meant to reach secrets/.
 case "$ENV_FILE" in
 /*) ;;
+*..*)
+	echo "ENV_FILE must not traverse: $ENV_FILE" >&2
+	exit 1
+	;;
 *) ENV_FILE="$REPO/$ENV_FILE" ;;
 esac
 if [ -f "$ENV_FILE" ]; then
