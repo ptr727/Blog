@@ -140,9 +140,15 @@ fi
 
 # Nothing else proves the rules answering are the ones just shipped, as no deploy restarts Caddy.
 # A stale config serves the previous release's rules while the new content is already live.
+# Returns non-zero on a transport failure, and empty on a reply carrying no release header.
+# Collapsing the two would report an unreachable host as a config that never reloaded.
 read_release() {
-	curl -s -o /dev/null -D- --max-time 30 "${AUTH[@]}" "$BASE/" |
-		grep -i '^x-blog-release:' | tr -d '\r' | sed 's/^[^:]*: *//'
+	local headers
+	headers=$(curl -sS -o /dev/null -D- --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR") || return 1
+	printf '%s' "$headers" | grep -i '^x-blog-release:' | tr -d '\r' | sed 's/^[^:]*: *//'
+	# Explicit, because pipefail carries grep's no-match status out of the function, which would
+	# report a reachable host serving no release header as unreachable.
+	return 0
 }
 
 got_release=$(printf '%s' "$preflight_headers" | grep -i '^x-blog-release:' | tr -d '\r' | sed 's/^[^:]*: *//')
@@ -154,7 +160,11 @@ if [ -n "${EXPECT_RELEASE:-}" ]; then
 	while [ "$got_release" != "$EXPECT_RELEASE" ] && [ "$waited" -lt "${RELOAD_TIMEOUT:-30}" ]; do
 		sleep 1
 		waited=$((waited + 1))
-		got_release=$(read_release)
+		if ! got_release=$(read_release); then
+			echo "FAIL: $BASE/ became unreachable after ${waited}s of waiting for the reload" >&2
+			sed 's/^/     /' "$CURLERR" >&2
+			exit 1
+		fi
 	done
 	if [ "$got_release" != "$EXPECT_RELEASE" ]; then
 		echo "FAIL preflight: after ${waited}s the rules are from release '${got_release:-<no X-Blog-Release header>}', expected '$EXPECT_RELEASE'" >&2
