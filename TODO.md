@@ -35,7 +35,7 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 
 ## Owed to the hub
 
-The hub is owed a spec update for this repo's publishing type, tracked in [ProjectTemplate#456][hub-issue]. The measured deploy shape is reported there.
+The hub is owed a spec update for this repo's publishing type. The change is [ProjectTemplate#558][hub-spec-issue], carrying proposed wording for both additions, and [#456][hub-issue] holds the intake questions and the measured answers.
 
 **Frame it as a variant of the existing registry-push leaf, not a new release surface.** A NuGet or PyPI leaf builds an artifact and pushes it to its own destination, contributing no `release-asset-*`. This repo does exactly that. Only two things differ, and neither changes the seam:
 
@@ -136,6 +136,7 @@ Secrets and variables, per environment. The App-token pair is repository-scoped 
 <!-- External -->
 
 [hub-issue]: https://github.com/ptr727/ProjectTemplate/issues/456
+[hub-spec-issue]: https://github.com/ptr727/ProjectTemplate/issues/558
 [hub-registry]: https://github.com/ptr727/ProjectTemplate/blob/3b802b9eb9a841c0149d018f4db6ffa1b9419051/registry/repos.json
 [hub-report]: https://github.com/ptr727/ProjectTemplate/blob/3b802b9eb9a841c0149d018f4db6ffa1b9419051/reports/blog/audit.md
 [issue-549]: https://github.com/ptr727/ProjectTemplate/issues/549
