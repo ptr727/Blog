@@ -15,6 +15,12 @@ How the site is built, released, and served. The release is a **self-contained b
 | `bash` 4.4+ | all scripts | arrays, `mapfile` | already present |
 | `docker` | serving | running Caddy | orchestrated elsewhere |
 
+**These scripts run on Linux, which is a dependency ceiling rather than an omission.** They use
+`mv -Tf`, `find -printf`, `mapfile`, and `sed -i` without an argument, all of which are GNU or
+bash 4.4 constructs absent from a stock macOS. Every consumer is Linux already: CI builds there,
+the containers serve there, and the deploy account receives there. Editing is unaffected, and a
+macOS or Windows contributor runs them through a container or a remote Linux host.
+
 **Hugo must be the `extended` build**, and `hugo version` reports `+extended` when it is. Debian's archive does not carry a useful version, so install from the upstream release or via snap.
 
 **`brotli` is easy to miss and degrades silently.** The Caddyfile serves `precompressed br gzip`, so without the binary every text response falls back to gzip while the site keeps working and nothing errors. `make-release.sh` warns loudly when it is absent, and `REQUIRE_BROTLI=1` turns that into a hard failure. **CI must set it.** Measured on the home page: 18,845 bytes raw, 6,395 gzip, 5,105 brotli.
