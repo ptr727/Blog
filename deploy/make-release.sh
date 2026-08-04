@@ -58,6 +58,15 @@ ROOT="${ROOT_ARG:-${DEPLOY_ROOT:-}}"
 # CI passes the version so a release directory traces back to a commit rather than to a clock.
 VERSION="${2:-$(date -u +%Y%m%d-%H%M%S)}"
 
+# Constrained because the value becomes a directory name, a symlink target, and a sed replacement.
+# A separator or a traversal would place the release outside releases/ or corrupt the stamp.
+case "$VERSION" in
+"" | *[!A-Za-z0-9._-]* | *..* | -*)
+	echo "version must be one or more of A-Z a-z 0-9 . _ -, without '..' or a leading '-'" >&2
+	exit 1
+	;;
+esac
+
 command -v hugo >/dev/null || {
 	echo "hugo not found on PATH" >&2
 	exit 1
