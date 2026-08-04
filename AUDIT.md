@@ -36,6 +36,10 @@ Two facts specific to this repo:
 
 Names only. Never read, print, or log a secret value.
 
+Two scopes, checked separately, because a name present in one is not present in the other. The **repository** scope carries the merge bot's credentials, and the **environment** scope carries the deploy's. This is the only repo in the fleet whose publishing credentials are environment-scoped, so a check written for repository secrets alone reports a clean pass over an unconfigured deploy.
+
+### Repository scope
+
 ```sh
 gh secret list --repo ptr727/Blog
 gh secret list --repo ptr727/Blog --app dependabot
@@ -43,7 +47,34 @@ gh secret list --repo ptr727/Blog --app dependabot
 
 Assert that every name under `baseline.requires` is present in both stores, and that every name under `baseline.forbids` is absent. `CODEGEN_APP_ID` is forbidden: the App-token action takes `client-id`, and the deprecated `app-id` name silently does nothing.
 
-The deploy credentials live in the `staging` and `production` GitHub Environments rather than in repository secrets, so a staging deploy cannot reach production. They are outside the baseline audit.
+### Environment scope
+
+`configure.sh check` does not reach these and says so, deferring the secrets question to a manual verification. Assert them against `spec/secrets.json`:
+
+```sh
+# Read the lists first, so a moved key fails here rather than emptying the loop below.
+envs=$(jq -e -r '.environments.names[]' spec/secrets.json) || exit 1
+jq -e '.environments.environmentSecrets' spec/secrets.json > /dev/null || exit 1
+
+for env in $envs; do
+  gh secret list   --repo ptr727/Blog --env "$env" --json name --jq '.[].name'
+  gh variable list --repo ptr727/Blog --env "$env" --json name --jq '.[].name'
+done
+```
+
+`--json name` is not decoration. The bare `gh variable list` prints every value, so an audit run without it writes the deploy host, the user, and the known-hosts entry into whatever captured its output.
+
+**Assert the query matched before reading what it returned.** A `jq` path that no longer resolves yields nothing, a loop over nothing runs zero times, and a check that counts failures reports none. Every lookup is `jq -e`, which exits non-zero on a null or missing key, and each is **assigned before it is iterated**: command substitution in a `for` header discards the exit status, so a guard written there is a guard that never fires.
+
+Three assertions, and the third is the one presence-checking misses:
+
+- Every name under `environments.secrets` and `environments.variables` is present in **every** environment named in `environments.names`.
+- Every name under `environmentSecrets.<env>` is present in that environment.
+- A name under `environmentSecrets` is **absent** from an environment that does not list it. `production` holding a Pangolin access token is a finding rather than a harmless extra: production answers unauthenticated, so a token there means a check could pass through a gate production is not supposed to have.
+
+A **declared but unset** name is drift in the same way an undeclared one is. The deploy root is deliberately not declared, because the rsync destination is anchored at the deploy key's confinement root and the workflow names an environment rather than a host path.
+
+Never read, print, or log a value. Every command above lists names.
 
 ## 3. The URL Contract
 
