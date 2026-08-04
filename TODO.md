@@ -10,7 +10,7 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 | --- | --- |
 | Content and media | done. 514 pages, 778 media files hash-verified against the export tar |
 | URL contract | done. 328 render, 917 redirect, 778 legacy image URLs, all gated |
-| Deploy shape | done and proven against a running Caddy, on a local mirror |
+| Deploy shape | done and proven against a running Caddy, on a local publish mirror and a local staging mirror |
 | CI workflows | green. Validation runs on every pull request and feeds the required check |
 | GitHub repo | public, both rulesets active, `configure.sh check` exits 0 |
 | Release pipeline | proven end to end. Release `1.0.11` carries the tag, source archive, README, and LICENSE |
@@ -25,8 +25,8 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 ## Next, in dependency order
 
 - Provision the VPS: an unprivileged `blogdeploy` user, the deploy root, and `unattended-upgrades` with automatic reboot.
-- Restrict the deploy key with `restrict,command=...`, no pty and no forwarding, so it can do nothing but rsync into `releases/` and swap the symlink. Generate per-environment keys so staging cannot reach production.
-- Choose the staging FQDN, add its DNS record, and expose it through Pangolin as a public resource with **no auth**, since CI's live-URL check has to reach it. Authentication defaults to on for a public resource and has to be turned off deliberately.
+- Move the two deploy roots under one parent, `/srv/blog/{production,staging}`, and restrict the **single** deploy key with `restrict,command=...`, no pty and no forwarding, pinned to that parent. One key rather than one per environment is a deliberate decision, recorded with its reasoning in [OPERATIONS.md](./OPERATIONS.md#server-hardening): the split only pays where the two keys never share a machine, and both sit on one workstation and in one secret store. The cost is that the forced command can no longer separate the environments, which is why the roots share a parent.
+- Add the staging DNS record for `blog.vps.insanegenius.net` and expose it through Pangolin. It sits under the existing VPS wildcard, so no new certificate is needed, and **authentication stays on**: staging serves a byte-identical copy of the public site, and an open one is a duplicate handed to every crawler. `check-live-urls.sh` gets through with a resource access token instead.
 - Write `deploy-site.yml` and prove it: a dry run that mutates nothing, then a real run, then a forced mid-deploy failure to confirm rollback keeps the site up. Report the measured deploy shape back to [ProjectTemplate#456][hub-issue], which is waiting on it before the publish type can be defined.
 - Deploy to a temporary production FQDN and validate there before touching the live record. Lower the `blog` A-record TTL to 60s a day ahead, then flip it to the VPS, unproxied.
 - Watch server logs for 404s daily for the first week, because real traffic finds what the golden list missed. Append anything new to `checks/golden-urls.txt` and add a redirect.
@@ -35,7 +35,6 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 
 ## Open decisions
 
-- The staging FQDN name.
 - `/robots.txt/` and `/osd.xml/` currently sit in `slugs.map` pointing at `/`. The first would be better pointing at the real `/robots.txt`.
 
 ## Deliberate deviations from the fleet baseline
@@ -71,6 +70,7 @@ Each of these was hit or nearly hit, and each is cheap to re-trip.
 - **A Picasa URL ending in `-h` serves an HTML wrapper, not an image, with a 200 status.** Check magic bytes rather than status codes when fetching any binary.
 - **PaperMod uses APIs Hugo deprecated in 0.158**, so `--panicOnWarning` fails on the theme rather than on content. The two overrides in `layouts/` exist to keep that flag on, and they are the reason the flag is a real gate.
 - **A hard link keeps its inode's mode and ownership**, so `--chmod` and `--no-g` govern only newly transferred files. A badly moded file rides the link chain into every later release. `NO_LINK_DEST=1` mints fresh inodes.
+- **`DEPLOY_ROOT=... deploy/make-release.sh` does not select an environment.** The script sources its environment file with `set -a`, which exports every assignment in it and overwrites whatever the caller exported first, so the variable is set and then silently replaced. `ENV_FILE` selects the file, and the first argument overrides the root, because it is read afterwards. With two sites on one host the failure is not an error: it publishes to the other site. A named `ENV_FILE` that does not exist is a hard failure for the same reason.
 - **`content/` is an imported archive.** Prose, spelling, and style sweeps do not reach it, and `cspell.json` ignores it deliberately.
 - **A gate is trusted only after it has been demonstrated failing.** Every gate here has been. A list-driven check also needs a length floor, or a truncated list passes while checking almost nothing.
 - **Do not name any workflow `build-*-task.yml`** while the repo declares `source-only`, since `detect` is literally `["no build-*-task.yml"]`.
@@ -99,7 +99,10 @@ Secrets and variables, per environment. The App-token pair is repository-scoped 
 | `DEPLOY_SSH_PRIVATE_KEY` | secret |
 | `DEPLOY_SSH_HOST`, `DEPLOY_SSH_USER`, `DEPLOY_SSH_KNOWN_HOSTS` | variable |
 | `DEPLOY_ROOT`, `HUGO_BASEURL` | variable |
+| `PANGOLIN_ACCESS_TOKEN_ID`, `PANGOLIN_ACCESS_TOKEN` | secret, staging only |
 | `CODEGEN_APP_CLIENT_ID`, `CODEGEN_APP_PRIVATE_KEY` | secret, both stores |
+
+`DEPLOY_SSH_PRIVATE_KEY` now holds the same key in both environments, per the decision above. The environment split still carries the deploy root, the base URL, and the staging-only token pair, so it is not decorative.
 
 <!-- Repo -->
 

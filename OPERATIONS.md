@@ -4,13 +4,22 @@ How this site is built, released, served, and rolled back. [`GOVERNANCE.md`](./G
 
 ## Environments
 
+Four environments, in two pairs. Each pair is one publish site and one staging site, and the local pair exists to rehearse the remote one.
+
 | Environment | Address | Fronted by | Purpose |
 | --- | --- | --- | --- |
-| Local mirror | a private hostname, set in `secrets/.env` | a reverse proxy on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
-| Staging | on the VPS, behind the auth gate | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
+| Local publish mirror | a private hostname, set in `secrets/.env` | Traefik, on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
+| Local staging mirror | a second private hostname, set in `secrets/staging.env` | Traefik | Proves that two environments on one host stay independent, before that matters on a server. |
+| Staging | `blog.vps.insanegenius.net`, behind the auth gate | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
 | Production | `blog.insanegenius.com` | Pangolin | The public site. |
 
-The local mirror is not staging. It runs the same bundle against the same web server, so it catches a broken redirect or a bad permission for free, but it exercises none of the routing, authentication, or certificate machinery that only exists on the VPS. Passing locally says the artifact is right. It says nothing about whether the server in front of it is.
+The local mirrors are not staging. They run the same bundle against the same web server, so they catch a broken redirect or a bad permission for free, but they exercise none of the routing, authentication, or certificate machinery that only exists on the VPS. Passing locally says the artifact is right. It says nothing about whether the server in front of it is.
+
+Each environment is one file under `secrets/`, selected with `ENV_FILE`, holding the deploy root, the base URL, and the container to restart. Selecting the file is how an environment is chosen: the file is sourced with `set -a`, so it overwrites a `DEPLOY_ROOT` the caller exported and setting that variable by hand does not switch anything. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
+
+**The staging FQDN sits under the VPS wildcard deliberately.** `blog.vps.insanegenius.net` needs no new certificate and no new DNS record, and it keeps the staging name off the production domain.
+
+**Staging keeps its auth gate on.** It serves a byte-identical copy of the public site, so exposing it publicly would hand every crawler a duplicate of a site whose entire migration risk is URL preservation. `checks/check-live-urls.sh` gets through with a Pangolin resource access token instead. See [Checking a Site Behind the Auth Gate](#checking-a-site-behind-the-auth-gate).
 
 ## The Release Bundle
 
@@ -55,19 +64,52 @@ docker restart "$CADDY_CONTAINER"   # required: see below
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
+Against the staging mirror, name its file in both places, since the sourced values and the ones `make-release.sh` reads must describe the same environment:
+
+```sh
+set -a; . secrets/staging.env; set +a
+ENV_FILE=secrets/staging.env deploy/make-release.sh
+docker restart "$CADDY_CONTAINER"
+checks/check-live-urls.sh "$HUGO_BASEURL"
+```
+
 **Restart every time, even though only some changes strictly need it.** Caddy expands `import` at config-parse time, both for the site config and for the `map` blocks that read `maps/*.map`, and it does not watch those files. Swapping the `current` symlink therefore changes what a *static file* request resolves to, per request, while the redirect rules and map tables stay exactly as they were when Caddy last loaded. Verified against the running mirror: a new map entry present in the live release on disk returned 404 until the container was restarted, then 301.
 
 So the failure is specific. **When the release changed `deploy/Caddyfile` or anything under `deploy/maps/`**, checking without a restart exercises the **previous** rules, and a broken redirect reports `PASS` while the shipped artifact is broken. A content-only release does not have this problem, because the rules Caddy already holds are still the right ones.
 
 The step is unconditional anyway, for two reasons. Deciding correctly means knowing whether anything reached the config, which is easy to get wrong when a change spans several paths or a map was regenerated as a side effect. And getting it wrong is silent, since the wrong answer is a green check rather than an error. A restart costs a few seconds on a static site, which is cheaper than reasoning about it each time.
 
-Sourcing `secrets/.env` first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and [Deploying](#deploying) below passes them explicitly, which is what CI does so a pipeline run names the commit it built rather than the clock. Either form works locally, and the argument wins over the environment.
+Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and [Deploying](#deploying) below passes them explicitly, which is what CI does so a pipeline run names the commit it built rather than the clock. Either form works locally, and the argument wins over the environment.
+
+`ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `secrets/.env` while the shell's `$CADDY_CONTAINER` and `$HUGO_BASEURL` still named staging, and the run would restart and check the staging site after publishing to the publish root. The script prints the file it read, on every build, for that reason.
 
 It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows all 1,245 URLs against the running mirror, checking each redirect's destination rather than trusting its status code.
 
 Expect `PASS - 1245 URLs honored`. Anything less is a finding, and the output names each URL that failed and what it answered.
 
 A documentation-only or workflow-only change does not need this. A change to the four paths above does, because for those CI's green is not evidence.
+
+## Checking a Site Behind the Auth Gate
+
+Staging keeps Pangolin's authentication on, so an unauthenticated request never reaches the site. `check-live-urls.sh` presents a Pangolin resource access token when both halves of the pair are set, and sends nothing when neither is:
+
+```sh
+set -a; . secrets/staging.env; set +a
+checks/check-live-urls.sh "$HUGO_BASEURL"
+```
+
+| Variable | Header |
+| --- | --- |
+| `PANGOLIN_ACCESS_TOKEN_ID` | `P-Access-Token-Id` |
+| `PANGOLIN_ACCESS_TOKEN` | `P-Access-Token` |
+
+Set both or neither. Half a pair is a typo rather than a choice, and it is rejected as one rather than presented as a failing site.
+
+Three properties of how the credential is handled, each there for a reason worth keeping:
+
+- **It travels in a mode-`600` curl config file, not in `-H` arguments.** A command line is readable in `ps` for the life of the process, and this runs 1,245 of them. The config file is also the only form that survives the `export -f` the parallel checks run under, because bash cannot export an array.
+- **It is sent to the base URL's own origin and nowhere else.** The check follows every redirect's destination, and every destination in the contract is same-origin today. A rule that one day points off-site must not mail the credential to whoever is on the other end.
+- **A preflight request runs before the 1,245.** Behind an auth gate a wrong token fails *every* URL, and the output then reads as a site that has vanished rather than as a bad credential. The two are indistinguishable from the far end of a CI log, so the run stops on the first request with a message naming which of the two it was.
 
 ## Deploying
 
@@ -76,12 +118,13 @@ HUGO_BASEURL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --
 checks/check-live-urls.sh <base-url>
 ```
 
-The deploy root and the base URL are the only host-specific values. A local run reads them from an untracked `secrets/.env`, copied from [`deploy/env.example`](./deploy/env.example), and CI passes both explicitly. The whole `secrets/` directory is gitignored, so no address, path, or container name belonging to one machine reaches the published history.
+The deploy root and the base URL are the only host-specific values. A local run reads them from an untracked file under `secrets/`, one per environment, copied from [`deploy/env.example`](./deploy/env.example), and CI passes both explicitly. The whole `secrets/` directory is gitignored, so no address, path, or container name belonging to one machine reaches the published history.
 
 **Always set `HUGO_BASEURL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. The effective value is printed on every build for that reason.
 
 | Variable | Effect |
 | --- | --- |
+| `ENV_FILE` | Which environment file to source. Defaults to `secrets/.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
 | `HUGO_BASEURL` | Overrides the site base URL. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
@@ -119,6 +162,8 @@ The container mounts the deploy root **read-only**, and mounts the **parent** ra
 
 Routing differs by environment and the bundle does not. Traefik on the home host has the Docker provider enabled, so container labels route. Pangolin's Traefik on the VPS does not, so routing there is created in the Pangolin UI and labels are silently ignored.
 
+**Each environment is its own container with its own deploy root**, rather than one server addressing several roots. That is what keeps the bundle's config internal: the Caddyfile inside a release names `/srv/blog/current`, one root, and knows nothing about a sibling. A single server covering both would have to name both roots in a config held outside either bundle, and that config could not then roll back with the content it serves. Both containers bind the same internal port and are told apart by hostname, which the proxy in front resolves.
+
 ### The bootstrap, and why it is not in the release
 
 The container reads three host paths, and only one of them a release ever writes:
@@ -131,17 +176,19 @@ The container reads three host paths, and only one of them a release ever writes
 
 [`deploy/bootstrap.Caddyfile`](./deploy/bootstrap.Caddyfile) goes in the `config` directory and is the **only** Caddy file outside the release bundle. It carries a single `import` and no rules of its own, deliberately: everything describing the site ships inside the release, so a rollback reverts the rules and the content together. Rules held here instead would leave a rolled-back site being served by the current release's redirects.
 
-Because it sits outside the bundle, no release updates it. Install or refresh it explicitly:
+Because it sits outside the bundle, no release updates it. Install or refresh it explicitly, once per environment, which is the same command against a different sourced file:
 
 ```sh
-set -a; . secrets/.env; set +a
+set -a; . secrets/.env; set +a          # or secrets/staging.env
 install -m 644 deploy/bootstrap.Caddyfile "$CADDY_APPDATA/config/Caddyfile"
 docker restart "$CADDY_CONTAINER"
 ```
 
+**A container started before its environment has a release restart-loops**, because the bootstrap imports a path that does not exist yet. Create the directories, install the bootstrap, cut the first release, and start the container in that order. The container definition can also be held disabled until the release exists, which is the same fix from the other side.
+
 A restart is needed whenever **any** Caddy config changes, not only this file. That includes `deploy/Caddyfile` and anything under `deploy/maps/`, because both are expanded at config-parse time and Caddy does not watch them. Only static file requests follow the `current` symlink per request. See "Local Verification Before a Pull Request" above, where skipping the restart is the difference between a real check and a false pass.
 
-`CADDY_APPDATA` is recorded in `secrets/.env` for exactly this reason. No script reads it, so a rebuild would otherwise depend on someone remembering where the bootstrap goes.
+`CADDY_APPDATA` is recorded in each environment's file for exactly this reason. No script reads it, so a rebuild would otherwise depend on someone remembering where the bootstrap goes.
 
 ## Redirects
 
@@ -168,8 +215,11 @@ The deploy account exists to receive a release and nothing else.
 
 - The account is unprivileged and owns only the deploy root.
 - Its key is restricted in `authorized_keys` with `restrict` and a forced command, so it cannot open a shell, allocate a terminal, or forward a port.
-- Each environment has its own key, so a staging deploy cannot reach production.
+- **One key covers both environments**, rather than one per environment. Recorded here as a decision rather than an omission, because the opposite is the obvious default and this file asserted it until the two environments actually existed. A per-environment split pays off only where the two keys never share a machine, and here they would: both private keys sit on the maintainer's one workstation, and both secrets in one GitHub store, so whatever reaches one reaches the other. The split would buy a boundary that is already crossed everywhere it is held.
+- **The forced command is therefore the only boundary left, and it is confined to the parent of both roots.** That is what a single key costs: `rrsync` pins a key to one directory, so the two deploy roots sit under one parent and one pinned command covers both. A key confined to `/srv/blog` can write either site, which is exactly what having one key means.
 - Unattended upgrades run with automatic reboot, which is safe because the site is static and the swap survives a restart.
+
+A deploy key that can write a release can already rewrite the site's Caddy config, because [`deploy/Caddyfile`](./deploy/Caddyfile) ships inside the bundle and the bootstrap imports it. Withholding the container's `/config` directory from the same key therefore protects nothing, which is why the bootstrap stays outside the deploy path for the reason given below and not for a security one.
 
 ## Backup and Restore
 

@@ -18,13 +18,28 @@ usage() {
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
-# CI passes both explicitly, and a local run reads them from an untracked secrets/.env.
+# CI passes both explicitly, and a local run reads them from an untracked file under secrets/.
 # That directory is gitignored whole, so nothing naming this machine reaches a public repo.
-if [ -f "$REPO/secrets/.env" ]; then
+#
+# ENV_FILE selects which environment a local run targets, and sourcing is deliberately not
+# conditional on the variable being unset: `set -a` exports every assignment in the file, so a
+# DEPLOY_ROOT exported by the caller is overwritten rather than respected. Pointing ENV_FILE at
+# the environment's own file is therefore the only way to switch environments, and passing the
+# root as the first argument is the only way to override one, because that is read after this.
+DEFAULT_ENV_FILE="$REPO/secrets/.env"
+ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
+if [ -f "$ENV_FILE" ]; then
+	echo "==> environment: $ENV_FILE"
 	set -a
-	# shellcheck disable=SC1091
-	. "$REPO/secrets/.env"
+	# shellcheck disable=SC1090,SC1091
+	. "$ENV_FILE"
 	set +a
+elif [ "$ENV_FILE" != "$DEFAULT_ENV_FILE" ]; then
+	# The default file is optional, because CI passes every value explicitly and reads no file.
+	# A file named on the command line is not: a typo there would otherwise fall through to
+	# whatever the ambient environment holds, which on this host is the other site's root.
+	echo "environment file not found: $ENV_FILE" >&2
+	exit 1
 fi
 
 ROOT="${1:-${DEPLOY_ROOT:-}}"
