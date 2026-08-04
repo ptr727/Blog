@@ -15,6 +15,12 @@ How the site is built, released, and served. The release is a **self-contained b
 | `bash` 4.4+ | all scripts | arrays, `mapfile` | already present |
 | `docker` | serving | running Caddy | orchestrated elsewhere |
 
+**These scripts run on Linux, which is a dependency ceiling rather than an omission.** They use
+`mv -Tf`, `find -printf`, `mapfile`, and `sed -i` without an argument, all of which are GNU or
+bash 4.4 constructs absent from a stock macOS. Every consumer is Linux already: CI builds there,
+the containers serve there, and the deploy account receives there. Editing is unaffected, and a
+macOS or Windows contributor runs them through a container or a remote Linux host.
+
 **Hugo must be the `extended` build**, and `hugo version` reports `+extended` when it is. Debian's archive does not carry a useful version, so install from the upstream release or via snap.
 
 **`brotli` is easy to miss and degrades silently.** The Caddyfile serves `precompressed br gzip`, so without the binary every text response falls back to gzip while the site keeps working and nothing errors. `make-release.sh` warns loudly when it is absent, and `REQUIRE_BROTLI=1` turns that into a hard failure. **CI must set it.** Measured on the home page: 18,845 bytes raw, 6,395 gzip, 5,105 brotli.
@@ -25,18 +31,23 @@ How the site is built, released, and served. The release is a **self-contained b
 
 This repo produces a release tree and the config that serves it. It never names a host path or
 an orchestrator variable, because the consumer may name both sides and the producer must name
-neither. Five facts are the whole contract:
+neither. Seven facts are the whole contract:
 
 1. The deploy root is bind-mounted **read-only** at `/srv/blog`. Mount the **parent**, never
    `current`, because a symlink is resolved once at container creation and mounting it pins the
    container to whichever release was live then.
 2. The site config is at `/srv/blog/current/Caddyfile`.
-3. A stable per-container config directory is mounted at `/config`, holding a bootstrap that
-   imports (2). Mount `/data` as well to persist Caddy state across a recreate. The image ships
-   `/data/caddy`, so this is persistence rather than a startup requirement.
+3. A stable per-container config directory is mounted **read-only** at `/config`, holding a
+   bootstrap that imports (2). Mount `/data` writable as well, and set `XDG_CONFIG_HOME=/data`.
 4. Caddy binds `:8080`, plain HTTP, with `admin off` and `auto_https off`. TLS and the public
    listener belong to the fronting proxy.
-5. The release tree is world-readable and world-traversable, so any uid can serve it.
+5. Caddy runs with **`--watch`**. This is not optional. See
+   [Reloading without a restart](#reloading-without-a-restart).
+6. The release tree is world-readable and world-traversable, so any uid can serve it.
+7. The container sets `SITE_ENV` and `SITE_ROBOTS`, which the bundle stamps on every response
+   as `X-Blog-Env` and `X-Robots-Tag`, and `TRUSTED_PROXIES`. See
+   [Identifying the environment](#identifying-the-environment) and
+   [Trusting the proxy](#trusting-the-proxy).
 
 ## Building a release
 
@@ -46,14 +57,31 @@ checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
 The deploy root and the base URL are the only host-specific values, and they pair per
-environment. Copy [`env.example`](./env.example) to `secrets/.env` and set both. `secrets/` is
-gitignored as a whole directory, so a value naming one machine cannot reach a public repo by
-being added to a file nobody remembered to ignore. CI passes them explicitly instead, which
-keeps a pipeline run self-describing:
+environment. Copy [`env.example`](./env.example) to `secrets/.env`, which is the file read when
+`ENV_FILE` is unset, and add `secrets/<environment>.env` for each further environment. A single
+environment therefore needs `secrets/.env` and nothing else, since a differently named file is
+read only when `ENV_FILE` names it. `secrets/` is gitignored as a whole directory, so a value
+naming one machine cannot reach a public repo by being added to a file nobody remembered to
+ignore. CI passes them explicitly instead, which keeps a pipeline run self-describing:
 
 ```sh
 HUGO_BASEURL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
 ```
+
+**One file per environment, selected by `ENV_FILE`.** `secrets/.env` is the default and is read
+when `ENV_FILE` is unset, so a single-environment host needs nothing else:
+
+```sh
+deploy/make-release.sh                                  # secrets/.env
+ENV_FILE=secrets/staging.env deploy/make-release.sh     # the staging site on the same host
+```
+
+Selecting the file is the only way to switch environments. The file is sourced with `set -a`,
+which exports every assignment in it and **overwrites** a variable the caller exported first, so
+`DEPLOY_ROOT=... deploy/make-release.sh` does not do what it looks like. The first argument
+still wins, because it is read after the file. A named file that does not exist is a hard
+failure rather than a fall-through to the ambient environment, since on a host running two sites
+the ambient value is the other site's root.
 
 **Always set `HUGO_BASEURL` for anything that is not production.** The base URL is baked into
 the canonical tag, the feed links, and every absolute permalink, so a mirror built without it
@@ -65,10 +93,147 @@ every build for that reason.
 
 | Variable | Effect |
 | --- | --- |
+| `ENV_FILE` | Which environment file to source. Defaults to `secrets/.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
 | `HUGO_BASEURL` | Overrides the site base URL. Hugo maps `HUGO_<KEY>` onto config natively. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
 | `NO_LINK_DEST=1` | Full copy instead of hard-linking from the previous release. |
+
+`checks/check-live-urls.sh` reads five more, and none of them reaches `make-release.sh`. Two
+open the auth gate:
+
+| Variable | Effect |
+| --- | --- |
+| `PANGOLIN_ACCESS_TOKEN_ID` | Resource access token id, sent as the `P-Access-Token-Id` header. |
+| `PANGOLIN_ACCESS_TOKEN` | The token itself, sent as `P-Access-Token`. |
+
+Set both or neither; half a pair is rejected as the typo it is. They go to curl through a
+mode-`600` config file rather than as `-H` arguments, which keeps the credential out of the
+`ps` output of 1,245 requests, and is also the only form that survives the `export -f` the
+parallel checks run under. The token is sent to the base URL's own origin and to nothing else,
+so a redirect that one day points off-site cannot carry it away.
+
+Three more assert that the thing answering is the thing that was just deployed, all checked in
+the preflight before a single URL is requested:
+
+| Variable | Effect |
+| --- | --- |
+| `EXPECT_SITE_ENV` | Asserts the environment that answered, read from `X-Blog-Env`. |
+| `EXPECT_RELEASE` | Asserts the release whose rules answered, read from `X-Blog-Release`. |
+| `RELOAD_TIMEOUT` | Seconds to wait for that release to become live. Default 30. |
+
+## Reloading without a restart
+
+The container runs `caddy run --watch`, so a release goes live with **no restart**. The watcher
+re-adapts the config on a timer and reloads it in process, and re-adapting re-executes every
+`import`, which is how a new release's `Caddyfile` and `maps/*.map` are picked up through a
+`/config/Caddyfile` that never itself changes.
+
+**`--watch` does not need the admin API.** `admin off` makes `caddy reload` impossible, which
+looks like it should rule out reloading entirely, and does not: `caddy reload` POSTs to the admin
+endpoint while the watcher reloads in process. The log prints `admin endpoint disabled` and
+`watching config file for changes` together.
+
+**`XDG_CONFIG_HOME=/data` is required alongside it.** The watcher autosaves the adapted config on
+every reload, to `$XDG_CONFIG_HOME/caddy`, which the image defaults to `/config`. A bind mount
+over `/config` shadows the world-writable directory the image pre-creates there, so the autosave
+has to `mkdir` and the outcome depends on the mount:
+
+| `/config` mount | Result |
+| --- | --- |
+| read-only, no `XDG_CONFIG_HOME` | an ERROR line **per reload**, one per deploy, reload still succeeds |
+| read-only, `XDG_CONFIG_HOME=/data` | clean |
+| writable, no `XDG_CONFIG_HOME` | silent, and Caddy writes `caddy/autosave.json` into the config directory |
+
+Mount `/config` read-only *and* set `XDG_CONFIG_HOME=/data`. Doing one without the other trades a
+silent stray file for a per-deploy error, in the place a real error most needs to stand out.
+
+**Without `--watch` the failure is silent.** Caddy expands `import` at config-parse time and does
+not watch the imported files, so the content symlink moves while the rules stay as they were when
+Caddy last loaded. The URL check then passes against a config that was never deployed. That is why
+the release stamps its own version into the config it ships with, as `X-Blog-Release`, and why
+`check-live-urls.sh` compares it to `EXPECT_RELEASE` before checking a single URL.
+
+It **waits** for the match rather than sampling once. The reload is asynchronous, so a check
+starting straight after a deploy races it and reads the previous release's config. `RELOAD_TIMEOUT`
+bounds the wait, and a container that is not watching never converges, which is what turns a silent
+staleness into a named failure.
+
+**Content and rules do not switch together.** `file_server` resolves `current` per request, so new
+content is live instantly while the rules follow on the next poll, about a quarter of a second
+later. For that window the new content is served under the previous release's rules. Harmless while
+every rule is a redirect, since a stale redirect lands on a page that exists in both releases. It
+stops being harmless if a rule ever *gates* content rather than redirecting it, and at that point
+the flip has to become a restart again.
+
+## Identifying the environment
+
+Every environment runs the **same bundle on the same port** in its own container, so nothing in a
+response says which one answered. A proxy rule aimed at the wrong container connects happily and
+serves the wrong environment under the right hostname, returning a healthy `200`. That is a
+failure a reader reports before a monitor notices.
+
+The bundle stamps two headers for that, taking both values from the container so the artifact
+stays the same everywhere and still rolls back as one unit:
+
+| Container variable | Header | Values |
+| --- | --- | --- |
+| `SITE_ENV` | `X-Blog-Env` | `production`, `staging`, and the local mirrors |
+| `SITE_ROBOTS` | `X-Robots-Tag` | `index, follow` or `noindex, nofollow` |
+
+Both are emitted at site level, outside the `route` block, which is what puts them on the error
+path as well. Verified on all three response classes: `200` from `file_server`, `301` from a
+`redir`, and `404` through `handle_errors`.
+
+**Both carry a default, because an unset `{$VAR}` is silent.** It expands to an empty header
+rather than an error, and `caddy validate` still reports a valid configuration, so a missing
+value would otherwise reach production unnoticed. `SITE_ENV` defaults to `unset`, which
+`EXPECT_SITE_ENV` then fails on.
+
+**`SITE_ROBOTS` defaults to `index, follow`, which is deliberate and is not the safer-looking
+choice.** The two failure directions are not symmetric:
+
+- A **staging** container missing the value is still behind its auth gate, so nothing reaches it
+  to index. The header is the second line of defence there, not the first.
+- A **production** container that picked up `noindex` would deindex the site silently, and this
+  site's entire migration exists to preserve sixteen years of search ranking. Recovery is
+  measured in weeks of recrawling.
+
+So the default is the value that is harmless on production, and `noindex` is reachable only by
+asking for it explicitly.
+
+`checks/check-live-urls.sh` asserts this when `EXPECT_SITE_ENV` is set, before it checks the
+1,245 URLs, since checking the contract against the wrong environment proves nothing.
+
+## Trusting the proxy
+
+A proxy fronts Caddy in every environment, so the peer address is always the proxy and the real
+client arrives in `X-Forwarded-For`. `trusted_proxies` is what makes Caddy believe it. Without it,
+`client_ip` and `remote_ip` are both the proxy and the forwarded header has no effect at all.
+
+**The CIDRs come from the container, not the bundle.** The same artifact runs on hosts whose docker
+subnets differ, so any literal in the bundle is wrong on one of them.
+
+**Trusting a range means believing `X-Forwarded-For` from anything inside it**, so the range is a
+security boundary, and it should be no wider than what can actually reach the port. Three
+behaviours, all verified:
+
+| `TRUSTED_PROXIES` | Result |
+| --- | --- |
+| unset | the bundle's default applies, all of RFC1918 |
+| set but empty | the default is skipped and nothing is trusted |
+| an explicit list | exactly those ranges |
+
+The default exists so a host that forgets the variable keeps working. It is not a safe value
+everywhere: **it is only correct where a proxy is the only thing that can reach Caddy.** Where the
+port is reachable directly, RFC1918 makes every device on the network a trusted proxy, and anything
+there can forge the client address in the access log. `TRUSTED_PROXIES=` (present, blank) is the
+right answer there, because a client that is not a proxy has no forwarded header worth honouring.
+
+Binding the port to `127.0.0.1` does **not** make direct access impossible. `docker-proxy` SNATs
+host-originated traffic to the bridge gateway, which is itself inside RFC1918 and therefore inside
+the default. Narrowing to the container subnet does not fix it either, since the gateway sits inside
+that too and has to be excluded deliberately.
 
 ## Layout
 
