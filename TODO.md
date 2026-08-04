@@ -35,7 +35,7 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 
 ## Owed to the hub
 
-The hub is owed a spec update for this repo's publishing type, tracked in [ProjectTemplate#456][hub-issue]. The measured deploy shape is reported there.
+The hub is owed a spec update for this repo's publishing type. The change is [ProjectTemplate#558][hub-spec-issue], carrying proposed wording for both additions, and [ProjectTemplate#456][hub-issue] holds the intake questions and the measured answers.
 
 **Frame it as a variant of the existing registry-push leaf, not a new release surface.** A NuGet or PyPI leaf builds an artifact and pushes it to its own destination, contributing no `release-asset-*`. This repo does exactly that. Only two things differ, and neither changes the seam:
 
@@ -99,6 +99,8 @@ Each of these was hit or nearly hit, and each is cheap to re-trip.
 - **Do not name any workflow `build-*-task.yml`** while the repo declares `source-only`, since `detect` is literally `["no build-*-task.yml"]`.
 - **Do not edit `.markdownlint-cli2.jsonc`, `repo-config/configure.sh`, or the two ruleset payloads.** They are carried verbatim and byte-matched against the hub. Scope a glob in the workflow instead. A reviewer finding a real defect in one of them is answered by declining locally and filing it at the hub, never by editing the file to satisfy the review.
 - **The hub's `main` can promote while a convergence pull request is open**, so ground truth moves underneath work that was correct when it started. It happened twice in one session on 2026-08-03, and the second time added drift the branch could not have known about. Re-run the audit against the hub ref actually carried before claiming convergence, and name that ref in the change, or the claim ages into a false one.
+- **The hub authors `scripts/pr_review.py`, and hand-rolling the review loop re-discovers its bugs.** One `status` call reports rounds, head coverage, unresolved threads, suppressed findings across every round, and whether a request was ever picked up. `wait` runs the backoff in-process, so a review wait costs one turn rather than one per poll. It is read-only by design and the mutations stay explicit, so fetch and run it rather than reimplementing it. Its README documents the traps below as the reason it exists.
+- **A review request can sit forever without being picked up, which looks exactly like patience.** Copilot raises a `copilot_work_started` timeline event within about half a minute of accepting; a request that never draws one is not slow, it is inert, and elapsed time cannot tell them apart. The event is REST-only. Recover by clearing the request with `union: false` and an empty `botIds`, then requesting again, after reading the pending set so a human reviewer is not dropped.
 - **The Copilot reviewer's login differs by API, and a wrong-form filter reads as a clean review.** REST reports `copilot-pull-request-reviewer[bot]`, GraphQL omits the suffix. A filter written in the other form matches nothing, and an empty result is indistinguishable from no findings. Assert the filter matched before trusting what it returned.
 - **A Copilot review hides findings in the review body, where the thread API cannot see them.** The `reviewThreads` query returns line threads only, so a review carrying `Suppressed comments (N)` in a `<details>` block reports zero unresolved while real findings sit unread. Read the review body itself, not just the threads, before calling a review loop finished.
 - **`gh pr merge --delete-branch` on a `develop -> main` promotion deletes `develop`.** Use a plain `gh pr merge --merge`.
@@ -136,6 +138,7 @@ Secrets and variables, per environment. The App-token pair is repository-scoped 
 <!-- External -->
 
 [hub-issue]: https://github.com/ptr727/ProjectTemplate/issues/456
+[hub-spec-issue]: https://github.com/ptr727/ProjectTemplate/issues/558
 [hub-registry]: https://github.com/ptr727/ProjectTemplate/blob/3b802b9eb9a841c0149d018f4db6ffa1b9419051/registry/repos.json
 [hub-report]: https://github.com/ptr727/ProjectTemplate/blob/3b802b9eb9a841c0149d018f4db6ffa1b9419051/reports/blog/audit.md
 [issue-549]: https://github.com/ptr727/ProjectTemplate/issues/549
