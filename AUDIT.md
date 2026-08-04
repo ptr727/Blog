@@ -49,7 +49,7 @@ Assert that every name under `baseline.requires` is present in both stores, and 
 
 ### Environment scope
 
-`configure.sh check` does not reach these, and neither does `gh secret list`. Assert them against `spec/secrets.json`:
+`configure.sh check` does not reach these and says so, deferring the secrets question to a manual verification. Assert them against `spec/secrets.json`:
 
 ```sh
 # Read the lists first, so a moved key fails here rather than emptying the loop below.
@@ -57,10 +57,12 @@ envs=$(jq -e -r '.environments.names[]' spec/secrets.json) || exit 1
 jq -e '.environments.environmentSecrets' spec/secrets.json > /dev/null || exit 1
 
 for env in $envs; do
-  gh api "repos/ptr727/Blog/environments/$env/secrets"   --jq '.secrets[].name'
-  gh api "repos/ptr727/Blog/environments/$env/variables" --jq '.variables[].name'
+  gh secret list   --repo ptr727/Blog --env "$env" --json name --jq '.[].name'
+  gh variable list --repo ptr727/Blog --env "$env" --json name --jq '.[].name'
 done
 ```
+
+`--json name` is not decoration. The bare `gh variable list` prints every value, so an audit run without it writes the deploy host, the user, and the known-hosts entry into whatever captured its output.
 
 **Assert the query matched before reading what it returned.** A `jq` path that no longer resolves yields nothing, a loop over nothing runs zero times, and a check that counts failures reports none. Every lookup is `jq -e`, which exits non-zero on a null or missing key, and each is **assigned before it is iterated**: command substitution in a `for` header discards the exit status, so a guard written there is a guard that never fires.
 
