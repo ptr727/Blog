@@ -146,6 +146,9 @@ read_release() {
 	local headers
 	headers=$(curl -sS -o /dev/null -D- --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR") || return 1
 	printf '%s' "$headers" | grep -i '^x-blog-release:' | tr -d '\r' | sed 's/^[^:]*: *//'
+	# Explicit, because pipefail carries grep's no-match status out of the function, which would
+	# report a reachable host serving no release header as unreachable.
+	return 0
 }
 
 got_release=$(printf '%s' "$preflight_headers" | grep -i '^x-blog-release:' | tr -d '\r' | sed 's/^[^:]*: *//')
