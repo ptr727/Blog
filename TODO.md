@@ -84,6 +84,7 @@ Each of these was hit or nearly hit, and each is cheap to re-trip.
 - **Do not name any workflow `build-*-task.yml`** while the repo declares `source-only`, since `detect` is literally `["no build-*-task.yml"]`.
 - **Do not edit `.markdownlint-cli2.jsonc`, `repo-config/configure.sh`, or the two ruleset payloads.** They are carried verbatim and byte-matched against the hub. Scope a glob in the workflow instead. A reviewer finding a real defect in one of them is answered by declining locally and filing it at the hub, never by editing the file to satisfy the review.
 - **The hub's `main` can promote while a convergence pull request is open**, so ground truth moves underneath work that was correct when it started. It happened twice in one session on 2026-08-03, and the second time added drift the branch could not have known about. Re-run the audit against the hub ref actually carried before claiming convergence, and name that ref in the change, or the claim ages into a false one.
+- **A Copilot review hides findings in the review body, where the thread API cannot see them.** The `reviewThreads` query returns line threads only, so a review carrying `Suppressed comments (N)` in a `<details>` block reports zero unresolved while real findings sit unread. Read the review body itself, not just the threads, before calling a review loop finished.
 - **`gh pr merge --delete-branch` on a `develop -> main` promotion deletes `develop`.** Use a plain `gh pr merge --merge`.
 
 ## Reference
