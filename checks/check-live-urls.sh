@@ -25,8 +25,9 @@ for list in golden-urls.txt redirect-urls.txt; do
 done
 
 FAILED="$(mktemp)"
+CURLERR="$(mktemp)"
 CURLRC=""
-trap 'rm -f "$FAILED" ${CURLRC:+"$CURLRC"}' EXIT
+trap 'rm -f "$FAILED" "$CURLERR" ${CURLRC:+"$CURLRC"}' EXIT
 
 # A resource access token opens the proxy's auth gate.
 # It goes into a curl config file because bash cannot export an array to the parallel checks.
@@ -95,7 +96,13 @@ echo "==> $BASE"
 
 # One request before the 1,245, because an auth gate turns a bad credential into a total failure.
 # Otherwise the output reads as a vanished site rather than a wrong token.
-preflight_headers=$(curl -s -o /dev/null -D- -w '%{http_code}' --max-time 30 "${AUTH[@]}" "$BASE/")
+# Transport failures are separated from HTTP ones, since a name that does not resolve otherwise
+# reports as a status code and gets diagnosed as a credential or a symlink.
+if ! preflight_headers=$(curl -sS -o /dev/null -D- -w '%{http_code}' --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR"); then
+	echo "FAIL preflight: $BASE/ could not be reached, so nothing below was checked" >&2
+	sed 's/^/     /' "$CURLERR" >&2
+	exit 1
+fi
 preflight="${preflight_headers##*$'\n'}"
 header_of() { printf '%s' "$preflight_headers" | grep -i "^$1:" | tr -d '\r' | sed 's/^[^:]*: *//'; }
 
