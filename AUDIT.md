@@ -52,14 +52,17 @@ Assert that every name under `baseline.requires` is present in both stores, and 
 `configure.sh check` does not reach these, and neither does `gh secret list`. Assert them against `spec/secrets.json`:
 
 ```sh
-jq -e '.environments.environmentSecrets' spec/secrets.json > /dev/null   # fail closed on a moved key
-for env in $(jq -r '.environments.names[]' spec/secrets.json); do
+# Read the lists first, so a moved key fails here rather than emptying the loop below.
+envs=$(jq -e -r '.environments.names[]' spec/secrets.json) || exit 1
+jq -e '.environments.environmentSecrets' spec/secrets.json > /dev/null || exit 1
+
+for env in $envs; do
   gh api "repos/ptr727/Blog/environments/$env/secrets"   --jq '.secrets[].name'
   gh api "repos/ptr727/Blog/environments/$env/variables" --jq '.variables[].name'
 done
 ```
 
-**Assert the query matched before reading what it returned.** A `jq` path that no longer resolves yields nothing, a loop over nothing runs zero times, and a check that counts failures reports none. Every lookup here is `jq -e`, which exits non-zero on a null or missing key, because a silent clean pass is the failure mode this whole file exists to prevent.
+**Assert the query matched before reading what it returned.** A `jq` path that no longer resolves yields nothing, a loop over nothing runs zero times, and a check that counts failures reports none. Every lookup is `jq -e`, which exits non-zero on a null or missing key, and each is **assigned before it is iterated**: command substitution in a `for` header discards the exit status, so a guard written there is a guard that never fires.
 
 Three assertions, and the third is the one presence-checking misses:
 
