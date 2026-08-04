@@ -73,7 +73,13 @@ check_redirect() {
 	dest=$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${auth[@]}" "$BASE$url")
 	# The credential is only ever sent to the origin it belongs to.
 	# A rule that one day redirects off-site must not mail the token there.
-	[ -n "$CURLRC" ] && [ "${dest#"$BASE"}" != "$dest" ] && dest_auth=(-K "$CURLRC")
+	# The match needs an origin boundary, since a bare prefix also accepts a host that merely
+	# starts with this one, such as a lookalike registered as an attacker's subdomain.
+	if [ -n "$CURLRC" ]; then
+		case "$dest" in
+		"$BASE" | "$BASE"/*) dest_auth=(-K "$CURLRC") ;;
+		esac
+	fi
 	dcode=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest")
 	# The media rule lands on an image, and a directory gains a trailing slash, so both answers are accepted.
 	case "$dcode" in
