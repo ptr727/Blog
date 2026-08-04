@@ -18,14 +18,8 @@ usage() {
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
-# CI passes both explicitly, and a local run reads them from an untracked file under secrets/.
-# That directory is gitignored whole, so nothing naming this machine reaches a public repo.
-#
-# ENV_FILE selects which environment a local run targets, and sourcing is deliberately not
-# conditional on the variable being unset: `set -a` exports every assignment in the file, so a
-# DEPLOY_ROOT exported by the caller is overwritten rather than respected. Pointing ENV_FILE at
-# the environment's own file is therefore the only way to switch environments, and passing the
-# root as the first argument is the only way to override one, because that is read after this.
+# ENV_FILE selects the environment, because `set -a` overwrites a value the caller exported.
+# The first argument overrides the root, being read after this.
 DEFAULT_ENV_FILE="$REPO/secrets/.env"
 ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
 if [ -f "$ENV_FILE" ]; then
@@ -36,13 +30,23 @@ if [ -f "$ENV_FILE" ]; then
 	set +a
 elif [ "$ENV_FILE" != "$DEFAULT_ENV_FILE" ]; then
 	# The default file is optional, because CI passes every value explicitly and reads no file.
-	# A file named on the command line is not: a typo there would otherwise fall through to
-	# whatever the ambient environment holds, which on this host is the other site's root.
+	# A named file is not, since a typo would fall through to the other environment's root.
 	echo "environment file not found: $ENV_FILE" >&2
 	exit 1
 fi
 
-ROOT="${1:-${DEPLOY_ROOT:-}}"
+# This script installs to a local path, so a remote environment's DEPLOY_ROOT would be built here.
+# The guard is on the fallback rather than the variable.
+# An explicit first argument names a local path and is always honoured, which is what CI passes.
+ROOT_ARG="${1:-}"
+if [ -z "$ROOT_ARG" ] && [ -n "${DEPLOY_SSH_HOST:-}" ]; then
+	echo "$ENV_FILE names DEPLOY_SSH_HOST=$DEPLOY_SSH_HOST, so its DEPLOY_ROOT is a path on that" >&2
+	echo "host and this script would create it here instead. Pass a local path as the first" >&2
+	echo "argument to assemble a bundle for shipping, or use a local environment file." >&2
+	exit 1
+fi
+
+ROOT="${ROOT_ARG:-${DEPLOY_ROOT:-}}"
 [ -n "$ROOT" ] || usage
 
 # CI passes the version so a release directory traces back to a commit rather than to a clock.
@@ -135,6 +139,14 @@ echo "==> installing release $VERSION"
 rsync -a --no-g --chmod=D2755,F644 --delete "${LINK_SITE[@]}" public/ "$STAGE/site/"
 rsync -a --no-g --chmod=D2755,F644 --delete "${LINK_MAPS[@]}" "$REPO/deploy/maps/" "$STAGE/maps/"
 install -m 644 "$REPO/deploy/Caddyfile" "$STAGE/Caddyfile"
+
+# Stamp the release into the config it ships with, so a response names the rules answering.
+# A stale config otherwise passes the URL contract against rules that were never shipped.
+sed -i "s/@@RELEASE@@/$VERSION/" "$STAGE/Caddyfile"
+if grep -q "@@RELEASE@@" "$STAGE/Caddyfile"; then
+	echo "release stamp was not substituted into the shipped Caddyfile" >&2
+	exit 1
+fi
 
 # --chmod and --no-g govern only the files rsync newly transfers.
 # A file supplied by --link-dest keeps its original inode's mode, so the result is inspected rather than assumed.

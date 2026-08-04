@@ -4,10 +4,34 @@
 {
 	admin off
 	auto_https off
+
+	# Trusting a range means believing X-Forwarded-For from anything inside it.
+	# The value is per-host, because docker subnets differ.
+	# An empty value trusts nothing, which is correct where Caddy is reachable without a proxy.
+	# The default keeps a host that omits the variable working.
+	servers {
+		trusted_proxies static {$TRUSTED_PROXIES:172.16.0.0/12 10.0.0.0/8 192.168.0.0/16}
+	}
 }
 
 :8080 {
 	root * /srv/blog/current/site
+
+	# Only the container distinguishes environments, which all serve this bundle on one port.
+	# A proxy rule aimed at the wrong one answers healthily under the right hostname.
+	# The default matters, since an unset variable yields an empty header and still validates.
+	header X-Blog-Env "{$SITE_ENV:unset}"
+
+	# Keeps a non-public copy of the site out of search indexes.
+	# The default is the value that is harmless on production.
+	# An unset staging container is still behind its auth gate.
+	# Production inheriting noindex would deindex the site silently.
+	header X-Robots-Tag "{$SITE_ROBOTS:index, follow}"
+
+	# Names the release whose rules are answering, substituted at install time.
+	# Content follows the current symlink per request, while rules wait on a config reload.
+	# Without this a stale config passes the URL contract against rules never shipped.
+	header X-Blog-Release "@@RELEASE@@"
 
 	# One map serves three classes because their key spaces are disjoint.
 	# Merging them keeps a single lookup on the hot path.

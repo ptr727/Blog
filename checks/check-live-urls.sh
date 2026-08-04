@@ -28,11 +28,9 @@ FAILED="$(mktemp)"
 CURLRC=""
 trap 'rm -f "$FAILED" ${CURLRC:+"$CURLRC"}' EXIT
 
-# Staging sits behind Pangolin's auth gate, which a resource access token opens.
-# The token pair goes into a curl config file rather than onto the command line, for two reasons.
-# The check functions run under `export -f` and `xargs bash -c`, and bash cannot export an array,
-# so a pair of -H arguments has no way to reach them intact. A command line is also world-readable
-# in ps output for as long as the process lives, and this runs 1,245 of them.
+# A resource access token opens the proxy's auth gate.
+# It goes into a curl config file because bash cannot export an array to the parallel checks.
+# A command line is also world-readable in ps output, and this runs 1,245 of them.
 if [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] && [ -n "${PANGOLIN_ACCESS_TOKEN:-}" ]; then
 	CURLRC="$(mktemp)"
 	chmod 600 "$CURLRC"
@@ -73,8 +71,8 @@ check_redirect() {
 	esac
 	# A redirect to a 404 is a broken redirect, so the destination is followed rather than trusted.
 	dest=$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${auth[@]}" "$BASE$url")
-	# Every destination in the contract is same-origin, and the credential is only ever sent to
-	# the origin it belongs to. A rule that one day redirects off-site must not mail the token there.
+	# The credential is only ever sent to the origin it belongs to.
+	# A rule that one day redirects off-site must not mail the token there.
 	[ -n "$CURLRC" ] && [ "${dest#"$BASE"}" != "$dest" ] && dest_auth=(-K "$CURLRC")
 	dcode=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest")
 	# The media rule lands on an image, and a directory gains a trailing slash, so both answers are accepted.
@@ -90,18 +88,77 @@ export BASE FAILED CURLRC
 echo "==> $BASE"
 
 # One request before the 1,245, because an auth gate turns a bad credential into a total failure.
-# Without this the output is 1,245 lines saying the site is gone, when the site is fine and the
-# token is wrong, and the two are indistinguishable from the far end of a CI log.
-preflight=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${AUTH[@]}" "$BASE/")
+# Otherwise the output reads as a vanished site rather than a wrong token.
+preflight_headers=$(curl -s -o /dev/null -D- -w '%{http_code}' --max-time 30 "${AUTH[@]}" "$BASE/")
+preflight="${preflight_headers##*$'\n'}"
+header_of() { printf '%s' "$preflight_headers" | grep -i "^$1:" | tr -d '\r' | sed 's/^[^:]*: *//'; }
+
 if [ "$preflight" != "200" ]; then
 	echo "FAIL preflight: $BASE/ answered $preflight, expected 200" >&2
-	if [ -n "$CURLRC" ]; then
+	# Own headers with no content behind them is the signature of a dangling current symlink.
+	# Caddy retains the last good config when the import disappears, so the headers stay correct.
+	# Reporting that as a release mismatch would send someone hunting a deploy that did land.
+	if [ -n "$(header_of x-blog-release)$(header_of x-blog-env)" ] && [ "$preflight" = "404" ]; then
+		echo "     the server is up and holding a config, but serving no content, so 'current'" >&2
+		echo "     probably points at a release that is not on disk. Caddy keeps its last good" >&2
+		echo "     config when the import vanishes, which is why the headers below still look" >&2
+		echo "     right: env=$(header_of x-blog-env) release=$(header_of x-blog-release)" >&2
+	elif [ -n "$CURLRC" ]; then
 		echo "     a token was sent, so check the pair is valid for this resource" >&2
 	else
 		echo "     no token was sent. If this site is behind the auth gate, set" >&2
 		echo "     PANGOLIN_ACCESS_TOKEN_ID and PANGOLIN_ACCESS_TOKEN" >&2
 	fi
 	exit 1
+fi
+
+# Nothing in a response body says which environment answered.
+# A proxy rule aimed at the wrong container returns a healthy 200 under the right hostname.
+if [ -n "${EXPECT_SITE_ENV:-}" ]; then
+	got_env=$(printf '%s' "$preflight_headers" | grep -i '^x-blog-env:' | tr -d '\r' | sed 's/^[^:]*: *//')
+	if [ "$got_env" != "$EXPECT_SITE_ENV" ]; then
+		echo "FAIL preflight: $BASE/ is served by '${got_env:-<no X-Blog-Env header>}', expected '$EXPECT_SITE_ENV'" >&2
+		echo "     the hostname resolved to the wrong environment's container, or SITE_ENV is" >&2
+		echo "     unset on it. Checking the URL contract now would test the wrong site." >&2
+		exit 1
+	fi
+	echo "==> served by $got_env"
+fi
+
+# Nothing else proves the rules answering are the ones just shipped, as no deploy restarts Caddy.
+# A stale config serves the previous release's rules while the new content is already live.
+read_release() {
+	curl -s -o /dev/null -D- --max-time 30 "${AUTH[@]}" "$BASE/" |
+		grep -i '^x-blog-release:' | tr -d '\r' | sed 's/^[^:]*: *//'
+}
+
+got_release=$(printf '%s' "$preflight_headers" | grep -i '^x-blog-release:' | tr -d '\r' | sed 's/^[^:]*: *//')
+if [ -n "${EXPECT_RELEASE:-}" ]; then
+	# The reload is asynchronous, so a check run straight after a deploy races it.
+	# Content is live instantly, while rules change on the next poll.
+	# The timeout still catches a container that is not watching, which never converges.
+	waited=0
+	while [ "$got_release" != "$EXPECT_RELEASE" ] && [ "$waited" -lt "${RELOAD_TIMEOUT:-30}" ]; do
+		sleep 1
+		waited=$((waited + 1))
+		got_release=$(read_release)
+	done
+	if [ "$got_release" != "$EXPECT_RELEASE" ]; then
+		echo "FAIL preflight: after ${waited}s the rules are from release '${got_release:-<no X-Blog-Release header>}', expected '$EXPECT_RELEASE'" >&2
+		echo "     The content symlink moved but the config never followed, so the redirects" >&2
+		echo "     below would be checked against a config that was never deployed, and would" >&2
+		echo "     pass. Two causes, and the second is the likelier one on a server that has" >&2
+		echo "     been working:" >&2
+		echo "       - the container is not running 'caddy run --watch' at all; or" >&2
+		echo "       - it is, and the watcher is dead. It stops watching permanently after one" >&2
+		echo "         failed config load, logs nothing further, and reports healthy throughout." >&2
+		echo "         Anything that broke 'current' even briefly, including a test, does this." >&2
+		echo "         Only a container restart re-arms it." >&2
+		exit 1
+	fi
+	echo "==> rules from release $got_release${waited:+ (after ${waited}s)}"
+elif [ -n "$got_release" ]; then
+	echo "==> rules from release $got_release"
 fi
 
 n_render=$(grep -c . "$CHECKS/golden-urls.txt")
