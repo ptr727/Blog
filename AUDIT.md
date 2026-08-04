@@ -62,7 +62,7 @@ for env in $envs; do
 done
 ```
 
-`--json name` is not decoration. The bare `gh variable list` prints every value, so an audit run without it writes the deploy host, the user, and the known-hosts entry into whatever captured its output.
+`--json name` is not decoration. The bare `gh variable list` prints a value column, and when its output is captured rather than shown it prints each value in full, so an audit run without it writes the deploy endpoint into its own log. Never request the `value` field here, and never use `gh variable view`, which prints one by design.
 
 **Assert the query matched before reading what it returned.** A `jq` path that no longer resolves yields nothing, a loop over nothing runs zero times, and a check that counts failures reports none. Every lookup is `jq -e`, which exits non-zero on a null or missing key, and each is **assigned before it is iterated**: command substitution in a `for` header discards the exit status, so a guard written there is a guard that never fires.
 
