@@ -16,10 +16,31 @@ env:
 
 jobs:
 
+  # The name selects a GitHub Environment and lands in a remote path, and a workflow_call caller
+  # is not bound by the dispatch choice list.
+  # A separate job, because the environment binding below resolves before any step runs.
+  assert-environment:
+    name: Assert environment name job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assert environment is known step
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          set -Eeuo pipefail
+          case "$ENVIRONMENT" in
+          production | staging) ;;
+          *)
+            echo "::error::environment must be production or staging; got '$ENVIRONMENT'."
+            exit 1
+            ;;
+          esac
+
   # Host-specific values come from the environment, so this file names no host, path, or address.
   deploy:
     name: Deploy site job
     runs-on: ubuntu-latest
+    needs: [ assert-environment ]
     environment: ${{ inputs.environment }}
     permissions:
       contents: read

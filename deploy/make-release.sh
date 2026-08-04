@@ -147,6 +147,13 @@ install -m 644 "$REPO/deploy/Caddyfile" "$STAGE/Caddyfile"
 
 # Stamp the release into the config it ships with, so a response names the rules answering.
 # A stale config otherwise passes the URL contract against rules that were never shipped.
+# Asserted before substituting, because sed reports success when it matches nothing.
+# A Caddyfile that lost the placeholder would otherwise ship unstamped, and the live check would
+# then blame a dead config watcher for a bundle that never carried a release id.
+if ! grep -q "@@RELEASE@@" "$REPO/deploy/Caddyfile"; then
+	echo "deploy/Caddyfile carries no @@RELEASE@@ placeholder to stamp" >&2
+	exit 1
+fi
 sed -i "s/@@RELEASE@@/$VERSION/" "$STAGE/Caddyfile"
 if grep -q "@@RELEASE@@" "$STAGE/Caddyfile"; then
 	echo "release stamp was not substituted into the shipped Caddyfile" >&2
