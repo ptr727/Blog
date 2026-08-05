@@ -9,15 +9,10 @@ description: Install the pinned Hugo extended build, verified by checksum before
 # Pinned by version and by checksum rather than installed from a floating action, because the site is reproducible only if the generator is, and a minor bump can change rendered output.
 # Update both values together, from the checksums file on the Hugo release.
 
-inputs:
-  version:
-    description: Hugo version to install.
-    required: false
-    default: 0.164.0
-  sha256:
-    description: SHA256 of the Hugo extended linux-amd64 .deb for that version.
-    required: false
-    default: 8325f3653032d0fc536503691f4833dc4eb6c6be02ee62466758f3f37a7f2fcd
+# The pin is hardcoded below rather than exposed as inputs with defaults.
+# An overridable input would let two callers pass different values and reintroduce the divergence this action exists to remove, which is the same defect one level up.
+# A pin that callers cannot override is correct by construction rather than by everyone agreeing to omit the argument.
+# Change it here, in one place, and every caller moves together or none does.
 
 runs:
   using: composite
@@ -28,8 +23,8 @@ runs:
     - name: Install Hugo step
       shell: bash
       env:
-        HUGO_VERSION: ${{ inputs.version }}
-        HUGO_SHA256: ${{ inputs.sha256 }}
+        HUGO_VERSION: 0.164.0
+        HUGO_SHA256: 8325f3653032d0fc536503691f4833dc4eb6c6be02ee62466758f3f37a7f2fcd
       run: |
         set -Eeuo pipefail
         deb="hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
