@@ -23,6 +23,8 @@ jobs:
   assert-ref:
     name: Assert deploy ref job
     runs-on: ubuntu-latest
+    # Nothing here reads the repository, so it needs no token scope at all.
+    permissions: {}
     steps:
       - name: Assert ref matches environment step
         run: |

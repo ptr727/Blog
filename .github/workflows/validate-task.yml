@@ -5,13 +5,6 @@ name: Validate task
 on:
   workflow_call:
 
-env:
-  # Hugo is pinned by version and checksum rather than installed from a floating action.
-  # The site build is only reproducible if the generator is, and a minor Hugo bump can change output.
-  # Update both values together, from the checksums file on the Hugo release.
-  HUGO_VERSION: 0.164.0
-  HUGO_SHA256: 8325f3653032d0fc536503691f4833dc4eb6c6be02ee62466758f3f37a7f2fcd
-
 jobs:
 
   # Source-only repo: lint plus a site build gated on the URL contract, using the same configs the editor uses.
@@ -29,15 +22,16 @@ jobs:
 
       # Doc linters run as pinned action wrappers.
       # The editorconfig-checker action is install-only, so it runs via Docker instead.
-      # The markdown glob excludes the imported archive and the vendored theme.
+      # The markdown glob excludes the imported archive and the vendored theme trees.
       # Neither is authored here, and .markdownlint-cli2.jsonc is carried verbatim so it cannot scope them.
+      # The theme exclusion reaches inside a theme directory rather than all of themes/, so a file we author about a vendored tree is still linted.
       - name: Lint Markdown step
         uses: DavidAnson/markdownlint-cli2-action@6bf21b07787794f89a243495939cd651942aeabe # v24.1.0
         with:
           globs: |
             **/*.md
             !content/**
-            !themes/**
+            !themes/*/**
             !public/**
 
       # The cspell gate covers README + HISTORY only.
@@ -77,16 +71,9 @@ jobs:
           done
           python3 -c 'import yaml,sys; yaml.safe_load(open("hugo.yaml"))'
 
-      # Pinned by checksum, so a tampered or moved artifact fails here rather than producing a wrong site.
+      # The pin lives in the action, so validation and the deploy cannot install different generators.
       - name: Install Hugo step
-        run: |
-          set -Eeuo pipefail
-          deb="hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
-          curl -sSLf -o "$deb" \
-            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${deb}"
-          echo "${HUGO_SHA256}  ${deb}" | sha256sum --check --strict
-          sudo dpkg --install "$deb"
-          hugo version
+        uses: ./.github/actions/install-hugo
 
       # --panicOnWarning is the real gate.
       # Two PaperMod templates are overridden in layouts/ precisely so it can stay on.

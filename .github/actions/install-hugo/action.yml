@@ -1,0 +1,44 @@
+name: Install Hugo
+description: Install the pinned Hugo extended build, verified by checksum before install.
+
+# The single declaration of which generator this repo builds with.
+# It used to live in both validate-task.yml and deploy-site-task.yml, with an instruction to update both and nothing enforcing it.
+# A one-sided bump was silent and produced exactly the failure the pin exists to prevent: validation building the site with one generator while the deploy shipped a tree built by another, each verifying its own checksum against its own version and both passing.
+# No Dependabot ecosystem tracks Hugo, so both values move by hand and there was no bot to catch the skew either.
+#
+# Pinned by version and by checksum rather than installed from a floating action, because the site is reproducible only if the generator is, and a minor bump can change rendered output.
+# Update both values together, from the checksums file on the Hugo release.
+
+inputs:
+  version:
+    description: Hugo version to install.
+    required: false
+    default: 0.164.0
+  sha256:
+    description: SHA256 of the Hugo extended linux-amd64 .deb for that version.
+    required: false
+    default: 8325f3653032d0fc536503691f4833dc4eb6c6be02ee62466758f3f37a7f2fcd
+
+runs:
+  using: composite
+  steps:
+
+    # A tampered or moved artifact fails at the checksum rather than producing a wrong site.
+    # The extended build is asserted from the binary rather than inferred from the file name, since the name is the only thing that carried that requirement before.
+    - name: Install Hugo step
+      shell: bash
+      env:
+        HUGO_VERSION: ${{ inputs.version }}
+        HUGO_SHA256: ${{ inputs.sha256 }}
+      run: |
+        set -Eeuo pipefail
+        deb="hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+        curl -sSLf -o "$deb" \
+          "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${deb}"
+        echo "${HUGO_SHA256}  ${deb}" | sha256sum --check --strict
+        sudo dpkg --install "$deb"
+        hugo version
+        hugo version | grep -q extended || {
+          echo "::error::Hugo reports a non-extended build, which cannot process this site's SCSS."
+          exit 1
+        }
