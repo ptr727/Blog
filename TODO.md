@@ -4,18 +4,20 @@ Running backlog for this repo, kept in a committed file so the work survives acr
 
 ## State
 
-The site is built and gated in CI. It is on GitHub, and it is not yet serving its public address.
+The site is built, gated in CI, and deployed to staging by pipeline. It is not yet serving its public address.
 
 | Piece | State |
 | --- | --- |
 | Content and media | done. 514 pages, 778 media files hash-verified against the export tar |
 | URL contract | done. 328 render, 917 redirect, 778 legacy image URLs, all gated |
-| Deploy shape | done and proven against a running Caddy, on a local publish mirror and a local staging mirror |
+| Deploy shape | done. Proven on two local mirrors and on the VPS, by hand and by pipeline |
 | CI workflows | green. Validation runs on every pull request and feeds the required check |
 | GitHub repo | public, both rulesets active, `configure.sh check` exits 0 |
-| Release pipeline | proven end to end. Release `1.0.11` carries the tag, source archive, README, and LICENSE |
+| Release pipeline | proven end to end. `1.0.17-g4b2def3ee9` is the newest, a prerelease from `develop` |
 | Fleet conformance | cataloged in the hub registry, audited, and carrying the current canonical |
-| VPS | untouched |
+| Deploy pipeline | `deploy-site.yml` is dispatchable and has deployed staging from CI end to end |
+| VPS staging | live at `blog.vps.insanegenius.net`, behind the auth gate, serving a pipeline release |
+| VPS production | environment configured, resource deliberately disabled, DNS still on the old platform |
 
 ## Blocked on the maintainer
 
@@ -24,11 +26,9 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 
 ## Next, in dependency order
 
-- Provision the VPS: an unprivileged `blogdeploy` user, the deploy root, and `unattended-upgrades` with automatic reboot.
-- The deploy roots are `/srv/blog/sites/{production,staging}` and the confinement root is `/srv/blog/sites`, which is already what the VPS carries. The extra `sites/` level exists because `/srv/blog` is the deploy account's home and holds its own `authorized_keys`, so confining the key there would let it rewrite its own permissions. Restrict the **single** deploy key with `restrict,command=...`, no pty and no forwarding, pinned to that parent. One key rather than one per environment is a deliberate decision, recorded with its reasoning in [OPERATIONS.md](./OPERATIONS.md#server-hardening): the split only pays where the two keys never share a machine, and both sit on one workstation and in one secret store. The cost is that the forced command can no longer separate the environments, which is why the roots share a parent.
-- Add the staging DNS record for `blog.vps.insanegenius.net` and expose it through Pangolin. It sits under the existing VPS wildcard, so no new certificate is needed, and **authentication stays on**: staging serves a byte-identical copy of the public site, and an open one is a duplicate handed to every crawler. `check-live-urls.sh` gets through with a resource access token instead.
-- Write `deploy-site.yml` and prove it: a dry run that mutates nothing, then a real run, then a forced mid-deploy failure to confirm rollback keeps the site up. Report the measured deploy shape back to [ProjectTemplate#456][hub-issue], which is waiting on it before the publish type can be defined.
-- Deploy to a temporary production FQDN and validate there before touching the live record. Lower the `blog` A-record TTL to 60s a day ahead, then flip it to the VPS, unproxied.
+- **Prove a rollback through the pipeline.** A forced mid-deploy failure, then a flip back to the previous release, verified by `EXPECT_RELEASE` rather than by the transport exiting zero. The server side has been measured at well under a second by hand; what is unproven is that a **pipeline** run leaves the site serving when its deploy fails part way.
+- **Deploy production once, to a name that is not the live one.** The production environment is configured and its Pangolin resource is deliberately disabled, so nothing has ever run against it. Validate there before the record moves.
+- Lower the `blog` A-record TTL to 60s a day ahead, then flip it to the VPS, unproxied.
 - Watch server logs for 404s daily for the first week, because real traffic finds what the golden list missed. Append anything new to `checks/golden-urls.txt` and add a redirect.
 - Add the weekly non-blocking external-link-check workflow, which is the one gate that cannot be blocking because it fails on other people's outages.
 - Decommission WordPress.com only after **30 clean days**, and downgrade to free rather than deleting, which keeps the media reachable as a safety net and preserves the ability to re-export. Do not start sooner: the conversion fetched media over HTTP from the live site.
