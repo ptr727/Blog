@@ -34,3 +34,8 @@ __pycache__/
 secrets/
 **/secrets
 .env
+
+# The working copies of the host channel described in OPERATIONS.md.
+# They carry server internals, and the host's own backup is what makes them durable.
+# A fixed path so the files are found by name rather than in a session directory.
+comms/
