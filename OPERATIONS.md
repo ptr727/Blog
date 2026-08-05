@@ -161,9 +161,15 @@ Verify with `checks/check-live-urls.sh` against the environment before consideri
 
 ## Retention
 
-Ten releases are kept. Unchanged files hard-link to the previous release, so the static tree is stored once rather than ten times, and a release costs roughly the size of the generated output.
+Ten releases are kept at every deploy root, by two independent mechanisms that agree on the number rather than by one mechanism reaching both.
+
+**On a local mirror, [`deploy/make-release.sh`](./deploy/make-release.sh) prunes as its last step.** Unchanged files hard-link to the previous release, so the static tree is stored once rather than ten times, and a release costs roughly the size of the generated output.
 
 The script asserts both halves of that rather than assuming them. It fails when the prune leaves more releases than the limit, and when hard-linking produces no shared files at all. Both have failed silently before, and on a compressing filesystem the disk usage looks plausible either way.
+
+**At a VPS deploy root, the host's `blog-prune-releases.timer` prunes and nothing in this repo does.** It runs daily and keeps ten release bundles per environment, and the release `current` resolves to is retained unconditionally without consuming one of the ten, so the live site survives even a misconfigured count. **Name the unit rather than the number**, because a second daily retention runs on the same host, `pangolin-backup.timer`, and it keeps fourteen encrypted config archives. "Ten, daily" identifies neither of them once it is read on its own. It orders by modification time rather than by name, because the release id is a caller-supplied argument and a label passed in place of a timestamp would sort wrongly and retire the wrong releases. It refuses outright, removing nothing, when `current` dangles or is not a symlink, since a broken `current` means the site is already serving nothing and guessing which release was meant to be live is the wrong move while it is.
+
+**Nothing prunes on the deploy path, and that is what keeps the deploy key's capability small.** A prune racing a deploy could take the rollback target, where a lingering release only costs disk. This is also why the key needs no delete capability, which is the property "Server Hardening" depends on. The count and the timer belong to the host, so this section records what the host declares rather than holding a second copy of it. See "Who Owns What".
 
 ## Who Owns What
 
@@ -178,6 +184,37 @@ The site and the server it runs on are maintained separately, so the boundary is
 | What a release contains | Where a release may be written, and what happens after |
 
 The two meet at the container contract in [`deploy/README.md`](./deploy/README.md#container-contract). A defect on the host side is fixed on the host; a pipeline that needs the contract to say something different asks for a contract change rather than growing a second copy of the other side's work.
+
+### The Channel Between the Two Sides
+
+The two sides are maintained by two agents that share no filesystem, no repository, and no session. They exchange rounds through two files on the VPS, in `/srv/agent-comms/`, each named for its author rather than for a direction, because every directional word inverts depending on which side reads it:
+
+| File | Author | From this side |
+| --- | --- | --- |
+| `vps-agent.md` | the host | pull it, and never write it |
+| `blog-agent.md` | this repo | pull it, append a round, push it back |
+
+The working copies live in `comms/`, which is gitignored, so they are found by name rather than in whichever session directory last held them:
+
+```sh
+rsync -a root@<vps-host>:/srv/agent-comms/vps-agent.md comms/vps-agent.md
+rsync -a --no-o --no-g --chmod=F644 comms/blog-agent.md root@<vps-host>:/srv/agent-comms/blog-agent.md
+```
+
+**The push suppresses owner and group deliberately.** `-a` implies `-o` and `-g`, and the transfer connects as root, so a plain `rsync -a` carries this workstation's numeric uid onto a host that has no such user and leaves the file owned by a number.
+
+Four rules, each covering a way the channel has already failed or could:
+
+- **Never pass `--delete`.** Nothing in that directory should be removed by a transfer, and no permission scheme prevents it, since both sides connect as root.
+- **Write only the file this side authors.** The other file is read-only here by convention alone.
+- **Re-pull immediately before appending.** Both sides can write in the same minute, so a copy pulled an hour ago is not a base to push from. Pushing this side's file is a read-modify-write, and it is the one operation that can silently drop a round.
+- **Timestamp every round from `date`, and add a changelog row.** Nothing sequences the rounds, so the timestamps are the only thing distinguishing a round that arrived late from a round that disagrees. A guessed timestamp is worse than none: a future-dated round sorts ahead of a genuinely later reply, which is the confusion the header exists to prevent.
+
+**Convention is the only thing protecting either file, so the copies are what matter.** Each side connects as root, so nothing stops either file being overwritten, and one has been. What protects the record is the host's nightly backup, which covers both files and reaches an off-host copy, plus the maintainer's own copy.
+
+**This repository holds the channel's rules and not its contents.** The rounds themselves stay out of git: they carry host detail this repository does not own, and publishing them here would put a second, unreviewed copy of the server's internals in a public repository to gain a backup the host already has.
+
+**A transfer into that directory uses `rsync` rather than `scp` for a reason worth keeping.** The host sets `fs.protected_regular = 2`, which refuses `O_CREAT` on an existing file in a group-writable sticky directory whose owner differs from the file's, and root does not bypass it. `scp` and `sftp` open with `O_CREAT` and fail there. `rsync` writes a temporary file and renames, so it succeeds. The directory's current ownership keeps the rule from applying at all, and the failure returns the moment anyone tightens the permissions.
 
 ## Serving
 
@@ -248,6 +285,7 @@ The deploy account exists to receive a release and nothing else.
 - Its key is restricted in `authorized_keys` with `restrict` and a forced command, so it cannot open a shell, allocate a terminal, or forward a port.
 - **One key covers both environments**, rather than one per environment. Recorded here as a decision rather than an omission, because the opposite is the obvious default and this file asserted it until the two environments actually existed. A per-environment split pays off only where the two keys never share a machine, and here they would: both private keys sit on the maintainer's one workstation, and both secrets in one GitHub store, so whatever reaches one reaches the other. The split would buy a boundary that is already crossed everywhere it is held.
 - **The forced command is therefore the only boundary left, and it is confined to the parent of both roots.** That is what a single key costs: `rrsync` pins a key to one directory, so the two deploy roots sit under one parent and one pinned command covers both. The roots are `/srv/blog/sites/production` and `/srv/blog/sites/staging`, and the confinement root is `/srv/blog/sites`.
+- **The deploy workflow's ref gate is a security control rather than a tidiness check, and it is load-bearing for the same reason.** One key confined to the parent of both roots means a run's environment name, not a credential, decides which of the two trees it writes into. The two GitHub Environments hold separate secrets and separate variables, and that separation stops at the runner: whichever key is installed reaches both trees. So the gate refusing a production deploy from any ref but the default branch is the boundary the credentials do not draw, and it is dispatchable by anyone who can dispatch the workflow. Treat it as part of this list rather than as workflow housekeeping.
 - **That parent holds content and nothing else, which is why it is not `/srv/blog`.** `/srv/blog` is the deploy account's home directory and contains `/srv/blog/.ssh/authorized_keys`. Confining the key there would let it rewrite the very file that defines what the key may do, and a `--delete` at the root would take `.ssh` with it. Confinement that encloses its own definition is not confinement. The extra `sites/` level is a security boundary rather than tidiness.
 - Unattended upgrades run with automatic reboot, which is safe because the site is static and the swap survives a restart.
 
@@ -258,3 +296,5 @@ A deploy key that can write a release can already rewrite the site's Caddy confi
 **The deploy root needs no backup.** The site is reproducible from this repository by running the deploy again, so the only thing worth protecting on the server is its configuration: the container definition, the proxy configuration, the deploy account and its restricted key, and the upgrade schedule.
 
 A bare-metal restore is therefore rebuilding the host, restoring that configuration, and running a deploy. Treat any procedure that backs up the deploy root as protecting a copy of something git already holds.
+
+**A rebuild regenerates the host's SSH keys, and the deploy verifies them, so one step belongs to this side.** Cloud-init deletes and recreates host keys when the instance identity changes, and the deploy transport sets `StrictHostKeyChecking=yes` against a pinned `DEPLOY_SSH_KNOWN_HOSTS`, held per environment. A rebuilt host therefore presents a key the pinned value does not match, and every deploy fails closed until the value is replaced **on both environments**. That blocks the rollback path as well as the deploy path, at exactly the moment a rebuild makes both matter. Read the new fingerprint and update both environments before the first deploy that follows a rebuild.

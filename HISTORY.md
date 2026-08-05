@@ -2,6 +2,8 @@
 
 Pieter Viljoen's blog, and the tooling that builds, verifies, and deploys it.
 
+The live blog is hosted at [blog.insanegenius.com][blog-link].
+
 ## Release History
 
 - Version 1.0:
@@ -11,3 +13,7 @@ Pieter Viljoen's blog, and the tooling that builds, verifies, and deploys it.
   - CI gates that contract on every pull request, alongside the doc, shell, and workflow linters, with the Hugo version pinned by checksum so a build is reproducible.
   - A self-contained release bundle carrying the site, the web-server config, and the redirect maps together, so a rollback reverts the rules and the content they refer to as one unit.
   - The site is not yet serving its public address. This release is the source and its pipeline, not the cutover.
+
+<!-- External -->
+
+[blog-link]: https://blog.insanegenius.com

@@ -7,12 +7,28 @@ on:
         description: The GitHub Environment to deploy to, production or staging.
         required: true
         type: string
+    outputs:
+      # A caller records what shipped, rather than having to read the host to find out.
+      # The verification below proves this id is the one answering, so it is the value a rollback names.
+      release-id:
+        description: The id of the release installed by this run.
+        value: ${{ jobs.deploy.outputs.release-id }}
+      site-url:
+        description: The base URL the deploy was verified against.
+        value: ${{ jobs.deploy.outputs.site-url }}
 
+# The transport's options are pinned rather than left to the runner's OpenSSH defaults, and declared once so the two transfers cannot drift apart.
+# StrictHostKeyChecking=yes refuses an unknown or changed host key outright, where the default asks and a non-interactive runner then resolves that ambiguously.
+# UserKnownHostsFile names the file the deploy key step writes, so the check reads the pinned value rather than whatever the runner image carries.
+# BatchMode=yes makes every prompt an immediate failure, so a credential problem surfaces as a failed step rather than a job that hangs to its timeout.
+# IdentitiesOnly=yes stops the agent offering other keys, so the deploy authenticates as the confined account or not at all.
 env:
-  # Pinned by version and checksum, because the site is reproducible only if the generator is.
-  # Update both values together.
-  HUGO_VERSION: 0.164.0
-  HUGO_SHA256: 8325f3653032d0fc536503691f4833dc4eb6c6be02ee62466758f3f37a7f2fcd
+  SSH_TRANSPORT: >-
+    ssh -i ~/.ssh/deploy
+    -o IdentitiesOnly=yes
+    -o StrictHostKeyChecking=yes
+    -o UserKnownHostsFile=~/.ssh/known_hosts
+    -o BatchMode=yes
 
 jobs:
 
@@ -22,6 +38,8 @@ jobs:
   assert-environment:
     name: Assert environment name job
     runs-on: ubuntu-latest
+    # Nothing here reads the repository, so it needs no token scope at all.
+    permissions: {}
     steps:
       - name: Assert environment is known step
         env:
@@ -44,6 +62,9 @@ jobs:
     environment: ${{ inputs.environment }}
     permissions:
       contents: read
+    outputs:
+      release-id: ${{ steps.release.outputs.id }}
+      site-url: ${{ vars.HUGO_BASEURL }}
 
     steps:
 
@@ -53,15 +74,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The pin lives in the action, so the deploy and validation cannot install different generators.
       - name: Install Hugo step
-        run: |
-          set -Eeuo pipefail
-          deb="hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
-          curl -sSLf -o "$deb" \
-            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${deb}"
-          echo "${HUGO_SHA256}  ${deb}" | sha256sum --check --strict
-          sudo dpkg --install "$deb"
-          hugo version
+        uses: ./.github/actions/install-hugo
 
       # REQUIRE_BROTLI below makes a missing binary fatal, so this keeps the build from failing.
       - name: Install brotli step
@@ -116,7 +131,7 @@ jobs:
           set -Eeuo pipefail
           rsync -az --mkpath --no-g --chmod=D2755,F644 \
             --link-dest="/${ENVIRONMENT}/current/" \
-            -e "ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes" \
+            -e "$SSH_TRANSPORT" \
             "${RUNNER_TEMP}/bundle/releases/${RELEASE_ID}/" \
             "${DEPLOY_SSH_USER}@${DEPLOY_SSH_HOST}:/${ENVIRONMENT}/releases/${RELEASE_ID}/"
 
@@ -130,7 +145,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           rsync -a --no-recursive \
-            -e "ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes" \
+            -e "$SSH_TRANSPORT" \
             "${RUNNER_TEMP}/bundle/current" \
             "${DEPLOY_SSH_USER}@${DEPLOY_SSH_HOST}:/${ENVIRONMENT}/"
 

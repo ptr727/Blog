@@ -4,18 +4,20 @@ Running backlog for this repo, kept in a committed file so the work survives acr
 
 ## State
 
-The site is built and gated in CI. It is on GitHub, and it is not yet serving its public address.
+The site is built, gated in CI, and deployed to staging by pipeline. It is not yet serving its public address.
 
 | Piece | State |
 | --- | --- |
 | Content and media | done. 514 pages, 778 media files hash-verified against the export tar |
 | URL contract | done. 328 render, 917 redirect, 778 legacy image URLs, all gated |
-| Deploy shape | done and proven against a running Caddy, on a local publish mirror and a local staging mirror |
+| Deploy shape | done. Proven on two local mirrors and on the VPS, by hand and by pipeline |
 | CI workflows | green. Validation runs on every pull request and feeds the required check |
 | GitHub repo | public, both rulesets active, `configure.sh check` exits 0 |
-| Release pipeline | proven end to end. Release `1.0.11` carries the tag, source archive, README, and LICENSE |
+| Release pipeline | proven end to end. `1.0.17-g4b2def3ee9` is the newest, a prerelease from `develop` |
 | Fleet conformance | cataloged in the hub registry, audited, and carrying the current canonical |
-| VPS | untouched |
+| Deploy pipeline | `deploy-site.yml` is dispatchable and has deployed staging from CI end to end |
+| VPS staging | live at `blog.vps.insanegenius.net`, behind the auth gate, serving a pipeline release |
+| VPS production | environment configured, resource deliberately disabled, DNS still on the old platform |
 
 ## Blocked on the maintainer
 
@@ -24,29 +26,27 @@ The site is built and gated in CI. It is on GitHub, and it is not yet serving it
 
 ## Next, in dependency order
 
-- Provision the VPS: an unprivileged `blogdeploy` user, the deploy root, and `unattended-upgrades` with automatic reboot.
-- The deploy roots are `/srv/blog/sites/{production,staging}` and the confinement root is `/srv/blog/sites`, which is already what the VPS carries. The extra `sites/` level exists because `/srv/blog` is the deploy account's home and holds its own `authorized_keys`, so confining the key there would let it rewrite its own permissions. Restrict the **single** deploy key with `restrict,command=...`, no pty and no forwarding, pinned to that parent. One key rather than one per environment is a deliberate decision, recorded with its reasoning in [OPERATIONS.md](./OPERATIONS.md#server-hardening): the split only pays where the two keys never share a machine, and both sit on one workstation and in one secret store. The cost is that the forced command can no longer separate the environments, which is why the roots share a parent.
-- Add the staging DNS record for `blog.vps.insanegenius.net` and expose it through Pangolin. It sits under the existing VPS wildcard, so no new certificate is needed, and **authentication stays on**: staging serves a byte-identical copy of the public site, and an open one is a duplicate handed to every crawler. `check-live-urls.sh` gets through with a resource access token instead.
-- Write `deploy-site.yml` and prove it: a dry run that mutates nothing, then a real run, then a forced mid-deploy failure to confirm rollback keeps the site up. Report the measured deploy shape back to [ProjectTemplate#456][hub-issue], which is waiting on it before the publish type can be defined.
-- Deploy to a temporary production FQDN and validate there before touching the live record. Lower the `blog` A-record TTL to 60s a day ahead, then flip it to the VPS, unproxied.
+- **Retest the deploy transport against the real host**, which is [#33][issue-33] and is joint work with whoever holds the server. The transport now pins `StrictHostKeyChecking`, `UserKnownHostsFile`, and `BatchMode`, so it fails closed where it previously failed open, and a stale `DEPLOY_SSH_KNOWN_HOSTS` stops a deploy rather than being tolerated. Staging first, since a broken transport blocks the rollback path as well as the deploy.
+- **Declare what the VPS keeps.** `hugo.deploy.retention` asks for a retention count declared at the destination, and this repo's deploy credential is write-only by design so the prune belongs to the host. The ownership is recorded in `OPERATIONS.md`, the count is not, and the "ten releases" beside it describes `deploy/make-release.sh` on the local mirrors rather than the containers on the VPS. Confirm the host's timer and its count, then write it next to the ownership line.
+- **Prove a rollback through the pipeline.** A forced mid-deploy failure, then a flip back to the previous release, verified by `EXPECT_RELEASE` rather than by the transport exiting zero. The server side has been measured at well under a second by hand; what is unproven is that a **pipeline** run leaves the site serving when its deploy fails part way.
+- **Deploy production once, to a name that is not the live one.** The production environment is configured and its Pangolin resource is deliberately disabled, so nothing has ever run against it. Validate there before the record moves.
+- Lower the `blog` A-record TTL to 60s a day ahead, then flip it to the VPS, unproxied.
 - Watch server logs for 404s daily for the first week, because real traffic finds what the golden list missed. Append anything new to `checks/golden-urls.txt` and add a redirect.
 - Add the weekly non-blocking external-link-check workflow, which is the one gate that cannot be blocking because it fails on other people's outages.
 - Decommission WordPress.com only after **30 clean days**, and downgrade to free rather than deleting, which keeps the media reachable as a safety net and preserves the ability to re-export. Do not start sooner: the conversion fetched media over HTTP from the live site.
 
 ## Owed to the hub
 
-The hub is owed a spec update for this repo's publishing type. The change is [ProjectTemplate#558][hub-spec-issue], carrying proposed wording for both additions, and [ProjectTemplate#456][hub-issue] holds the intake questions and the measured answers.
+Nothing. The spec update this repo owed the hub has landed: [ProjectTemplate#560][hub-type-pr] authored the `hugo` type, the `self-hosted` target, the `deploy-ssh` mechanism, guarantees D4.6 and D5.6, and a reference leaf pair, all measured from what this repo actually runs rather than from the prediction the intake carried. [#456][hub-issue] and [#558][hub-spec-issue] are closed with it.
 
-**Frame it as a variant of the existing registry-push leaf, not a new release surface.** A NuGet or PyPI leaf builds an artifact and pushes it to its own destination, contributing no `release-asset-*`. This repo does exactly that. Only two things differ, and neither changes the seam:
+**It is on the hub's `develop` and not on `main`, so it is not ground truth yet.** The registry entry that reclassifies this repo to `types: ["hugo", "source-only"]` with both publish targets sits on the same unpromoted branch. Until the hub promotes, this repo stays `source-only` for audit purposes, and the anticipatory evaluation of the nine `hugo` checks is in [the audit report](./reports/Blog/audit.md).
 
-| Same as NuGet and PyPI | Unique here |
-| --- | --- |
-| A leaf builds, then pushes to its own destination | The build is Hugo rather than a language toolchain |
-| No `release-asset-*` contributed | The transport is rsync over SSH to a host the project owns |
-| Publish is dispatch-gated, never a merge | The destination is a filesystem, so the artifact carries its own version |
-| Credentials come from a GitHub Environment | Two environments serve the same artifact, so a deploy must prove which one answered |
+Two things become due at that promotion, neither of them work this repo can do first:
 
-What the type genuinely needs is therefore small: a destination row in `Output Seam by Destination`, and one guarantee that a deploy is verified against the running host by release rather than by transport success. The release model, the branching model, and the never-publish-on-merge rule all hold unchanged.
+- The two `driftNotes` the hub's registry carries for `hugo.vendored.provenance` and `hugo.generator.pinned` describe work [#30][pr-30] already finished, so they are reconciled away rather than carried. Filed as [ProjectTemplate#563][issue-563], with the measurement that nothing retires them mechanically despite the intent to: the freshness check is gated on a repo having no findings at all, and this repo has one it cannot clear.
+- This repo's [`spec/secrets.json`](./spec/secrets.json) note states `types: ["source-only"]` in prose and needs the second type once the registry declares it.
+
+The reference leaf the hub now ships carries one step this repo's deploy does not, a prune of the remote release tree. That is the corrected form of the check rather than a gap here: this repo's credential cannot observe the destination, so the leaf's own comments say to delete the step and record the ownership on the host side, which is what the entry above tracks.
 
 ## Open decisions
 
@@ -61,20 +61,20 @@ Both are recorded in [AUDIT.md](./AUDIT.md) and reported to [ProjectTemplate#456
 
 ## Hub conformance, and what is open against the hub
 
-Reconverged 2026-08-03. This repo is cataloged in [`registry/repos.json`][hub-registry] and the hub authored [`reports/blog/audit.md`][hub-report]. Before that it was in no registry, so no hub tool had ever measured it and the fleet ledger under-counted by exactly this repo.
+Reconverged 2026-08-05, and the run is written up in [`reports/Blog/audit.md`](./reports/Blog/audit.md). This repo is cataloged in [`registry/repos.json`][hub-registry] and the hub authored [`reports/blog/audit.md`][hub-report]. Before that it was in no registry, so no hub tool had ever measured it and the fleet ledger under-counted by exactly this repo.
 
-**Measured against hub `main` `3b802b9eb9a841c0149d018f4db6ffa1b9419051`**, and the ref is named because `main` moves, which is the trap below. Every verbatim section of `AGENTS.md` and `GOVERNANCE.md` byte-matches, as do both ruleset payloads and `.markdownlint-cli2.jsonc`. The one exception is `repo-config/configure.sh`, one commit behind on [ProjectTemplate#553][pr-553], which fixes the jq portability defect this repo reported as [#549][issue-549] and is owed a re-vendor. Both links above are pinned to that same ref rather than to `main`, so this record stays checkable after the hub moves again.
+**Measured against hub `main` `3b802b9eb9a841c0149d018f4db6ffa1b9419051`**, and the ref is named because `main` moves, which is the trap below. Every verbatim unit now matches: the re-vendor of `repo-config/configure.sh` this record previously owed, for the jq portability defect reported as [#549][issue-549] and fixed at the hub in [#553][pr-553], landed with this change. The links above are pinned to that same ref rather than to `main`, so this record stays checkable after the hub moves again.
 
-Four findings are open at the hub. None is work this repo can do, and each changes what a fleet audit of this repo means, which is why they are recorded here rather than only in the issues.
+Two findings are open at the hub. Neither is work this repo can do, and each changes what a fleet audit of this repo means, which is why they are recorded here rather than only in the issues.
 
 | Issue | What it means here |
 | --- | --- |
 | [#550][issue-550] | Nothing detects a repo missing from the registry, which is how this repo stayed invisible. Three other repos are still absent. |
-| [#552][issue-552] | The audit flags any carried `AGENTS.md` naming the template repo, and the byte-locked `Fleet Bootstrap` section names it. Carrying the canonical correctly cannot pass. |
-| [#554][issue-554] | `spec/audit.py` still compares `bypass_actors` after the payloads stopped declaring it, so this repo reports two DEFECTs that no agent action can clear. |
-| [#456][hub-issue] | The static-site type, still waiting on a measured deploy shape from the VPS work below. |
+| [#552][issue-552] | The audit flags any carried `AGENTS.md` naming the template repo, and the byte-locked `Fleet Bootstrap` section names it. Carrying the canonical correctly cannot pass, and it is the one finding the current run cannot clear. |
 
-**The live ruleset bypass is deliberate and stays.** Both rulesets carry the `RepositoryRole` admin entry. The owner is automatically an admin and holds that capability regardless, so the entry grants nothing new, and the payloads stopped declaring it because code should not be in the business of granting a bypass at all. `configure.sh check` reports it as unmanaged and exits 0. Only `spec/audit.py` disagrees, which is [#554][issue-554].
+Two more are resolved and are named because their absence from the table would otherwise read as an oversight. [#554][issue-554] made `spec/audit.py` report two DEFECTs here that no agent action could clear, and the fix is in the hub `main` this run measured against, so those two findings are gone. [#456][hub-issue] and [#558][hub-spec-issue] were the static-site type, now authored, per the section above.
+
+**The live ruleset bypass is deliberate and stays.** Both rulesets carry the `RepositoryRole` admin entry. The owner is automatically an admin and holds that capability regardless, so the entry grants nothing new, and the payloads stopped declaring it because code should not be in the business of granting a bypass at all. `configure.sh check` reports it as unmanaged and exits 0, and the hub audit no longer disagrees.
 
 ## Traps
 
@@ -136,16 +136,20 @@ The deploy root is deliberately absent from this table. The rsync destination is
 
 <!-- Repo -->
 
+[issue-33]: https://github.com/ptr727/Blog/issues/33
 [migration-post]: ./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md
+[pr-30]: https://github.com/ptr727/Blog/pull/30
 
 <!-- External -->
 
 [hub-issue]: https://github.com/ptr727/ProjectTemplate/issues/456
-[hub-spec-issue]: https://github.com/ptr727/ProjectTemplate/issues/558
 [hub-registry]: https://github.com/ptr727/ProjectTemplate/blob/3b802b9eb9a841c0149d018f4db6ffa1b9419051/registry/repos.json
 [hub-report]: https://github.com/ptr727/ProjectTemplate/blob/3b802b9eb9a841c0149d018f4db6ffa1b9419051/reports/blog/audit.md
+[hub-spec-issue]: https://github.com/ptr727/ProjectTemplate/issues/558
+[hub-type-pr]: https://github.com/ptr727/ProjectTemplate/pull/560
 [issue-549]: https://github.com/ptr727/ProjectTemplate/issues/549
 [issue-550]: https://github.com/ptr727/ProjectTemplate/issues/550
 [issue-552]: https://github.com/ptr727/ProjectTemplate/issues/552
 [issue-554]: https://github.com/ptr727/ProjectTemplate/issues/554
+[issue-563]: https://github.com/ptr727/ProjectTemplate/issues/563
 [pr-553]: https://github.com/ptr727/ProjectTemplate/pull/553
