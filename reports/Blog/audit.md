@@ -108,7 +108,7 @@ Both remaining findings are blocked outside this change:
 
 The hub authored a nine-check `hugo` type from this repository's measured deploy shape. It is on the hub's `develop` and **not** on `main`, so it is not ground truth yet and this section is anticipatory: it records what a promoted type would find, so the promotion is not the first time anyone looks.
 
-**Nothing mechanizes these checks.** `spec/audit.py` does not read `spec/project-types.json` at all, so a clean run of it says nothing about any of the nine, and reading one as evidence would be the empty-query trap this repository has been caught by before. Every row below was evaluated by hand against the file it cites.
+**Nothing mechanizes these checks.** `spec/audit.py` does not read `spec/project-types.json` at all, so a clean run of it says nothing about any of the nine, and reading one as evidence would be the empty-query trap this repository has been caught by before. Every row below was evaluated by hand against the file it cites. That, and the two registry notes it leaves stranded, are reported to the hub as [ProjectTemplate#563][issue-563].
 
 | Check | Verdict | Evidence |
 | --- | --- | --- |
@@ -158,3 +158,4 @@ Carried forward rather than closed:
 [hub-issue]: https://github.com/ptr727/ProjectTemplate/issues/456
 [hub-spec-issue]: https://github.com/ptr727/ProjectTemplate/issues/558
 [issue-552]: https://github.com/ptr727/ProjectTemplate/issues/552
+[issue-563]: https://github.com/ptr727/ProjectTemplate/issues/563
