@@ -20,15 +20,19 @@ jobs:
 
   # Staging deploys from any ref, since proving a branch before it merges is what staging is for.
   # First, so a mis-dispatched production deploy fails before anything is installed or written.
+  # Compared against the full ref rather than ref_name, because tags and branches are separate namespaces that share a short name.
+  # A tag named main would satisfy a ref_name comparison while pointing at an arbitrary commit, which is a bypass of the one gate protecting production.
   assert-ref:
     name: Assert deploy ref job
     runs-on: ubuntu-latest
+    # Nothing here reads the repository, so it needs no token scope at all.
+    permissions: {}
     steps:
       - name: Assert ref matches environment step
         run: |
           set -Eeuo pipefail
-          if [ "${{ inputs.environment }}" = "production" ] && [ "${{ github.ref_name }}" != "main" ]; then
-            echo "::error::Deploy production from main; got ${{ github.ref_name }}."
+          if [ "${{ inputs.environment }}" = "production" ] && [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "::error::Deploy production from main; got ${{ github.ref }}."
             exit 1
           fi
 
