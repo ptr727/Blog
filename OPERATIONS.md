@@ -214,7 +214,7 @@ Four rules, each covering a way the channel has already failed or could:
 
 **This repository holds the channel's rules and not its contents.** The rounds themselves stay out of git: they carry host detail this repository does not own, and publishing them here would put a second, unreviewed copy of the server's internals in a public repository to gain a backup the host already has.
 
-**A transfer into that directory uses `rsync` rather than `scp` for a reason worth keeping.** The host sets `fs.protected_regular = 2`, which refuses `O_CREAT` on an existing file in a group-writable sticky directory whose owner differs from the file's, and root does not bypass it. `scp` and `sftp` open with `O_CREAT` and fail there; `rsync` writes a temporary file and renames, so it succeeds. The directory's current ownership keeps the rule from applying at all, and the failure returns the moment anyone tightens the permissions.
+**A transfer into that directory uses `rsync` rather than `scp` for a reason worth keeping.** The host sets `fs.protected_regular = 2`, which refuses `O_CREAT` on an existing file in a group-writable sticky directory whose owner differs from the file's, and root does not bypass it. `scp` and `sftp` open with `O_CREAT` and fail there. `rsync` writes a temporary file and renames, so it succeeds. The directory's current ownership keeps the rule from applying at all, and the failure returns the moment anyone tightens the permissions.
 
 ## Serving
 
