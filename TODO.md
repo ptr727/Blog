@@ -51,7 +51,6 @@ The reference leaf the hub now ships carries one step this repo's deploy does no
 ## Open decisions
 
 - `/robots.txt/` and `/osd.xml/` currently sit in `slugs.map` pointing at `/`. The first would be better pointing at the real `/robots.txt`.
-- **103 carried media files are still linked from no page, and the cause of each is unknown.** The count opened at 120; the five empty gallery shortcodes accounted for 17 and are restored. What remains is a mix of further conversion losses and uploads the old platform never published, and this repo cannot tell those apart: the capture can, by comparing each post's rendered galleries against its converted markdown. The comparison that found the five is worth generalizing, and its blind spot is worth knowing — a mirror page parsed as having *fewer* figures than the markdown means the parser missed that page's markup, never that images were lost, so only a surplus in the mirror is a finding. `ORPHANED_MEDIA` in [`checks/check-url-parity.py`](./checks/check-url-parity.py) holds the count and fails if it moves either way.
 - Content is capped at a fixed 720px on every screen, because PaperMod's width is four CSS variables with no responsive term and no Hugo parameter. The prose measure is right and should stay; images and galleries inheriting the same cap is the part that costs something on a wide display. The knobs, the override location, and the `--gap` trap are documented under "Customization points" in [`themes/README.md`](./themes/README.md).
 
 ## Deliberate deviations from the fleet baseline

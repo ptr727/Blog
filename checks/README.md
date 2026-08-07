@@ -79,3 +79,24 @@ Media is the one surface checked in **both** directions, and it has to be, becau
 Its constant is an exact count rather than a bound. A ceiling would let a drop leave slack behind for a later regression to hide in, so whatever lowers the count lowers the constant in the same change, and the check names the new number when it drops.
 
 A count is all the check can observe, and two causes reach each direction: it rises when a page stops linking media **or** when unlinked media is added, and it falls when media is linked from a page **or** when orphaned files are deleted. The messages name both, because naming one would send a reader looking for a page that never changed.
+
+**Both directions read absolute references as well as relative ones.** Hugo writes an absolute URL wherever a template resolves one against the base, which the entry-cover image on every list page does. Reading only rooted paths made those files look linked from nowhere while they were being displayed, and left a broken one unchecked in the other direction. The origin is read from the home page's canonical link rather than assumed, since staging and production build with different base URLs and a hardcoded host would check one environment's output against another's. No canonical link is a hard failure, because a guessed origin inflates the orphan count by exactly the pages that use one.
+
+## What the orphans are
+
+The count is not a backlog. It opened at 120 and was adjudicated against the captured live site under `blog-capture/mirror/`, which holds a crawl of the old platform including all 328 URLs the contract requires:
+
+| | |
+| --- | --- |
+| 17 | conversion losses, restored — five `gallery` shortcodes emitted empty |
+| 5 | never orphans, referenced only by an absolute URL the check could not read |
+| 97 | uploaded to the old platform's media library and never placed on a published page |
+| 1 | that platform's site icon, superseded by the favicon set at the static root |
+
+**No image the old site served from its own uploads went unimported**, and no conversion loss remains. Anything that raises the count from here is therefore new, which is what makes the exact constant worth keeping.
+
+Three traps in that adjudication, each of which produced a wrong answer first and each cheap to re-trip:
+
+- **A regex cannot read nested elements.** The galleries are `wp-block-gallery` figures containing `wp-block-image` figures, and matching them by pattern reported a fictional 194-figure loss. An HTML parser gives the real number.
+- **Only a surplus in the mirror is a finding.** A mirror page parsed as having *fewer* figures than the markdown means the parser missed that page's markup, never that images were lost.
+- **The old platform generated an attachment page per upload, and a foreign host may also serve `/wp-content/uploads/`.** Counting attachment pages as places an image was displayed makes every unused upload look published, and matching an uploads path without checking its host attributes another site's file to this one. Both were hit here.

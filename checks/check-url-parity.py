@@ -27,13 +27,15 @@ CHECKS = pathlib.Path(__file__).resolve().parent
 # resolving proves an inbound link still lands, and a reference resolving proves it names a real
 # file. Neither asks whether anything points at a given file, so an image the conversion dropped
 # from a page stays reachable by URL, invisible on the site, and green in both directions.
-# Every one traces to the WordPress conversion rather than to anything this repo does. It opened at
-# 120. Five empty gallery shortcodes across three posts accounted for 17 of them, restored from the
-# captured live site, and the remaining 103 are unadjudicated: some are further conversion losses
-# and some are uploads the old platform never published, and telling those apart needs the capture
-# rather than this repo. The count is exact rather than a bound, so whatever lowers it lowers this
-# in the same change and slack can never accumulate for a later regression to hide in.
-ORPHANED_MEDIA = 103
+# It opened at 120, of which 17 were conversion losses restored from the captured live site and 5
+# were never orphans at all, being referenced only by an absolute URL this check could not read.
+# The 98 that remain are adjudicated rather than unknown: 97 were uploaded to the old platform's
+# media library and never placed on any published page, and one is that platform's site icon,
+# superseded by the favicon set at the static root. Nothing here is a conversion loss, and no image
+# the old site served from its own uploads went unimported. checks/README.md carries the method.
+# The count is exact rather than a bound, so whatever lowers it lowers this in the same change and
+# slack can never accumulate for a later regression to hide in.
+ORPHANED_MEDIA = 98
 
 
 def load(name):
@@ -83,6 +85,24 @@ def check_media(public):
     return missing
 
 
+def site_origin(public):
+    """The site's own scheme and host, read from the artifact rather than assumed.
+
+    Staging and production build with different base URLs, so a hardcoded host would check
+    one environment's output against another's and silently match nothing.
+    """
+    home = public / "index.html"
+    if not home.is_file():
+        sys.exit(f"FAIL: {home} is missing - run hugo first")
+    text = home.read_text(encoding="utf-8", errors="ignore")
+    found = re.search(r'rel=["\']?canonical["\']?\s+href=["\']?(https?://[^/"\'>\s]+)', text)
+    if not found:
+        # Without the origin, every absolute reference reads as external and the orphan count
+        # inflates by exactly the pages that use one. Guessing would be worse than stopping.
+        sys.exit("FAIL: no canonical link on the home page - cannot determine the site's own origin")
+    return found.group(1)
+
+
 def collect_refs(public):
     """Every local asset reference in the built pages.
 
@@ -93,11 +113,16 @@ def collect_refs(public):
     # Matching only the quoted form checks a fraction of the references and calls it a pass.
     quoted = re.compile(r'(?:src|href|srcset)="(/(?:media|external)/[^"]+)"')
     bare = re.compile(r"(?:src|href|srcset)=(/(?:media|external)/[^\s\"'>]+)")
+    # Hugo writes an absolute URL wherever a template resolves one against the base, which the
+    # entry-cover images on every list page do. Read as external, those files look linked from
+    # nowhere while being displayed, and a broken one is never checked at all.
+    absolute = re.compile(re.escape(site_origin(public)) + r'(/(?:media|external)/[^\s"\'>]+)')
     refs = set()
     for page in public.rglob("*.html"):
         text = page.read_text(encoding="utf-8", errors="ignore")
         refs.update(quoted.findall(text))
         refs.update(bare.findall(text))
+        refs.update(absolute.findall(text))
     return refs
 
 
