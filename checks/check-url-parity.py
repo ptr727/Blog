@@ -131,7 +131,10 @@ def check_orphans(public, refs):
             if not path.is_file():
                 continue
             carried += 1
-            rel = str(path.relative_to(public))
+            # `linked` holds URL paths, which are always forward-slashed, so a native separator
+            # here would match nothing and report every carried file as an orphan. check_render
+            # normalizes for the same reason.
+            rel = str(path.relative_to(public)).replace("\\", "/")
             if rel not in linked:
                 orphaned.append(rel)
     orphaned.sort()
