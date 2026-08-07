@@ -1,0 +1,13 @@
+{{- /* Head custom content area start */ -}}
+{{- /*     Insert any custom code (web-analytics, resources, etc.) - it will appear in the <head></head> section of every page. */ -}}
+{{- /*     Can be overwritten by partial with the same name in the global layouts. */ -}}
+{{- /* Head custom content area end */ -}}
+{{- /* */ -}}
+{{- /* This file is that override. It carries the Lexend web font the body rule in */ -}}
+{{- /* `assets/css/extended/custom.css` selects, which is why the two move together. */ -}}
+{{- /* Holding it here leaves `themes/PaperMod/` byte identical to its upstream commit, */ -}}
+{{- /* so an update is a directory replace with nothing to reapply. See `themes/README.md`. */ -}}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend&display=swap" rel="stylesheet">
