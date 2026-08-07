@@ -43,8 +43,8 @@ PaperMod exposes **no Hugo configuration for layout width**. No template reads a
 
 | Variable | Default | Consumed by | Computed |
 | --- | --- | --- | --- |
-| `--main-width` | `720px` | `.main`, `.footer`, each as `calc(var(--main-width) + var(--gap) * 2)` | 768px |
-| `--nav-width` | `1024px` | `.nav`, as `calc(var(--nav-width) + var(--gap) * 2)` | 1072px |
+| `--main-width` | `720px` | `.main` in `common/main.css`, `.footer` in `common/footer.css`, each as `calc(var(--main-width) + var(--gap) * 2)` | 768px |
+| `--nav-width` | `1024px` | `.header-nav` in `common/header.css`, as `calc(var(--nav-width) + var(--gap) * 2)` | 1072px |
 | `--gap` | `24px` | the outer padding in all three, and spacing throughout | |
 | `--content-gap` | `20px` | vertical rhythm inside post content | |
 

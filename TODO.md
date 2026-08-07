@@ -51,6 +51,7 @@ The reference leaf the hub now ships carries one step this repo's deploy does no
 ## Open decisions
 
 - `/robots.txt/` and `/osd.xml/` currently sit in `slugs.map` pointing at `/`. The first would be better pointing at the real `/robots.txt`.
+- `.gallery-cols-5 figure` is `width: 25%` where the rule's own 1/N pattern makes it `20%`, so a five-column gallery renders four per row and wraps the fifth. It is a copy of the `cols-4` value, it predates the move of these rules to [`assets/css/extended/custom.css`](./assets/css/extended/custom.css), and one page uses it: [the Flair smart vents post](./content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md). Left alone in the move so that change could claim byte-identical rendered output and be verified by diffing the built site; fixing it is a one-value change that must be seen rendered rather than diffed.
 - Content is capped at a fixed 720px on every screen, because PaperMod's width is four CSS variables with no responsive term and no Hugo parameter. The prose measure is right and should stay; images and galleries inheriting the same cap is the part that costs something on a wide display. The knobs, the override location, and the `--gap` trap are documented under "Customization points" in [`themes/README.md`](./themes/README.md).
 
 ## Deliberate deviations from the fleet baseline
