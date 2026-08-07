@@ -51,6 +51,7 @@ The reference leaf the hub now ships carries one step this repo's deploy does no
 ## Open decisions
 
 - `/robots.txt/` and `/osd.xml/` currently sit in `slugs.map` pointing at `/`. The first would be better pointing at the real `/robots.txt`.
+- Content is capped at a fixed 720px on every screen, because PaperMod's width is four CSS variables with no responsive term and no Hugo parameter. The prose measure is right and should stay; images and galleries inheriting the same cap is the part that costs something on a wide display. The knobs, the override location, and the `--gap` trap are documented under "Customization points" in [`themes/README.md`](./themes/README.md).
 
 ## Deliberate deviations from the fleet baseline
 
