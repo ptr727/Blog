@@ -57,6 +57,13 @@ The look and feel of the Puck was a bit disappointing for the price, small non-t
 
 
 {{< gallery cols="4" >}}  
+{{< figure src="/media/2022/10/img_1646.jpg?w=1024" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1647.jpg?w=594" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1655.jpg?w=665" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1657.jpg?w=426" alt="" caption="" >}}FLAIR puck vs. my old Ecobee3  
 {{< /gallery >}}  
 
 I installed the iOS app, set the puck in gateway only mode, followed the installation steps in the app, including creating an account, connecting the puck to WiFi, and connecting Flair to Ecobee for access to my thermostats. I installed batteries in a vent, without installing the actual vent but observing its behavior, and added the vent to Flair using the iOS app by entering pairing mode, no problems.
@@ -94,6 +101,13 @@ I ended up removing the old vents, and visited my paint store several times to c
 {{< /gallery >}}
 
 {{< gallery cols="5" >}}  
+{{< figure src="/media/2022/10/img_1651.jpg?w=663" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1663-edited.jpg" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1665-edited-1.jpg" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1668.jpg?w=589" alt="" caption="" >}}FLAIR vent is smaller than standard vents  
 {{< /gallery >}}  
 
 With all the trouble caused by the too narrow vents, I wondered if there was a standard to sizes, and if so, if Flair was following it. I researched vent sizes across several HVAC supply sites and hardware stores, and my conclusion is that the Flair [vents](https://www.flair.co/smart-vent-engineering-and-dimensional-data-public) are always longer and narrower than standard wall/ceiling vent sizes (I did not compare floor vent sizes).
@@ -152,6 +166,13 @@ I looked for vendors with reasonable pricing and thin white paintable plastic ma
 
 
 {{< gallery cols="4" >}}  
+{{< figure src="/media/2022/10/img_1708.jpg?w=726" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1709.jpg?w=617" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1752.jpg?w=601" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1751.jpg?w=519" alt="" caption="" >}}Laser cut white acrylic flange  
 {{< /gallery >}}  
 
 I shared the Fusion 360 projects and DXF files in [Autodesk Gallery](https://gallery.autodesk.com/projects/173188/flair-vent-flanges), and I created a shared [Ponoko cart](https://www.ponoko.com/share/MgBrJSraTWp83F79ob_Ql) with a ready to order 6x10 and 6x12 flange. For sizes other than 6x10 or 6x12 you will need to use Fusion 360 (free for hobby use) and adjust the dimensions in the sketch (\[modify\], \[change parameters\]), then export the projection as a DXF file.

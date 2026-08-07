@@ -27,11 +27,13 @@ CHECKS = pathlib.Path(__file__).resolve().parent
 # resolving proves an inbound link still lands, and a reference resolving proves it names a real
 # file. Neither asks whether anything points at a given file, so an image the conversion dropped
 # from a page stays reachable by URL, invisible on the site, and green in both directions.
-# Every one traces to the WordPress conversion rather than to anything this repo does. Five empty
-# gallery shortcodes across three posts are the identified cause of some of them, and the rest are
-# unadjudicated. The count is exact rather than a bound, so restoring a gallery lowers it here in
-# the same change and slack can never accumulate for a later regression to hide in.
-ORPHANED_MEDIA = 120
+# Every one traces to the WordPress conversion rather than to anything this repo does. It opened at
+# 120. Five empty gallery shortcodes across three posts accounted for 17 of them, restored from the
+# captured live site, and the remaining 103 are unadjudicated: some are further conversion losses
+# and some are uploads the old platform never published, and telling those apart needs the capture
+# rather than this repo. The count is exact rather than a bound, so whatever lowers it lowers this
+# in the same change and slack can never accumulate for a later regression to hide in.
+ORPHANED_MEDIA = 103
 
 
 def load(name):
