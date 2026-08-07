@@ -10,7 +10,7 @@ The contract is enforced by two gates, because one cannot cover both halves:
 
 | Gate | Proves | Runs |
 | --- | --- | --- |
-| [`check-url-parity.py`](./check-url-parity.py) | Every URL that must render exists as a built page, every legacy image URL resolves, every local asset reference points at a real file, and no carried media file is linked from nowhere | Against `public/`, in CI and before any release is installed |
+| [`check-url-parity.py`](./check-url-parity.py) | Every URL that must render exists as a built page, every legacy image URL resolves, every local asset reference points at a real file, and the count of carried media linked from no page still equals its recorded baseline | Against `public/`, in CI and before any release is installed |
 | [`check-live-urls.sh`](./check-live-urls.sh) | Every redirect resolves, and its destination answers | Against a running server, which is the only thing that exercises a redirect |
 
 ## The two lists

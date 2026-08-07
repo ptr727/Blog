@@ -2,8 +2,9 @@
 """Verify the built site against the URL contract.
 
 Checks that every URL which must render exists, that every legacy media URL resolves, that
-every local asset reference points at a file, and that no carried media file is linked from
-nowhere. Redirects need a running server and are checked by check-live-urls.sh instead.
+every local asset reference points at a file, and that the number of carried media files
+linked from no page still equals its recorded baseline. Redirects need a running server and
+are checked by check-live-urls.sh instead.
 """
 
 import pathlib
@@ -138,6 +139,12 @@ def check_orphans(public, refs):
             if rel not in linked:
                 orphaned.append(rel)
     orphaned.sort()
+    # No media at all is a broken build, not progress. Left to the comparison below it reads as
+    # zero orphans, which is fewer than the baseline, and the advice would be to lower
+    # ORPHANED_MEDIA to 0 - a gate talking the reader into switching it off.
+    if carried == 0:
+        print("orphans: no media files in the built site - the output is incomplete or mislocated")
+        return ["public/media and public/external are both absent or empty"]
     print(f"orphans: {len(orphaned)} of {carried} carried media files are linked from no page")
     if len(orphaned) == ORPHANED_MEDIA:
         return []
