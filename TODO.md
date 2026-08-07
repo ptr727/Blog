@@ -67,7 +67,7 @@ Reconverged 2026-08-05, and the run is written up in [`reports/Blog/audit.md`](.
 
 **Measured against hub `main` `3b802b9eb9a841c0149d018f4db6ffa1b9419051`**, and the ref is named because `main` moves, which is the trap below. Every verbatim unit now matches: the re-vendor of `repo-config/configure.sh` this record previously owed, for the jq portability defect reported as [#549][issue-549] and fixed at the hub in [#553][pr-553], landed with this change. The links above are pinned to that same ref rather than to `main`, so this record stays checkable after the hub moves again.
 
-Two findings are open at the hub. Neither is work this repo can do, and each changes what a fleet audit of this repo means, which is why they are recorded here rather than only in the issues.
+Three findings are open at the hub, recorded here rather than only in the issues because each changes what a fleet audit of this repo means. The first two are not work this repo can do. The third is, once the change answering it is ground truth, and what it will ask is stated below the table.
 
 | Issue | What it means here |
 | --- | --- |
