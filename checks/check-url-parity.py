@@ -150,12 +150,14 @@ def check_orphans(public, refs):
         return []
     # The explanation is printed rather than returned, so the caller's count stays the orphan
     # count. A diagnostic carried in the failure list would make the reported total one too many.
+    # A count is all this can observe, and two causes reach each direction. Naming one of them
+    # would send a reader looking for a page that never changed.
     if len(orphaned) > ORPHANED_MEDIA:
-        print(f"         expected {ORPHANED_MEDIA} - a page stopped linking media it used to link")
+        print(f"         expected {ORPHANED_MEDIA} - a page stopped linking media, or unlinked media was added")
         return orphaned
     print(
-        f"         expected {ORPHANED_MEDIA} - media was restored to a page, so lower "
-        f"ORPHANED_MEDIA to {len(orphaned)} in this change rather than leaving the slack"
+        f"         expected {ORPHANED_MEDIA} - media was linked from a page, or orphaned files were "
+        f"removed; lower ORPHANED_MEDIA to {len(orphaned)} in this change rather than leaving the slack"
     )
     return orphaned
 
