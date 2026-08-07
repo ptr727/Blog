@@ -37,6 +37,27 @@ The two belong together: the font the CSS selects is the font the partial loads.
 
 Separately, `layouts/` at the repository root also overrides two theme templates, for the reason recorded in [`TODO.md`](../TODO.md): PaperMod uses APIs Hugo deprecated in 0.158, and `--panicOnWarning` would otherwise fail on the theme rather than on content. Those are a workaround for upstream lag rather than site customization, which is why they are not in the table above. Whether they are still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
 
+## Customization points
+
+PaperMod exposes **no Hugo configuration for layout width**. No template reads a width parameter, so `hugo.yaml` cannot change it and the only levers are four CSS custom properties on `:root` in `PaperMod/assets/css/core/theme-vars.css`.
+
+| Variable | Default | Consumed by | Computed |
+| --- | --- | --- | --- |
+| `--main-width` | `720px` | `.main`, `.footer`, each as `calc(var(--main-width) + var(--gap) * 2)` | 768px |
+| `--nav-width` | `1024px` | `.nav`, as `calc(var(--nav-width) + var(--gap) * 2)` | 1072px |
+| `--gap` | `24px` | the outer padding in all three, and spacing throughout | |
+| `--content-gap` | `20px` | vertical rhythm inside post content | |
+
+Two things about this are easy to get wrong.
+
+**The width is a fixed pixel cap with no responsive term.** `core/zmedia.css` is the theme's only media-query file, and it never touches `--main-width` or `--nav-width`. It changes `--gap` to `14px` below 768px and nothing else. So the content column is 720px from a small laptop to an ultrawide, and widening it means introducing a viewport term the theme does not have. The nav is already 304px wider than the content, so raising `--main-width` past `--nav-width` without raising both puts the content outside the header.
+
+**Override these in [`assets/css/extended/custom.css`](../assets/css/extended/custom.css), never here.** `PaperMod/layouts/_partials/head.html` concatenates the core sheet, `zmedia.css` last within it, and then the `css/extended/*.css` glob after all of it, so a `:root` block in the extended file wins on source order with no `!important` and no theme edit.
+
+That ordering carries a trap: media queries add no specificity, so a top-level `:root` in the extended file also overrides `zmedia.css` **inside its own breakpoint**. Redefining `--main-width` or `--nav-width` there is safe, because zmedia never sets them. Redefining `--gap` at top level is not, because it silently restores the 24px gutter on phones.
+
+The content width is unchanged from the theme default, deliberately. 720px at the 18px body size is roughly 80 characters per line, which is already at the top of the readable range, so widening the prose is a regression dressed as an improvement. The constraint worth revisiting is that images and galleries inherit the same cap, which is a real loss on a wide display for a photo-heavy site; the fix for that is to let media break out of the column rather than to widen the column.
+
 ## Updating
 
 Nothing is carried, so an update is a replace: delete `PaperMod/`, drop the new upstream tree in its place, update the table above, and confirm the site still builds under `--panicOnWarning`, which is the gate the theme has failed before. Run the `diff -r` above afterwards, so the next reader inherits the same guarantee.
