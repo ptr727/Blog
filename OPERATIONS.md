@@ -171,6 +171,41 @@ The script asserts both halves of that rather than assuming them. It fails when 
 
 **Nothing prunes on the deploy path, and that is what keeps the deploy key's capability small.** A prune racing a deploy could take the rollback target, where a lingering release only costs disk. This is also why the key needs no delete capability, which is the property "Server Hardening" depends on. The count and the timer belong to the host, so this section records what the host declares rather than holding a second copy of it. See "Who Owns What".
 
+## Log Review
+
+**Real traffic is the only source that finds what every check here is blind to.** The URL contract proves the 328 URLs someone thought to list and the 917 redirects derived from the export. It cannot know about a URL nobody recorded, because the crawl that produced the lists is the same crawl the lists are checked against. A visitor following a sixteen-year-old link is the one reader who tests that.
+
+Review runs in both directions, which are the same two the media checks read and have the same blind spots for the same reason.
+
+| Direction | Question | Signal | Cadence |
+| --- | --- | --- | --- |
+| Outward | What did someone ask for that is not here? | non-200 responses | daily for the first week after cutover, then monthly |
+| Inward | What is here that nobody has ever asked for? | URLs absent from every 200 | quarterly at the earliest, and a long tail by nature |
+
+**The outward pass is the one with an action.** A 404 on a path shaped like real content means the golden list missed a URL: add it to [`checks/golden-urls.txt`](./checks/golden-urls.txt) and add a redirect, per that file's own maintenance rules. Expect the raw counts to be dominated by scanners probing for `wp-login.php`, `.env`, and `.git/config`, which is noise from a site that used to run WordPress and should be filtered by shape rather than investigated.
+
+**The inward pass answers a question nothing else can.** Subtracting every URL that has ever returned 200 from the set the site builds names the content no reader has reached. It is slow evidence and deliberately so, since a post can go a year without a visit and still be worth keeping. Its first concrete use is the 97 carried media files that no page links and that the old platform never published, recorded in [`checks/README.md`](./checks/README.md): if nothing requests them across a year, that settles whether carrying them is preservation or clutter, and no reasoning from the repository alone can settle it.
+
+### The log is three tiers, and each is blind to something
+
+A request crosses the proxy before it reaches the site, so no single log answers both questions.
+
+| Tier | Sees | Cannot see |
+| --- | --- | --- |
+| Traefik, or Pangolin's Traefik on the VPS | every request reaching the host, including unknown hostnames, TLS failures, and traffic aimed at names this site does not serve | which release answered, or anything about the site's own routing |
+| Pangolin, on the VPS only | requests the auth gate rejected | anything on the local mirrors, which have no gate |
+| Caddy, per environment | path, status, and the `X-Blog-Release` that answered | anything the tiers above rejected, which never arrives |
+
+**A 404 count taken from Caddy alone is therefore a floor, not a total.** A request the edge refused is a reader who found nothing just as surely, and it appears in no Caddy log. Read the edge for what never arrived and Caddy for what arrived and failed, and treat the two as one answer.
+
+Two properties of the Caddy side worth knowing before parsing it. Its access log is `format console`, so each line is a timestamp, a level, and a logger name followed by a JSON object rather than being JSON itself, and a parser that assumes one object per line reads nothing. And `trusted_proxies` is what makes `client_ip` the reader rather than the proxy, which is the same setting "Serving" describes as a security boundary — without it every request in the log appears to come from one internal address and the inward pass cannot distinguish a reader from a health check.
+
+### Retention is the prerequisite, and it is not configured
+
+**The containers log to Docker's `json-file` driver with no rotation and no size limit.** `/etc/docker/daemon.json` sets only a storage driver, so the built-in defaults apply: the file grows without bound, and it is discarded entirely when the container is recreated. Both halves defeat a periodic review — the first is a disk risk on a VPS, and the second silently resets the window that the inward pass depends on being long.
+
+Nothing here fixes that, because the log driver belongs to the host rather than to this repository, the same split "Retention" and "Who Owns What" describe for release pruning. **Settle it before the first review is expected to mean anything**, since a review reads whatever survived and reports confidently on it either way.
+
 ## Who Owns What
 
 The site and the server it runs on are maintained separately, so the boundary is written down rather than inferred. This repo owns the artifact and what proves it correct; the host owns where a release may be written and what happens to it afterwards.
