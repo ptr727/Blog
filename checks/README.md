@@ -10,7 +10,7 @@ The contract is enforced by two gates, because one cannot cover both halves:
 
 | Gate | Proves | Runs |
 | --- | --- | --- |
-| [`check-url-parity.py`](./check-url-parity.py) | Every URL that must render exists as a built page, every legacy image URL resolves, every local asset reference points at a real file | Against `public/`, in CI and before any release is installed |
+| [`check-url-parity.py`](./check-url-parity.py) | Every URL that must render exists as a built page, every legacy image URL resolves, every local asset reference points at a real file, and the count of carried media linked from no page still equals its recorded baseline | Against `public/`, in CI and before any release is installed |
 | [`check-live-urls.sh`](./check-live-urls.sh) | Every redirect resolves, and its destination answers | Against a running server, which is the only thing that exercises a redirect |
 
 ## The two lists
@@ -73,3 +73,9 @@ wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy
 ## Directionality
 
 The parity check fails on a **missing** URL and only notes an **extra** one. New posts, new tags, and deeper pagination legitimately add URLs, and nothing legitimately removes a URL the site has served. That asymmetry is what makes the lists append-only, which in turn is what makes the length-floor assertion in `check-live-urls.sh` sound: without it a truncated list would make every assertion below it pass vacuously.
+
+Media is the one surface checked in **both** directions, and it has to be, because each direction is blind to the other's failure. Outward from a reference, the legacy list proves an inbound link still lands and the asset check proves a reference names a real file. Neither asks whether anything points at a given file, so an image dropped from a page during the conversion stays on disk, stays reachable at its own URL, and reports green in both directions while appearing nowhere on the site. The orphan check reads inward from the file and is the only one that sees it.
+
+Its constant is an exact count rather than a bound. A ceiling would let a drop leave slack behind for a later regression to hide in, so whatever lowers the count lowers the constant in the same change, and the check names the new number when it drops.
+
+A count is all the check can observe, and two causes reach each direction: it rises when a page stops linking media **or** when unlinked media is added, and it falls when media is linked from a page **or** when orphaned files are deleted. The messages name both, because naming one would send a reader looking for a page that never changed.

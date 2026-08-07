@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Verify the built site against the URL contract.
 
-Checks that every URL which must render exists, that every legacy media URL resolves, and that
-every local asset reference points at a file. Redirects need a running server and are checked
-by check-live-urls.sh instead.
+Checks that every URL which must render exists, that every legacy media URL resolves, that
+every local asset reference points at a file, and that the number of carried media files
+linked from no page still equals its recorded baseline. Redirects need a running server and
+are checked by check-live-urls.sh instead.
 """
 
 import pathlib
@@ -20,6 +21,17 @@ FLOORS = {
 }
 
 CHECKS = pathlib.Path(__file__).resolve().parent
+
+# Media carried by the import that no built page links to.
+# The other two media checks run outward from a reference and cannot see these: a legacy URL
+# resolving proves an inbound link still lands, and a reference resolving proves it names a real
+# file. Neither asks whether anything points at a given file, so an image the conversion dropped
+# from a page stays reachable by URL, invisible on the site, and green in both directions.
+# Every one traces to the WordPress conversion rather than to anything this repo does. Five empty
+# gallery shortcodes across three posts are the identified cause of some of them, and the rest are
+# unadjudicated. The count is exact rather than a bound, so restoring a gallery lowers it here in
+# the same change and slack can never accumulate for a later regression to hide in.
+ORPHANED_MEDIA = 120
 
 
 def load(name):
@@ -69,28 +81,85 @@ def check_media(public):
     return missing
 
 
-def check_assets(public):
-    """Check that every local asset a built page references exists on disk.
+def collect_refs(public):
+    """Every local asset reference in the built pages.
 
-    Catches a media file renamed, dropped, or never localized.
+    Read once and shared, since the assets and orphans checks are the same reference set
+    read in opposite directions.
     """
     # Minification drops the quotes around an attribute value that does not need them.
     # Matching only the quoted form checks a fraction of the references and calls it a pass.
     quoted = re.compile(r'(?:src|href|srcset)="(/(?:media|external)/[^"]+)"')
     bare = re.compile(r"(?:src|href|srcset)=(/(?:media|external)/[^\s\"'>]+)")
-    refs, missing = set(), []
+    refs = set()
     for page in public.rglob("*.html"):
         text = page.read_text(encoding="utf-8", errors="ignore")
         refs.update(quoted.findall(text))
         refs.update(bare.findall(text))
-    for ref in sorted(refs):
-        # Imported references carry resize parameters a static file server ignores.
-        # Some also escape an underscore, which a server decodes before looking up the file.
-        path = unquote(ref.split("?", 1)[0].split("#", 1)[0])
-        if not (public / path.lstrip("/")).is_file():
-            missing.append(ref)
+    return refs
+
+
+def ref_to_path(ref):
+    """Map a reference to the path under the built site it names."""
+    # Imported references carry resize parameters a static file server ignores.
+    # Some also escape an underscore, which a server decodes before looking up the file.
+    return unquote(ref.split("?", 1)[0].split("#", 1)[0]).lstrip("/")
+
+
+def check_assets(public, refs):
+    """Check that every local asset a built page references exists on disk.
+
+    Catches a media file renamed, dropped, or never localized.
+    """
+    missing = [ref for ref in sorted(refs) if not (public / ref_to_path(ref)).is_file()]
     print(f"assets : {len(refs) - len(missing)}/{len(refs)} local asset references resolve")
     return missing
+
+
+def check_orphans(public, refs):
+    """Check that every carried media file is linked from some built page.
+
+    The reverse of the assets check, and the only one that can see an image the conversion
+    dropped from a page: it stays on disk and reachable by URL, so nothing else objects.
+    """
+    linked = {ref_to_path(ref) for ref in refs}
+    carried, orphaned = 0, []
+    for tree in ("media", "external"):
+        root = public / tree
+        if not root.is_dir():
+            continue
+        for path in root.rglob("*"):
+            if not path.is_file():
+                continue
+            carried += 1
+            # `linked` holds URL paths, which are always forward-slashed, so a native separator
+            # here would match nothing and report every carried file as an orphan. check_render
+            # normalizes for the same reason.
+            rel = str(path.relative_to(public)).replace("\\", "/")
+            if rel not in linked:
+                orphaned.append(rel)
+    orphaned.sort()
+    # No media at all is a broken build, not progress. Left to the comparison below it reads as
+    # zero orphans, which is fewer than the baseline, and the advice would be to lower
+    # ORPHANED_MEDIA to 0 - a gate talking the reader into switching it off.
+    if carried == 0:
+        print("orphans: no media files in the built site - the output is incomplete or mislocated")
+        return ["public/media and public/external are both absent or empty"]
+    print(f"orphans: {len(orphaned)} of {carried} carried media files are linked from no page")
+    if len(orphaned) == ORPHANED_MEDIA:
+        return []
+    # The explanation is printed rather than returned, so the caller's count stays the orphan
+    # count. A diagnostic carried in the failure list would make the reported total one too many.
+    # A count is all this can observe, and two causes reach each direction. Naming one of them
+    # would send a reader looking for a page that never changed.
+    if len(orphaned) > ORPHANED_MEDIA:
+        print(f"         expected {ORPHANED_MEDIA} - a page stopped linking media, or unlinked media was added")
+        return orphaned
+    print(
+        f"         expected {ORPHANED_MEDIA} - media was linked from a page, or orphaned files were "
+        f"removed; lower ORPHANED_MEDIA to {len(orphaned)} in this change rather than leaving the slack"
+    )
+    return orphaned
 
 
 def main(argv):
@@ -100,11 +169,13 @@ def main(argv):
     if not public.is_dir():
         sys.exit(f"FAIL: {public} is not a directory - run hugo first")
 
+    refs = collect_refs(public)
     failures = []
     for label, missing in (
         ("render", check_render(public)),
         ("media", check_media(public)),
-        ("assets", check_assets(public)),
+        ("assets", check_assets(public, refs)),
+        ("orphans", check_orphans(public, refs)),
     ):
         if missing:
             failures.append((label, missing))
