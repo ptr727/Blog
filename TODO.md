@@ -67,12 +67,17 @@ Reconverged 2026-08-05, and the run is written up in [`reports/Blog/audit.md`](.
 
 **Measured against hub `main` `3b802b9eb9a841c0149d018f4db6ffa1b9419051`**, and the ref is named because `main` moves, which is the trap below. Every verbatim unit now matches: the re-vendor of `repo-config/configure.sh` this record previously owed, for the jq portability defect reported as [#549][issue-549] and fixed at the hub in [#553][pr-553], landed with this change. The links above are pinned to that same ref rather than to `main`, so this record stays checkable after the hub moves again.
 
-Two findings are open at the hub. Neither is work this repo can do, and each changes what a fleet audit of this repo means, which is why they are recorded here rather than only in the issues.
+Three findings are open at the hub, recorded here rather than only in the issues because each changes what a fleet audit of this repo means. The first two are not work this repo can do. The third is, once the change answering it is ground truth, and what it will ask is stated below the table.
 
 | Issue | What it means here |
 | --- | --- |
 | [#550][issue-550] | Nothing detects a repo missing from the registry, which is how this repo stayed invisible. Three other repos are still absent. |
 | [#552][issue-552] | The audit flags any carried `AGENTS.md` naming the template repo, and the byte-locked `Fleet Bootstrap` section names it. Carrying the canonical correctly cannot pass, and it is the one finding the current run cannot clear. |
+| [#597][issue-597] | Filed from here, after a mandatory pre-merge gate in `OPERATIONS.md` was skipped on [#40][pr-40]. The ruling is that a verification a runner cannot perform needs a declared destination, not a better per-repo pointer. Answered by [#598][pr-598], which this repo owes work against once it is ground truth. |
+
+**What [#598][pr-598] will ask of this repo, once it is ground truth.** It is merged to the hub's `develop` and not to `main`, so it binds nothing yet, per the trap below about reading `main` as ground truth. It makes `Local Verification` a sixth declared `OPERATIONS.md` heading, leading the file as the only pre-merge one. This repo's `OPERATIONS.md` carries **13 level-two headings and matches none of the five declared today**, so the work is a rename and reorder rather than new prose: `Local Verification Before a Pull Request` becomes `Local Verification`, and `Backup and Restore` is one word from the declared `Backup and Recovery`. Both are near-misses rather than absences, which is the shape a heading check will mostly find in a repo that wrote its operational document before the spec declared headings. Do not start until the hub promotes it.
+
+No audit will report this meanwhile. `OPERATIONS.md` is presence-checked only, which is why the 2026-08-05 run above reported nothing about a file using none of the declared headings, and the heading check belongs to a hub cluster that has not shipped.
 
 Two more are resolved and are named because their absence from the table would otherwise read as an oversight. [#554][issue-554] made `spec/audit.py` report two DEFECTs here that no agent action could clear, and the fix is in the hub `main` this run measured against, so those two findings are gone. [#456][hub-issue] and [#558][hub-spec-issue] were the static-site type, now authored, per the section above.
 
@@ -141,6 +146,7 @@ The deploy root is deliberately absent from this table. The rsync destination is
 [issue-33]: https://github.com/ptr727/Blog/issues/33
 [migration-post]: ./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md
 [pr-30]: https://github.com/ptr727/Blog/pull/30
+[pr-40]: https://github.com/ptr727/Blog/pull/40
 
 <!-- External -->
 
@@ -154,4 +160,6 @@ The deploy root is deliberately absent from this table. The rsync destination is
 [issue-552]: https://github.com/ptr727/ProjectTemplate/issues/552
 [issue-554]: https://github.com/ptr727/ProjectTemplate/issues/554
 [issue-563]: https://github.com/ptr727/ProjectTemplate/issues/563
+[issue-597]: https://github.com/ptr727/ProjectTemplate/issues/597
 [pr-553]: https://github.com/ptr727/ProjectTemplate/pull/553
+[pr-598]: https://github.com/ptr727/ProjectTemplate/pull/598
