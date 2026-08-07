@@ -26,6 +26,11 @@ Last year I used wood planks as backing on my coro props, but that made hanging 
 
 
 {{< gallery cols="4" >}}  
+{{< figure src="/media/2022/10/img_1731.jpg?w=768" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1702.jpg?w=1024" alt="" caption="" >}}
+
+{{< figure src="/media/2022/10/img_1700.jpg?w=623" alt="" caption="" >}}
 {{< /gallery >}}  
 
 This year I used a [Kulp K16A-B](https://kulplights.com/product/k16a-b/) controller and a [Wired Watts](https://www.wiredwatts.com/build-a-controller-kit) enclosure that saved me the effort of 3D printing my own mounting hardware, and I just used more ports vs. power injecting. I also added [Wally's Lights 30W RGB floods](https://wallyslights.com/collections/flood-lights/products/30-watt-rgbw-12v-flood-light), and [Mattos Designs Diamond Pixels Balls](https://mattosdesigns.com/collections/smart-pixels/products/pre-buy-3-md-12v-diamond-3d-pixel-ball-36ct) wrapped around the tree.
