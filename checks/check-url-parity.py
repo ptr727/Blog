@@ -133,13 +133,16 @@ def check_robots(public):
         print(f"robots : built, {len(wrong)} Sitemap line(s) naming another origin")
         return [f"{u} (this build's origin is {origin})" for u in wrong]
 
+    # The summary is printed after the last assertion rather than before it, or the missing-sitemap
+    # case reads as a pass on the line above its own failure. Every branch here prints exactly once.
+    unbuilt = [u for u in advertised if not (public / u[len(origin) + 1 :]).is_file()]
+    if unbuilt:
+        print(f"robots : built, {len(unbuilt)} advertised sitemap(s) not built")
+        return [f"{u} (advertised, but {u[len(origin) + 1:]} was not built)" for u in unbuilt]
+
     # Named rather than counted, since there is one today and the line is the thing being checked.
     print(f"robots : built, advertising {advertised[0]}")
-    return [
-        f"{u} (advertised, but {u[len(origin) + 1:]} was not built)"
-        for u in advertised
-        if not (public / u[len(origin) + 1 :]).is_file()
-    ]
+    return []
 
 
 def site_origin(public):
