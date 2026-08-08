@@ -7,8 +7,11 @@
     <figure>, so a caption that came across as trailing text is restored to the element it
     was. Attributing it to the last image instead would change what the post says.
 
-    The reset already sets figure { margin: 0 }, and the theme styles figure > figcaption, so
-    a set caption renders like every other caption on the site without a rule of its own.
+    The reset already sets figure { margin: 0 }, and the theme styles figure > figcaption, so a
+    set caption inherits the site's caption appearance. It still needs one rule of its own, in
+    assets/css/extended/custom.css: the gallery is a flex container, so without a full-width
+    basis the caption packs onto the end of the last row and reads as a caption for whichever
+    image it lands beside. Do not remove that rule as redundant with the theme's.
 */}}
 {{ $p := .Page }}
 <figure class="gallery gallery-cols-{{ .Get "cols" | default 1 }}">

@@ -209,6 +209,7 @@ class GalleryScan(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.findings = []
+        self.saw_gallery = False
         # None outside a gallery; otherwise the number of elements open within the current one,
         # so zero means the parser is looking at a direct child.
         self.depth = None
@@ -218,6 +219,7 @@ class GalleryScan(HTMLParser):
         if self.depth is None:
             if tag == "figure" and "gallery" in classes:
                 self.depth = 0
+                self.saw_gallery = True
             return
         if self.depth == 0 and tag not in self.ALLOWED:
             self.findings.append(f"<{tag}> as a direct child")
@@ -250,13 +252,22 @@ def check_galleries(public):
     findings, pages = [], 0
     for path in sorted(public.rglob("index.html")):
         html = path.read_text(encoding="utf-8", errors="replace")
-        # Cheap reject first: parsing every built page costs far more than one substring test,
-        # and galleries appear on a handful of them.
-        if 'class="gallery' not in html:
+        # Cheap reject first, since parsing every built page costs far more than one substring
+        # test and galleries appear on a handful of them. The test is the bare word rather than
+        # `class="gallery`, because minification drops the quotes around a value that does not
+        # need them and says nothing about class order, so the quoted form skips a page whose
+        # markup is merely spelled differently and the gate passes vacuously. This form cannot:
+        # the parser below requires the class token `gallery`, so a page it would find always
+        # contains this string. Matching a page that only mentions the word costs one parse.
+        if "gallery" not in html:
             continue
-        pages += 1
         scan = GalleryScan()
         scan.feed(html)
+        # Counted from what the parser actually found rather than from the reject above, so the
+        # reported number stays "pages carrying a gallery" and not "pages the word appears on".
+        if not scan.saw_gallery:
+            continue
+        pages += 1
         rel = str(path.relative_to(public)).replace("\\", "/")
         findings += [f"{rel}: {finding}" for finding in scan.findings]
     print(f"gallery: {pages} pages with galleries, {len(findings)} stray nodes inside one")
