@@ -41,8 +41,15 @@ ORPHANED_MEDIA = 98
 # Every check above returns a list, and the shared summary called all of them "missing". That is
 # what a URL that did not build is, and it is not what a stray node inside a gallery is: those are
 # present, which is the whole complaint. The default stays "missing" so a check added later reads
-# the way the older ones do unless it says otherwise.
-FAILURE_NOUN = {"gallery": "stray nodes"}
+# the way the older ones do unless it says otherwise, and it needs no pair because it is already
+# count-neutral. A count is always printed beside the noun, so the pair is (singular, plural) and
+# "1 stray nodes" was the reason for making it a pair rather than a string.
+FAILURE_NOUN = {"gallery": ("stray node", "stray nodes"), "robots": ("problem", "problems")}
+
+
+def failure_noun(label, count):
+    forms = FAILURE_NOUN.get(label, ("missing", "missing"))
+    return forms[0] if count == 1 else forms[1]
 
 
 def load(name):
@@ -90,6 +97,65 @@ def check_media(public):
             missing.append(url)
     print(f"media  : {len(legacy) - len(missing)}/{len(legacy)} legacy image URLs resolve after the @uploads rewrite")
     return missing
+
+
+def check_robots(public):
+    """Check that robots.txt exists and advertises this build's own sitemap.
+
+    Four failures, one gate: the file absent, no Sitemap: line, a line naming another origin, and a
+    line advertising a sitemap that was not built. Hugo emits no robots.txt unless enableRobotsTXT
+    is set, which is why this site served none until that flag was turned on, and the file's only
+    load-bearing line points at the sitemap a crawler is otherwise unlikely to find, being told
+    rather than guessing.
+
+    Every contract list is path-only and check-live-urls.sh joins whatever base URL it is handed, so
+    this is the only place the gate *compares* an origin rather than joining one. Other absolute
+    URLs are read here - the home page's canonical link, and absolute asset references - but they
+    are read to resolve a reference rather than to check a host against another.
+
+    What the comparison proves is internal consistency: the advertised origin matches the one the
+    canonical link carries. Both come from baseURL, so this cannot tell that baseURL was the wrong
+    value for the environment being deployed to - nothing in the artifact can, which is why that
+    check belongs on the side that knows which host it is serving. It does catch an origin that was
+    written rather than derived, a static robots.txt shadowing the template being the way that
+    happens, and it catches a sitemap advertised but not built.
+    """
+    robots = public / "robots.txt"
+    if not robots.is_file():
+        # Naming one cause as the cause sends a reader to check a setting that is already correct.
+        # enableRobotsTXT is the likely one and a partial build or the wrong output directory reach
+        # the same state, which is the same reason the orphan messages name both of their causes.
+        print("robots : missing")
+        return [
+            f"{robots} does not exist - likely enableRobotsTXT is unset in hugo.yaml, "
+            "though a partial build or the wrong output directory look identical here"
+        ]
+
+    origin = site_origin(public)
+    # errors="replace" rather than strict, or invalid UTF-8 raises out of the whole parity run and a
+    # gate that exists to report a bad robots.txt stack-traces on one instead. A committed
+    # static/robots.txt is the file most likely to carry it, and it is the case this check is for.
+    text = robots.read_text(encoding="utf-8", errors="replace")
+    advertised = re.findall(r"(?mi)^\s*Sitemap:\s*(\S+)\s*$", text)
+    if not advertised:
+        print("robots : built, no Sitemap line")
+        return ["robots.txt carries no Sitemap: line - a crawler will not find the sitemap unaided"]
+
+    wrong = [u for u in advertised if not u.startswith(origin + "/")]
+    if wrong:
+        print(f"robots : built, {len(wrong)} Sitemap line(s) naming another origin")
+        return [f"{u} (this build's origin is {origin})" for u in wrong]
+
+    # The summary is printed after the last assertion rather than before it, or the missing-sitemap
+    # case reads as a pass on the line above its own failure. Every branch here prints exactly once.
+    unbuilt = [u for u in advertised if not (public / u[len(origin) + 1 :]).is_file()]
+    if unbuilt:
+        print(f"robots : built, {len(unbuilt)} advertised sitemap(s) not built")
+        return [f"{u} (advertised, but {u[len(origin) + 1:]} was not built)" for u in unbuilt]
+
+    # Named rather than counted, since there is one today and the line is the thing being checked.
+    print(f"robots : built, advertising {advertised[0]}")
+    return []
 
 
 def site_origin(public):
@@ -307,6 +373,7 @@ def main(argv):
         ("assets", check_assets(public, refs)),
         ("orphans", check_orphans(public, refs)),
         ("gallery", check_galleries(public)),
+        ("robots", check_robots(public)),
     ):
         if found:
             failures.append((label, found))
@@ -317,7 +384,7 @@ def main(argv):
 
     print()
     for label, found in failures:
-        print(f"FAIL {label}: {len(found)} {FAILURE_NOUN.get(label, 'missing')}")
+        print(f"FAIL {label}: {len(found)} {failure_noun(label, len(found))}")
         for item in found[:20]:
             print(f"  {item}")
         if len(found) > 20:
