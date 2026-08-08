@@ -57,7 +57,7 @@ checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
 The deploy root and the base URL are the only host-specific values, and they pair per
-environment. Copy [`env.example`](./env.example) to `secrets/local.production.env`, which is the
+environment. Copy [`example.env`](../example.env) to `secrets/local.production.env`, which is the
 file read when `ENV_FILE` is unset, and add `secrets/<server>.<environment>.env` for each further
 environment. A single environment therefore needs `secrets/local.production.env` and nothing
 else, since a differently named file is read only when `ENV_FILE` names it. `secrets/` is

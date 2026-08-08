@@ -152,8 +152,10 @@ flowchart LR
 | [`hugo.yaml`][hugo-config] | site configuration, taxonomy URLs, and the feed name |
 | [`checks/`][checks] | the URL contract and the gates that enforce it |
 | [`deploy/`][deploy] | the release script, the web-server config, and the redirect maps |
+| [`ops/`][ops] | the pull that copies the server's backups and access logs off it, and its schedule |
+| [`ENVIRONMENT.md`][environment] | every configuration value, described once |
 
-Deploy paths, environment variables, and the server layout are documented in [OPERATIONS.md][operations].
+Every configuration value is described in [ENVIRONMENT.md][environment]. The deploy procedure and the server layout are in [OPERATIONS.md][operations].
 
 ## Questions or Issues
 
@@ -179,7 +181,7 @@ deploy/make-release.sh
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
-The deploy root and the base URL come from an untracked file per environment under `secrets/`, named `<server>.<environment>.env`, copied from [deploy/env.example][env-example] and selected with `ENV_FILE`. `secrets/local.production.env` is the one read when `ENV_FILE` is unset. The whole `secrets/` directory is gitignored, so host-specific values stay out of the published history.
+The deploy root and the base URL come from an untracked file per environment under `secrets/`, named `<server>.<environment>.env`, copied from [example.env][env-example] and selected with `ENV_FILE`. `secrets/local.production.env` is the one read when `ENV_FILE` is unset. The whole `secrets/` directory is gitignored, so host-specific values stay out of the published history.
 
 ## 3rd Party Tools <!-- omit from toc -->
 
@@ -212,10 +214,12 @@ Licensed under the [MIT License][license]\
 [checks]: ./checks/
 [commits-link]: https://github.com/ptr727/Blog/commits
 [deploy]: ./deploy/
+[ops]: ./ops/
+[environment]: ./ENVIRONMENT.md
 [deploy-readme]: ./deploy/README.md
 [discussions-link]: https://github.com/ptr727/Blog/discussions
 [issues-link]: https://github.com/ptr727/Blog/issues
-[env-example]: ./deploy/env.example
+[env-example]: ./example.env
 [history]: ./HISTORY.md
 [hugo-config]: ./hugo.yaml
 [license]: ./LICENSE
