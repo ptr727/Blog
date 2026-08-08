@@ -115,8 +115,14 @@ def check_robots(public):
     """
     robots = public / "robots.txt"
     if not robots.is_file():
+        # Naming one cause as the cause sends a reader to check a setting that is already correct.
+        # enableRobotsTXT is the likely one and a partial build or the wrong output directory reach
+        # the same state, which is the same reason the orphan messages name both of their causes.
         print("robots : missing")
-        return ["robots.txt was not built - enableRobotsTXT is off in hugo.yaml"]
+        return [
+            f"{robots} does not exist - likely enableRobotsTXT is unset in hugo.yaml, "
+            "though a partial build or the wrong output directory look identical here"
+        ]
 
     origin = site_origin(public)
     # errors="replace" rather than strict, or invalid UTF-8 raises out of the whole parity run and a
