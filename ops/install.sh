@@ -157,7 +157,12 @@ for pair in "$ENV_DEST|$ENV_BODY" "$DROPIN_DEST|$DROPIN_BODY"; do
 	else
 		printf '=== %s: differs\n' "$path"
 		printf '%s\n' "$body" | sudo -n diff -u "$path" - || true
-		[[ $FORCE -eq 1 ]] || die "$path exists with different contents -- re-run with --force to replace it"
+		# --force is an install-path guard, not a reporting one. --check exists to show what
+		# would happen, so stopping at the first differing file would hide the second one and
+		# the reachability test behind it.
+		if [[ $CHECK -eq 0 && $FORCE -eq 0 ]]; then
+			die "$path exists with different contents -- re-run with --force to replace it"
+		fi
 		changed=1
 	fi
 done
