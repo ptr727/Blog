@@ -277,18 +277,22 @@ The outward pass is four filters over the edge log, and each one exists because 
 **A referer does not implicate this site unless it points somewhere else.** The rule worth applying is that a 404 carrying a referer is a broken link and a 404 without one is a typed or probed address, and it fails on scanners, which set `Referer` to the request URL itself. Every one of the 36 referer-bearing site-host 404s on 2026-08-08 was self-referential, so the unrefined rule reported three dozen broken links on a site that had none. Discard the matches before counting, and **normalize the scheme rather than comparing it**, because a scanner reaching an HTTPS site routinely sends an `http://` referer for the same address. Comparing against the request's own scheme therefore matches nothing and leaves every false positive in place: on the 2026-08-08 data the naive form kept all 36 where the normalized form kept none.
 
 ```sh
-# Strip the scheme from the referer, compare against host+path, and default a null host,
-# because a request carrying no Host header at all aborts a bare startswith mid-file.
-jq -c 'select(.DownstreamStatus >= 400)
+# Narrow to this site's own 404s, then keep only referers pointing somewhere else.
+# `// ""` is on the host filter because startswith aborts on a null host; the concatenation
+# below needs no guard, since jq treats null + "/path" as "/path".
+jq -c 'select(.DownstreamStatus == 404)
+  | select((.RequestHost // "") == "blog.example.com")
   | select((.["request_Referer"] // "") != "")
-  | select((.["request_Referer"] | sub("^https?://"; "")) != ((.RequestHost // "") + .RequestPath))'
+  | select((.["request_Referer"] | sub("^https?://"; "")) != (.RequestHost + .RequestPath))'
 ```
+
+Widen `== 404` to `>= 400` for the whole non-200 sweep the table above describes. The 404 list is the half with an action, which is why it is the default here.
 
 **Filter the scanner shapes by shape, never by investigating them.** A site that used to run WordPress attracts probes for `.env` and its dozen variants, `wp-config.php`, `.git/config`, `phpinfo.php`, cloud credential files, and framework config paths. They dominate the raw list and none is ever a finding. What is left after the three filters above is small enough to read line by line, which is the point of running them.
 
 **Then cross-reference what remains against the contract**, because that is the only step with an action. A surviving 404 whose path appears in [`checks/golden-urls.txt`](./checks/golden-urls.txt) or in [`deploy/maps/`](./deploy/maps/) is a redirect that is not working. A surviving 404 shaped like real content and present in neither is the case this whole pass exists to find, and it is added to the golden list with a redirect per that file's maintenance rules. A run where nothing survives is the expected result and should be recorded as one.
 
-**A missing `Host` header is the third way this data breaks a filter.** `RequestHost` is null on a request that sends none, which router exploits do, so `.RequestHost | startswith(...)` fails with `startswith() requires string inputs` and takes the whole run with it. That failure is loud but partial, which is the worst combination: it aborts part way through a file having already printed real output. Default it with `// ""`.
+**A missing `Host` header is the third way this data breaks a filter.** `RequestHost` is null on a request that sends none, which router exploits do. String functions reject that where arithmetic tolerates it, so `.RequestHost | startswith(...)` fails with `startswith() requires string inputs` and takes the whole run with it, while `.RequestHost + .RequestPath` quietly yields the path alone. The failure is loud but partial, which is the worst combination, since it aborts part way through a file having already printed real output. Guard the string functions with `// ""` and know that the concatenations do not need it.
 
 **Two `jq` mistakes each read as a plausible answer rather than as an error.** A hyphenated key parses as subtraction, so `.request_User-Agent` silently is not the field you meant and `.["request_User-Agent"]` is, and the same holds for `Referer`. And `jq 'select(...)'` with no projection pretty-prints each match across many lines, so piping it to `wc -l` counts lines rather than records and overstates by roughly the width of the object. It reported 37 and 1,332 where the true counts were 1 and 36. Project with `@tsv` or pass `-c` before counting anything.
 
