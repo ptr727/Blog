@@ -12,7 +12,8 @@ KEEP_RELEASES=10
 usage() {
 	echo "usage: $0 [deploy-root] [version]" >&2
 	echo "       deploy-root defaults to DEPLOY_ROOT, from the environment or \$ENV_FILE" >&2
-	echo "       ENV_FILE defaults to secrets/.env, and a relative path resolves against the repo" >&2
+	echo "       ENV_FILE defaults to secrets/local.production.env, and a relative path resolves against the repo" >&2
+	echo "       deploy-root is required when the environment file sets DEPLOY_SSH_HOST, since that root is on another host" >&2
 	exit 2
 }
 
@@ -21,7 +22,9 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
 # ENV_FILE selects the environment, because `set -a` overwrites a value the caller exported.
 # The first argument overrides the root, being read after this.
-DEFAULT_ENV_FILE="$REPO/secrets/.env"
+# Files are named secrets/<server>.<environment>.env, both words spelled out, so the default names
+# the environment it actually selects rather than being the one file whose name says nothing.
+DEFAULT_ENV_FILE="$REPO/secrets/local.production.env"
 ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
 # A relative name resolves against the repo, so it means the same from any working directory.
 # Traversal is refused rather than resolved, since a relative name is meant to reach secrets/.

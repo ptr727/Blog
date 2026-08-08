@@ -8,16 +8,16 @@ Four environments, in two pairs. Each pair is one publish site and one staging s
 
 | Environment | Address | Fronted by | Purpose |
 | --- | --- | --- | --- |
-| Local publish mirror | a private hostname, set in `secrets/.env` | Traefik, on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
-| Local staging mirror | a second private hostname, set in `secrets/staging.env` | Traefik | Proves that two environments on one host stay independent, before that matters on a server. |
-| Staging | `blog.vps.insanegenius.net`, behind the auth gate | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
-| Production | `blog.insanegenius.com` | Pangolin | The public site. |
+| Local publish mirror | a private hostname, set in `secrets/local.production.env` | Traefik, on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
+| Local staging mirror | a second private hostname, set in `secrets/local.staging.env` | Traefik | Proves that two environments on one host stay independent, before that matters on a server. |
+| Staging | `blog.vps.insanegenius.net`, behind the auth gate, set in `secrets/vps.staging.env` | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
+| Production | `blog.insanegenius.com`, set in `secrets/vps.production.env` | Pangolin | The public site. |
 
 The local mirrors are not staging. They run the same bundle against the same web server, so they catch a broken redirect or a bad permission for free, but they exercise none of the routing, authentication, or certificate machinery that only exists on the VPS. Passing locally says the artifact is right. It says nothing about whether the server in front of it is.
 
 **The two words are `production` and `staging`, spelled out, in every position.** No `prod`, no `stage`. The same two name the container, the deploy root, the environment file, the `X-Blog-Env` value, and the GitHub Environment. This is not tidiness: the environment name is a value that gets **compared**, by `EXPECT_SITE_ENV` and by the deploy, so a spelling that differs in one position fails a deploy for a reason that reads like an outage. The local mirrors prefix the same words, `mirror-production` and `mirror-staging`, so a header names exactly one of the four environments in the fleet.
 
-Each environment is one file under `secrets/`, selected with `ENV_FILE`, holding the deploy root, the base URL, and the container name. Selecting the file is how an environment is chosen: the file is sourced with `set -a`, so it overwrites a `DEPLOY_ROOT` the caller exported and setting that variable by hand does not switch anything. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
+Each environment is one file under `secrets/`, named `<server>.<environment>.env`, selected with `ENV_FILE`, and holding the deploy root, the base URL, and the container name. The name carries both halves because the two pairs differ in server as well as environment, so a file says which machine it describes rather than leaving that to the value inside it, and the four in the table above are the four files. `secrets/local.production.env` is the one read when `ENV_FILE` is unset. Selecting the file is how an environment is chosen: the file is sourced with `set -a`, so it overwrites a `DEPLOY_ROOT` the caller exported and setting that variable by hand does not switch anything. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
 
 **The staging FQDN sits under the VPS wildcard deliberately.** `blog.vps.insanegenius.net` needs no new certificate and no new DNS record, and it keeps the staging name off the production domain.
 
@@ -56,7 +56,7 @@ This site has served the same domain across earlier platforms, so its whole oper
 
 ### Rebuilding from the Exports
 
-Everything derived is in this repository. Everything it was derived *from* is in a capture directory outside it, which is where a rebuild starts. **The capture path is `CAPTURE_ROOT` in `secrets/.env`**, recorded alongside the other values that name a machine rather than the project, so it is read from there rather than searched for. The capture is not a git repository, so it has no history to revert to, and it is read-only in normal use.
+Everything derived is in this repository. Everything it was derived *from* is in a capture directory outside it, which is where a rebuild starts. **The capture path is `CAPTURE_ROOT` in `secrets/local.production.env`**, recorded alongside the other values that name a machine rather than the project, so it is read from there rather than searched for. The capture is not a git repository, so it has no history to revert to, and it is read-only in normal use.
 
 | Under the capture | Holds | Recoverable |
 | --- | --- | --- |
@@ -83,7 +83,7 @@ So release to the local mirror and run the live check **before** opening a pull 
 | `hugo.yaml`, `layouts/` | Permalink and taxonomy changes move URLs underneath the redirects that point at them. |
 
 ```sh
-set -a; . secrets/.env; set +a
+set -a; . secrets/local.production.env; set +a
 deploy/make-release.sh
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
@@ -91,8 +91,8 @@ checks/check-live-urls.sh "$HUGO_BASEURL"
 Against the staging mirror, name its file in both places, since the sourced values and the ones `make-release.sh` reads must describe the same environment:
 
 ```sh
-set -a; . secrets/staging.env; set +a
-ENV_FILE=secrets/staging.env deploy/make-release.sh
+set -a; . secrets/local.staging.env; set +a
+ENV_FILE=secrets/local.staging.env deploy/make-release.sh
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
@@ -114,7 +114,7 @@ EXPECT_RELEASE=<version> checks/check-live-urls.sh "$HUGO_BASEURL"
 
 Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and [Deploying](#deploying) below passes them explicitly, which is what CI does so a pipeline run names the commit it built rather than the clock. Either form works locally, and the argument wins over the environment.
 
-`ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `secrets/.env` while the shell's `$HUGO_BASEURL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
+`ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `secrets/local.production.env` while the shell's `$HUGO_BASEURL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
 
 It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows every URL in the contract against the running mirror, checking each redirect's destination rather than trusting its status code.
 
@@ -127,9 +127,11 @@ A documentation-only or workflow-only change does not need this. A change to the
 Staging keeps Pangolin's authentication on, so an unauthenticated request never reaches the site. `check-live-urls.sh` presents a Pangolin resource access token when both halves of the pair are set, and sends nothing when neither is:
 
 ```sh
-set -a; . secrets/staging.env; set +a
+set -a; . secrets/vps.staging.env; set +a
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
+
+The gate is the VPS staging environment's, so this is `secrets/vps.staging.env`. The local staging mirror sits behind Traefik on the maintainer's own network and carries neither half of the pair.
 
 | Variable | Header |
 | --- | --- |
@@ -157,7 +159,7 @@ The deploy root and the base URL are the only host-specific values. A local run 
 
 | Variable | Effect |
 | --- | --- |
-| `ENV_FILE` | Which environment file to source. Defaults to `secrets/.env`. |
+| `ENV_FILE` | Which environment file to source. Defaults to `secrets/local.production.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
 | `HUGO_BASEURL` | Overrides the site base URL. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
@@ -311,7 +313,7 @@ The container reads three host paths, and only one of them a release ever writes
 Because it sits outside the bundle, no release updates it. Install or refresh it explicitly, once per environment, which is the same command against a different sourced file:
 
 ```sh
-set -a; . secrets/.env; set +a          # or secrets/staging.env
+set -a; . secrets/local.production.env; set +a   # or any other secrets/<server>.<environment>.env
 install -m 644 deploy/bootstrap.Caddyfile "$CADDY_APPDATA/config/Caddyfile"
 docker restart "$CADDY_CONTAINER"   # only this file needs one, see below
 ```
