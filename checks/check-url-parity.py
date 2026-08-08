@@ -95,13 +95,18 @@ def check_media(public):
 def check_robots(public):
     """Check that robots.txt exists and advertises this build's own sitemap.
 
-    Two failures, one gate. Hugo emits no robots.txt unless enableRobotsTXT is set, which is why
-    this site served none until that flag was turned on, and the file's only load-bearing line
-    points at the sitemap a crawler is otherwise unlikely to find, being told rather than guessing.
+    Four failures, one gate: the file absent, no Sitemap: line, a line naming another origin, and a
+    line advertising a sitemap that was not built. Hugo emits no robots.txt unless enableRobotsTXT
+    is set, which is why this site served none until that flag was turned on, and the file's only
+    load-bearing line points at the sitemap a crawler is otherwise unlikely to find, being told
+    rather than guessing.
 
-    The Sitemap: line is the only absolute URL in the build that a gate here can read at all, every
-    contract list being path-only, so it is the only place an origin is checked rather than joined.
-    What it proves is internal consistency: the advertised origin matches the one the home page's
+    Every contract list is path-only and check-live-urls.sh joins whatever base URL it is handed, so
+    this is the only place the gate *compares* an origin rather than joining one. Other absolute
+    URLs are read here - the home page's canonical link, and absolute asset references - but they
+    are read to resolve a reference rather than to check a host against another.
+
+    What the comparison proves is internal consistency: the advertised origin matches the one the
     canonical link carries. Both come from baseURL, so this cannot tell that baseURL was the wrong
     value for the environment being deployed to - nothing in the artifact can, which is why that
     check belongs on the side that knows which host it is serving. It does catch an origin that was
@@ -114,7 +119,11 @@ def check_robots(public):
         return ["robots.txt was not built - enableRobotsTXT is off in hugo.yaml"]
 
     origin = site_origin(public)
-    advertised = re.findall(r"(?mi)^\s*Sitemap:\s*(\S+)\s*$", robots.read_text(encoding="utf-8"))
+    # errors="replace" rather than strict, or invalid UTF-8 raises out of the whole parity run and a
+    # gate that exists to report a bad robots.txt stack-traces on one instead. A committed
+    # static/robots.txt is the file most likely to carry it, and it is the case this check is for.
+    text = robots.read_text(encoding="utf-8", errors="replace")
+    advertised = re.findall(r"(?mi)^\s*Sitemap:\s*(\S+)\s*$", text)
     if not advertised:
         print("robots : built, no Sitemap line")
         return ["robots.txt carries no Sitemap: line - a crawler will not find the sitemap unaided"]
