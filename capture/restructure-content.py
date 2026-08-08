@@ -76,6 +76,10 @@ def main(site: pathlib.Path, apply: bool):
 
     # --- posts: content/posts/<Y>/<M>/<slug>.md -> content/posts/<Y>/<M>/<D>/<slug>.md
     for p in sorted((content / "posts").rglob("*.md")):
+        # A section index is Hugo structure rather than a post. It carries no url: because
+        # it is not served, and treating it as unplaceable would make a healthy tree fail.
+        if p.name.startswith("_index."):
+            continue
         u = url_of(p)
         if not u:
             problems.append((p, "no url: front matter"))
