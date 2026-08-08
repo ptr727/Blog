@@ -75,6 +75,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      # One update for the job, because each one is a network round trip that can fail on its
+      # own. REQUIRE_BROTLI later makes a missing brotli fatal, so this keeps the build from
+      # failing, and git-restore-mtime is what the next step runs.
+      - name: Install build tools step
+        run: |
+          set -Eeuo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends brotli git-restore-mtime
+
       # Git stores no mtimes, so a checkout stamps every file with the moment it was written.
       # The deploy uploads with --link-dest against the previous release, and a file only links
       # when size and mtime both match, so today nothing links and every release is a full copy.
@@ -91,23 +100,16 @@ jobs:
       # began with, so a media file that acquires a bad one stays present, correctly named and
       # unreadable, through every later release. The live check is what notices that, by
       # requesting images and failing on the 403.
+      # `git restore-mtime`, the subcommand form, because the package installs into git's
+      # exec-path at /usr/lib/git-core rather than onto PATH, so the bare name does not resolve.
       - name: Restore file mtimes step
         run: |
           set -Eeuo pipefail
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends git-restore-mtime
           git restore-mtime static
 
       # The pin lives in the action, so the deploy and validation cannot install different generators.
       - name: Install Hugo step
         uses: ./.github/actions/install-hugo
-
-      # REQUIRE_BROTLI below makes a missing binary fatal, so this keeps the build from failing.
-      - name: Install brotli step
-        run: |
-          set -Eeuo pipefail
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends brotli
 
       # Derived once and used three times, as the directory name, the stamp, and EXPECT_RELEASE.
       # Deriving it twice yields ids seconds apart, and the gate then asserts a phantom version.
