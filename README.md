@@ -179,7 +179,7 @@ deploy/make-release.sh
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
-The deploy root and the base URL come from an untracked file per environment under `secrets/`, copied from [deploy/env.example][env-example] and selected with `ENV_FILE`. The whole `secrets/` directory is gitignored, so host-specific values stay out of the published history.
+The deploy root and the base URL come from an untracked file per environment under `secrets/`, named `<server>.<environment>.env`, copied from [deploy/env.example][env-example] and selected with `ENV_FILE`. `secrets/local.production.env` is the one read when `ENV_FILE` is unset. The whole `secrets/` directory is gitignored, so host-specific values stay out of the published history.
 
 ## 3rd Party Tools <!-- omit from toc -->
 

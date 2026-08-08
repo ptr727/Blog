@@ -57,23 +57,34 @@ checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
 The deploy root and the base URL are the only host-specific values, and they pair per
-environment. Copy [`env.example`](./env.example) to `secrets/.env`, which is the file read when
-`ENV_FILE` is unset, and add `secrets/<environment>.env` for each further environment. A single
-environment therefore needs `secrets/.env` and nothing else, since a differently named file is
-read only when `ENV_FILE` names it. `secrets/` is gitignored as a whole directory, so a value
-naming one machine cannot reach a public repo by being added to a file nobody remembered to
-ignore. CI passes them explicitly instead, which keeps a pipeline run self-describing:
+environment. Copy [`env.example`](./env.example) to `secrets/local.production.env`, which is the
+file read when `ENV_FILE` is unset, and add `secrets/<server>.<environment>.env` for each further
+environment. A single environment therefore needs `secrets/local.production.env` and nothing
+else, since a differently named file is read only when `ENV_FILE` names it. `secrets/` is
+gitignored as a whole directory, so a value naming one machine cannot reach a public repo by
+being added to a file nobody remembered to ignore. CI passes them explicitly instead, which
+keeps a pipeline run self-describing:
 
 ```sh
 HUGO_BASEURL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
 ```
 
-**One file per environment, selected by `ENV_FILE`.** `secrets/.env` is the default and is read
-when `ENV_FILE` is unset, so a single-environment host needs nothing else:
+**One file per environment, named `secrets/<server>.<environment>.env`, selected by `ENV_FILE`.**
+Both halves are spelled out, so a name says which machine it describes as well as which
+environment on it, and the four in the fleet read as one set. `secrets/local.production.env` is
+the default and is read when `ENV_FILE` is unset, so a single-environment host needs nothing
+else:
 
 ```sh
-deploy/make-release.sh                                  # secrets/.env
-ENV_FILE=secrets/staging.env deploy/make-release.sh     # the staging site on the same host
+deploy/make-release.sh                                       # secrets/local.production.env
+ENV_FILE=secrets/local.staging.env deploy/make-release.sh    # the staging site on the same host
+```
+
+A file whose `DEPLOY_SSH_HOST` is set describes a root on another machine, so this script refuses
+to create that path here and asks for a local one to assemble a bundle into:
+
+```sh
+ENV_FILE=secrets/vps.staging.env deploy/make-release.sh /path/to/bundle
 ```
 
 Selecting the file is the only way to switch environments. The file is sourced with `set -a`,
@@ -93,7 +104,7 @@ every build for that reason.
 
 | Variable | Effect |
 | --- | --- |
-| `ENV_FILE` | Which environment file to source. Defaults to `secrets/.env`. |
+| `ENV_FILE` | Which environment file to source. Defaults to `secrets/local.production.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
 | `HUGO_BASEURL` | Overrides the site base URL. Hugo maps `HUGO_<KEY>` onto config natively. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
