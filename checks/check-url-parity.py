@@ -10,6 +10,7 @@ are checked by check-live-urls.sh instead.
 import pathlib
 import re
 import sys
+from html.parser import HTMLParser
 from urllib.parse import unquote
 
 # A truncated list would make every assertion below it pass vacuously while the gate stays green.
@@ -189,6 +190,79 @@ def check_orphans(public, refs):
     return orphaned
 
 
+class GalleryScan(HTMLParser):
+    """Collect anything inside a gallery container that is not one of its permitted children.
+
+    A gallery is a flex row of figures, so its column widths are set by `.gallery-cols-N figure`.
+    Anything else landing in there is not laid out by that rule and is rendered as one more item
+    in the row, which is how both conversion artifacts this catches presented: a set caption
+    written as trailing text after a figure shortcode became a bare text node, and a gallery item
+    the conversion emitted as a plain markdown image became a `<p>` wrapping two images.
+    """
+
+    # A void element never closes, so counting it as an open tag desynchronizes the depth for the
+    # rest of the document and every later gallery reads as containing whatever follows it.
+    VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input",
+            "link", "meta", "param", "source", "track", "wbr"}
+    ALLOWED = {"figure", "figcaption"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.findings = []
+        # None outside a gallery; otherwise the number of elements open within the current one,
+        # so zero means the parser is looking at a direct child.
+        self.depth = None
+
+    def handle_starttag(self, tag, attrs):
+        classes = dict(attrs).get("class", "").split()
+        if self.depth is None:
+            if tag == "figure" and "gallery" in classes:
+                self.depth = 0
+            return
+        if self.depth == 0 and tag not in self.ALLOWED:
+            self.findings.append(f"<{tag}> as a direct child")
+        if tag not in self.VOID:
+            self.depth += 1
+
+    def handle_endtag(self, tag):
+        if self.depth is None or tag in self.VOID:
+            return
+        if self.depth == 0:
+            # The gallery's own closing tag.
+            self.depth = None
+        else:
+            self.depth -= 1
+
+    def handle_data(self, data):
+        # Whitespace between elements is just the template's formatting.
+        if self.depth == 0 and data.strip():
+            self.findings.append(f"bare text {data.strip()[:60]!r}")
+
+
+def check_galleries(public):
+    """Check that every gallery holds only figures and its own caption.
+
+    Neither the assets nor the orphans check can see this: both ask whether a reference resolves
+    or is reached, and content misplaced inside a gallery resolves and is reached exactly as it
+    would anywhere else. The defect is purely one of structure, so nothing that reasons about
+    URLs can observe it, which is why it survived the conversion and every gate since.
+    """
+    findings, pages = [], 0
+    for path in sorted(public.rglob("index.html")):
+        html = path.read_text(encoding="utf-8", errors="replace")
+        # Cheap reject first: parsing every built page costs far more than one substring test,
+        # and galleries appear on a handful of them.
+        if 'class="gallery' not in html:
+            continue
+        pages += 1
+        scan = GalleryScan()
+        scan.feed(html)
+        rel = str(path.relative_to(public)).replace("\\", "/")
+        findings += [f"{rel}: {finding}" for finding in scan.findings]
+    print(f"gallery: {pages} pages with galleries, {len(findings)} stray nodes inside one")
+    return findings
+
+
 def main(argv):
     if len(argv) != 2:
         sys.exit(f"usage: {argv[0]} <public-dir>")
@@ -203,6 +277,7 @@ def main(argv):
         ("media", check_media(public)),
         ("assets", check_assets(public, refs)),
         ("orphans", check_orphans(public, refs)),
+        ("gallery", check_galleries(public)),
     ):
         if missing:
             failures.append((label, missing))

@@ -37,8 +37,8 @@ I removed the motherboard from the old chassis and installed it in the new SC846
 {{< figure src="/media/2020/01/img%5F5897.jpg?w=1024" alt="" caption="" >}}  
 {{< figure src="/media/2020/01/img%5F5898.jpg?w=1024" alt="" caption="" >}}  
 {{< figure src="/media/2020/01/img%5F5899.jpg?w=768" alt="" caption="" >}}  
-![](/media/2020/02/img_5973.jpg?w=1024)  
-![](/media/2020/02/img_5980.jpg?w=768)  
+{{< figure src="/media/2020/02/img_5973.jpg?w=1024" alt="" caption="" >}}  
+{{< figure src="/media/2020/02/img_5980.jpg?w=768" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 I powered the machine up through remote IPMI KVM, all looked good, and I booted into my Ubuntu Server USB stick so I could SSH into the box, and update the firmware.

@@ -84,6 +84,24 @@ A count is all the check can observe, and two causes reach each direction: it ri
 
 **Both directions read absolute references as well as relative ones.** Hugo writes an absolute URL wherever a template resolves one against the base, which the entry-cover image on every list page does. Reading only rooted paths made those files look linked from nowhere while they were being displayed, and left a broken one unchecked in the other direction. The origin is read from the home page's canonical link rather than assumed, since staging and production build with different base URLs and a hardcoded host would check one environment's output against another's. No canonical link is a hard failure, because a guessed origin inflates the orphan count by exactly the pages that use one.
 
+## The gallery check, which no direction above can reach
+
+Every check above reasons about a URL: whether it renders, whether it resolves, whether anything points at it. Content misplaced **inside** a gallery satisfies all of that. The file exists, the reference resolves, and something links it, so the media surface is green in both directions while the page is laid out wrong. The defect is one of structure, which is why three variants of it survived the conversion and every gate since.
+
+A gallery is a flex row whose column widths come from `.gallery-cols-N figure`. Anything in there that is not a `figure` gets no width from that rule and is rendered as one more item in the row. So the check reads the built pages and fails on any direct child of a gallery container that is not a `figure` or the gallery's own `figcaption`.
+
+The three shapes it found, all of them conversion artifacts, and each verified against the captured live site before being changed:
+
+| Shape in the markdown | What the old platform had |
+| --- | --- |
+| Caption text appended after the last `figure` shortcode's `}}` | `<figcaption class="blocks-gallery-caption">`, a caption for the **set** |
+| A bare `![](…)` image | `<li class="blocks-gallery-item"><figure>` |
+| A linked `[![](…)](…)` image | the same, with an `<a>` **inside** the figure |
+
+**The first shape is why the capture is consulted rather than the markup.** A reviewer reading only the source reasonably suggests moving the text into the last figure's `caption` parameter, which is what a per-image caption would need. The capture shows all eleven were gallery-level captions, so that fix would have attributed a caption for a set of four images to whichever one happened to be last, and it would have looked correct.
+
+The gallery shortcode therefore takes a `caption` of its own and renders the container as a `figure`, since `figcaption` is only valid as a figure's child. The theme already styles `figure > figcaption`, so a set caption needs no rule beyond a full-width flex basis to keep it off the end of the last row.
+
 ## What the orphans are
 
 The count is not a backlog. It opened at 120 and was adjudicated against the captured live site under `blog-capture/mirror/`, which holds a crawl of the old platform including all 328 URLs the contract requires:

@@ -1,5 +1,17 @@
+{{/*
+    A gallery of figures, optionally captioned as a set.
 
+    The container is a <figure> rather than a <div> because <figcaption> is only valid as a
+    figure's child, and the caption describes the whole set rather than any one image. That
+    matches what the old platform emitted, a blocks-gallery-caption inside the gallery's own
+    <figure>, so a caption that came across as trailing text is restored to the element it
+    was. Attributing it to the last image instead would change what the post says.
+
+    The reset already sets figure { margin: 0 }, and the theme styles figure > figcaption, so
+    a set caption renders like every other caption on the site without a rule of its own.
+*/}}
 {{ $p := .Page }}
-<div class="gallery gallery-cols-{{ .Get "cols" | default 1 }}">
+<figure class="gallery gallery-cols-{{ .Get "cols" | default 1 }}">
 {{- print .Inner | $p.RenderString  -}}
-</div>
+{{- with .Get "caption" }}<figcaption>{{ . | $p.RenderString }}</figcaption>{{ end -}}
+</figure>
