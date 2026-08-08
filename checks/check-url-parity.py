@@ -38,6 +38,12 @@ CHECKS = pathlib.Path(__file__).resolve().parent
 # slack can never accumulate for a later regression to hide in.
 ORPHANED_MEDIA = 98
 
+# Every check above returns a list, and the shared summary called all of them "missing". That is
+# what a URL that did not build is, and it is not what a stray node inside a gallery is: those are
+# present, which is the whole complaint. The default stays "missing" so a check added later reads
+# the way the older ones do unless it says otherwise.
+FAILURE_NOUN = {"gallery": "stray nodes"}
+
 
 def load(name):
     lines = [ln.strip() for ln in (CHECKS / name).read_text().splitlines()]
@@ -295,27 +301,27 @@ def main(argv):
 
     refs = collect_refs(public)
     failures = []
-    for label, missing in (
+    for label, found in (
         ("render", check_render(public)),
         ("media", check_media(public)),
         ("assets", check_assets(public, refs)),
         ("orphans", check_orphans(public, refs)),
         ("gallery", check_galleries(public)),
     ):
-        if missing:
-            failures.append((label, missing))
+        if found:
+            failures.append((label, found))
 
     if not failures:
         print("\nPASS - the built site honors the URL contract")
         return 0
 
     print()
-    for label, missing in failures:
-        print(f"FAIL {label}: {len(missing)} missing")
-        for item in missing[:20]:
+    for label, found in failures:
+        print(f"FAIL {label}: {len(found)} {FAILURE_NOUN.get(label, 'missing')}")
+        for item in found[:20]:
             print(f"  {item}")
-        if len(missing) > 20:
-            print(f"  ... and {len(missing) - 20} more")
+        if len(found) > 20:
+            print(f"  ... and {len(found) - 20} more")
     return 1
 
 
