@@ -17,6 +17,8 @@ The contract is enforced by two gates, because one cannot cover both halves:
 
 **`golden-urls.txt`, 328 URLs Hugo must render.** Missing any one is a hard CI failure.
 
+**Every count on this page describes the two lists, not the site.** The lists are the legacy contract, closed by the migration, so a new post adds a URL the parity gate reports as `additional URLs built (not a failure)` and changes nothing here. A count moves only when a log review finds a legacy address the crawl missed, which is a deliberate append.
+
 | Shape | Count | Note |
 | --- | --- | --- |
 | Tag archives | 180 | The site serves `/tag/`, and **Hugo defaults to `/tags/`** |
@@ -28,7 +30,7 @@ The contract is enforced by two gates, because one cannot cover both halves:
 | Pages | 2 | `/about/`, `/viljoen-family/` |
 | Home | 1 | |
 
-The 180 tag archives are exactly the tags carried by a published post. Three further terms answer with an empty page and are redirects rather than renders: `brultech` and `phyn`, which no published post uses, and `review`, an empty tag that is also a 12-post category. Hugo generates a term page only where posts exist, which is why the render list is 180 tags rather than 183.
+The 180 tag archives are exactly the tags the migrated posts carry. Three further terms answer with an empty page and are redirects rather than renders: `brultech` and `phyn`, which no published post uses, and `review`, an empty tag that is also a 12-post category. Hugo generates a term page only where posts exist, which is why the render list is 180 tags rather than 183.
 
 **`redirect-urls.txt`, 917 URLs that must resolve but need not render.** These have no Hugo equivalent. Reproducing them would be absurd, and 404ing them discards real inbound links.
 
@@ -39,7 +41,7 @@ The 180 tag archives are exactly the tags carried by a published post. Three fur
 | `?p=<id>` shortlinks | 110 | Redirect to the permalink, via `p-ids.map` |
 | Attachment pages, root level | 107 | Redirect to the parent post, via `slugs.map` |
 | Per-post comment feeds | 107 | Redirect to the parent post |
-| Date archives | 83 | Redirect to `/all/`, since **Hugo has no built-in year or month archive** |
+| Date archives | 83 | Redirect to `/all/`, since **Hugo has no built-in year or month archive**. The matcher covers any date, including one the list does not hold |
 | Blogger permalinks | 59 | Redirect to the current post, via `blogger.map` |
 | Blogger monthly archives | 21 | Redirect to `/all/` |
 | Author archive and pagination | 12 | Redirect to `/`, a single-author blog duplicating home |
@@ -62,7 +64,7 @@ Two properties of the maps are non-obvious and easy to break when regenerating t
 
 **Adding a URL.** Real traffic finds what the lists missed. When a server log shows a 404 for an address that should work, append it to the appropriate list and add a redirect rule or map entry to cover it. The lists are append-only, per Directionality below.
 
-**Regenerating the maps.** `build-redirects.py` rebuilds everything under `deploy/maps/` from the source export, which lives in a capture directory outside this repo and is passed as an argument. It is a provenance tool rather than a CI step, and it selects the export **by content**, failing unless exactly one candidate contains published posts. The capture holds both a full export and a media-only one with zero posts, and taking the wrong one yields empty maps that are indistinguishable from working ones until the redirects are live.
+**Regenerating the maps.** `build-redirects.py` rebuilds everything under `deploy/maps/` from the source export, which lives in a capture directory outside this repo and is passed as an argument. **That directory's path is `CAPTURE_ROOT` in `secrets/.env`**, and `OPERATIONS.md` "Rebuilding from the Exports" records what it holds and which parts of it a person can fetch again. It is a provenance tool rather than a CI step, and it selects the export **by content**, failing unless exactly one candidate contains published posts. The capture holds both a full export and a media-only one with zero posts, and taking the wrong one yields empty maps that are indistinguishable from working ones until the redirects are live.
 
 **Checking a count.** Every count above is derivable from the files, so check rather than trust:
 
@@ -88,7 +90,7 @@ The count is not a backlog. It opened at 120 and was adjudicated against the cap
 
 | | |
 | --- | --- |
-| 17 | conversion losses, restored — five `gallery` shortcodes emitted empty |
+| 17 | conversion losses, restored, from five `gallery` shortcodes emitted empty |
 | 5 | never orphans, referenced only by an absolute URL the check could not read |
 | 97 | uploaded to the old platform's media library and never placed on a published page |
 | 1 | that platform's site icon, superseded by the favicon set at the static root |
