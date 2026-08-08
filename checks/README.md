@@ -84,6 +84,16 @@ A count is all the check can observe, and two causes reach each direction: it ri
 
 **Both directions read absolute references as well as relative ones.** Hugo writes an absolute URL wherever a template resolves one against the base, which the entry-cover image on every list page does. Reading only rooted paths made those files look linked from nowhere while they were being displayed, and left a broken one unchecked in the other direction. The origin is read from the home page's canonical link rather than assumed, since staging and production build with different base URLs and a hardcoded host would check one environment's output against another's. No canonical link is a hard failure, because a guessed origin inflates the orphan count by exactly the pages that use one.
 
+## The robots check, which is the only place a wrong base URL is visible
+
+Every list here is path-only and `check-live-urls.sh` joins whatever base URL it is handed, which is deliberate: it is what lets one contract be run against four environments without editing a line. The cost is that **a build baked with the wrong host passes the entire contract.** Point the check at the site it just built and all 1,245 URLs answer correctly while every canonical tag, feed entry, and sitemap entry names a different site. The host side found the same blind spot in its own smoke test and reported it, having checked the deployed bytes by hand instead.
+
+`robots.txt` is the one artifact that carries an absolute URL the gate can read without being told what to expect, because its `Sitemap:` line is derived from the same `baseURL` everything else is, and the origin it must match is read from the home page's canonical link rather than configured. So the check compares the build against itself, and a `HUGO_BASEURL` naming the wrong environment fails here rather than at a reader.
+
+The file is worth asserting for its own sake as well. Hugo emits none unless `enableRobotsTXT` is set, which is why this site answered 404 for a file the old platform served, and the `Sitemap:` line is load-bearing in a way the crawl rules are not: across the interim hostname's first day no crawler fetched the sitemap once, because a crawler is told where a sitemap is rather than guessing it. Four failures are gated — the file absent, no `Sitemap:` line, a line naming another origin, and a line advertising a sitemap that was not built — and all four were demonstrated failing before the check was trusted.
+
+`/robots.txt/`, with a trailing slash, is a URL the old platform served and is in the redirect contract. It resolves through `slugs.map` like any other one-segment legacy URL, and the generator special-cases it to the real file rather than to the home page. `/osd.xml/` stays pointed at the home page deliberately: it was the old platform's OpenSearch description and this site emits no such file.
+
 ## The gallery check, which no direction above can reach
 
 Every check above reasons about a URL: whether it renders, whether it resolves, whether anything points at it. Content misplaced **inside** a gallery satisfies all of that. The file exists, the reference resolves, and something links it, so the media surface is green in both directions while the page is laid out wrong. The defect is one of structure, which is why three variants of it survived the conversion and every gate since.

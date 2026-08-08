@@ -27,6 +27,14 @@ refLinksErrorLevel: ERROR
 # The deploy rebuilds the site rather than receiving it as an artifact, so the build stays reproducible.
 enableGitInfo: false
 
+# Off by default in Hugo, which is why this site answered 404 for a file the old platform served.
+# The Sitemap: line is the load-bearing part: no crawler has ever fetched this site's sitemap
+# unprompted, because a crawler is told where a sitemap is rather than guessing, and the only
+# thing telling them today is the robots.txt the cutover deletes.
+# The theme's template derives that URL from the built baseURL, so it names .net during the
+# rehearsal and .com afterwards with no second edit to remember at the cutover.
+enableRobotsTXT: true
+
 params:
   description: My discoveries, frustrations, and delights
   defaultTheme: auto
