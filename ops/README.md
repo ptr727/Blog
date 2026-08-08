@@ -19,9 +19,9 @@ Three legs, each skippable, in one direction only:
 
 | Leg | From the VPS | To the backup host |
 | --- | --- | --- |
-| archives | the encrypted backup set | `DEST` |
-| host config | the same non-secret files in plaintext | `DEST/hostconfig` |
-| access logs | the rotated edge logs | `LOG_DEST` |
+| archives | the encrypted backup set | `BACKUP_ARCHIVE_ROOT` |
+| host config | the same non-secret files in plaintext | `BACKUP_ARCHIVE_ROOT/hostconfig` |
+| access logs | the rotated edge logs | `LOG_ARCHIVE_ROOT` |
 
 **It is a pull rather than a push, and that is a security property rather than a convenience.** The backup host holds a key the VPS trusts, and the VPS holds no credential reaching anything else. A push would have to invert that, so a compromise of the web server would reach the backups that exist to survive it.
 
@@ -42,9 +42,7 @@ ops/install.sh --check    # derive, validate, print, write nothing
 ops/install.sh            # the same, then install
 ```
 
-**Nothing is typed twice.** The address, both destinations, and the account are already known to this checkout, so `install.sh` derives them rather than asking: `VPS_SSH_HOST`, `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` come from `secrets/<server>.<environment>.env` under the names the log review uses, the account is whoever runs the script, the group is read from the destination, and the mount is resolved with `findmnt`. That is also what keeps the two vocabularies from drifting, since one is generated from the other rather than maintained beside it.
-
-**Run it as the account that will own the backup, not under `sudo`.** It refuses to start as root, because that account's name and its SSH key are what the unit is built around. It calls `sudo` itself for the steps that need it, so expect one password prompt.
+**Nothing is typed twice.** The address, both destinations, and the account are already known to this checkout, so `install.sh` copies them rather than asking: `VPS_SSH_HOST`, `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` come straight from `secrets/<server>.<environment>.env`, the account is whoever runs the script, the group is read from the destination, and the mount is resolved with `findmnt`.
 
 **Two derivations are worth knowing, because the obvious answer is wrong for both.** The group comes from the destination rather than from `id -gn`, since `Group=` sets the process's primary group and the account's own group is usually not the one owning the backup tree. And `RequiresMountsFor=` needs the mount point rather than the destination path below it.
 
@@ -54,7 +52,7 @@ Re-running is safe and is how a changed value is applied. A file that already ma
 
 **The timer's hour sits behind both producers on the VPS rather than beside them**, because the VPS rotates its log and writes its archive at times of its own. Pulling before the day's archive exists fetches the previous one and reports success, which is the failure mode that looks like a working backup. `Persistent=true` covers a host that was powered off when the timer should have fired.
 
-**Run it as the account that owns the destination, never under `sudo`.** It authenticates with that user's SSH key and writes into a tree that user owns. Under `sudo` it uses root's identity, which the VPS does not trust, and starts mixing root-owned files into a user-owned backup tree. That is why it installs to `bin/` rather than `sbin/`, why the drop-in sets `User=`, and why the script refuses to start as root rather than warning about it.
+**Run both as the account that will own the backup, never under `sudo`**, and expect one password prompt for the privileged steps the installer calls itself. The pull authenticates with that account's SSH key and writes into a tree that account owns. Under `sudo` it uses root's identity, which the VPS does not trust, and starts mixing root-owned files into a user-owned backup tree. That is why it installs to `bin/` rather than `sbin/`, why the drop-in sets `User=`, and why both scripts refuse to start as root rather than warning about it.
 
 ## Checking it, without trusting anything written down
 
@@ -67,9 +65,9 @@ systemctl list-timers vps-backup-pull.timer --all
 
 ## Variables
 
-Every path is a variable, so a host states its own layout rather than editing a file git owns. They are listed with their meanings in [`vps-backup-pull.env.example`](./vps-backup-pull.env.example), and the two `systemd` settings that cannot come from an environment file are in [`vps-backup-pull.service.d-local.conf.example`](./vps-backup-pull.service.d-local.conf.example).
+Every path is a variable, so a host states its own layout rather than editing a file git owns. They are listed with their meanings in [`vps-backup-pull.env.example`](./vps-backup-pull.env.example), and the three `systemd` settings that cannot come from an environment file are in [`vps-backup-pull.service.d-local.conf.example`](./vps-backup-pull.service.d-local.conf.example).
 
-**Two of them are named a second time in Blog's own `secrets/` file, and the pairs must agree.** This side writes, and the log review reads. `DEST` here is `BACKUP_ARCHIVE_ROOT` there, and `LOG_DEST` here is `LOG_ARCHIVE_ROOT` there. The correspondence, and why the two vocabularies exist rather than one, is in [`OPERATIONS.md`](../OPERATIONS.md) "Working With the VPS".
+**They are the same names Blog's own `secrets/` file uses, which is the point.** `VPS_*` is something on the VPS and `*_ROOT` is something on this host, and the pull writes the two roots that the log review reads. One name per directory means the writing side and the reading side cannot disagree, and it is why `install.sh` copies rather than translates. An earlier split into two vocabularies needed a mapping table to hold it together, and unifying them deleted the table.
 
 ## This directory is the source
 

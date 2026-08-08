@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# vps-pull.sh -- pull the Pangolin VPS backup set to this host.
+# vps-backup-pull -- pull the Pangolin VPS backup set to this host.
 #
 # RUNS ON THE BACKUP HOST, NOT on the VPS. It installs as
 # /usr/local/bin/vps-backup-pull, which is the path vps-backup-pull.service runs
@@ -40,15 +40,19 @@
 # ciphertext it would make the encryption decorative. It is in 1Password.
 #
 # Every path is an environment variable, read from /etc/vps-backup-pull.env, so a host
-# states its own layout there rather than editing a file git owns. The three naming THIS
-# pair of machines carry no default at all, because an address and a destination belong to
-# one host and this repository is public:
-#   VPS_HOST                 (required)                  where to pull from
-#   DEST                     (required)                  archives + hostconfig land here
-#   LOG_DEST                 (required)                  both log sets land here
-#   REMOTE_ARCHIVE_DIR       /var/backups/pangolin       the archives ON THE VPS
-#   REMOTE_TRAEFIK_LOG_DIR   /var/log/traefik/archive    rotated edge access logs ON THE VPS
-#   REMOTE_BLOG_LOG_DIR      /var/log/blog/legacy        one-off Caddy container dumps ON THE VPS
+# states its own layout there rather than editing a file git owns. VPS_* names something on
+# the VPS and *_ROOT names something on this host, and these are the same names
+# secrets/<server>.<environment>.env uses, so there is one vocabulary rather than two.
+#
+#   VPS_SSH_HOST              (required)                where to pull from
+#   BACKUP_ARCHIVE_ROOT       (required)                archives + hostconfig land here
+#   LOG_ARCHIVE_ROOT          (required)                both log sets land here
+#   VPS_ARCHIVE_DIR           /var/backups/pangolin     the archives ON THE VPS
+#   VPS_TRAEFIK_LOG_ARCHIVE   /var/log/traefik/archive  rotated edge access logs ON THE VPS
+#   VPS_BLOG_LOG_DIR          /var/log/blog/legacy      one-off Caddy dumps ON THE VPS
+#
+# The three marked required carry no default, because an address and a destination belong
+# to one host. A wrong-but-valid destination is a backup nobody can find.
 #
 # Usage: vps-backup-pull [--delete] [--no-hostconfig] [--no-logs] [--dry-run] [--quiet]
 #   --delete         mirror deletions (Proxmox tracks the VPS's 14-archive window
@@ -62,23 +66,21 @@
 #   --quiet          errors and the summary only
 set -euo pipefail
 
-# The three values naming THIS pair of machines have no defaults, deliberately. They are
-# an address and two paths belonging to one host, and secrets/ is gitignored precisely so
-# that nothing of that kind reaches a public history. They come from
-# /etc/vps-backup-pull.env, and preflight refuses to run without them rather than falling
-# back to something plausible -- a wrong-but-valid destination is a backup nobody can find.
-VPS_HOST=${VPS_HOST:-}
-DEST=${DEST:-}
+# No defaults, deliberately: preflight refuses to run without them rather than falling back
+# to something plausible. They come from /etc/vps-backup-pull.env, which ops/install.sh
+# generates from the same names in secrets/<server>.<environment>.env.
+VPS_SSH_HOST=${VPS_SSH_HOST:-}
+BACKUP_ARCHIVE_ROOT=${BACKUP_ARCHIVE_ROOT:-}
 # Layout on the VPS, which is the same for any host running this stack, so these do default.
-REMOTE_ARCHIVE_DIR=${REMOTE_ARCHIVE_DIR:-/var/backups/pangolin}
+VPS_ARCHIVE_DIR=${VPS_ARCHIVE_DIR:-/var/backups/pangolin}
 SSH_OPTS=${SSH_OPTS:--o ConnectTimeout=15 -o BatchMode=yes}
 
-# The log leg. Separate from DEST because these are plaintext and long-lived: the
+# The log leg. Separate from BACKUP_ARCHIVE_ROOT because these are plaintext and long-lived:
 # VPS prunes at 400 days and this host is the copy that outlives that window, so
 # they must not share a directory whose retention tracks the VPS's 14 archives.
-REMOTE_TRAEFIK_LOG_DIR=${REMOTE_TRAEFIK_LOG_DIR:-/var/log/traefik/archive}
-REMOTE_BLOG_LOG_DIR=${REMOTE_BLOG_LOG_DIR:-/var/log/blog/legacy}
-LOG_DEST=${LOG_DEST:-}
+VPS_TRAEFIK_LOG_ARCHIVE=${VPS_TRAEFIK_LOG_ARCHIVE:-/var/log/traefik/archive}
+VPS_BLOG_LOG_DIR=${VPS_BLOG_LOG_DIR:-/var/log/blog/legacy}
+LOG_ARCHIVE_ROOT=${LOG_ARCHIVE_ROOT:-}
 
 DELETE=0; HOSTCONFIG=1; LOGS=1; DRYRUN=0; QUIET=0
 LOGFILES=0
@@ -132,7 +134,7 @@ LOG_RSYNC_OPTS=("${RSYNC_OPTS[@]}")
 # looks like progress is printed until the configuration is known good.
 #
 # Each variable is named individually rather than reported as "configuration missing",
-# which sends you to the wrong file when only one line of it is absent. LOG_DEST is
+# which sends you to the wrong file when only one line of it is absent. LOG_ARCHIVE_ROOT is
 # required only when the log leg is running, so --no-logs still works on a host that
 # copies archives and nothing else.
 #
@@ -142,23 +144,23 @@ LOG_RSYNC_OPTS=("${RSYNC_OPTS[@]}")
 # those instead. The unit omits User= deliberately, so this is what catches a missing
 # drop-in rather than the failure surfacing a day later as a permissions error.
 [[ $EUID -ne 0 ]] || die "refusing to run as root -- run as the account that owns the destination and holds the VPS key (systemd: set User= in the drop-in)"
-[[ -n $VPS_HOST ]] || die "VPS_HOST is not set -- see /etc/vps-backup-pull.env (template: ops/vps-backup-pull.env.example)"
-[[ -n $DEST     ]] || die "DEST is not set -- see /etc/vps-backup-pull.env (template: ops/vps-backup-pull.env.example)"
-[[ $LOGS -eq 0 || -n $LOG_DEST ]] || die "LOG_DEST is not set and the log leg is enabled -- set it, or pass --no-logs"
+[[ -n $VPS_SSH_HOST ]] || die "VPS_SSH_HOST is not set -- see /etc/vps-backup-pull.env (template: ops/vps-backup-pull.env.example)"
+[[ -n $BACKUP_ARCHIVE_ROOT     ]] || die "BACKUP_ARCHIVE_ROOT is not set -- see /etc/vps-backup-pull.env (template: ops/vps-backup-pull.env.example)"
+[[ $LOGS -eq 0 || -n $LOG_ARCHIVE_ROOT ]] || die "LOG_ARCHIVE_ROOT is not set and the log leg is enabled -- set it, or pass --no-logs"
 command -v rsync >/dev/null || die "rsync not installed on this host"
 
 START=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
 say "=== VPS backup pull -- $START"
-say "    source: $VPS_HOST   dest: $DEST"
-[[ $LOGS -eq 1 ]] && say "    logs:   $LOG_DEST"
+say "    source: $VPS_SSH_HOST   dest: $BACKUP_ARCHIVE_ROOT"
+[[ $LOGS -eq 1 ]] && say "    logs:   $LOG_ARCHIVE_ROOT"
 [[ $DRYRUN -eq 1 ]] && say "    DRY RUN -- nothing will be written"
 # shellcheck disable=SC2086
-ssh $SSH_OPTS "$VPS_HOST" true 2>/dev/null \
-  || die "cannot reach $VPS_HOST over SSH (key auth only -- password auth is disabled there)"
+ssh $SSH_OPTS "$VPS_SSH_HOST" true 2>/dev/null \
+  || die "cannot reach $VPS_SSH_HOST over SSH (key auth only -- password auth is disabled there)"
 
 if [[ $DRYRUN -eq 0 ]]; then
-  mkdir -p "$DEST/pangolin" || die "cannot create $DEST/pangolin"
-  chmod 700 "$DEST"
+  mkdir -p "$BACKUP_ARCHIVE_ROOT/pangolin" || die "cannot create $BACKUP_ARCHIVE_ROOT/pangolin"
+  chmod 700 "$BACKUP_ARCHIVE_ROOT"
 fi
 
 # ---------------------------------------------------------------- 1. archives
@@ -166,7 +168,7 @@ say
 say "--- archives"
 # shellcheck disable=SC2086
 rsync "${RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
-      "$VPS_HOST:$REMOTE_ARCHIVE_DIR/" "$DEST/pangolin/" \
+      "$VPS_SSH_HOST:$VPS_ARCHIVE_DIR/" "$BACKUP_ARCHIVE_ROOT/pangolin/" \
   || die "archive rsync failed"
 
 # ---------------------------------------------------------------- 2. verify
@@ -184,10 +186,10 @@ else
   say "--- verifying checksums"
   SUMS=$(mktemp)
   # shellcheck disable=SC2086
-  ssh $SSH_OPTS "$VPS_HOST" "cd $REMOTE_ARCHIVE_DIR && sha256sum *.enc" >"$SUMS" \
+  ssh $SSH_OPTS "$VPS_SSH_HOST" "cd $VPS_ARCHIVE_DIR && sha256sum *.enc" >"$SUMS" \
     || die "could not read source checksums"
   EXPECTED=$(wc -l <"$SUMS")
-  if OUTPUT=$(cd "$DEST/pangolin" && sha256sum -c "$SUMS" 2>&1); then
+  if OUTPUT=$(cd "$BACKUP_ARCHIVE_ROOT/pangolin" && sha256sum -c "$SUMS" 2>&1); then
     VERIFIED=$EXPECTED
     say "    $EXPECTED/$EXPECTED archives verified OK"
   else
@@ -205,17 +207,17 @@ if [[ $HOSTCONFIG -eq 1 ]]; then
   # Ask the VPS what it considers valuable. Single source of truth: the list is
   # defined once, in pangolin-backup's HOST_FILES, and never copied to this host.
   # shellcheck disable=SC2086
-  if ssh $SSH_OPTS "$VPS_HOST" 'pangolin-backup --list-files' 2>/dev/null \
+  if ssh $SSH_OPTS "$VPS_SSH_HOST" 'pangolin-backup --list-files' 2>/dev/null \
        | sed 's|^/||' >"$LIST" && [[ -s $LIST ]]; then
     WANT=$(wc -l <"$LIST")
     say "    $WANT path(s) advertised by the VPS"
-    [[ $DRYRUN -eq 0 ]] && mkdir -p "$DEST/hostconfig"
+    [[ $DRYRUN -eq 0 ]] && mkdir -p "$BACKUP_ARCHIVE_ROOT/hostconfig"
     # shellcheck disable=SC2086
     rsync "${RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
-          --files-from="$LIST" "$VPS_HOST:/" "$DEST/hostconfig/" \
+          --files-from="$LIST" "$VPS_SSH_HOST:/" "$BACKUP_ARCHIVE_ROOT/hostconfig/" \
       || warn "host config rsync reported errors"
     if [[ $DRYRUN -eq 0 ]]; then
-      GOT=$(find "$DEST/hostconfig" -type f | wc -l)
+      GOT=$(find "$BACKUP_ARCHIVE_ROOT/hostconfig" -type f | wc -l)
       say "    $GOT file(s) on disk"
       [[ $GOT -eq $WANT ]] || warn "expected $WANT file(s), found $GOT -- a listed path may be missing on the VPS"
     fi
@@ -242,24 +244,24 @@ if [[ $LOGS -eq 1 ]]; then
   say
   say "--- access logs (plaintext, and the only copy past 400 days)"
   if [[ $DRYRUN -eq 0 ]]; then
-    mkdir -p "$LOG_DEST/traefik" "$LOG_DEST/blog-legacy" || die "cannot create $LOG_DEST"
+    mkdir -p "$LOG_ARCHIVE_ROOT/traefik" "$LOG_ARCHIVE_ROOT/blog-legacy" || die "cannot create $LOG_ARCHIVE_ROOT"
     # Query strings are logged in full, so the tree is as sensitive as the log is.
-    chmod 700 "$LOG_DEST"
+    chmod 700 "$LOG_ARCHIVE_ROOT"
   fi
   # shellcheck disable=SC2086
   rsync "${LOG_RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
-        "$VPS_HOST:$REMOTE_TRAEFIK_LOG_DIR/" "$LOG_DEST/traefik/" \
+        "$VPS_SSH_HOST:$VPS_TRAEFIK_LOG_ARCHIVE/" "$LOG_ARCHIVE_ROOT/traefik/" \
     || warn "traefik log rsync reported errors"
   # shellcheck disable=SC2086
   rsync "${LOG_RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
-        "$VPS_HOST:$REMOTE_BLOG_LOG_DIR/" "$LOG_DEST/blog-legacy/" \
+        "$VPS_SSH_HOST:$VPS_BLOG_LOG_DIR/" "$LOG_ARCHIVE_ROOT/blog-legacy/" \
     || warn "blog legacy log rsync reported errors"
   if [[ $DRYRUN -eq 0 ]]; then
-    LOGFILES=$(find "$LOG_DEST" -type f | wc -l)
+    LOGFILES=$(find "$LOG_ARCHIVE_ROOT" -type f | wc -l)
     say "    $LOGFILES log file(s) on disk"
     # A pull that lands nothing looks identical to a pull with nothing new, and the
     # difference is a broken path against a working one. Only the empty case is odd.
-    [[ $LOGFILES -gt 0 ]] || warn "no log files landed -- check REMOTE_TRAEFIK_LOG_DIR and REMOTE_BLOG_LOG_DIR"
+    [[ $LOGFILES -gt 0 ]] || warn "no log files landed -- check VPS_TRAEFIK_LOG_ARCHIVE and VPS_BLOG_LOG_DIR"
   fi
 fi
 
@@ -269,13 +271,13 @@ if [[ $DRYRUN -eq 1 ]]; then
   say "=== dry run complete -- nothing changed"
   exit 0
 fi
-ARCHIVES=$(find "$DEST/pangolin" -name '*.enc' -type f | wc -l)
-SIZE=$(du -sh "$DEST" 2>/dev/null | cut -f1)
+ARCHIVES=$(find "$BACKUP_ARCHIVE_ROOT/pangolin" -name '*.enc' -type f | wc -l)
+SIZE=$(du -sh "$BACKUP_ARCHIVE_ROOT" 2>/dev/null | cut -f1)
 if [[ $LOGS -eq 1 ]]; then
-  LOGSIZE=$(du -sh "$LOG_DEST" 2>/dev/null | cut -f1)
-  tell "=== done -- $ARCHIVES archive(s), $VERIFIED verified, $SIZE in $DEST; $LOGFILES log file(s), $LOGSIZE in $LOG_DEST"
+  LOGSIZE=$(du -sh "$LOG_ARCHIVE_ROOT" 2>/dev/null | cut -f1)
+  tell "=== done -- $ARCHIVES archive(s), $VERIFIED verified, $SIZE in $BACKUP_ARCHIVE_ROOT; $LOGFILES log file(s), $LOGSIZE in $LOG_ARCHIVE_ROOT"
 else
-  tell "=== done -- $ARCHIVES archive(s), $VERIFIED verified, $SIZE in $DEST; logs skipped"
+  tell "=== done -- $ARCHIVES archive(s), $VERIFIED verified, $SIZE in $BACKUP_ARCHIVE_ROOT; logs skipped"
 fi
 if [[ $VERIFY_RC -ne 0 ]]; then
   tell "=== COMPLETED WITH ERRORS -- see warnings above"

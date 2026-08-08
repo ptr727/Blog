@@ -220,12 +220,7 @@ ssh "$VPS_SSH_HOST" true && echo reachable
 
 **It is a pull rather than a push, and nothing on the VPS knows it happens.** That direction is the security property rather than an implementation detail: the backup host holds a key the VPS trusts, and the VPS holds no credential reaching any other system, so a compromise of the web server cannot walk into the backups that exist to survive it.
 
-**The two sides use different names for the same two directories, and the pairs must agree.** The pull is configured on the backup host and writes, where this repository's `secrets/` file is read by the log review. Neither can source the other's file, because one is a `systemd` `EnvironmentFile` on another machine and the other is a shell file here, so the correspondence is stated rather than enforced, and it is the thing to check first when a review finds an empty archive.
-
-| The pull writes | The review reads | Holding |
-| --- | --- | --- |
-| `DEST` | `BACKUP_ARCHIVE_ROOT` | the encrypted archives and the plaintext `hostconfig` tree |
-| `LOG_DEST` | `LOG_ARCHIVE_ROOT` | both sets of rotated logs |
+**Both sides use one set of names, so there is nothing to reconcile.** The pull writes `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` and the log review reads the same two, spelled the same way, and [`ops/install.sh`](./ops/install.sh) generates the pull's `EnvironmentFile` from this repository's `secrets/` file by copying rather than translating. That is deliberate and was not the first attempt: the two sides briefly had separate names for the same four directories, which needed a mapping table in this file and a translation step in the installer, and both disappeared when the names were unified. A value that exists once cannot disagree with itself.
 
 ```sh
 set -a; . secrets/local.production.env; set +a
