@@ -212,6 +212,12 @@ class GalleryScan(HTMLParser):
             "link", "meta", "param", "source", "track", "wbr"}
     ALLOWED = {"figure", "figcaption"}
 
+    # There is deliberately no handle_startendtag override. HTMLParser's own implementation
+    # forwards a self-closing tag to handle_starttag and then handle_endtag, so `<br/>`, `<br />`
+    # and `<img/>` are already reported and already leave the depth balanced. Adding an override
+    # to "support" them is what would break it, by counting a pair the base class already splits.
+    # Verified on those three spellings and on a self-closing non-void `<figure/>`.
+
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.findings = []
