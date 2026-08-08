@@ -22,8 +22,10 @@
 # there rather than editing this file. See example.env and ENVIRONMENT.md.
 #
 # Why a PULL and not a push from the VPS: it keeps the VPS free of any credential
-# reaching another system, which is the one security rule in CONFIG.md item 0.
-# This host already has an SSH key trusted by the VPS; the VPS has none for here.
+# reaching another system. That rule is item 0 of the VPS's own /root/CONFIG.md, which is
+# on that host rather than in this repository, and OPERATIONS.md "Working With the VPS"
+# states the same reasoning here. The backup host holds a key the VPS trusts, and the VPS
+# holds none for here.
 #
 # What it fetches:
 #   pangolin/     the encrypted archives -- the actual backup. Contains config/,
@@ -293,13 +295,18 @@ fi
 # ---------------------------------------------------------------- summary
 say
 if [[ $DRYRUN -eq 1 ]]; then
-    say "=== dry run complete -- nothing changed"
+    # tell() rather than say(), because this IS the summary for a dry run, and --quiet
+    # promises errors and the summary. say() would make `--quiet --dry-run` print nothing.
+    tell "=== dry run complete -- nothing changed"
     exit 0
 fi
 ARCHIVES=$(find "$BACKUP_ARCHIVE_ROOT/pangolin" -name '*.enc' -type f | wc -l)
-SIZE=$(du -sh "$BACKUP_ARCHIVE_ROOT" 2>/dev/null | cut -f1)
+# `set -e` plus `pipefail` makes a failing du fatal, and 2>/dev/null then hides why, so a
+# pull that copied everything exits 1 at the summary with an empty journal. The size is
+# cosmetic, so let du report to stderr and carry on with the transfer already done.
+SIZE=$(du -sh "$BACKUP_ARCHIVE_ROOT" | cut -f1) || SIZE="size unavailable"
 if [[ $LOGS -eq 1 ]]; then
-    LOGSIZE=$(du -sh "$LOG_ARCHIVE_ROOT" 2>/dev/null | cut -f1)
+    LOGSIZE=$(du -sh "$LOG_ARCHIVE_ROOT" | cut -f1) || LOGSIZE="size unavailable"
     tell "=== done -- $ARCHIVES archive(s), $VERIFIED verified, $SIZE in $BACKUP_ARCHIVE_ROOT; $LOGFILES log file(s), $LOGSIZE in $LOG_ARCHIVE_ROOT"
 else
     tell "=== done -- $ARCHIVES archive(s), $VERIFIED verified, $SIZE in $BACKUP_ARCHIVE_ROOT; logs skipped"
