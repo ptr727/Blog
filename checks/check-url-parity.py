@@ -42,7 +42,7 @@ ORPHANED_MEDIA = 98
 # what a URL that did not build is, and it is not what a stray node inside a gallery is: those are
 # present, which is the whole complaint. The default stays "missing" so a check added later reads
 # the way the older ones do unless it says otherwise.
-FAILURE_NOUN = {"gallery": "stray nodes"}
+FAILURE_NOUN = {"gallery": "stray nodes", "robots": "problems"}
 
 
 def load(name):
@@ -90,6 +90,43 @@ def check_media(public):
             missing.append(url)
     print(f"media  : {len(legacy) - len(missing)}/{len(legacy)} legacy image URLs resolve after the @uploads rewrite")
     return missing
+
+
+def check_robots(public):
+    """Check that robots.txt exists and advertises this build's own sitemap.
+
+    Two failures, one gate. Hugo emits no robots.txt unless enableRobotsTXT is set, which is how
+    this site answered 404 for years, and the file's only load-bearing line points at the sitemap
+    a crawler would otherwise never find.
+
+    The sitemap URL is absolute and derived from baseURL, which makes this the one build-time
+    assertion that can see a wrong baseURL at all. Every contract list is path-only and the live
+    check joins whatever base it is given, so a build baked with the wrong host passes all of them
+    while every canonical tag, feed entry and sitemap entry names the wrong site.
+    """
+    robots = public / "robots.txt"
+    if not robots.is_file():
+        print("robots : missing")
+        return ["robots.txt was not built - enableRobotsTXT is off in hugo.yaml"]
+
+    origin = site_origin(public)
+    advertised = re.findall(r"(?mi)^\s*Sitemap:\s*(\S+)\s*$", robots.read_text(encoding="utf-8"))
+    if not advertised:
+        print("robots : built, no Sitemap line")
+        return ["robots.txt carries no Sitemap: line - a crawler will not find the sitemap unaided"]
+
+    wrong = [u for u in advertised if not u.startswith(origin + "/")]
+    if wrong:
+        print(f"robots : built, {len(wrong)} Sitemap line(s) naming another origin")
+        return [f"{u} (this build's origin is {origin})" for u in wrong]
+
+    # Named rather than counted, since there is one today and the line is the thing being checked.
+    print(f"robots : built, advertising {advertised[0]}")
+    return [
+        f"{u} (advertised, but {u[len(origin) + 1:]} was not built)"
+        for u in advertised
+        if not (public / u[len(origin) + 1 :]).is_file()
+    ]
 
 
 def site_origin(public):
@@ -307,6 +344,7 @@ def main(argv):
         ("assets", check_assets(public, refs)),
         ("orphans", check_orphans(public, refs)),
         ("gallery", check_galleries(public)),
+        ("robots", check_robots(public)),
     ):
         if found:
             failures.append((label, found))

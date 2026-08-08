@@ -19,6 +19,15 @@ CHECKS = pathlib.Path(__file__).resolve().parent
 # The WordPress importer registers the full slug, and both answer, so both are mapped.
 BLOGGER_SLUG_LIMIT = 40
 
+# A one-segment URL naming a file the site serves at the root, rather than a page slug.
+# The resolver below reads these as unresolvable attachment slugs and sends them to the home
+# page, which is the right answer for a slug nothing claims and the wrong one for a file that
+# exists: /robots.txt/ should reach /robots.txt. Named here rather than hand-edited into the
+# generated map, because the map is rewritten from the capture and a hand edit does not survive.
+# /osd.xml/ stays out deliberately. It was the old platform's OpenSearch description and this
+# site emits no such file, so the home page remains the honest destination for it.
+WELL_KNOWN = {"/robots.txt/": "/robots.txt"}
+
 
 def text(el, path):
     node = el.find(path, NS)
@@ -179,7 +188,9 @@ def main(argv):
     resolved, via_parent, via_media, orphan = [], 0, 0, []
     for u in needed:
         slug = u.strip("/")
-        if slug in by_slug:
+        if u in WELL_KNOWN:
+            resolved.append((u, WELL_KNOWN[u]))
+        elif slug in by_slug:
             resolved.append((u, by_slug[slug]))
             via_parent += 1
         elif slug.lower() in file_to_post:
