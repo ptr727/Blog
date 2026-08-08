@@ -96,6 +96,9 @@ check_media() {
 	# http_code on a transport error, measured against a refused connection, a DNS failure
 	# and a timeout. What the status buys is a message that says which of the two happened,
 	# rather than leaving a reader to infer it from a bare 000.
+	# content_type stays LAST in this format. `read` assigns the whole remainder of the line
+	# to its final variable, which is what lets a value containing spaces survive intact; a
+	# field added after it would be swallowed into the type instead.
 	local out rc=0
 	out=$(curl -s -o /dev/null \
 		-w '%{http_code} %{size_download} %{content_type}\n' \
