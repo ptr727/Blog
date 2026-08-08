@@ -196,6 +196,36 @@ The script asserts both halves of that rather than assuming them. It fails when 
 
 **Nothing prunes on the deploy path, and that is what keeps the deploy key's capability small.** A prune racing a deploy could take the rollback target, where a lingering release only costs disk. This is also why the key needs no delete capability, which is the property "Server Hardening" depends on. The count and the timer belong to the host, so this section records what the host declares rather than holding a second copy of it. See "Who Owns What".
 
+## Working With the VPS
+
+**Every path and hostname on this page is a value in `secrets/`, never a literal to be remembered or asked for.** The convention is the one "Environments" describes and `CAPTURE_ROOT` already follows: a value naming a machine rather than the project lives in the environment file, is sourced with `set -a`, and is read from there rather than searched for. The VPS values are environment-independent, because there is one such host rather than one per environment, so they sit in the default file alongside `CAPTURE_ROOT`.
+
+```sh
+set -a; . secrets/local.production.env; set +a
+ssh "$VPS_SSH_HOST" true && echo reachable
+```
+
+| Value | Names | Side |
+| --- | --- | --- |
+| `VPS_SSH_HOST` | the administrative login | the VPS |
+| `VPS_TRAEFIK_LOG` | today's live access log, still being appended to | the VPS |
+| `VPS_TRAEFIK_LOG_ARCHIVE` | the rotated access logs, and the source of the off-host copy | the VPS |
+| `VPS_COMMS_DIR` | the two agent channel files | the VPS |
+| `LOG_ARCHIVE_ROOT` | the off-host copy of the rotated logs | the backup host |
+| `BACKUP_ARCHIVE_ROOT` | the off-host encrypted archives and the plaintext hostconfig tree beside them | the backup host |
+
+**There are two credentials to this host and picking the wrong one is the first mistake to avoid.** `DEPLOY_SSH_USER`, held per environment and used only by the deploy, reaches a confined account behind an `rrsync` forced command that can write one release tree and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for everything on this page. They are deliberately separate credentials with different blast radii, so reaching for the deploy account to read a log fails in a way that reads like an outage, and reaching for the admin account to deploy grants far more than the deploy needs.
+
+**The off-host copy is a pull, made by the backup host, and nothing on the VPS knows it happens.** That direction is the security property rather than an implementation detail: the VPS holds no credential reaching any other system, so a compromise there cannot walk into the backup. The pull writes `LOG_ARCHIVE_ROOT` and `BACKUP_ARCHIVE_ROOT`, runs on its own timer on the backup host, and is described under "Retention Is the Prerequisite, and It Belongs to the Host". Read its unit and its last run on that host rather than trusting a schedule written down anywhere, including here.
+
+**Today's traffic is never in the off-host copy, and that is deliberate.** Rotation is what makes a file eligible to be pulled, so a live log would be copied as a torn prefix and fetched again on the next run. An analysis covering today therefore reads `VPS_TRAEFIK_LOG` over SSH and everything older from `LOG_ARCHIVE_ROOT`, and treats the two as one series joined on `StartUTC` rather than on which file a line came from.
+
+**The plaintext `hostconfig` tree under `BACKUP_ARCHIVE_ROOT` is the readable copy of the VPS's own configuration**, carrying the same non-secret files the encrypted archives hold. It exists so a rebuild does not depend on the encryption key, which is not on the backup host and must never be put there — beside the ciphertext it would make the encryption decorative. What that tree covers is whatever the VPS advertises, read from the host rather than duplicated here, so it tracks the host instead of drifting from a list.
+
+**The channel transfers are the one exception, and they must stay literal.** The permission allowlist in `.claude/settings.local.json` matches the text of a command rather than what it expands to, so substituting `"$VPS_SSH_HOST:$VPS_COMMS_DIR/..."` into those two `rsync` lines turns an allowed command into one that prompts, while looking like a tidy-up that changed nothing. Use the values above everywhere else, and leave the two commands under "The Channel Between the Two Sides" spelled out exactly as they are written there.
+
+**What this section does not cover, and where it lives instead.** Reading the logs for content is "Log Review"; exchanging rounds with the agent that owns the host is "The Channel Between the Two Sides"; the boundary of which side fixes what is "Who Owns What"; and what a rebuild restores, including the host-key step that blocks both deploy and rollback, is "Backup and Restore".
+
 ## Log Review
 
 **Real traffic is the only source that finds what every check here is blind to.** The URL contract proves the URLs someone thought to list and the redirects derived from the export. It cannot know about a URL nobody recorded, because the lists are their own standard: the gates check the built site and the running server against those lists, never against the old platform that served the addresses. An address the crawl missed is therefore missing from every gate that reads them, and a visitor following a sixteen-year-old link is the one reader who tests for it.
@@ -288,6 +318,8 @@ The working copies live in `comms/`, which is gitignored, so they are found by n
 rsync -a root@<vps-host>:/srv/agent-comms/vps-agent.md comms/vps-agent.md
 rsync -a --no-o --no-g --chmod=F644 comms/blog-agent.md root@<vps-host>:/srv/agent-comms/blog-agent.md
 ```
+
+**Spell both commands out rather than reading the host and directory from `secrets/`**, which is the opposite of the rule "Working With the VPS" sets for every other path, and is deliberate. These two are allowlisted in `.claude/settings.local.json`, and an allow rule matches the text of the command rather than the value it expands to, so replacing the literals with `$VPS_SSH_HOST` and `$VPS_COMMS_DIR` turns an allowed transfer into one that prompts. The same rule is why neither may be chained behind `cd` or `&&`: an allow rule matches a standalone command only.
 
 **The push suppresses owner and group deliberately.** `-a` implies `-o` and `-g`, and the transfer connects as root, so a plain `rsync -a` carries this workstation's numeric uid onto a host that has no such user and leaves the file owned by a number.
 
