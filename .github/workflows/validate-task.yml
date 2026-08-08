@@ -53,11 +53,13 @@ jobs:
         run: docker run --rm --pull=always -v "$PWD":/check --workdir /check mstruebing/editorconfig-checker:latest
 
       # The shell clean-compile is shellcheck at default severity plus `shfmt -d`, both reporting nothing.
-      # The formatter reads .editorconfig, which pins these scripts to tabs.
+      # The formatter reads .editorconfig, which pins the .sh files to tabs.
+      # ops/vps-backup-pull carries no extension, so it takes the [*] default of four spaces instead.
+      # Use `-d` rather than `-w` here and locally: the container writes as root and would take ownership of the tree.
       - name: Lint shell scripts step
         run: |
           set -Eeuo pipefail
-          scripts=(checks/check-live-urls.sh deploy/make-release.sh)
+          scripts=(checks/check-live-urls.sh deploy/make-release.sh ops/vps-backup-pull ops/install.sh)
           docker run --rm --pull=always -v "$PWD":/mnt --workdir /mnt \
             koalaman/shellcheck:stable "${scripts[@]}"
           docker run --rm --pull=always -v "$PWD":/mnt --workdir /mnt \

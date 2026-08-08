@@ -71,25 +71,52 @@ VPS_TRAEFIK_LOG_ARCHIVE=${VPS_TRAEFIK_LOG_ARCHIVE:-/var/log/traefik/archive}
 VPS_BLOG_LOG_DIR=${VPS_BLOG_LOG_DIR:-/var/log/blog/legacy}
 LOG_ARCHIVE_ROOT=${LOG_ARCHIVE_ROOT:-}
 
-DELETE=0; HOSTCONFIG=1; LOGS=1; DRYRUN=0; QUIET=0
+DELETE=0
+HOSTCONFIG=1
+LOGS=1
+DRYRUN=0
+QUIET=0
 LOGFILES=0
 
 while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --delete)        DELETE=1; shift ;;
-    --no-hostconfig) HOSTCONFIG=0; shift ;;
-    --no-logs)       LOGS=0; shift ;;
-    --dry-run)       DRYRUN=1; shift ;;
-    --quiet)         QUIET=1; shift ;;
-    -h|--help)
-      awk 'NR>1 && /^#/{sub(/^# ?/,""); print; next} NR>1{exit}' "$0"; exit 0 ;;
-    *) echo "unknown argument: $1" >&2; exit 2 ;;
-  esac
+    case "$1" in
+    --delete)
+        DELETE=1
+        shift
+        ;;
+    --no-hostconfig)
+        HOSTCONFIG=0
+        shift
+        ;;
+    --no-logs)
+        LOGS=0
+        shift
+        ;;
+    --dry-run)
+        DRYRUN=1
+        shift
+        ;;
+    --quiet)
+        QUIET=1
+        shift
+        ;;
+    -h | --help)
+        awk 'NR>1 && /^#/{sub(/^# ?/,""); print; next} NR>1{exit}' "$0"
+        exit 0
+        ;;
+    *)
+        echo "unknown argument: $1" >&2
+        exit 2
+        ;;
+    esac
 done
 
-say()  { [[ $QUIET -eq 1 ]] || printf '%s\n' "$*"; }
+say() { [[ $QUIET -eq 1 ]] || printf '%s\n' "$*"; }
 warn() { printf 'WARNING: %s\n' "$*" >&2; }
-die()  { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+die() {
+    printf 'ERROR: %s\n' "$*" >&2
+    exit 1
+}
 
 # The closing summary, which prints even under --quiet. It went through say() before, so --quiet
 # silenced it too and delivered neither half of the "errors and the summary only" this script's
@@ -101,8 +128,14 @@ tell() { printf '%s\n' "$*"; }
 # Declared up front and cleaned up by ONE trap. Both are conditional -- --dry-run
 # skips the checksum step, so a trap referencing an unset $SUMS would fail under
 # `set -u` at exit and mask the real exit status.
-SUMS=""; LIST=""
-cleanup() { [[ -n $SUMS ]] && rm -f "$SUMS"; [[ -n $LIST ]] && rm -f "$LIST"; return 0; }
+SUMS=""
+LIST=""
+# shellcheck disable=SC2329  # invoked by the EXIT trap below, which shellcheck cannot see
+cleanup() {
+    [[ -n $SUMS ]] && rm -f "$SUMS"
+    [[ -n $LIST ]] && rm -f "$LIST"
+    return 0
+}
 trap cleanup EXIT
 
 RSYNC_OPTS=(-a --human-readable)
@@ -134,7 +167,7 @@ LOG_RSYNC_OPTS=("${RSYNC_OPTS[@]}")
 # drop-in rather than the failure surfacing a day later as a permissions error.
 [[ $EUID -ne 0 ]] || die "refusing to run as root -- run as the account that owns the destination and holds the VPS key (systemd: set User= in the drop-in)"
 [[ -n $VPS_SSH_HOST ]] || die "VPS_SSH_HOST is not set -- see /etc/vps-backup-pull.env (template: example.env)"
-[[ -n $BACKUP_ARCHIVE_ROOT     ]] || die "BACKUP_ARCHIVE_ROOT is not set -- see /etc/vps-backup-pull.env (template: example.env)"
+[[ -n $BACKUP_ARCHIVE_ROOT ]] || die "BACKUP_ARCHIVE_ROOT is not set -- see /etc/vps-backup-pull.env (template: example.env)"
 [[ $LOGS -eq 0 || -n $LOG_ARCHIVE_ROOT ]] || die "LOG_ARCHIVE_ROOT is not set and the log leg is enabled -- set it, or pass --no-logs"
 command -v rsync >/dev/null || die "rsync not installed on this host"
 
@@ -144,12 +177,12 @@ say "    source: $VPS_SSH_HOST   dest: $BACKUP_ARCHIVE_ROOT"
 [[ $LOGS -eq 1 ]] && say "    logs:   $LOG_ARCHIVE_ROOT"
 [[ $DRYRUN -eq 1 ]] && say "    DRY RUN -- nothing will be written"
 # shellcheck disable=SC2086
-ssh $SSH_OPTS "$VPS_SSH_HOST" true 2>/dev/null \
-  || die "cannot reach $VPS_SSH_HOST over SSH (key auth only -- password auth is disabled there)"
+ssh $SSH_OPTS "$VPS_SSH_HOST" true 2>/dev/null ||
+    die "cannot reach $VPS_SSH_HOST over SSH (key auth only -- password auth is disabled there)"
 
 if [[ $DRYRUN -eq 0 ]]; then
-  mkdir -p "$BACKUP_ARCHIVE_ROOT/pangolin" || die "cannot create $BACKUP_ARCHIVE_ROOT/pangolin"
-  chmod 700 "$BACKUP_ARCHIVE_ROOT"
+    mkdir -p "$BACKUP_ARCHIVE_ROOT/pangolin" || die "cannot create $BACKUP_ARCHIVE_ROOT/pangolin"
+    chmod 700 "$BACKUP_ARCHIVE_ROOT"
 fi
 
 # ---------------------------------------------------------------- 1. archives
@@ -157,8 +190,8 @@ say
 say "--- archives"
 # shellcheck disable=SC2086
 rsync "${RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
-      "$VPS_SSH_HOST:$VPS_ARCHIVE_DIR/" "$BACKUP_ARCHIVE_ROOT/pangolin/" \
-  || die "archive rsync failed"
+    "$VPS_SSH_HOST:$VPS_ARCHIVE_DIR/" "$BACKUP_ARCHIVE_ROOT/pangolin/" ||
+    die "archive rsync failed"
 
 # ---------------------------------------------------------------- 2. verify
 # rsync verifies its own transfers, but this re-reads what actually landed on
@@ -169,50 +202,53 @@ VERIFY_RC=0
 # its own summary and never reaches that line.
 VERIFIED=0
 if [[ $DRYRUN -eq 1 ]]; then
-  say "    (dry run -- checksum verification skipped)"
+    say "    (dry run -- checksum verification skipped)"
 else
-  say
-  say "--- verifying checksums"
-  SUMS=$(mktemp)
-  # shellcheck disable=SC2086
-  ssh $SSH_OPTS "$VPS_SSH_HOST" "cd $VPS_ARCHIVE_DIR && sha256sum *.enc" >"$SUMS" \
-    || die "could not read source checksums"
-  EXPECTED=$(wc -l <"$SUMS")
-  if OUTPUT=$(cd "$BACKUP_ARCHIVE_ROOT/pangolin" && sha256sum -c "$SUMS" 2>&1); then
-    VERIFIED=$EXPECTED
-    say "    $EXPECTED/$EXPECTED archives verified OK"
-  else
-    VERIFY_RC=1
-    printf '%s\n' "$OUTPUT" | grep -v ': OK$' >&2 || true
-    warn "checksum verification FAILED -- the local copy does not match the VPS"
-  fi
+    say
+    say "--- verifying checksums"
+    SUMS=$(mktemp)
+    # SC2086: SSH_OPTS is a word list and must split.
+    # SC2029: VPS_ARCHIVE_DIR expanding here is the point, since the configured path is
+    # this side's. The *.enc glob stays quoted so the remote shell expands it instead.
+    # shellcheck disable=SC2086,SC2029
+    ssh $SSH_OPTS "$VPS_SSH_HOST" "cd $VPS_ARCHIVE_DIR && sha256sum *.enc" >"$SUMS" ||
+        die "could not read source checksums"
+    EXPECTED=$(wc -l <"$SUMS")
+    if OUTPUT=$(cd "$BACKUP_ARCHIVE_ROOT/pangolin" && sha256sum -c "$SUMS" 2>&1); then
+        VERIFIED=$EXPECTED
+        say "    $EXPECTED/$EXPECTED archives verified OK"
+    else
+        VERIFY_RC=1
+        printf '%s\n' "$OUTPUT" | grep -v ': OK$' >&2 || true
+        warn "checksum verification FAILED -- the local copy does not match the VPS"
+    fi
 fi
 
 # ---------------------------------------------------------------- 3. hostconfig
 if [[ $HOSTCONFIG -eq 1 ]]; then
-  say
-  say "--- host config (plaintext, readable without the key)"
-  LIST=$(mktemp)
-  # Ask the VPS what it considers valuable. Single source of truth: the list is
-  # defined once, in pangolin-backup's HOST_FILES, and never copied to this host.
-  # shellcheck disable=SC2086
-  if ssh $SSH_OPTS "$VPS_SSH_HOST" 'pangolin-backup --list-files' 2>/dev/null \
-       | sed 's|^/||' >"$LIST" && [[ -s $LIST ]]; then
-    WANT=$(wc -l <"$LIST")
-    say "    $WANT path(s) advertised by the VPS"
-    [[ $DRYRUN -eq 0 ]] && mkdir -p "$BACKUP_ARCHIVE_ROOT/hostconfig"
+    say
+    say "--- host config (plaintext, readable without the key)"
+    LIST=$(mktemp)
+    # Ask the VPS what it considers valuable. Single source of truth: the list is
+    # defined once, in pangolin-backup's HOST_FILES, and never copied to this host.
     # shellcheck disable=SC2086
-    rsync "${RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
-          --files-from="$LIST" "$VPS_SSH_HOST:/" "$BACKUP_ARCHIVE_ROOT/hostconfig/" \
-      || warn "host config rsync reported errors"
-    if [[ $DRYRUN -eq 0 ]]; then
-      GOT=$(find "$BACKUP_ARCHIVE_ROOT/hostconfig" -type f | wc -l)
-      say "    $GOT file(s) on disk"
-      [[ $GOT -eq $WANT ]] || warn "expected $WANT file(s), found $GOT -- a listed path may be missing on the VPS"
+    if ssh $SSH_OPTS "$VPS_SSH_HOST" 'pangolin-backup --list-files' 2>/dev/null |
+        sed 's|^/||' >"$LIST" && [[ -s $LIST ]]; then
+        WANT=$(wc -l <"$LIST")
+        say "    $WANT path(s) advertised by the VPS"
+        [[ $DRYRUN -eq 0 ]] && mkdir -p "$BACKUP_ARCHIVE_ROOT/hostconfig"
+        # shellcheck disable=SC2086
+        rsync "${RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
+            --files-from="$LIST" "$VPS_SSH_HOST:/" "$BACKUP_ARCHIVE_ROOT/hostconfig/" ||
+            warn "host config rsync reported errors"
+        if [[ $DRYRUN -eq 0 ]]; then
+            GOT=$(find "$BACKUP_ARCHIVE_ROOT/hostconfig" -type f | wc -l)
+            say "    $GOT file(s) on disk"
+            [[ $GOT -eq $WANT ]] || warn "expected $WANT file(s), found $GOT -- a listed path may be missing on the VPS"
+        fi
+    else
+        warn "could not get the file list from the VPS (old pangolin-backup without --list-files?) -- skipping host config"
     fi
-  else
-    warn "could not get the file list from the VPS (old pangolin-backup without --list-files?) -- skipping host config"
-  fi
 fi
 
 # ---------------------------------------------------------------- 4. access logs
@@ -230,47 +266,47 @@ fi
 # is a torn prefix that the next run would fetch again; the rotation at 00:00 UTC
 # is what makes a file eligible. Read the live file over SSH when analysing today.
 if [[ $LOGS -eq 1 ]]; then
-  say
-  say "--- access logs (plaintext, and the only copy past 400 days)"
-  if [[ $DRYRUN -eq 0 ]]; then
-    mkdir -p "$LOG_ARCHIVE_ROOT/traefik" "$LOG_ARCHIVE_ROOT/blog-legacy" || die "cannot create $LOG_ARCHIVE_ROOT"
-    # Query strings are logged in full, so the tree is as sensitive as the log is.
-    chmod 700 "$LOG_ARCHIVE_ROOT"
-  fi
-  # shellcheck disable=SC2086
-  rsync "${LOG_RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
-        "$VPS_SSH_HOST:$VPS_TRAEFIK_LOG_ARCHIVE/" "$LOG_ARCHIVE_ROOT/traefik/" \
-    || warn "traefik log rsync reported errors"
-  # shellcheck disable=SC2086
-  rsync "${LOG_RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
-        "$VPS_SSH_HOST:$VPS_BLOG_LOG_DIR/" "$LOG_ARCHIVE_ROOT/blog-legacy/" \
-    || warn "blog legacy log rsync reported errors"
-  if [[ $DRYRUN -eq 0 ]]; then
-    LOGFILES=$(find "$LOG_ARCHIVE_ROOT" -type f | wc -l)
-    say "    $LOGFILES log file(s) on disk"
-    # A pull that lands nothing looks identical to a pull with nothing new, and the
-    # difference is a broken path against a working one. Only the empty case is odd.
-    [[ $LOGFILES -gt 0 ]] || warn "no log files landed -- check VPS_TRAEFIK_LOG_ARCHIVE and VPS_BLOG_LOG_DIR"
-  fi
+    say
+    say "--- access logs (plaintext, and the only copy past 400 days)"
+    if [[ $DRYRUN -eq 0 ]]; then
+        mkdir -p "$LOG_ARCHIVE_ROOT/traefik" "$LOG_ARCHIVE_ROOT/blog-legacy" || die "cannot create $LOG_ARCHIVE_ROOT"
+        # Query strings are logged in full, so the tree is as sensitive as the log is.
+        chmod 700 "$LOG_ARCHIVE_ROOT"
+    fi
+    # shellcheck disable=SC2086
+    rsync "${LOG_RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
+        "$VPS_SSH_HOST:$VPS_TRAEFIK_LOG_ARCHIVE/" "$LOG_ARCHIVE_ROOT/traefik/" ||
+        warn "traefik log rsync reported errors"
+    # shellcheck disable=SC2086
+    rsync "${LOG_RSYNC_OPTS[@]}" -e "ssh $SSH_OPTS" \
+        "$VPS_SSH_HOST:$VPS_BLOG_LOG_DIR/" "$LOG_ARCHIVE_ROOT/blog-legacy/" ||
+        warn "blog legacy log rsync reported errors"
+    if [[ $DRYRUN -eq 0 ]]; then
+        LOGFILES=$(find "$LOG_ARCHIVE_ROOT" -type f | wc -l)
+        say "    $LOGFILES log file(s) on disk"
+        # A pull that lands nothing looks identical to a pull with nothing new, and the
+        # difference is a broken path against a working one. Only the empty case is odd.
+        [[ $LOGFILES -gt 0 ]] || warn "no log files landed -- check VPS_TRAEFIK_LOG_ARCHIVE and VPS_BLOG_LOG_DIR"
+    fi
 fi
 
 # ---------------------------------------------------------------- summary
 say
 if [[ $DRYRUN -eq 1 ]]; then
-  say "=== dry run complete -- nothing changed"
-  exit 0
+    say "=== dry run complete -- nothing changed"
+    exit 0
 fi
 ARCHIVES=$(find "$BACKUP_ARCHIVE_ROOT/pangolin" -name '*.enc' -type f | wc -l)
 SIZE=$(du -sh "$BACKUP_ARCHIVE_ROOT" 2>/dev/null | cut -f1)
 if [[ $LOGS -eq 1 ]]; then
-  LOGSIZE=$(du -sh "$LOG_ARCHIVE_ROOT" 2>/dev/null | cut -f1)
-  tell "=== done -- $ARCHIVES archive(s), $VERIFIED verified, $SIZE in $BACKUP_ARCHIVE_ROOT; $LOGFILES log file(s), $LOGSIZE in $LOG_ARCHIVE_ROOT"
+    LOGSIZE=$(du -sh "$LOG_ARCHIVE_ROOT" 2>/dev/null | cut -f1)
+    tell "=== done -- $ARCHIVES archive(s), $VERIFIED verified, $SIZE in $BACKUP_ARCHIVE_ROOT; $LOGFILES log file(s), $LOGSIZE in $LOG_ARCHIVE_ROOT"
 else
-  tell "=== done -- $ARCHIVES archive(s), $VERIFIED verified, $SIZE in $BACKUP_ARCHIVE_ROOT; logs skipped"
+    tell "=== done -- $ARCHIVES archive(s), $VERIFIED verified, $SIZE in $BACKUP_ARCHIVE_ROOT; logs skipped"
 fi
 if [[ $VERIFY_RC -ne 0 ]]; then
-  tell "=== COMPLETED WITH ERRORS -- see warnings above"
-  exit 1
+    tell "=== COMPLETED WITH ERRORS -- see warnings above"
+    exit 1
 fi
 say "    Restore needs the key from 1Password; it is deliberately not stored here."
 exit 0
