@@ -58,11 +58,16 @@ def fetch(url):
         return json.load(r)
 
 
-def all_items(kind):
-    """Page through /posts or /pages until exhausted."""
+def all_items(kind, extra=""):
+    """Page through a collection until exhausted.
+
+    Pages go through here too, with type=page, rather than a single number=100 request.
+    That request was correct for this site and silently wrong for any site with more than
+    a hundred pages, which is the shape of loss this whole capture exists to catch.
+    """
     items, page = [], 1
     while True:
-        data = fetch(f"{API}/{kind}/?number=100&page={page}&fields=ID,URL,slug,title,date,content")
+        data = fetch(f"{API}/{kind}/?number=100&page={page}{extra}&fields=ID,URL,slug,title,date,content")
         found = data.get("posts", [])
         if not found:
             break
@@ -87,7 +92,7 @@ def extract(html):
 
 def main():
     posts = all_items("posts")
-    pages = fetch(f"{API}/posts/?type=page&number=100&fields=ID,URL,slug,title,date,content").get("posts", [])
+    pages = all_items("posts", extra="&type=page")
     everything = posts + pages
     print(f"fetched {len(posts)} posts + {len(pages)} pages", file=sys.stderr)
 
