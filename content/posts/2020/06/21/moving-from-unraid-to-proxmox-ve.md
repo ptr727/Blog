@@ -610,12 +610,12 @@ Here are a few screenshot of the end result:
 
 
 {{< gallery cols="3" >}}  
-[![](/media/2020/06/2020-06-21-1.png?w=1024)](/media/2020/06/2020-06-21-1.png?w=1024)  
-[![](/media/2020/06/2020-06-21-2.png?w=1024)](/media/2020/06/2020-06-21-2.png?w=1024)  
-[![](/media/2020/06/2020-06-21-3.png?w=1024)](/media/2020/06/2020-06-21-3.png?w=1024)  
-[![](/media/2020/06/2020-06-21-4.png?w=1024)](/media/2020/06/2020-06-21-4.png?w=1024)  
-[![](/media/2020/06/2020-06-21-9.png?w=1024)](/media/2020/06/2020-06-21-9.png?w=1024)  
-[![](/media/2020/06/2020-06-21-6.png?w=1024)](/media/2020/06/2020-06-21-6.png?w=1024)  
-[![](/media/2020/06/2020-06-21-7.png?w=1024)](/media/2020/06/2020-06-21-7.png?w=1024)  
-[![](/media/2020/06/2020-06-21-8.png?w=1024)](/media/2020/06/2020-06-21-8.png?w=1024)  
+{{< figure src="/media/2020/06/2020-06-21-1.png?w=1024" alt="" link="/media/2020/06/2020-06-21-1.png?w=1024" caption="" >}}  
+{{< figure src="/media/2020/06/2020-06-21-2.png?w=1024" alt="" link="/media/2020/06/2020-06-21-2.png?w=1024" caption="" >}}  
+{{< figure src="/media/2020/06/2020-06-21-3.png?w=1024" alt="" link="/media/2020/06/2020-06-21-3.png?w=1024" caption="" >}}  
+{{< figure src="/media/2020/06/2020-06-21-4.png?w=1024" alt="" link="/media/2020/06/2020-06-21-4.png?w=1024" caption="" >}}  
+{{< figure src="/media/2020/06/2020-06-21-9.png?w=1024" alt="" link="/media/2020/06/2020-06-21-9.png?w=1024" caption="" >}}  
+{{< figure src="/media/2020/06/2020-06-21-6.png?w=1024" alt="" link="/media/2020/06/2020-06-21-6.png?w=1024" caption="" >}}  
+{{< figure src="/media/2020/06/2020-06-21-7.png?w=1024" alt="" link="/media/2020/06/2020-06-21-7.png?w=1024" caption="" >}}  
+{{< figure src="/media/2020/06/2020-06-21-8.png?w=1024" alt="" link="/media/2020/06/2020-06-21-8.png?w=1024" caption="" >}}  
 {{< /gallery >}}  

@@ -56,14 +56,14 @@ To get started, I ordered a [puck](https://flair.co/products/puck) and a couple 
 The look and feel of the Puck was a bit disappointing for the price, small non-touch monochrome display, and uneven feeling push to actuate action. The [Flair Puck](https://amzn.to/3rOr6gS) is about $119 while an [Ecobee3 Lite](https://amzn.to/3TfSNLo) is about $149, and the Ecobee has a nice big color touch screen. Granted, the puck is about half the size of the Ecobee so more discreet, and I'm not planning on using the puck for anything other than an internet gateway, so look and feel was not that important to me.
 
 
-{{< gallery cols="4" >}}  
+{{< gallery cols="4" caption="FLAIR puck vs. my old Ecobee3" >}}  
 {{< figure src="/media/2022/10/img_1646.jpg?w=1024" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/img_1647.jpg?w=594" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/img_1655.jpg?w=665" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/img_1657.jpg?w=426" alt="" caption="" >}}FLAIR puck vs. my old Ecobee3  
+{{< figure src="/media/2022/10/img_1657.jpg?w=426" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 I installed the iOS app, set the puck in gateway only mode, followed the installation steps in the app, including creating an account, connecting the puck to WiFi, and connecting Flair to Ecobee for access to my thermostats. I installed batteries in a vent, without installing the actual vent but observing its behavior, and added the vent to Flair using the iOS app by entering pairing mode, no problems.
@@ -71,10 +71,10 @@ I installed the iOS app, set the puck in gateway only mode, followed the install
 When I completed the required setup steps I logged into the web portal on my PC to explore, and I was confused to see that the system appeared to be in heating mode. I verified that Ecobee was still in cooling mode, and I changed the Flair mode from Heat to Manual.
 
 
-{{< gallery cols="1" >}}  
+{{< gallery cols="1" caption="Ecobee in cool mode while FLAIR reports heat mode" >}}  
 {{< figure src="/media/2022/10/2022-10-06-1.png?w=1024" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/2022-10-06.png?w=1024" alt="" caption="" >}}Ecobee in cool mode while FLAIR reports heat mode  
+{{< figure src="/media/2022/10/2022-10-06.png?w=1024" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 I created a post in the Flair [community forum](https://support.flair.co/hc/en-us/community/topics/115000084371-Flair-Discussion) asking for help, next day a support ticket was logged for me by a moderator, and it took another four days for support to respond. A five day turnaround for support is not very responsive.
@@ -92,33 +92,33 @@ The Flair vents are longer but narrower than my current vents, and that was a bi
 I ended up removing the old vents, and visited my paint store several times to color match various wall or ceiling colors, I sanded, caulked, and patched drywall spaces around ducts. It took several weekends of my time, I am not a great at drywalling or painting, the result is not very pretty, but the vents are up.
 
 
-{{< gallery cols="1" >}}  
+{{< gallery cols="1" caption="FLAIR vent construction" >}}  
 {{< figure src="/media/2022/10/img%5F1642.jpg?w=604" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/img%5F1643.jpg?w=603" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/img%5F1644.jpg?w=943" alt="" caption="" >}}FLAIR vent construction  
+{{< figure src="/media/2022/10/img%5F1644.jpg?w=943" alt="" caption="" >}}  
 {{< /gallery >}}
 
-{{< gallery cols="5" >}}  
+{{< gallery cols="5" caption="FLAIR vent is smaller than standard vents" >}}  
 {{< figure src="/media/2022/10/img_1651.jpg?w=663" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/img_1663-edited.jpg" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/img_1665-edited-1.jpg" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/img_1668.jpg?w=589" alt="" caption="" >}}FLAIR vent is smaller than standard vents  
+{{< figure src="/media/2022/10/img_1668.jpg?w=589" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 With all the trouble caused by the too narrow vents, I wondered if there was a standard to sizes, and if so, if Flair was following it. I researched vent sizes across several HVAC supply sites and hardware stores, and my conclusion is that the Flair [vents](https://www.flair.co/smart-vent-engineering-and-dimensional-data-public) are always longer and narrower than standard wall/ceiling vent sizes (I did not compare floor vent sizes).
 
 
-{{< gallery cols="1" >}}  
+{{< gallery cols="1" caption="FLAIR vent sizes vs. standard vents sizes" >}}  
 {{< figure src="/media/2022/10/screenshot-2022-10-13-210638.png?w=1024" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/screenshot-2022-10-13-210202.png?w=949" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/screenshot-2022-10-13-210127.png?w=751" alt="" caption="" >}}FLAIR vent sizes vs. standard vents sizes  
+{{< figure src="/media/2022/10/screenshot-2022-10-13-210127.png?w=751" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 In my opinion making the vents smaller than common sizes is a major design flaw, and I do wonder if Flair designers and engineers ever actually field tested the vents on real ceilings or walls, or if they only focused on drop in replacement floor vents? So unless you are are doing new construction, or have perfect paint and drywall, get ready for patching and painting.
@@ -130,10 +130,10 @@ After a few days of having a few vents installed, I noticed that when closed som
 https://videopress.com/v/mjkR6GnH?resizeToParent=true&cover=true&preloadContent=metadata&useAverageColor=true
 
 Whistling vent  
-{{< gallery cols="1" >}}  
+{{< gallery cols="1" caption="Caulking gaps between vent and air duct" >}}  
 {{< figure src="/media/2022/10/img%5F1675.jpg?w=545" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/img%5F1684.jpg?w=768" alt="" caption="" >}}Caulking gaps between vent and air duct  
+{{< figure src="/media/2022/10/img%5F1684.jpg?w=768" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 A day or so later I heard a familiar whistling noise again, and I found a vent that I did caulk and seal was now also whistling when closed. I removed the vent, double checked that it was properly caulked and sealed, it was. Thus this noise must be coming either from air blowing between the vent flange and the drywall, or from the screw slots on the long sides of the vent flange, or from the mechanical vent veins themselves. I can't do anything about noisy vent veins, but I can try to seal the flange. I applied some soft thin foam weatherstripping around the edge of the vent flange, creating a tight seal between the vent flange and the drywall, and also covering the unused and open flange screw holes.
@@ -141,10 +141,10 @@ A day or so later I heard a familiar whistling noise again, and I found a vent t
 My initial attempt at using 3/8" thick foam from my local hardware store was unsuccessful, the foam compresses very well, but not enough to sit flush with the wall. I tried again using 1/4" thick [foam](https://amzn.to/3Sw5f8U), and that compressed well enough to seal the unused screw holes and sit flush with the drywall.
 
 
-{{< gallery cols="1" >}}  
+{{< gallery cols="1" caption="Foam tape sealing around flange" >}}  
 {{< figure src="/media/2022/10/img%5F1766.jpg?w=768" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/img%5F1765.jpg?w=768" alt="" caption="" >}}Foam tape sealing around flange  
+{{< figure src="/media/2022/10/img%5F1765.jpg?w=768" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 #### Flanges
@@ -154,25 +154,25 @@ As I was patching and painting, I wondered if there wasn't an easier way to obsc
 I used [Fusion 360](https://www.autodesk.com/products/fusion-360/) to create a prototype flange for a 12x6 vent that could be laser cut from thin rigid plastic.
 
 
-{{< gallery cols="1" >}}  
+{{< gallery cols="1" caption="Fusion360 flange design" >}}  
 {{< figure src="/media/2022/10/6x12-v5-1-1.png?w=854" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/6x12-v5-2.png?w=1024" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/2022-10-25-1.png?w=1024" alt="" caption="" >}}Fusion360 flange design  
+{{< figure src="/media/2022/10/2022-10-25-1.png?w=1024" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 I looked for vendors with reasonable pricing and thin white paintable plastic material, [Xometry](https://www.xometry.com/) was too expensive, [SendCutSend](https://sendcutsend.com/) did not offer anything thinner than 3mm, so I used [Ponoko](https://www.ponoko.com/) to cut a 1.5mm thick White Acrylic flange. The 0.8mm White Delrin will be thinner but is more than double the price of 1.5mm White Acrylic. I received the piece in a bout a week, and as designed it is just a tad larger than the original vent to help cover edge damage. As I already did it the hard way by patching and painting, I did not use the flange in my own installation, but I did test fit it and it would have worked fine.
 
 
-{{< gallery cols="4" >}}  
+{{< gallery cols="4" caption="Laser cut white acrylic flange" >}}  
 {{< figure src="/media/2022/10/img_1708.jpg?w=726" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/img_1709.jpg?w=617" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/img_1752.jpg?w=601" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/img_1751.jpg?w=519" alt="" caption="" >}}Laser cut white acrylic flange  
+{{< figure src="/media/2022/10/img_1751.jpg?w=519" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 I shared the Fusion 360 projects and DXF files in [Autodesk Gallery](https://gallery.autodesk.com/projects/173188/flair-vent-flanges), and I created a shared [Ponoko cart](https://www.ponoko.com/share/MgBrJSraTWp83F79ob_Ql) with a ready to order 6x10 and 6x12 flange. For sizes other than 6x10 or 6x12 you will need to use Fusion 360 (free for hobby use) and adjust the dimensions in the sketch (\[modify\], \[change parameters\]), then export the projection as a DXF file.
@@ -213,12 +213,12 @@ As winter approached it was getting colder at night, and one morning it was too 
 Later the day I wondered how Flair will treat the different modes, and after I logged in I observed that the UI was confused, switching from red and heating mode one moment to blue and cooling mode the next. I verified that Ecobee was correct, heating downstairs and cooling upstairs, so something weird with Flair. In looking at the Flair UI one can see that there is only one operating mode reported, while each of the Ecobee thermostats can individually control heat/cool/auto/off modes.
 
 
-{{< gallery cols="1" >}}  
+{{< gallery cols="1" caption="FLAIR is confused between heating and cooling" >}}  
 {{< figure src="/media/2022/10/screen-shot-2022-10-24-at-11.42.47-am.png?w=1024" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/screen-shot-2022-10-24-at-10.26.47-am.png?w=1024" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/screen-shot-2022-10-24-at-10.25.46-am.png?w=1024" alt="" caption="" >}}FLAIR is confused between heating and cooling  
+{{< figure src="/media/2022/10/screen-shot-2022-10-24-at-10.25.46-am.png?w=1024" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 I posted my concern on the Flair [forum](https://support.flair.co/hc/en-us/community/posts/10111024260877-Flair-is-confused-when-one-system-is-on-heat-and-the-other-is-on-cool), and support responded that I have to create multiple logical homes if I want to run the units in different modes. This does not make sense, imagine I have multiple mini-split units, do I need to create a home for each mini-split? I contacted support directly, and they confirmed that all HVAC units must be set to the same mode. If this is a requirement, and the UI gets confused when not correctly set, I'd expect Flair to at least give a warning of an unsupported configuration.
@@ -226,10 +226,10 @@ I posted my concern on the Flair [forum](https://support.flair.co/hc/en-us/commu
 With both Ecobee thermostats set back to Auto, I change the mode from within the Flair UI to Heat, expecting both Ecobees to switch to Heat mode. Instead the Ecobees switched to Heat and a Hold at 75°F, where 75°F seems to have been the current measured temperature. I had to manually remove the hold from both Ecobees to resume normal scheduled operation. This was again confusing and unexpected behavior.
 
 
-{{< gallery cols="1" >}}  
+{{< gallery cols="1" caption="FLAIR changed the Ecobee mode to Heat and Hold" >}}  
 {{< figure src="/media/2022/10/screenshot-2022-10-27-184203.png?w=1024" alt="" caption="" >}}
 
-{{< figure src="/media/2022/10/screenshot-2022-10-27-184003.png?w=1024" alt="" caption="" >}}FLAIR changed the Ecobee mode to Heat and Hold  
+{{< figure src="/media/2022/10/screenshot-2022-10-27-184003.png?w=1024" alt="" caption="" >}}  
 {{< /gallery >}}  
 
 I have not yet tested Flair as setpoint controller, but for now I'll refrain from making any temperature changes from within the Flair app, and stick to using the Ecobee app.

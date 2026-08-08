@@ -38,6 +38,16 @@ body {
     margin: 1rem auto;
 }
 
+/*
+    The set caption is a flex item like the figures beside it, so without a full-width basis it
+    packs onto the end of the last row and reads as a caption for whichever image it lands next
+    to. Full width puts it on its own row under the set, which is what it describes.
+*/
+.gallery > figcaption {
+    flex: 0 0 100%;
+    text-align: center;
+}
+
 .gallery-cols-1 figure {
     width: 100%;
 }
