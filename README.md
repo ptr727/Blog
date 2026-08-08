@@ -72,7 +72,7 @@ Both deploys are manual workflow dispatches, so a merge publishes nothing and ea
 flowchart LR
   subgraph local["1. On a branch"]
     direction TB
-    w["New branch, write the post"] --> b["Build, warnings fatal"]
+    w["New branch, write the post"] --> b["Build, warnings are fatal"]
     b --> p["Gate: every page that must render, renders"]
     p --> m["Release onto the local mirror"]
     m --> l["Gate: every URL in the contract, against a running server"]
@@ -103,7 +103,7 @@ flowchart LR
   e2 --> pm
 ```
 
-**1. Write on a branch, and prove the artifact locally.** A post is a markdown file under `content/posts/`, written on a feature branch with whatever editor the author prefers. The build runs with warnings fatal, so a deprecated theme API fails it rather than accumulating. The build gate then checks the render half of the contract, which is every address that must return a page.
+**1. Write on a branch, and prove the artifact locally.** A post is a markdown file under `content/posts/`, written on a feature branch with whatever editor the author prefers. The build treats a warning as fatal, so a deprecated theme API fails it rather than accumulating. The build gate then checks the render half of the contract, which is every address that must return a page.
 
 Most of the contract is not pages, though. It is redirects, and a redirect is the web server's job, so no build reaches them. The release installs onto a mirror on the maintainer's own network, which runs the same Caddy container and the same bundle as the server behind the same Traefik front end. The live gate follows every URL in the contract against that mirror and checks each redirect's destination rather than its status code. A human then reads the page, because no gate has an opinion about the writing.
 

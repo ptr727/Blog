@@ -90,7 +90,7 @@ The count is not a backlog. It opened at 120 and was adjudicated against the cap
 
 | | |
 | --- | --- |
-| 17 | conversion losses, restored, from five `gallery` shortcodes emitted empty |
+| 17 | conversion losses, restored. The conversion emitted five `gallery` shortcodes empty |
 | 5 | never orphans, referenced only by an absolute URL the check could not read |
 | 97 | uploaded to the old platform's media library and never placed on a published page |
 | 1 | that platform's site icon, superseded by the favicon set at the static root |
