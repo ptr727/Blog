@@ -15,9 +15,22 @@ CHECKS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARALLEL="${PARALLEL:-16}"
 
 # A truncated list otherwise turns this into a gate that passes while checking almost nothing.
-declare -A FLOOR=(["golden-urls.txt"]=320 ["redirect-urls.txt"]=900)
-for list in golden-urls.txt redirect-urls.txt; do
+declare -A FLOOR=(["golden-urls.txt"]=320 ["redirect-urls.txt"]=900 ["golden-media-live.txt"]=8)
+for list in golden-urls.txt redirect-urls.txt golden-media-live.txt; do
+	# The count is validated before it is compared. An unreadable list makes `grep -c` yield
+	# nothing, and `[ "" -lt N ]` is a syntax error that evaluates false, so the guard against
+	# a truncated list would itself be skipped and the run would pass having checked nothing.
+	[ -r "$CHECKS/$list" ] || {
+		echo "FAIL $list: not readable at $CHECKS/$list" >&2
+		exit 1
+	}
 	n=$(grep -c . "$CHECKS/$list")
+	case "$n" in
+	'' | *[!0-9]*)
+		echo "FAIL $list: could not count URLs, got '$n'" >&2
+		exit 1
+		;;
+	esac
 	if [ "$n" -lt "${FLOOR[$list]}" ]; then
 		echo "FAIL $list: $n URLs, expected at least ${FLOOR[$list]} - the list has been truncated" >&2
 		exit 1
@@ -59,6 +72,77 @@ check_render() {
 
 # Invoked indirectly, the same way as check_render above.
 # shellcheck disable=SC2329
+# The build gate proves the media SET against files on disk. It cannot prove the files
+# reached the server or that the server can read them, and until this ran the live check
+# requested pages and redirects and never an image.
+#
+# Status alone is most of the value: a file lost in transfer answers 404, and one whose
+# mode went wrong answers 403. The byte count catches the remaining case, a file that
+# arrived truncated to nothing, which still answers 200. Content type is asserted because a
+# server misconfigured into serving an error page for a missing asset answers 200 as well.
+check_media() {
+	local url="$1" code len type target auth=() target_auth=()
+	[ -n "$CURLRC" ] && auth=(-K "$CURLRC")
+	target="$BASE$url"
+	target_auth=("${auth[@]}")
+	# One hop is followed rather than passed to curl -L, because -L would carry the
+	# credential to wherever the rule points. The legacy /wp-content/uploads/ entries reach
+	# the image through the @uploads rule, and what this proves is that the image arrives,
+	# not that the hop happened.
+	code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$target")
+	case "$code" in
+	301 | 308)
+		target=$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${auth[@]}" "$target")
+		# A 301 carrying no usable Location leaves this empty, and fetching an empty URL would
+		# be reported below as a transport error, which names the wrong problem.
+		if [ -z "$target" ]; then
+			echo "media $url answered $code with no usable Location" >>"$FAILED"
+			return
+		fi
+		# Same origin boundary as check_redirect, and for the same reason: a rule that one
+		# day points off-site must not mail the token there. A bare prefix would also accept
+		# a lookalike host registered as an attacker's subdomain.
+		target_auth=()
+		if [ -n "$CURLRC" ]; then
+			case "$target" in
+			"$BASE" | "$BASE"/*) target_auth=(-K "$CURLRC") ;;
+			esac
+		fi
+		;;
+	esac
+	# Command substitution rather than `read < <(...)`, because process substitution discards
+	# curl's exit status. It still fails closed either way, since curl writes 000 for
+	# http_code on a transport error, measured against a refused connection, a DNS failure
+	# and a timeout. What the status buys is a message that says which of the two happened,
+	# rather than leaving a reader to infer it from a bare 000.
+	# content_type stays LAST in this format. `read` assigns the whole remainder of the line
+	# to its final variable, which is what lets a value containing spaces survive intact; a
+	# field added after it would be swallowed into the type instead.
+	local out rc=0
+	out=$(curl -s -o /dev/null \
+		-w '%{http_code} %{size_download} %{content_type}\n' \
+		--max-time 30 "${target_auth[@]}" "$target") || rc=$?
+	read -r code len type <<<"$out"
+	if [ "$rc" -ne 0 ] || [ "${code:-000}" = "000" ]; then
+		echo "media $url no HTTP response: curl exit $rc, transport error or timeout" >>"$FAILED"
+		return
+	fi
+	if [ "$code" != "200" ]; then
+		echo "media $url expected 200, got $code" >>"$FAILED"
+		return
+	fi
+	if [ "${len:-0}" -eq 0 ]; then
+		echo "media $url answered 200 with an empty body" >>"$FAILED"
+		return
+	fi
+	case "$type" in
+	image/*) ;;
+	*) echo "media $url answered 200 as $type, expected an image" >>"$FAILED" ;;
+	esac
+}
+
+# Invoked indirectly, the same way as check_render above.
+# shellcheck disable=SC2329
 check_redirect() {
 	local url="$1" code dest dcode auth=() dest_auth=()
 	[ -n "$CURLRC" ] && auth=(-K "$CURLRC")
@@ -89,7 +173,7 @@ check_redirect() {
 	esac
 }
 
-export -f check_render check_redirect
+export -f check_render check_redirect check_media
 export BASE FAILED CURLRC
 
 echo "==> $BASE"
@@ -192,16 +276,20 @@ n_redirect=$(grep -c . "$CHECKS/redirect-urls.txt")
 echo "==> checking $n_redirect URLs that must redirect"
 grep . "$CHECKS/redirect-urls.txt" | xargs -P "$PARALLEL" -I{} bash -c 'check_redirect "$@"' _ {}
 
+n_media=$(grep -c . "$CHECKS/golden-media-live.txt")
+echo "==> checking $n_media media URLs that must be served as images"
+grep . "$CHECKS/golden-media-live.txt" | xargs -P "$PARALLEL" -I{} bash -c 'check_media "$@"' _ {}
+
 # A count of zero exits non-zero, so a fallback that echoes would append a second zero.
 # Swallowing only the exit status keeps the printed count usable.
 failures=$(grep -c . "$FAILED" 2>/dev/null || true)
 if [ "$failures" -eq 0 ]; then
-	echo "PASS - $((n_render + n_redirect)) URLs honored"
+	echo "PASS - $((n_render + n_redirect + n_media)) URLs honored"
 	exit 0
 fi
 
 echo
-echo "FAIL - $failures of $((n_render + n_redirect)) URLs"
+echo "FAIL - $failures of $((n_render + n_redirect + n_media)) URLs"
 sort "$FAILED" | head -40
 [ "$failures" -gt 40 ] && echo "... and $((failures - 40)) more"
 exit 1
