@@ -99,10 +99,14 @@ def check_robots(public):
     this site served none until that flag was turned on, and the file's only load-bearing line
     points at the sitemap a crawler is otherwise unlikely to find, being told rather than guessing.
 
-    The sitemap URL is absolute and derived from baseURL, which makes this the one build-time
-    assertion that can see a wrong baseURL at all. Every contract list is path-only and the live
-    check joins whatever base it is given, so a build baked with the wrong host passes all of them
-    while every canonical tag, feed entry and sitemap entry names the wrong site.
+    The Sitemap: line is the only absolute URL in the build that a gate here can read at all, every
+    contract list being path-only, so it is the only place an origin is checked rather than joined.
+    What it proves is internal consistency: the advertised origin matches the one the home page's
+    canonical link carries. Both come from baseURL, so this cannot tell that baseURL was the wrong
+    value for the environment being deployed to - nothing in the artifact can, which is why that
+    check belongs on the side that knows which host it is serving. It does catch an origin that was
+    written rather than derived, a static robots.txt shadowing the template being the way that
+    happens, and it catches a sitemap advertised but not built.
     """
     robots = public / "robots.txt"
     if not robots.is_file():
