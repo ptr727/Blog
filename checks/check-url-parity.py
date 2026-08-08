@@ -95,9 +95,9 @@ def check_media(public):
 def check_robots(public):
     """Check that robots.txt exists and advertises this build's own sitemap.
 
-    Two failures, one gate. Hugo emits no robots.txt unless enableRobotsTXT is set, which is how
-    this site answered 404 for years, and the file's only load-bearing line points at the sitemap
-    a crawler would otherwise never find.
+    Two failures, one gate. Hugo emits no robots.txt unless enableRobotsTXT is set, which is why
+    this site served none until that flag was turned on, and the file's only load-bearing line
+    points at the sitemap a crawler is otherwise unlikely to find, being told rather than guessing.
 
     The sitemap URL is absolute and derived from baseURL, which makes this the one build-time
     assertion that can see a wrong baseURL at all. Every contract list is path-only and the live
