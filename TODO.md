@@ -19,7 +19,7 @@ The site is built, gated in CI, and deployed to staging by pipeline. It is not y
 | Deploy pipeline | `deploy-site.yml` is dispatchable and has deployed staging from CI end to end, through a transport retested against the real host |
 | VPS staging | live at `blog.vps.insanegenius.net`, behind the auth gate, serving a pipeline release |
 | VPS production | **M7a done 2026-08-08.** Serving release `20260808-041050` at `blog.insanegenius.net`, answering `200` unauthenticated, verified 9/9 from the host side with the built `baseURL` read from the deployed bytes. DNS for the public name is still on the old platform |
-| Operations | started, and neither half has run on its cadence yet. The off-host log pull is installed, armed for 09:00 UTC daily, and has copied once — started by hand, so the timer itself has never fired and 2026-08-09 is its first scheduled run. The periodic log review has not run at all |
+| Operations | started, and neither half has completed a **scheduled** run. The off-host log pull is installed, armed for 09:00 UTC daily, and has copied once, started by hand, so the timer itself has never fired and 2026-08-09 is its first scheduled run. The periodic log review has not run at all |
 
 ## Blocked on the maintainer
 
