@@ -72,6 +72,22 @@ Two properties of the maps are non-obvious and easy to break when regenerating t
 wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy.txt
 ```
 
+## `golden-media-live.txt`, and why the media set needs a second list
+
+`golden-media-legacy.txt` proves the **set**, at build time, against files on disk. That cannot prove the files reached the server or that the server can read them, and the live check requested pages and redirects and never one image, so a media tree lost between a passing build and the server was caught by neither gate. `golden-media-live.txt` closes that, and it is fetched by `check-live-urls.sh` against a running server.
+
+**It is a handful rather than exhaustive, deliberately.** The set is already proven, so this is a delivery check, and its entries are chosen to cover both trees and a spread of years because the trees arrive by different routes and a partial transfer is unlikely to land evenly.
+
+| Entry shape | Proves |
+| --- | --- |
+| `/media/` paths | the imported uploads tree arrives and is served |
+| `/external/` paths | the tree of media localized from other hosts arrives too |
+| `/wp-content/uploads/` paths | the `@uploads` rule still lands on the image, which nothing else exercises against a running server |
+
+**Three assertions rather than one, because each catches a different loss.** A file missing from the transfer answers 404. A file whose mode went wrong answers 403, which is the case this exists for. A file truncated to nothing still answers 200, so the byte count is asserted. And a server that answers an error page for a missing asset answers 200 with `text/html`, so the content type is asserted as well. The check follows one redirect by hand rather than passing `-L` to curl, for the reason `check_redirect` does: `-L` would carry the auth-gate credential to wherever the rule points.
+
+**The mode case is why this is not theoretical.** A hard-linked file carries its inode's mode, so a media file that acquires a bad one rides the chain into every later release, present and correctly named and unreadable to the server. A build-time `is_file()` on the runner cannot see it, and neither can a check that never requests an image.
+
 ## Directionality
 
 The parity check fails on a **missing** URL and only notes an **extra** one. New posts, new tags, and deeper pagination legitimately add URLs, and nothing legitimately removes a URL the site has served. That asymmetry is what makes the lists append-only, which in turn is what makes the length-floor assertion in `check-live-urls.sh` sound: without it a truncated list would make every assertion below it pass vacuously.
