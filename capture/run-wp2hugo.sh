@@ -20,6 +20,12 @@ export PATH="$HOME/.local/bin:$PATH"
 	echo "CAPTURE_ROOT is not a directory: $CAPTURE_ROOT" >&2
 	exit 1
 }
+# Resolved to absolute before anything else, because this script cd's into it and the
+# export path is worked out beforehand. A relative CAPTURE_ROOT would yield a relative
+# export path that stops resolving the moment the cd happens, which reads as a missing
+# export rather than as a path problem.
+CAPTURE_ROOT="$(cd "$CAPTURE_ROOT" && pwd)"
+export CAPTURE_ROOT
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export_xml="$("$here/build-redirects.py" --print-export)"
