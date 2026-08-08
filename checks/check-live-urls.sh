@@ -91,9 +91,20 @@ check_media() {
 		fi
 		;;
 	esac
-	read -r code len type < <(curl -s -o /dev/null \
+	# Command substitution rather than `read < <(...)`, because process substitution discards
+	# curl's exit status. It still fails closed either way, since curl writes 000 for
+	# http_code on a transport error, measured against a refused connection, a DNS failure
+	# and a timeout. What the status buys is a message that says which of the two happened,
+	# rather than leaving a reader to infer it from a bare 000.
+	local out rc=0
+	out=$(curl -s -o /dev/null \
 		-w '%{http_code} %{size_download} %{content_type}\n' \
-		--max-time 30 "${target_auth[@]}" "$target")
+		--max-time 30 "${target_auth[@]}" "$target") || rc=$?
+	read -r code len type <<<"$out"
+	if [ "$rc" -ne 0 ] || [ "${code:-000}" = "000" ]; then
+		echo "media $url no HTTP response: curl exit $rc, transport error or timeout" >>"$FAILED"
+		return
+	fi
 	if [ "$code" != "200" ]; then
 		echo "media $url expected 200, got $code" >>"$FAILED"
 		return
