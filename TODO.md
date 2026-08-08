@@ -8,7 +8,7 @@ The site is built, gated in CI, and deployed to staging by pipeline. It is not y
 
 | Piece | State |
 | --- | --- |
-| Content and media | done. Every migrated post and page carried, and the media hash-verified against the export tar |
+| Content and media | done. Carries every migrated post and page, with the media hash-verified against the export tar |
 | URL contract | done. 328 render, 917 redirect, 778 legacy image URLs, all gated |
 | Deploy shape | done. Proven on two local mirrors and on the VPS, by hand and by pipeline |
 | CI workflows | green. Validation runs on every pull request and feeds the required check |

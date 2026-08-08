@@ -268,7 +268,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@post_id` | 110 | `/?p=<id>` -> the permalink, via `p-ids.map` |
 | `@post_child_feed` | 107 | `/YYYY/MM/DD/post/<child>/feed/` -> the post, ordered **before** `@post_child` |
 | `@mapped` via `slugs.map` | 107 | bare `/<attachment-slug>/` -> best destination |
-| `@date_archive` | 83 | `/YYYY/`, `/YYYY/MM/`, and their pagination -> `/all/`, and the matcher covers a date the list does not |
+| `@date_archive` | 83 | `/YYYY/`, `/YYYY/MM/`, and their pagination -> `/all/`. The matcher accepts any date, including dates absent from the list |
 | `@mapped` via `blogger.map` | 59 | `/YYYY/MM/slug.html` -> the current post |
 | `@blogger_archive` | 21 | `/YYYY_MM_01_archive.html` -> `/all/`, any date, including ones never covered |
 | `@author` | 12 | `/author/<name>/`, its pagination and feed -> `/` |

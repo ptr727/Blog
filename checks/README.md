@@ -41,7 +41,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | `?p=<id>` shortlinks | 110 | Redirect to the permalink, via `p-ids.map` |
 | Attachment pages, root level | 107 | Redirect to the parent post, via `slugs.map` |
 | Per-post comment feeds | 107 | Redirect to the parent post |
-| Date archives | 83 | Redirect to `/all/`, since **Hugo has no built-in year or month archive**. The matcher covers any date, including one the list does not hold |
+| Date archives | 83 | Redirect to `/all/`, since **Hugo has no built-in year or month archive**. The matcher accepts any date, including dates absent from the list |
 | Blogger permalinks | 59 | Redirect to the current post, via `blogger.map` |
 | Blogger monthly archives | 21 | Redirect to `/all/` |
 | Author archive and pagination | 12 | Redirect to `/`, a single-author blog duplicating home |
