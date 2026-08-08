@@ -57,23 +57,34 @@ checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
 The deploy root and the base URL are the only host-specific values, and they pair per
-environment. Copy [`env.example`](./env.example) to `secrets/.env`, which is the file read when
-`ENV_FILE` is unset, and add `secrets/<environment>.env` for each further environment. A single
-environment therefore needs `secrets/.env` and nothing else, since a differently named file is
-read only when `ENV_FILE` names it. `secrets/` is gitignored as a whole directory, so a value
-naming one machine cannot reach a public repo by being added to a file nobody remembered to
-ignore. CI passes them explicitly instead, which keeps a pipeline run self-describing:
+environment. Copy [`env.example`](./env.example) to `secrets/local.production.env`, which is the
+file read when `ENV_FILE` is unset, and add `secrets/<server>.<environment>.env` for each further
+environment. A single environment therefore needs `secrets/local.production.env` and nothing
+else, since a differently named file is read only when `ENV_FILE` names it. `secrets/` is
+gitignored as a whole directory, so a value naming one machine cannot reach a public repo by
+being added to a file nobody remembered to ignore. CI passes them explicitly instead, which
+keeps a pipeline run self-describing:
 
 ```sh
 HUGO_BASEURL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
 ```
 
-**One file per environment, selected by `ENV_FILE`.** `secrets/.env` is the default and is read
-when `ENV_FILE` is unset, so a single-environment host needs nothing else:
+**One file per environment, named `secrets/<server>.<environment>.env`, selected by `ENV_FILE`.**
+Both halves are spelled out, so a name says which machine it describes as well as which
+environment on it, and the four in the fleet read as one set. `secrets/local.production.env` is
+the default and is read when `ENV_FILE` is unset, so a single-environment host needs nothing
+else:
 
 ```sh
-deploy/make-release.sh                                  # secrets/.env
-ENV_FILE=secrets/staging.env deploy/make-release.sh     # the staging site on the same host
+deploy/make-release.sh                                       # secrets/local.production.env
+ENV_FILE=secrets/local.staging.env deploy/make-release.sh    # the staging site on the same host
+```
+
+A file whose `DEPLOY_SSH_HOST` is set describes a root on another machine, so this script refuses
+to create that path here and asks for a local one to assemble a bundle into:
+
+```sh
+ENV_FILE=secrets/vps.staging.env deploy/make-release.sh /path/to/bundle
 ```
 
 Selecting the file is the only way to switch environments. The file is sourced with `set -a`,
@@ -93,7 +104,7 @@ every build for that reason.
 
 | Variable | Effect |
 | --- | --- |
-| `ENV_FILE` | Which environment file to source. Defaults to `secrets/.env`. |
+| `ENV_FILE` | Which environment file to source. Defaults to `secrets/local.production.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
 | `HUGO_BASEURL` | Overrides the site base URL. Hugo maps `HUGO_<KEY>` onto config natively. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
@@ -109,7 +120,7 @@ open the auth gate:
 
 Set both or neither; half a pair is rejected as the typo it is. They go to curl through a
 mode-`600` config file rather than as `-H` arguments, which keeps the credential out of the
-`ps` output of 1,245 requests, and is also the only form that survives the `export -f` the
+`ps` output of one request per URL in the contract, and is also the only form that survives the `export -f` the
 parallel checks run under. The token is sent to the base URL's own origin and to nothing else,
 so a redirect that one day points off-site cannot carry it away.
 
@@ -203,7 +214,7 @@ So the default is the value that is harmless on production, and `noindex` is rea
 asking for it explicitly.
 
 `checks/check-live-urls.sh` asserts this when `EXPECT_SITE_ENV` is set, before it checks the
-1,245 URLs, since checking the contract against the wrong environment proves nothing.
+contract, since checking the contract against the wrong environment proves nothing.
 
 ## Trusting the proxy
 
@@ -259,6 +270,8 @@ Directives and URL classes are not one to one, in both directions. `@mapped` is 
 
 Each row below is a **URL class**, named by the matcher that serves it, so the table can be checked against [`Caddyfile`](./Caddyfile) by grep rather than by trust.
 
+Every class below is a legacy shape, closed by the migration, so no count here moves when content is added. New content is served by the render half of the contract, never by these.
+
 | Matcher | Class size | Shape |
 | --- | --- | --- |
 | `@post_child` | 216 | `/YYYY/MM/DD/post/<child>/` -> the post, attachment pages |
@@ -266,7 +279,7 @@ Each row below is a **URL class**, named by the matcher that serves it, so the t
 | `@post_id` | 110 | `/?p=<id>` -> the permalink, via `p-ids.map` |
 | `@post_child_feed` | 107 | `/YYYY/MM/DD/post/<child>/feed/` -> the post, ordered **before** `@post_child` |
 | `@mapped` via `slugs.map` | 107 | bare `/<attachment-slug>/` -> best destination |
-| `@date_archive` | 83 | `/YYYY/`, `/YYYY/MM/`, and their pagination -> `/all/` |
+| `@date_archive` | 83 | `/YYYY/`, `/YYYY/MM/`, and their pagination -> `/all/`. The matcher accepts any date, including dates absent from the list |
 | `@mapped` via `blogger.map` | 59 | `/YYYY/MM/slug.html` -> the current post |
 | `@blogger_archive` | 21 | `/YYYY_MM_01_archive.html` -> `/all/`, any date, including ones never covered |
 | `@author` | 12 | `/author/<name>/`, its pagination and feed -> `/` |
@@ -275,9 +288,9 @@ Each row below is a **URL class**, named by the matcher that serves it, so the t
 | `@blogger_feed` | 2 | `/feeds/posts/default` -> `/feed.xml`, Blogger's Atom feed |
 | `@blogger_page` | 2 | `/p/<slug>.html` -> `/<slug>/`, Blogger's static-page shape |
 
-**Those thirteen classes sum to 917**, which is the line count of [`checks/redirect-urls.txt`](../checks/redirect-urls.txt) and the whole redirect contract.
+**Those thirteen classes account for every line in [`checks/redirect-urls.txt`](../checks/redirect-urls.txt), with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it.
 
-`@uploads` is deliberately absent from that table and from the 917. It rewrites `/wp-content/uploads/(.*)` to `/media/$1`, preserving all 778 legacy image URLs, which are gated by `golden-media-legacy.txt` on their own. Counting them here would double-count a set that has its own list.
+`@uploads` is deliberately absent from that table and from the redirect contract. It rewrites `/wp-content/uploads/(.*)` to `/media/$1`, preserving all 778 legacy image URLs, which are gated by `golden-media-legacy.txt` on their own. Counting them here would double-count a set that has its own list.
 
 `@label` is the fourteenth class and is deliberately **not** in the contract. `/search/label/<Label>` was never a redirect: the old platform answered it with a generic search page that returns 200 for a label that never existed, so it is a soft 404 that looks alive. `labels.map` sends each label to its term archive and defaults anything unmatched to `/all/`, which is a choice rather than a preservation.
 

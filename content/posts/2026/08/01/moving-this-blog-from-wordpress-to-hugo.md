@@ -57,6 +57,26 @@ I ended up splitting the contract in two: **328 URLs that Hugo must render**, an
 
 The order matters more than the tools. Everything up to step 4 is reversible and costs nothing. Do all of it before you convert anything.
 
+### 0. Decide where the inputs live, before you fetch any of them
+
+Every step below produces a file you will still be reading months later. The crawl is the input to every check. The export is the input to every redirect map. The media tar is the only correct copy of your images. Put all of it in one directory, outside the site repository, and keep it there.
+
+Outside the repository, because none of it belongs in a published history: it carries commenter email addresses, IP addresses, and a complete copy of a site you are about to take down. In one directory, because the tooling that derives your URL contract has to be pointed at it, and a derivation you cannot re-run is a result nobody can check.
+
+The shape that worked here:
+
+```text
+capture/
+  export/raw/         the content export, as downloaded
+  export/media-tar/   the media export, unpacked
+  mirror/             the crawl, as the old site served it
+  inventory/          the URL and media lists derived from that crawl
+```
+
+Then record where that directory is, in the repository, alongside whatever other machine-specific values you keep out of git. That sounds too obvious to write down, which is exactly why it does not get written down: the one thing you cannot re-derive from the repository is the location of the thing everything was derived from.
+
+Two of those four are re-fetchable from WordPress for as long as the account exists, and those two are the only things a person has to go and download. The crawl and the inventories are not re-fetchable at all, and they stop being possible the day the old hosting ends.
+
 ### 1. Capture the URL surface while the old site is still up
 
 Do this **first**. Once you cancel the old hosting you can never reconstruct this, and it is the input to every check later.

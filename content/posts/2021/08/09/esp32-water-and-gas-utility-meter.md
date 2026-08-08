@@ -23,6 +23,13 @@ Below are pictures of the finished case and the utility meters:
 
 
 {{< gallery cols="4" >}}  
+{{< figure src="/media/2018/08/20180811_180521052_ios.jpg?w=1024" alt="" caption="" >}}
+
+{{< figure src="/media/2020/08/img_6638.jpg?w=768" alt="" caption="" >}}
+
+{{< figure src="/media/2021/08/img_8178_1.jpg?w=400" alt="" caption="" >}}
+
+{{< figure src="/media/2021/08/img_8178.jpg?w=569" alt="" caption="" >}}
 {{< /gallery >}}  
 
 The ESPHome code uses the [pulse\_meter](https://esphome.io/components/sensor/pulse_meter.html) sensor, with the total sensor being measured by the HA [utility\_meter](https://www.home-assistant.io/integrations/utility_meter/) integration. The sensor produces flow rate measurements and incrementing absolute consumption, and it is the consumption, not flow rate, that is needed for the utility meter integration.

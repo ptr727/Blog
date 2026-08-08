@@ -8,7 +8,7 @@ The site is built, gated in CI, and deployed to staging by pipeline. It is not y
 
 | Piece | State |
 | --- | --- |
-| Content and media | done. 514 pages, 778 media files hash-verified against the export tar |
+| Content and media | done. Carries every migrated post and page, with the media hash-verified against the export tar |
 | URL contract | done. 328 render, 917 redirect, 778 legacy image URLs, all gated |
 | Deploy shape | done. Proven on two local mirrors and on the VPS, by hand and by pipeline |
 | CI workflows | green. Validation runs on every pull request and feeds the required check |
@@ -29,9 +29,14 @@ The site is built, gated in CI, and deployed to staging by pipeline. It is not y
 - **Retest the deploy transport against the real host**, which is [#33][issue-33] and is joint work with whoever holds the server. The transport now pins `StrictHostKeyChecking`, `UserKnownHostsFile`, and `BatchMode`, so it fails closed where it previously failed open, and a stale `DEPLOY_SSH_KNOWN_HOSTS` stops a deploy rather than being tolerated. Staging first, since a broken transport blocks the rollback path as well as the deploy.
 - **Declare what the VPS keeps.** `hugo.deploy.retention` asks for a retention count declared at the destination, and this repo's deploy credential is write-only by design so the prune belongs to the host. The ownership is recorded in `OPERATIONS.md`, the count is not, and the "ten releases" beside it describes `deploy/make-release.sh` on the local mirrors rather than the containers on the VPS. Confirm the host's timer and its count, then write it next to the ownership line.
 - **Prove a rollback through the pipeline.** A forced mid-deploy failure, then a flip back to the previous release, verified by `EXPECT_RELEASE` rather than by the transport exiting zero. The server side has been measured at well under a second by hand; what is unproven is that a **pipeline** run leaves the site serving when its deploy fails part way.
-- **Deploy production once, to a name that is not the live one.** The production environment is configured and its Pangolin resource is deliberately disabled, so nothing has ever run against it. Validate there before the record moves.
+- **Deploy production once, to a name that is not the live one.** The host side is done and the interim name is live: `blog.insanegenius.net` answers `200` unauthenticated, on a Let's Encrypt certificate issued 2026-08-07, serving `0000-placeholder`. The VPS agent calls this M7a, and M7b is the `.com` cutover. Three items belong to this repo before the first production deploy, all detailed in the VPS agent's §19 and §20. That file is not in the repository, so pull it first per [`OPERATIONS.md`](./OPERATIONS.md) "The Channel Between the Two Sides":
+  - **Set `HUGO_BASEURL` to `https://blog.insanegenius.net` on the `production` environment**, and back to `.com` at M7b. Hugo bakes `baseURL` into the canonical tags, the feed, and `sitemap.xml`, so a deploy without this edit serves a site whose every absolute URL points at the live WordPress site. It works mechanically and it is wrong.
+  - **Production emits `X-Robots-Tag: noindex, nofollow` for the length of the rehearsal**, deliberately, because `.net` serves a public duplicate of a live site and Certificate Transparency publishes the hostname. Where a check asserts `index, follow`, make the expected value a parameter rather than flipping a literal, since it reverts at M7b and a hardcoded literal is one more thing to remember at the wrong moment.
+  - **Answer the two questions in §19.3**: what `HUGO_BASEURL` holds on `production`, and whether anything else in the build or the checks hardcodes `blog.insanegenius.com`.
+- **Decide what `robots.txt` says before the first production deploy.** Production answers 404 for it, so `X-Robots-Tag` is the only thing keeping the interim hostname out of an index. Crawlers are already asking: OAI-SearchBot, ClaudeBot, GPTBot, and Scrapy each arrived within three hours of the certificate being issued, at a hostname with no inbound links.
 - Lower the `blog` A-record TTL to 60s a day ahead, then flip it to the VPS, unproxied.
-- Watch server logs for 404s daily for the first week, because real traffic finds what the golden list missed. Append anything new to `checks/golden-urls.txt` and add a redirect.
+- **"Backed up" describes a design rather than a fact, for the log.** The VPS holds the only copy of the access log until the pull to the backup host runs, and that log rotates and ages out on a schedule the host owns, so the window is the deadline. The pull is two rsync lines the maintainer adds on the backup host, and the log stays deliberately outside the nightly encrypted archives because those are full copies with no dedupe. State that plainly in anything built on top of the log until the pull runs.
+- Watch server logs for non-200s daily for the first week, then monthly, because real traffic finds what the golden list missed and the crawl that produced the list cannot. Append anything new to `checks/golden-urls.txt` and add a redirect. Read the edge as well as Caddy: a request the proxy refused never reaches the site's log, so a count taken from Caddy alone is a floor. The procedure, the three tiers and what each is blind to, and the inward pass that names content nobody has ever requested are in [`OPERATIONS.md`](./OPERATIONS.md) "Log Review".
 - Add the weekly non-blocking external-link-check workflow, which is the one gate that cannot be blocking because it fails on other people's outages.
 - Decommission WordPress.com only after **30 clean days**, and downgrade to free rather than deleting, which keeps the media reachable as a safety net and preserves the ability to re-export. Do not start sooner: the conversion fetched media over HTTP from the live site.
 
@@ -66,12 +71,17 @@ Reconverged 2026-08-05, and the run is written up in [`reports/Blog/audit.md`](.
 
 **Measured against hub `main` `3b802b9eb9a841c0149d018f4db6ffa1b9419051`**, and the ref is named because `main` moves, which is the trap below. Every verbatim unit now matches: the re-vendor of `repo-config/configure.sh` this record previously owed, for the jq portability defect reported as [#549][issue-549] and fixed at the hub in [#553][pr-553], landed with this change. The links above are pinned to that same ref rather than to `main`, so this record stays checkable after the hub moves again.
 
-Two findings are open at the hub. Neither is work this repo can do, and each changes what a fleet audit of this repo means, which is why they are recorded here rather than only in the issues.
+Three findings are open at the hub, recorded here rather than only in the issues because each changes what a fleet audit of this repo means. The first two are not work this repo can do. The third is, once the change answering it is ground truth, and what it will ask is stated below the table.
 
 | Issue | What it means here |
 | --- | --- |
 | [#550][issue-550] | Nothing detects a repo missing from the registry, which is how this repo stayed invisible. Three other repos are still absent. |
 | [#552][issue-552] | The audit flags any carried `AGENTS.md` naming the template repo, and the byte-locked `Fleet Bootstrap` section names it. Carrying the canonical correctly cannot pass, and it is the one finding the current run cannot clear. |
+| [#597][issue-597] | Filed from here, after a mandatory pre-merge gate in `OPERATIONS.md` was skipped on [#40][pr-40]. The ruling is that a verification a runner cannot perform needs a declared destination, not a better per-repo pointer. Answered by [#598][pr-598], which this repo owes work against once it is ground truth. |
+
+**What [#598][pr-598] will ask of this repo, once it is ground truth.** It is merged to the hub's `develop` and not to `main`, so it binds nothing yet, per the trap below about reading `main` as ground truth. It makes `Local Verification` a sixth declared `OPERATIONS.md` heading, leading the file as the only pre-merge one. This repo's `OPERATIONS.md` carries **13 level-two headings and matches none of the five declared today**, so the work is a rename and reorder rather than new prose: `Local Verification Before a Pull Request` becomes `Local Verification`, and `Backup and Restore` is one word from the declared `Backup and Recovery`. Both are near-misses rather than absences, which is the shape a heading check will mostly find in a repo that wrote its operational document before the spec declared headings. Do not start until the hub promotes it.
+
+No audit will report this meanwhile. `OPERATIONS.md` is presence-checked only, which is why the 2026-08-05 run above reported nothing about a file using none of the declared headings, and the heading check belongs to a hub cluster that has not shipped.
 
 Two more are resolved and are named because their absence from the table would otherwise read as an oversight. [#554][issue-554] made `spec/audit.py` report two DEFECTs here that no agent action could clear, and the fix is in the hub `main` this run measured against, so those two findings are gone. [#456][hub-issue] and [#558][hub-spec-issue] were the static-site type, now authored, per the section above.
 
@@ -133,13 +143,14 @@ Secrets and variables, per environment. The App-token pair is repository-scoped 
 
 `DEPLOY_SSH_PRIVATE_KEY` holds the same key in both environments, per the decision above. The environment split still carries the base URL, the SSH endpoint, and the staging-only token pair, so it is not decorative.
 
-The deploy root is deliberately absent from this table. The rsync destination is anchored at the deploy key's confinement root, so the workflow names an environment rather than a host path, and a declared-but-unread name is drift no audit can tell from a missing one. The local `DEPLOY_ROOT` in `secrets/<environment>.env` is a different value and is still read.
+The deploy root is deliberately absent from this table. The rsync destination is anchored at the deploy key's confinement root, so the workflow names an environment rather than a host path, and a declared-but-unread name is drift no audit can tell from a missing one. The local `DEPLOY_ROOT` in `secrets/<server>.<environment>.env` is a different value and is still read.
 
 <!-- Repo -->
 
 [issue-33]: https://github.com/ptr727/Blog/issues/33
 [migration-post]: ./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md
 [pr-30]: https://github.com/ptr727/Blog/pull/30
+[pr-40]: https://github.com/ptr727/Blog/pull/40
 
 <!-- External -->
 
@@ -153,4 +164,6 @@ The deploy root is deliberately absent from this table. The rsync destination is
 [issue-552]: https://github.com/ptr727/ProjectTemplate/issues/552
 [issue-554]: https://github.com/ptr727/ProjectTemplate/issues/554
 [issue-563]: https://github.com/ptr727/ProjectTemplate/issues/563
+[issue-597]: https://github.com/ptr727/ProjectTemplate/issues/597
 [pr-553]: https://github.com/ptr727/ProjectTemplate/pull/553
+[pr-598]: https://github.com/ptr727/ProjectTemplate/pull/598

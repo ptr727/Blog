@@ -31,9 +31,12 @@ __pycache__/
 # Each names one particular machine rather than the project.
 # The whole directory is ignored so a value added later lands ignored by default.
 # `deploy/env.example` is the committed template and sits outside the directory.
+# The last pattern is the backstop for one written outside the directory, matching the
+# `<server>.<environment>.env` shape those files are named for rather than a single literal name.
+# `deploy/env.example` does not end in `.env`, so it is unaffected.
 secrets/
 **/secrets
-.env
+*.env
 
 # The working copies of the host channel described in OPERATIONS.md.
 # They carry server internals, and the host's own backup is what makes them durable.

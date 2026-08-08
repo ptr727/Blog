@@ -8,16 +8,16 @@ Four environments, in two pairs. Each pair is one publish site and one staging s
 
 | Environment | Address | Fronted by | Purpose |
 | --- | --- | --- | --- |
-| Local publish mirror | a private hostname, set in `secrets/.env` | Traefik, on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
-| Local staging mirror | a second private hostname, set in `secrets/staging.env` | Traefik | Proves that two environments on one host stay independent, before that matters on a server. |
-| Staging | `blog.vps.insanegenius.net`, behind the auth gate | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
-| Production | `blog.insanegenius.com` | Pangolin | The public site. |
+| Local publish mirror | a private hostname, set in `secrets/local.production.env` | Traefik, on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
+| Local staging mirror | a second private hostname, set in `secrets/local.staging.env` | Traefik | Proves that two environments on one host stay independent, before that matters on a server. |
+| Staging | `blog.vps.insanegenius.net`, behind the auth gate, set in `secrets/vps.staging.env` | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
+| Production | `blog.insanegenius.com`, set in `secrets/vps.production.env` | Pangolin | The public site. |
 
 The local mirrors are not staging. They run the same bundle against the same web server, so they catch a broken redirect or a bad permission for free, but they exercise none of the routing, authentication, or certificate machinery that only exists on the VPS. Passing locally says the artifact is right. It says nothing about whether the server in front of it is.
 
 **The two words are `production` and `staging`, spelled out, in every position.** No `prod`, no `stage`. The same two name the container, the deploy root, the environment file, the `X-Blog-Env` value, and the GitHub Environment. This is not tidiness: the environment name is a value that gets **compared**, by `EXPECT_SITE_ENV` and by the deploy, so a spelling that differs in one position fails a deploy for a reason that reads like an outage. The local mirrors prefix the same words, `mirror-production` and `mirror-staging`, so a header names exactly one of the four environments in the fleet.
 
-Each environment is one file under `secrets/`, selected with `ENV_FILE`, holding the deploy root, the base URL, and the container name. Selecting the file is how an environment is chosen: the file is sourced with `set -a`, so it overwrites a `DEPLOY_ROOT` the caller exported and setting that variable by hand does not switch anything. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
+Each environment is one file under `secrets/`, named `<server>.<environment>.env`, selected with `ENV_FILE`, and holding the deploy root, the base URL, and the container name. The name carries both halves because the two pairs differ in server as well as environment, so a file says which machine it describes rather than leaving that to the value inside it, and the four in the table above are the four files. `secrets/local.production.env` is the one read when `ENV_FILE` is unset. Selecting the file is how an environment is chosen: the file is sourced with `set -a`, so it overwrites a `DEPLOY_ROOT` the caller exported and setting that variable by hand does not switch anything. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
 
 **The staging FQDN sits under the VPS wildcard deliberately.** `blog.vps.insanegenius.net` needs no new certificate and no new DNS record, and it keeps the staging name off the production domain.
 
@@ -46,9 +46,32 @@ This site has served the same domain across earlier platforms, so its whole oper
 
 **The contract is ground truth.** [`checks/golden-urls.txt`](./checks/golden-urls.txt) and [`checks/redirect-urls.txt`](./checks/redirect-urls.txt) record URLs verified with a live request, not predicted from the content tree. The lists are **append-only**: nothing legitimately removes a URL the site has served, so a change that would drop one is a change to reject rather than a list to shorten. A list-driven check also carries a length floor, or a truncated list passes while checking almost nothing.
 
+## The Migration Record
+
+**The migration is documented once, as a post on the site, and that post is the artifact to reference.** [`content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md`](./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md) holds how the URL surface was captured, why the contract splits into a render half and a redirect half, why the Blogger permalink map needs more entries than the posts it covers, why the media had to come from the export tar and be hash-verified, and which Hugo taxonomy default moves every archive to a new address without reporting anything.
+
+**Read it before changing anything under [`checks/`](./checks/) or [`deploy/maps/`](./deploy/maps/).** Both hold values that no code derives and no test explains, and the reasoning behind them is in the post rather than beside them. Cite the post rather than restating it. This file is the procedure and the post is the account of how the procedure came to be, so where the two disagree this file governs what to do while the post explains why the check exists.
+
+**The post is content, so it sits under the URL contract.** Editing it moves nothing. Renaming it or taking it down breaks an address the site serves. A fact in it that proves wrong is corrected in the post rather than footnoted here.
+
+### Rebuilding from the Exports
+
+Everything derived is in this repository. Everything it was derived *from* is in a capture directory outside it, which is where a rebuild starts. **The capture path is `CAPTURE_ROOT` in `secrets/local.production.env`**, recorded alongside the other values that name a machine rather than the project, so it is read from there rather than searched for. The capture is not a git repository, so it has no history to revert to, and it is read-only in normal use.
+
+| Under the capture | Holds | Recoverable |
+| --- | --- | --- |
+| `export/raw/` | the WordPress content export, WXR XML | yes, from the WordPress account while it exists |
+| `export/media-tar/` | the media export, the only trustworthy copy of the images | yes, from the same place |
+| `mirror/` | a crawl of the old platform as it served, including the media it linked from other hosts | no, once the old hosting ends |
+| `inventory/` | the URL and media inventories derived from that crawl | no, for the same reason |
+
+The two exports are the only inputs a person has to fetch, and `EXPORT-INSTRUCTIONS.md` at the root of the capture records which two menu items produce them and the counts each has to reconcile against. The counts are the point, because a partial export is the common way a migration loses posts without reporting anything.
+
+[`checks/build-redirects.py`](./checks/build-redirects.py) takes the capture directory as its one argument and rebuilds everything under `deploy/maps/` from it. It selects the export **by content** rather than by filename and fails unless exactly one candidate holds published posts, because the capture also holds a media-only export whose zero posts produce empty maps that are indistinguishable from working ones until the redirects are live.
+
 ## Local Verification Before a Pull Request
 
-**CI cannot prove a redirect.** The validation workflow builds the site and checks the render half of the contract, which is every URL that must return a page. The other 917 URLs are the web server's job, and nothing in a build exercises them. A change to the Caddy config or to a generated map is therefore invisible to CI: the workflow goes green while the redirect it broke stays broken until someone follows a sixteen-year-old link.
+**CI cannot prove a redirect.** The validation workflow builds the site and checks the render half of the contract, which is every URL that must return a page. Most of the contract is not pages, and those URLs are the web server's job, which nothing in a build exercises. A change to the Caddy config or to a generated map is therefore invisible to CI: the workflow goes green while the redirect it broke stays broken until someone follows a sixteen-year-old link.
 
 So release to the local mirror and run the live check **before** opening a pull request that touches any of these:
 
@@ -60,7 +83,7 @@ So release to the local mirror and run the live check **before** opening a pull 
 | `hugo.yaml`, `layouts/` | Permalink and taxonomy changes move URLs underneath the redirects that point at them. |
 
 ```sh
-set -a; . secrets/.env; set +a
+set -a; . secrets/local.production.env; set +a
 deploy/make-release.sh
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
@@ -68,8 +91,8 @@ checks/check-live-urls.sh "$HUGO_BASEURL"
 Against the staging mirror, name its file in both places, since the sourced values and the ones `make-release.sh` reads must describe the same environment:
 
 ```sh
-set -a; . secrets/staging.env; set +a
-ENV_FILE=secrets/staging.env deploy/make-release.sh
+set -a; . secrets/local.staging.env; set +a
+ENV_FILE=secrets/local.staging.env deploy/make-release.sh
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
 
@@ -91,11 +114,11 @@ EXPECT_RELEASE=<version> checks/check-live-urls.sh "$HUGO_BASEURL"
 
 Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and [Deploying](#deploying) below passes them explicitly, which is what CI does so a pipeline run names the commit it built rather than the clock. Either form works locally, and the argument wins over the environment.
 
-`ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `secrets/.env` while the shell's `$HUGO_BASEURL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
+`ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `secrets/local.production.env` while the shell's `$HUGO_BASEURL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
 
-It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows all 1,245 URLs against the running mirror, checking each redirect's destination rather than trusting its status code.
+It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows every URL in the contract against the running mirror, checking each redirect's destination rather than trusting its status code.
 
-Expect `PASS - 1245 URLs honored`. Anything less is a finding, and the output names each URL that failed and what it answered.
+Expect a `PASS` naming the number of URLs honored, which is the two lists' combined length and grows as they do. Anything less is a finding, and the output names each URL that failed and what it answered.
 
 A documentation-only or workflow-only change does not need this. A change to the four paths above does, because for those CI's green is not evidence.
 
@@ -104,9 +127,11 @@ A documentation-only or workflow-only change does not need this. A change to the
 Staging keeps Pangolin's authentication on, so an unauthenticated request never reaches the site. `check-live-urls.sh` presents a Pangolin resource access token when both halves of the pair are set, and sends nothing when neither is:
 
 ```sh
-set -a; . secrets/staging.env; set +a
+set -a; . secrets/vps.staging.env; set +a
 checks/check-live-urls.sh "$HUGO_BASEURL"
 ```
+
+The gate is the VPS staging environment's, so this is `secrets/vps.staging.env`. The local staging mirror sits behind Traefik on the maintainer's own network and carries neither half of the pair.
 
 | Variable | Header |
 | --- | --- |
@@ -117,9 +142,9 @@ Set both or neither. Half a pair is a typo rather than a choice, and it is rejec
 
 Three properties of how the credential is handled, each there for a reason worth keeping:
 
-- **It travels in a mode-`600` curl config file, not in `-H` arguments.** A command line is readable in `ps` for the life of the process, and this runs 1,245 of them. The config file is also the only form that survives the `export -f` the parallel checks run under, because bash cannot export an array.
+- **It travels in a mode-`600` curl config file, not in `-H` arguments.** A command line is readable in `ps` for the life of the process, and this runs one per URL in the contract. The config file is also the only form that survives the `export -f` the parallel checks run under, because bash cannot export an array.
 - **It is sent to the base URL's own origin and nowhere else.** The check follows every redirect's destination, and every destination in the contract is same-origin today. A rule that one day points off-site must not mail the credential to whoever is on the other end.
-- **A preflight request runs before the 1,245.** Behind an auth gate a wrong token fails *every* URL, and the output then reads as a site that has vanished rather than as a bad credential. The two are indistinguishable from the far end of a CI log, so the run stops on the first request with a message naming which of the two it was.
+- **A preflight request runs before the rest.** Behind an auth gate a wrong token fails *every* URL, and the output then reads as a site that has vanished rather than as a bad credential. The two are indistinguishable from the far end of a CI log, so the run stops on the first request with a message naming which of the two it was.
 
 ## Deploying
 
@@ -134,7 +159,7 @@ The deploy root and the base URL are the only host-specific values. A local run 
 
 | Variable | Effect |
 | --- | --- |
-| `ENV_FILE` | Which environment file to source. Defaults to `secrets/.env`. |
+| `ENV_FILE` | Which environment file to source. Defaults to `secrets/local.production.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
 | `HUGO_BASEURL` | Overrides the site base URL. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
@@ -170,6 +195,49 @@ The script asserts both halves of that rather than assuming them. It fails when 
 **At a VPS deploy root, the host's `blog-prune-releases.timer` prunes and nothing in this repo does.** It runs daily and keeps ten release bundles per environment, and the release `current` resolves to is retained unconditionally without consuming one of the ten, so the live site survives even a misconfigured count. **Name the unit rather than the number**, because a second daily retention runs on the same host, `pangolin-backup.timer`, and it keeps fourteen encrypted config archives. "Ten, daily" identifies neither of them once it is read on its own. It orders by modification time rather than by name, because the release id is a caller-supplied argument and a label passed in place of a timestamp would sort wrongly and retire the wrong releases. It refuses outright, removing nothing, when `current` dangles or is not a symlink, since a broken `current` means the site is already serving nothing and guessing which release was meant to be live is the wrong move while it is.
 
 **Nothing prunes on the deploy path, and that is what keeps the deploy key's capability small.** A prune racing a deploy could take the rollback target, where a lingering release only costs disk. This is also why the key needs no delete capability, which is the property "Server Hardening" depends on. The count and the timer belong to the host, so this section records what the host declares rather than holding a second copy of it. See "Who Owns What".
+
+## Log Review
+
+**Real traffic is the only source that finds what every check here is blind to.** The URL contract proves the URLs someone thought to list and the redirects derived from the export. It cannot know about a URL nobody recorded, because the lists are their own standard: the gates check the built site and the running server against those lists, never against the old platform that served the addresses. An address the crawl missed is therefore missing from every gate that reads them, and a visitor following a sixteen-year-old link is the one reader who tests for it.
+
+Review runs in both directions, which are the same two the media checks read and have the same blind spots for the same reason.
+
+| Direction | Question | Signal | Cadence |
+| --- | --- | --- | --- |
+| Outward | What did someone ask for that is not here? | non-200 responses | daily for the first week after cutover, then monthly |
+| Inward | What is here that nobody has ever asked for? | URLs absent from every 200 | quarterly at the earliest, and a long tail by nature |
+
+**The outward pass is the one with an action.** A 404 on a path shaped like real content means the golden list missed a URL: add it to [`checks/golden-urls.txt`](./checks/golden-urls.txt) and add a redirect, per that file's own maintenance rules. Expect the raw counts to be dominated by scanners probing for `wp-login.php`, `.env`, and `.git/config`, which is noise from a site that used to run WordPress and should be filtered by shape rather than investigated.
+
+**The inward pass answers a question nothing else can.** Subtracting every URL that has ever returned 200 from the set the site builds names the content no reader has reached. It is slow evidence and deliberately so, since a post can go a year without a visit and still be worth keeping. Its first concrete use is the carried media that no page links and that the old platform never published, counted exactly by the parity gate and broken down in [`checks/README.md`](./checks/README.md): if nothing requests those files across a year, that settles whether carrying them is preservation or clutter, and no reasoning from the repository alone can settle it.
+
+### The log is three tiers, and each is blind to something
+
+A request crosses the proxy before it reaches the site, so no single log answers both questions.
+
+| Tier | Sees | Cannot see |
+| --- | --- | --- |
+| Traefik, or Pangolin's Traefik on the VPS | every request reaching the host, including unknown hostnames, TLS failures, and traffic aimed at names this site does not serve | which release answered, since Traefik logs request headers and not response headers |
+| Pangolin, on the VPS only | requests the auth gate rejected | anything on the local mirrors, which have no gate |
+| Caddy, per environment | path, status, and the `X-Blog-Release` that answered | anything the tiers above rejected, which never arrives |
+
+**A 404 count taken from Caddy alone is therefore a floor, not a total.** A request the edge refused is a reader who found nothing just as surely, and it appears in no Caddy log. Read the edge for what never arrived and Caddy for what arrived and failed, and treat the two as one answer.
+
+Two properties of the Caddy side are worth knowing before parsing it. Its access log is `format console`, so each line is a timestamp, a level, and a logger name followed by a JSON object rather than being JSON itself, and a parser that assumes one object per line reads nothing. And `trusted_proxies` is what makes `client_ip` the reader rather than the proxy, which is the same setting "Serving" describes as a security boundary. Without it every request in the log appears to come from one internal address, and the inward pass cannot distinguish a reader from a health check.
+
+### Retention Is the Prerequisite, and It Belongs to the Host
+
+**On the VPS the reviewable record is Traefik's access log**, at `/var/log/traefik/access.log`, one JSON object per line, one line per request, across every hostname the host serves. `RequestPath` carries the query string, so the legacy `/?p=<id>` traffic is visible as itself. Request headers are dropped except `Referer` and `User-Agent`, which is what keeps the Pangolin resource access token out of a file that is retained and copied, and query strings are logged in full, so treat an extract as sensitive.
+
+**That log rotates and is eventually deleted, on a schedule the host sets and can change.** The window is long, and it is finite, so anything the inward pass depends on has to be copied off the host before the archive ages out. Read the current retention from the host rather than from this file, because a number written here is a number nothing checks.
+
+**Caddy's container log is the runtime log rather than the access log**, bounded by the container's own log rotation. It is where a failed config load and a dead `--watch` surface. It is not durable across a container recreate, since the Docker `json-file` log lives under the container id, and an operator editing the compose file is the event that discards it. A release deploy is not: an rsync and a symlink flip run no Docker operation at all.
+
+**Release attribution comes from a join rather than from a header.** Traefik cannot log a response header, so no access-log line names the release that answered. Join `StartUTC` against the release flip instead, which is exact outside a deploy window and ambiguous only inside one.
+
+**Retention on the local mirrors is a different question and is unsolved.** Those containers use Docker's `json-file` driver with the built-in defaults, so a mirror's log grows without bound and is discarded when its container is recreated. That matters less than it did on the VPS, because the mirrors serve no readers, and it belongs to the host rather than to this repository, the same split "Retention" and "Who Owns What" describe for release pruning.
+
+**The off-host copy of the access log is a design rather than a fact.** The VPS holds the only copy until the pull to the backup host runs, which makes the host's retention window the hard deadline rather than a comfortable margin. A review reads whatever survived and reports confidently on it either way, so settle this before the first review is expected to mean anything.
 
 ## Who Owns What
 
@@ -245,7 +313,7 @@ The container reads three host paths, and only one of them a release ever writes
 Because it sits outside the bundle, no release updates it. Install or refresh it explicitly, once per environment, which is the same command against a different sourced file:
 
 ```sh
-set -a; . secrets/.env; set +a          # or secrets/staging.env
+set -a; . secrets/local.production.env; set +a   # or any other secrets/<server>.<environment>.env
 install -m 644 deploy/bootstrap.Caddyfile "$CADDY_APPDATA/config/Caddyfile"
 docker restart "$CADDY_CONTAINER"   # only this file needs one, see below
 ```
@@ -260,7 +328,7 @@ Everything inside the bundle, `deploy/Caddyfile` and anything under `deploy/maps
 
 ## Redirects
 
-The site answers 917 addresses it does not render, satisfied by 13 `redir` directives reading 5 map files, all inside the bundle. [`deploy/README.md`](./deploy/README.md) carries the per-class breakdown and the counts. This section covers the operational shape only, so the two do not restate each other.
+The site answers far more addresses than it renders, satisfied by a small set of `redir` directives and the map files they read, all inside the bundle. [`deploy/README.md`](./deploy/README.md) carries the per-class breakdown and the counts. This section covers the operational shape only, so the two do not restate each other.
 
 Ordering is load-bearing, so every redirect lives in a single `route` block. Outside one, Caddy sorts directives by its own precedence rather than by file order, and the broad attachment rule claims the per-post comment feeds that the narrower rule must match first.
 
