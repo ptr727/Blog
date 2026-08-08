@@ -134,6 +134,14 @@ def main(site: pathlib.Path, apply: bool):
         print("\nAPPLIED")
     else:
         print("\nDRY RUN - pass --apply")
+
+    # A problem is a file this cannot place: no url: front matter, or a url that is not the
+    # dated shape. The valid moves still happen, because leaving them undone helps nobody,
+    # but the run is incomplete and must not report success. Contrast clean-content.py,
+    # whose recovered titles are a repair rather than a skip and correctly exit zero.
+    if problems:
+        print(f"{len(problems)} file(s) could not be placed, listed above")
+        return 1
     return 0
 
 
