@@ -18,8 +18,9 @@ as well as posts, which is meaningless for a page. A `content/pages/` section wo
 make Hugo publish a `/pages/` listing URL, the same unwanted extra as `/posts/`.
 """
 
-import pathlib
+import collections
 import os
+import pathlib
 import re
 import shutil
 import sys
@@ -105,6 +106,22 @@ def main(site: pathlib.Path, apply: bool):
         for p, why in problems:
             print(f"    {p.relative_to(content)}: {why}")
 
+    # shutil.move replaces an existing destination without a word, and this applies moves in
+    # bulk, so a collision would destroy a post and report success. Two ways it can happen:
+    # two sources resolving to one destination, which flattening pages to content/<slug>.md
+    # makes possible, and a destination that already exists from a half-finished earlier run.
+    # Both are refused before anything moves, rather than discovered half way through.
+    collisions = collections.Counter(dst for _, dst in moves)
+    clashes = sorted(d for d, n in collisions.items() if n > 1)
+    occupied = sorted(dst for src, dst in moves if dst.exists() and dst != src)
+    if clashes or occupied:
+        print(f"\nREFUSING TO MOVE ({len(clashes)} collisions, {len(occupied)} occupied destinations):")
+        for d in clashes:
+            print(f"    {d.relative_to(content)} <- {sum(1 for _, x in moves if x == d)} sources")
+        for d in occupied:
+            print(f"    {d.relative_to(content)} already exists")
+        return 1
+
     if apply:
         for src, dst in moves:
             dst.parent.mkdir(parents=True, exist_ok=True)
@@ -117,7 +134,8 @@ def main(site: pathlib.Path, apply: bool):
         print("\nAPPLIED")
     else:
         print("\nDRY RUN - pass --apply")
+    return 0
 
 
 if __name__ == "__main__":
-    main(converted_site(sys.argv), "--apply" in sys.argv)
+    sys.exit(main(converted_site(sys.argv), "--apply" in sys.argv))
