@@ -58,7 +58,7 @@ Deployment is a release directory plus a symlink. A build is installed alongside
 
 The site has served the same domain since 2008, across three platforms: Blogger until 2012, WordPress until 2026, and Hugo from then on. Converting the posts took an afternoon. Preserving sixteen years of inbound links was the work, and it is why this repository carries a URL contract and gates it rather than trusting the build.
 
-The account of that migration is a post on the site, [Moving This Blog From WordPress to Hugo][migration-post]. It covers what a WordPress export holds and what it leaves out, why the sitemap named barely a tenth of the addresses the site was actually serving, how the Blogger-era permalinks resolve through a lookup table rather than a pattern, why media fetched over HTTP is not the same bytes as the media in the export and only a content hash tells them apart, and which Hugo default moves every taxonomy archive to a new address without reporting anything.
+How it was done is in [`capture/README.md`][capture-readme], and the account of it is a post on the site, [Moving This Blog From WordPress to Hugo][migration-post]. It covers what a WordPress export holds and what it leaves out, why the sitemap named barely a tenth of the addresses the site was actually serving, how the Blogger-era permalinks resolve through a lookup table rather than a pattern, why media fetched over HTTP is not the same bytes as the media in the export and only a content hash tells them apart, and which Hugo default moves every taxonomy archive to a new address without reporting anything.
 
 ## How a Change Reaches the Site
 
@@ -152,6 +152,7 @@ flowchart LR
 | [`hugo.yaml`][hugo-config] | site configuration, taxonomy URLs, and the feed name |
 | [`checks/`][checks] | the URL contract and the gates that enforce it |
 | [`deploy/`][deploy] | the release script, the web-server config, and the redirect maps |
+| [`capture/`][capture] | the migration's provenance tooling, and how the site was derived from the old platform's exports |
 | [`ops/`][ops] | the pull that copies the server's backups and access logs off it, and its schedule |
 | [`ENVIRONMENT.md`][environment] | every configuration value, described once |
 
@@ -214,6 +215,8 @@ Licensed under the [MIT License][license]\
 [checks]: ./checks/
 [commits-link]: https://github.com/ptr727/Blog/commits
 [deploy]: ./deploy/
+[capture]: ./capture/
+[capture-readme]: ./capture/README.md
 [ops]: ./ops/
 [environment]: ./ENVIRONMENT.md
 [deploy-readme]: ./deploy/README.md

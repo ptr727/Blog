@@ -19,7 +19,7 @@ hugo_stats.json
 *.user
 .claude
 
-# Python byproducts from the check and redirect-map generators under `checks/`.
+# Python byproducts from the gates under `checks/` and the provenance tools under `capture/`.
 __pycache__/
 *.py[cod]
 .venv/

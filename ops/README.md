@@ -1,6 +1,6 @@
-# ops
+# Backup Pull
 
-Tooling that runs on the **backup host**, not on the web server and not in CI. One thing lives here today: the pull that copies the VPS's backup set and its access logs off the VPS.
+The pull that copies the VPS's backup set and its access logs off the VPS. It runs on the **backup host**, not on the web server and not in CI, on a `systemd` timer.
 
 | File | Installs to |
 | --- | --- |

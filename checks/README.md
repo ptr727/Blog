@@ -54,17 +54,15 @@ An **attachment page** is the page the old platform generated per uploaded image
 
 ## Legacy URL shapes worth knowing
 
-Two properties of the maps are non-obvious and easy to break when regenerating them.
-
-**`blogger.map` carries 59 entries for 48 posts.** Blogger truncated an auto-generated slug at 40 characters on a whole-word boundary, so for the 11 posts with a longer slug the URL actually served, and therefore the one in search indexes and in other people's links, is the truncated form. Both forms are live redirects. A map holding only the full slug keeps the URL that never existed and drops the one that did.
-
 **`/search/label/<Label>` is not a redirect.** The old platform answers it with a generic search page that returns 200 for a label that never existed, so the class is a soft 404 that looks alive. It is handled by choice rather than by preservation: `labels.map` sends each label to its term archive, and anything unmatched falls through to `/all/`.
+
+The other property worth knowing belongs to the generator rather than to the contract, so it is in [`capture/README.md`](../capture/README.md): `blogger.map` holds more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms still answer.
 
 ## Maintaining the contract
 
 **Adding a URL.** Real traffic finds what the lists missed. When a server log shows a 404 for an address that should work, append it to the appropriate list and add a redirect rule or map entry to cover it. The lists are append-only, per Directionality below.
 
-**Regenerating the maps.** `build-redirects.py` rebuilds everything under `deploy/maps/` from the source export, which lives in a capture directory outside this repo and is passed as an argument. **That directory's path is `CAPTURE_ROOT` in `secrets/local.production.env`**, and `OPERATIONS.md` "Rebuilding from the Exports" records what it holds and which parts of it a person can fetch again. It is a provenance tool rather than a CI step, and it selects the export **by content**, failing unless exactly one candidate contains published posts. The capture holds both a full export and a media-only one with zero posts, and taking the wrong one yields empty maps that are indistinguishable from working ones until the redirects are live.
+**Regenerating the maps.** The generator is [`capture/build-redirects.py`](../capture/build-redirects.py), and it lives there rather than here because it generates rather than gates. [`capture/README.md`](../capture/README.md) covers how to run it and how it chooses its input.
 
 **Checking a count.** Every count above is derivable from the files, so check rather than trust:
 

@@ -2,9 +2,14 @@
 """Generate the Caddy redirect maps from the WordPress export.
 
 Reads the export and the capture inventory, which live outside this repo, and writes the
-committed maps under deploy/maps/. See OPERATIONS.md for when to run it.
+committed maps under deploy/maps/. See capture/README.md for when to run it.
+
+The capture directory comes from CAPTURE_ROOT, and a first argument wins over it. This
+generates rather than gates, which is why it sits in capture/ beside the other scripts
+that read the capture rather than in checks/ beside the gates.
 """
 
+import os
 import pathlib
 import re
 import sys
@@ -12,7 +17,11 @@ import xml.etree.ElementTree as ET
 
 NS = {"wp": "http://wordpress.org/export/1.2/"}
 
-CHECKS = pathlib.Path(__file__).resolve().parent
+# Anchored on the repository rather than on this file's own directory, because the two
+# lists below live in checks/ and the maps in deploy/maps/, and neither follows this
+# script if it moves again.
+REPO = pathlib.Path(__file__).resolve().parent.parent
+CHECKS = REPO / "checks"
 
 # Blogger truncates an auto-generated slug at this many characters, on a whole-word boundary.
 # For a longer slug the truncated form is the URL Blogger served, and so the one in search indexes.
@@ -52,17 +61,40 @@ def blogger_truncate(slug, limit=BLOGGER_SLUG_LIMIT):
 
 def write_map(path, pairs):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("".join(f"{k} {v}\n" for k, v in pairs))
+    path.write_text("".join(f"{k} {v}\n" for k, v in pairs), encoding="utf-8")
     return len(pairs)
 
 
 def main(argv):
-    if len(argv) != 2:
-        print(__doc__.strip().splitlines()[0], file=sys.stderr)
-        print(f"usage: {argv[0]} <capture-dir>", file=sys.stderr)
+    # CAPTURE_ROOT is the default and an argument wins over it, the same shape DEPLOY_ROOT
+    # uses. Unset and unsupplied is refused rather than guessed: a wrong-but-plausible
+    # capture yields maps that are empty and indistinguishable from working ones.
+    # --print-export names the selected export and writes nothing. run-wp2hugo.sh calls it
+    # rather than reimplementing the choice, so the conversion and the maps are provably
+    # built from the same file. A shell reimplementation cannot match this anyway: the test
+    # is that ONE item carries both post_type=post and status=publish, and two greps over a
+    # whole file would accept a media-only export that happens to contain both words.
+    args = [a for a in argv[1:] if a != "--print-export"]
+    print_export = "--print-export" in argv[1:]
+    # An unknown option is refused rather than taken as a path. Without this, `--help` is
+    # read as a capture directory and the run fails with "no export XML found under --help",
+    # which sends the reader looking for a missing file rather than a mistyped flag.
+    unknown = [a for a in args if a.startswith("-")]
+    if unknown:
+        print(f"unknown option: {unknown[0]}", file=sys.stderr)
+        print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
         return 2
-    capture = pathlib.Path(argv[1])
-    out = pathlib.Path(__file__).resolve().parent.parent / "deploy" / "maps"
+    if len(args) > 1:
+        print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
+        return 2
+    root = args[0] if args else os.environ.get("CAPTURE_ROOT", "")
+    if not root:
+        print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
+        print("CAPTURE_ROOT is not set and no capture directory was given", file=sys.stderr)
+        print("see example.env and ENVIRONMENT.md", file=sys.stderr)
+        return 2
+    capture = pathlib.Path(root)
+    out = REPO / "deploy" / "maps"
 
     # An account holds several exports, and a media-only one carries the attachments but no posts.
     # Filesystem order decides which a glob returns, and the wrong one yields empty maps that look valid.
@@ -84,6 +116,9 @@ def main(argv):
             print(f"  {path}", file=sys.stderr)
         return 1
     src, root = with_posts[0]
+    if print_export:
+        print(src)
+        return 0
     print(f"export: {src}")
 
     posts, attachments, blogger, terms = {}, [], [], []
@@ -129,7 +164,7 @@ def main(argv):
     # Reading the render list also resolves a slug that exists as both a tag and a category.
     # Map lookups are case-sensitive, so each slug is emitted alongside a capitalized variant.
     rendered = set()
-    for line in (CHECKS / "golden-urls.txt").read_text().splitlines():
+    for line in (CHECKS / "golden-urls.txt").read_text(encoding="utf-8").splitlines():
         if m := re.match(r"^/(tag|category)/([^/]+)/$", line.strip()):
             rendered.add((m.group(2), m.group(1)))
     destinations = {}
@@ -166,7 +201,7 @@ def main(argv):
         r"|^/p/[^/]+\.html$"  # Blogger static pages
     )
     # The repo's list, not the capture's, which is a frozen snapshot from before the contract grew.
-    redirects = (CHECKS / "redirect-urls.txt").read_text().splitlines()
+    redirects = (CHECKS / "redirect-urls.txt").read_text(encoding="utf-8").splitlines()
     needed = [u for u in (line.strip() for line in redirects) if u and u.count("/") == 2 and not covered.match(u)]
 
     # Attachments with a real post_parent resolve directly.
@@ -178,7 +213,7 @@ def main(argv):
     file_to_post = {}
     inv = capture / "inventory" / "media-urls.tsv"
     if inv.exists():
-        for line in inv.read_text().splitlines()[1:]:
+        for line in inv.read_text(encoding="utf-8").splitlines()[1:]:
             parts = line.split("\t")
             if len(parts) >= 4:
                 stem = pathlib.PurePosixPath(parts[1].split("?")[0]).stem.lower()

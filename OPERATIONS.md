@@ -48,26 +48,19 @@ This site has served the same domain across earlier platforms, so its whole oper
 
 ## The Migration Record
 
-**The migration is documented once, as a post on the site, and that post is the artifact to reference.** [`content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md`](./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md) holds how the URL surface was captured, why the contract splits into a render half and a redirect half, why the Blogger permalink map needs more entries than the posts it covers, why the media had to come from the export tar and be hash-verified, and which Hugo taxonomy default moves every archive to a new address without reporting anything.
+**The procedure and the facts live in the directory READMEs.** [`capture/README.md`](./capture/README.md) is the authority on how the inputs were captured and what is derived from them, [`checks/README.md`](./checks/README.md) on the URL contract, and [`deploy/README.md`](./deploy/README.md) on how the redirects are expressed. Each sits beside the thing it describes, which is what keeps it true.
 
-**Read it before changing anything under [`checks/`](./checks/) or [`deploy/maps/`](./deploy/maps/).** Both hold values that no code derives and no test explains, and the reasoning behind them is in the post rather than beside them. Cite the post rather than restating it. This file is the procedure and the post is the account of how the procedure came to be, so where the two disagree this file governs what to do while the post explains why the check exists.
+**The migration also has an account of itself, as a post on the site.** It is the casual version, what was done and how it went, and it is worth reading before changing anything under [`checks/`](./checks/) or [`deploy/maps/`](./deploy/maps/), because those hold values that no code derives.
+
+**The direction between them is one-way.** A post may cite a README. A README never cites the post. A doc that sends a reader to published prose for an operational fact has put the fact where it cannot be kept current, and where correcting it means editing something people have already read.
 
 **The post is content, so it sits under the URL contract.** Editing it moves nothing. Renaming it or taking it down breaks an address the site serves. A fact in it that proves wrong is corrected in the post rather than footnoted here.
 
 ### Rebuilding from the Exports
 
-Everything derived is in this repository. Everything it was derived *from* is in a capture directory outside it, which is where a rebuild starts. **The capture path is `CAPTURE_ROOT` in `secrets/local.production.env`**, recorded alongside the other values that name a machine rather than the project, so it is read from there rather than searched for. The capture is not a git repository, so it has no history to revert to, and it is read-only in normal use.
+Everything derived is in this repository. Everything it was derived *from* is a capture directory outside it, at `CAPTURE_ROOT`, which is where a rebuild starts. The capture is not a git repository, so it has no history to revert to, and it is read-only in normal use.
 
-| Under the capture | Holds | Recoverable |
-| --- | --- | --- |
-| `export/raw/` | the WordPress content export, WXR XML | yes, from the WordPress account while it exists |
-| `export/media-tar/` | the media export, the only trustworthy copy of the images | yes, from the same place |
-| `mirror/` | a crawl of the old platform as it served, including the media it linked from other hosts | no, once the old hosting ends |
-| `inventory/` | the URL and media inventories derived from that crawl | no, for the same reason |
-
-The two exports are the only inputs a person has to fetch, and `EXPORT-INSTRUCTIONS.md` at the root of the capture records which two menu items produce them and the counts each has to reconcile against. The counts are the point, because a partial export is the common way a migration loses posts without reporting anything.
-
-[`checks/build-redirects.py`](./checks/build-redirects.py) takes the capture directory as its one argument and rebuilds everything under `deploy/maps/` from it. It selects the export **by content** rather than by filename and fails unless exactly one candidate holds published posts, because the capture also holds a media-only export whose zero posts produce empty maps that are indistinguishable from working ones until the redirects are live.
+**[`capture/README.md`](./capture/README.md) holds the procedure**: what is under the capture and which parts of it can be fetched again, the two exports and the counts they must reconcile against, the ordered rebuild, and the results that look like success and are not.
 
 ## Local Verification Before a Pull Request
 
@@ -420,7 +413,7 @@ Ordering is load-bearing, so every redirect lives in a single `route` block. Out
 | Blogger label archives | `labels.map`, defaulting to the archive index |
 | Term archives the generator does not build | `terms.map` |
 
-The maps are generated by `checks/build-redirects.py` from the source export, which lives outside this repository. It is a provenance script rather than a CI step, and its outputs are committed. It selects the export by content and refuses to run unless exactly one contains published posts, because the capture holds a full export and a media-only one, and reading the wrong one yields empty maps that are indistinguishable from working ones until the redirects are live.
+The maps are generated by [`capture/build-redirects.py`](./capture/build-redirects.py) and the generated files are committed, so a deploy never regenerates them. How it selects its input, and why that selection is the part to get right, is in [`capture/README.md`](./capture/README.md).
 
 ## Server Hardening
 
