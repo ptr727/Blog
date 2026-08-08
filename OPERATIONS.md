@@ -196,7 +196,7 @@ The script asserts both halves of that rather than assuming them. It fails when 
 
 ## Log Review
 
-**Real traffic is the only source that finds what every check here is blind to.** The URL contract proves the URLs someone thought to list and the redirects derived from the export. It cannot know about a URL nobody recorded, because the crawl that produced the lists is the same crawl the lists are checked against. A visitor following a sixteen-year-old link is the one reader who tests that.
+**Real traffic is the only source that finds what every check here is blind to.** The URL contract proves the URLs someone thought to list and the redirects derived from the export. It cannot know about a URL nobody recorded, because the lists are their own standard: the gates check the built site and the running server against those lists, never against the old platform that served the addresses. An address the crawl missed is therefore missing from every gate that reads them, and a visitor following a sixteen-year-old link is the one reader who tests for it.
 
 Review runs in both directions, which are the same two the media checks read and have the same blind spots for the same reason.
 
