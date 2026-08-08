@@ -39,9 +39,11 @@ MAGIC = [
     (b"\xff\xd8\xff", ".jpg"),
     (b"GIF87a", ".gif"),
     (b"GIF89a", ".gif"),
-    (b"RIFF", ".webp"),
     (b"BM", ".bmp"),
 ]
+# RIFF is a container, not a format: WAV and AVI share the header. Matching it alone would
+# accept a sound file as an image, which is precisely the failure the magic-byte check
+# exists to prevent, so WEBP is confirmed at bytes 8 to 12 in sniff() below.
 
 
 def capture_root() -> pathlib.Path:
@@ -101,7 +103,11 @@ def fetch(url: str, depth: int = 0):
         return body, ext
 
     # Not an image. If it is Google's `-h` wrapper page, it names the real image.
-    if depth == 0 and body.lstrip()[:6].lower() == b"<html>":
+    # A wrapper page is HTML, and HTML does not reliably start with <html>. A doctype, a
+    # comment or leading whitespace are all ordinary, and requiring the tag meant a wrapper
+    # that opened with <!doctype html> was reported as "not an image" rather than followed.
+    head = body.lstrip()[:64].lower()
+    if depth == 0 and (head.startswith(b"<html") or head.startswith(b"<!doctype html")):
         m = IMG_IN_WRAPPER.search(body)
         if m:
             return fetch(m.group(1).decode("utf-8", "replace"), depth + 1)
