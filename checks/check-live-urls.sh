@@ -17,7 +17,20 @@ PARALLEL="${PARALLEL:-16}"
 # A truncated list otherwise turns this into a gate that passes while checking almost nothing.
 declare -A FLOOR=(["golden-urls.txt"]=320 ["redirect-urls.txt"]=900 ["golden-media-live.txt"]=8)
 for list in golden-urls.txt redirect-urls.txt golden-media-live.txt; do
+	# The count is validated before it is compared. An unreadable list makes `grep -c` yield
+	# nothing, and `[ "" -lt N ]` is a syntax error that evaluates false, so the guard against
+	# a truncated list would itself be skipped and the run would pass having checked nothing.
+	[ -r "$CHECKS/$list" ] || {
+		echo "FAIL $list: not readable at $CHECKS/$list" >&2
+		exit 1
+	}
 	n=$(grep -c . "$CHECKS/$list")
+	case "$n" in
+	'' | *[!0-9]*)
+		echo "FAIL $list: could not count URLs, got '$n'" >&2
+		exit 1
+		;;
+	esac
 	if [ "$n" -lt "${FLOOR[$list]}" ]; then
 		echo "FAIL $list: $n URLs, expected at least ${FLOOR[$list]} - the list has been truncated" >&2
 		exit 1
@@ -80,6 +93,12 @@ check_media() {
 	case "$code" in
 	301 | 308)
 		target=$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${auth[@]}" "$target")
+		# A 301 carrying no usable Location leaves this empty, and fetching an empty URL would
+		# be reported below as a transport error, which names the wrong problem.
+		if [ -z "$target" ]; then
+			echo "media $url answered $code with no usable Location" >>"$FAILED"
+			return
+		fi
 		# Same origin boundary as check_redirect, and for the same reason: a rule that one
 		# day points off-site must not mail the token there. A bare prefix would also accept
 		# a lookalike host registered as an attacker's subdomain.
