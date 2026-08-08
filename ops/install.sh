@@ -7,10 +7,8 @@
 # secrets/<server>.<environment>.env under the same names the pull itself uses, so this
 # copies them rather than translating them, and the account is whoever runs this.
 #
-# There is deliberately no name mapping here. An earlier version of this file had one,
-# because the pull and the secrets file had grown separate names for the same directories,
-# and a table translating four pairs is a thing to get wrong every time one side changes.
-# The names were unified instead, which deleted the table rather than maintaining it.
+# There is no name mapping here, because both sides spell every shared value the same way.
+# Keep it that way: a translation table is a thing to get wrong every time one side changes.
 #
 # Usage: ops/install.sh [--check] [--force]
 #   --check   validate and print what would be written, touch nothing, need no root

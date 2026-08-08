@@ -71,6 +71,12 @@ jobs:
           done
           python3 -c 'import yaml,sys; yaml.safe_load(open("hugo.yaml"))'
 
+      # Every configuration value is described once, in ENVIRONMENT.md.
+      # A new value gets added wherever its author is working, and nothing else notices a
+      # missing row. Runs both directions: undocumented values, and rows describing nothing.
+      - name: Check environment docs step
+        run: python3 checks/check-env-docs.py
+
       # The pin lives in the action, so validation and the deploy cannot install different generators.
       - name: Install Hugo step
         uses: ./.github/actions/install-hugo

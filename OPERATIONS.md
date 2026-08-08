@@ -153,7 +153,7 @@ HUGO_BASEURL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --
 checks/check-live-urls.sh <base-url>
 ```
 
-The deploy root and the base URL are the only host-specific values. A local run reads them from an untracked file under `secrets/`, one per environment, copied from [`deploy/env.example`](./deploy/env.example), and CI passes both explicitly. The whole `secrets/` directory is gitignored, so no address, path, or container name belonging to one machine reaches the published history.
+The deploy root and the base URL are the only host-specific values. A local run reads them from an untracked file under `secrets/`, one per environment, copied from [`example.env`](./example.env), and CI passes both explicitly. The whole `secrets/` directory is gitignored, so no address, path, or container name belonging to one machine reaches the published history.
 
 **Always set `HUGO_BASEURL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. The effective value is printed on every build for that reason.
 
@@ -220,7 +220,7 @@ ssh "$VPS_SSH_HOST" true && echo reachable
 
 **It is a pull rather than a push, and nothing on the VPS knows it happens.** That direction is the security property rather than an implementation detail: the backup host holds a key the VPS trusts, and the VPS holds no credential reaching any other system, so a compromise of the web server cannot walk into the backups that exist to survive it.
 
-**Both sides use one set of names, so there is nothing to reconcile.** The pull writes `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` and the log review reads the same two, spelled the same way, and [`ops/install.sh`](./ops/install.sh) generates the pull's `EnvironmentFile` from this repository's `secrets/` file by copying rather than translating. That is deliberate and was not the first attempt: the two sides briefly had separate names for the same four directories, which needed a mapping table in this file and a translation step in the installer, and both disappeared when the names were unified. A value that exists once cannot disagree with itself.
+**Both sides use one set of names, so there is nothing to reconcile.** The pull writes `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` and the log review reads the same two, spelled the same way, and [`ops/install.sh`](./ops/install.sh) generates the pull's `EnvironmentFile` from this repository's `secrets/` file by copying rather than translating. Every value is described once, in [`ENVIRONMENT.md`](./ENVIRONMENT.md), and [`checks/check-env-docs.py`](./checks/check-env-docs.py) fails if one is declared without a description or described without existing.
 
 ```sh
 set -a; . secrets/local.production.env; set +a

@@ -8,8 +8,8 @@ Tooling that runs on the **backup host**, not on the web server and not in CI. O
 | `vps-backup-pull` | `/usr/local/bin/vps-backup-pull` |
 | `vps-backup-pull.service` | `/etc/systemd/system/` |
 | `vps-backup-pull.timer` | `/etc/systemd/system/` |
-| `vps-backup-pull.env.example` | `/etc/vps-backup-pull.env` |
 | `vps-backup-pull.service.d-local.conf.example` | `/etc/systemd/system/vps-backup-pull.service.d/local.conf` |
+| [`example.env`](../example.env) | `/etc/vps-backup-pull.env` |
 
 **The last two are required, not optional, and `install.sh` generates both.** Nothing in this directory names a machine, so the address, the destination paths, and the account are supplied at install time from values this repository already holds. A missing value stops the pull with the name of what is missing rather than falling back to something plausible, since a wrong-but-valid destination is a backup nobody can find. The two `.example` files document the format and are not the install path.
 
@@ -65,9 +65,9 @@ systemctl list-timers vps-backup-pull.timer --all
 
 ## Variables
 
-Every path is a variable, so a host states its own layout rather than editing a file git owns. They are listed with their meanings in [`vps-backup-pull.env.example`](./vps-backup-pull.env.example), and the three `systemd` settings that cannot come from an environment file are in [`vps-backup-pull.service.d-local.conf.example`](./vps-backup-pull.service.d-local.conf.example).
+Every path is a variable, so a host states its own layout rather than editing a file git owns. [`example.env`](../example.env) lists them and [`ENVIRONMENT.md`](../ENVIRONMENT.md) describes them. The three `systemd` settings that cannot come from an environment file are in [`vps-backup-pull.service.d-local.conf.example`](./vps-backup-pull.service.d-local.conf.example).
 
-**They are the same names Blog's own `secrets/` file uses, which is the point.** `VPS_*` is something on the VPS and `*_ROOT` is something on this host, and the pull writes the two roots that the log review reads. One name per directory means the writing side and the reading side cannot disagree, and it is why `install.sh` copies rather than translates. An earlier split into two vocabularies needed a mapping table to hold it together, and unifying them deleted the table.
+**They are the same names Blog's own `secrets/` file uses, which is the point.** `VPS_*` is something on the VPS and `*_ROOT` is something on this host, and the pull writes the two roots that the log review reads. One name per directory means the writing side and the reading side cannot disagree, and it is why `install.sh` copies rather than translates. Every value is described in [`ENVIRONMENT.md`](../ENVIRONMENT.md).
 
 ## This directory is the source
 

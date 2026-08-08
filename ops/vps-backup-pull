@@ -19,7 +19,7 @@
 # it. A copy found on a host is an installed artifact, not a place to make a change.
 #
 # Paths below are read from /etc/vps-backup-pull.env, so a host states its own layout
-# there rather than editing this file. See ops/vps-backup-pull.env.example.
+# there rather than editing this file. See example.env and ENVIRONMENT.md.
 #
 # Why a PULL and not a push from the VPS: it keeps the VPS free of any credential
 # reaching another system, which is the one security rule in CONFIG.md item 0.
@@ -40,19 +40,8 @@
 # ciphertext it would make the encryption decorative. It is in 1Password.
 #
 # Every path is an environment variable, read from /etc/vps-backup-pull.env, so a host
-# states its own layout there rather than editing a file git owns. VPS_* names something on
-# the VPS and *_ROOT names something on this host, and these are the same names
-# secrets/<server>.<environment>.env uses, so there is one vocabulary rather than two.
-#
-#   VPS_SSH_HOST              (required)                where to pull from
-#   BACKUP_ARCHIVE_ROOT       (required)                archives + hostconfig land here
-#   LOG_ARCHIVE_ROOT          (required)                both log sets land here
-#   VPS_ARCHIVE_DIR           /var/backups/pangolin     the archives ON THE VPS
-#   VPS_TRAEFIK_LOG_ARCHIVE   /var/log/traefik/archive  rotated edge access logs ON THE VPS
-#   VPS_BLOG_LOG_DIR          /var/log/blog/legacy      one-off Caddy dumps ON THE VPS
-#
-# The three marked required carry no default, because an address and a destination belong
-# to one host. A wrong-but-valid destination is a backup nobody can find.
+# states its own layout there rather than editing a file git owns. The variables are listed
+# in example.env and described in ENVIRONMENT.md.
 #
 # Usage: vps-backup-pull [--delete] [--no-hostconfig] [--no-logs] [--dry-run] [--quiet]
 #   --delete         mirror deletions (Proxmox tracks the VPS's 14-archive window
@@ -144,8 +133,8 @@ LOG_RSYNC_OPTS=("${RSYNC_OPTS[@]}")
 # those instead. The unit omits User= deliberately, so this is what catches a missing
 # drop-in rather than the failure surfacing a day later as a permissions error.
 [[ $EUID -ne 0 ]] || die "refusing to run as root -- run as the account that owns the destination and holds the VPS key (systemd: set User= in the drop-in)"
-[[ -n $VPS_SSH_HOST ]] || die "VPS_SSH_HOST is not set -- see /etc/vps-backup-pull.env (template: ops/vps-backup-pull.env.example)"
-[[ -n $BACKUP_ARCHIVE_ROOT     ]] || die "BACKUP_ARCHIVE_ROOT is not set -- see /etc/vps-backup-pull.env (template: ops/vps-backup-pull.env.example)"
+[[ -n $VPS_SSH_HOST ]] || die "VPS_SSH_HOST is not set -- see /etc/vps-backup-pull.env (template: example.env)"
+[[ -n $BACKUP_ARCHIVE_ROOT     ]] || die "BACKUP_ARCHIVE_ROOT is not set -- see /etc/vps-backup-pull.env (template: example.env)"
 [[ $LOGS -eq 0 || -n $LOG_ARCHIVE_ROOT ]] || die "LOG_ARCHIVE_ROOT is not set and the log leg is enabled -- set it, or pass --no-logs"
 command -v rsync >/dev/null || die "rsync not installed on this host"
 
