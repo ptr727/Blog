@@ -59,7 +59,7 @@ jobs:
       - name: Lint shell scripts step
         run: |
           set -Eeuo pipefail
-          scripts=(checks/check-live-urls.sh deploy/make-release.sh ops/vps-backup-pull ops/install.sh)
+          scripts=(checks/check-live-urls.sh deploy/make-release.sh ops/vps-backup-pull ops/install.sh capture/run-wp2hugo.sh)
           docker run --rm --pull=always -v "$PWD":/mnt --workdir /mnt \
             koalaman/shellcheck:stable "${scripts[@]}"
           docker run --rm --pull=always -v "$PWD":/mnt --workdir /mnt \

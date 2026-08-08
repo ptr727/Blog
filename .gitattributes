@@ -15,10 +15,12 @@
 # A CRLF shebang breaks execution, so scripts stay LF regardless of the default.
 *.sh text eol=lf
 
-# The URL-parity and redirect-map generators are shebang-executable and run by path in CI.
-# They are pinned individually rather than by a blanket `*.py` rule.
-checks/build-redirects.py text eol=lf
+# Shebang-executable Python, where a CRLF on line one is a broken interpreter line rather
+# than a cosmetic difference. Scoped to the two directories that hold such files rather than
+# a blanket `*.py` rule, so a future non-executable module is not swept in by accident.
+capture/*.py text eol=lf
 checks/check-url-parity.py text eol=lf
+checks/check-env-docs.py text eol=lf
 
 # These formats are parsed line by line by a daemon rather than by a shell.
 # Caddy and OpenSSH both reject or silently mis-parse a CRLF file.

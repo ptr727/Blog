@@ -2,9 +2,14 @@
 """Generate the Caddy redirect maps from the WordPress export.
 
 Reads the export and the capture inventory, which live outside this repo, and writes the
-committed maps under deploy/maps/. See OPERATIONS.md for when to run it.
+committed maps under deploy/maps/. See capture/README.md for when to run it.
+
+The capture directory comes from CAPTURE_ROOT, and a first argument wins over it. This
+generates rather than gates, which is why it sits in capture/ beside the other scripts
+that read the capture rather than in checks/ beside the gates.
 """
 
+import os
 import pathlib
 import re
 import sys
@@ -12,7 +17,11 @@ import xml.etree.ElementTree as ET
 
 NS = {"wp": "http://wordpress.org/export/1.2/"}
 
-CHECKS = pathlib.Path(__file__).resolve().parent
+# Anchored on the repository rather than on this file's own directory, because the two
+# lists below live in checks/ and the maps in deploy/maps/, and neither follows this
+# script if it moves again.
+REPO = pathlib.Path(__file__).resolve().parent.parent
+CHECKS = REPO / "checks"
 
 # Blogger truncates an auto-generated slug at this many characters, on a whole-word boundary.
 # For a longer slug the truncated form is the URL Blogger served, and so the one in search indexes.
@@ -57,12 +66,27 @@ def write_map(path, pairs):
 
 
 def main(argv):
-    if len(argv) != 2:
-        print(__doc__.strip().splitlines()[0], file=sys.stderr)
-        print(f"usage: {argv[0]} <capture-dir>", file=sys.stderr)
+    # CAPTURE_ROOT is the default and an argument wins over it, the same shape DEPLOY_ROOT
+    # uses. Unset and unsupplied is refused rather than guessed: a wrong-but-plausible
+    # capture yields maps that are empty and indistinguishable from working ones.
+    # --print-export names the selected export and writes nothing. run-wp2hugo.sh calls it
+    # rather than reimplementing the choice, so the conversion and the maps are provably
+    # built from the same file. A shell reimplementation cannot match this anyway: the test
+    # is that ONE item carries both post_type=post and status=publish, and two greps over a
+    # whole file would accept a media-only export that happens to contain both words.
+    args = [a for a in argv[1:] if a != "--print-export"]
+    print_export = "--print-export" in argv[1:]
+    if len(args) > 1:
+        print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
         return 2
-    capture = pathlib.Path(argv[1])
-    out = pathlib.Path(__file__).resolve().parent.parent / "deploy" / "maps"
+    root = args[0] if args else os.environ.get("CAPTURE_ROOT", "")
+    if not root:
+        print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
+        print("CAPTURE_ROOT is not set and no capture directory was given", file=sys.stderr)
+        print("see example.env and ENVIRONMENT.md", file=sys.stderr)
+        return 2
+    capture = pathlib.Path(root)
+    out = REPO / "deploy" / "maps"
 
     # An account holds several exports, and a media-only one carries the attachments but no posts.
     # Filesystem order decides which a glob returns, and the wrong one yields empty maps that look valid.
@@ -84,6 +108,9 @@ def main(argv):
             print(f"  {path}", file=sys.stderr)
         return 1
     src, root = with_posts[0]
+    if print_export:
+        print(src)
+        return 0
     print(f"export: {src}")
 
     posts, attachments, blogger, terms = {}, [], [], []
