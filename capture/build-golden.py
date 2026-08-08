@@ -74,7 +74,7 @@ def build_candidates():
     cand = {"/"}
 
     # 1. Crawl
-    log = (ROOT / "crawl" / "spider.log").read_text(errors="replace")
+    log = (ROOT / "crawl" / "spider.log").read_text(encoding="utf-8", errors="replace")
     # Built from CAPTURE_SOURCE_URL rather than written in, so the pattern and the site the
     # crawl actually ran against cannot drift apart.
     crawled = {norm(u) for u in re.findall(re.escape(BASE) + r"[^\s]*", log)}
@@ -92,7 +92,7 @@ def build_candidates():
         print(f"  sitemap:    FAILED ({e})", file=sys.stderr)
 
     # 3. Derivation - the part no crawl can reach.
-    posts = json.loads((ROOT / "inventory" / "posts.json").read_text())
+    posts = json.loads((ROOT / "inventory" / "posts.json").read_text(encoding="utf-8"))
     derived = set()
 
     ym = Counter()
@@ -197,9 +197,9 @@ def main():
             dropped.append((u, code, loc))
 
     (ROOT / "checks").mkdir(exist_ok=True)
-    (ROOT / "checks" / "golden-urls.txt").write_text("".join(f"{u}\n" for u, _, _ in golden))
-    (ROOT / "checks" / "redirect-urls.txt").write_text("".join(f"{u}\n" for u, _, _ in redirect))
-    with (ROOT / "checks" / "url-verification.tsv").open("w") as fh:
+    (ROOT / "checks" / "golden-urls.txt").write_text("".join(f"{u}\n" for u, _, _ in golden), encoding="utf-8")
+    (ROOT / "checks" / "redirect-urls.txt").write_text("".join(f"{u}\n" for u, _, _ in redirect), encoding="utf-8")
+    with (ROOT / "checks" / "url-verification.tsv").open("w", encoding="utf-8") as fh:
         fh.write("class\tstatus\turl\tlocation\n")
         for name, rows in (("golden", golden), ("redirect", redirect), ("dropped", dropped)):
             for u, c, loc in rows:

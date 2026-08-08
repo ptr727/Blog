@@ -155,7 +155,8 @@ def main(site: pathlib.Path, apply: bool):
         inv = capture_root() / "inventory"
         inv.mkdir(parents=True, exist_ok=True)
         (inv / "external-media-map.tsv").write_text(
-            "source_url\tlocal_path\n" + "".join(f"{u}\t{v}\n" for u, v in sorted(mapping.items()))
+            "source_url\tlocal_path\n" + "".join(f"{u}\t{v}\n" for u, v in sorted(mapping.items())),
+            encoding="utf-8",
         )
 
     if failures:

@@ -61,7 +61,7 @@ def blogger_truncate(slug, limit=BLOGGER_SLUG_LIMIT):
 
 def write_map(path, pairs):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("".join(f"{k} {v}\n" for k, v in pairs))
+    path.write_text("".join(f"{k} {v}\n" for k, v in pairs), encoding="utf-8")
     return len(pairs)
 
 
@@ -156,7 +156,7 @@ def main(argv):
     # Reading the render list also resolves a slug that exists as both a tag and a category.
     # Map lookups are case-sensitive, so each slug is emitted alongside a capitalized variant.
     rendered = set()
-    for line in (CHECKS / "golden-urls.txt").read_text().splitlines():
+    for line in (CHECKS / "golden-urls.txt").read_text(encoding="utf-8").splitlines():
         if m := re.match(r"^/(tag|category)/([^/]+)/$", line.strip()):
             rendered.add((m.group(2), m.group(1)))
     destinations = {}
@@ -193,7 +193,7 @@ def main(argv):
         r"|^/p/[^/]+\.html$"  # Blogger static pages
     )
     # The repo's list, not the capture's, which is a frozen snapshot from before the contract grew.
-    redirects = (CHECKS / "redirect-urls.txt").read_text().splitlines()
+    redirects = (CHECKS / "redirect-urls.txt").read_text(encoding="utf-8").splitlines()
     needed = [u for u in (line.strip() for line in redirects) if u and u.count("/") == 2 and not covered.match(u)]
 
     # Attachments with a real post_parent resolve directly.
@@ -205,7 +205,7 @@ def main(argv):
     file_to_post = {}
     inv = capture / "inventory" / "media-urls.tsv"
     if inv.exists():
-        for line in inv.read_text().splitlines()[1:]:
+        for line in inv.read_text(encoding="utf-8").splitlines()[1:]:
             parts = line.split("\t")
             if len(parts) >= 4:
                 stem = pathlib.PurePosixPath(parts[1].split("?")[0]).stem.lower()

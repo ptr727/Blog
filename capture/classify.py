@@ -45,7 +45,7 @@ with urllib.request.urlopen(req, timeout=30) as r:
 
 rows = [
     line.rstrip("\n").split("\t")
-    for line in (ROOT / "checks" / "url-verification.tsv").read_text().splitlines()[1:]
+    for line in (ROOT / "checks" / "url-verification.tsv").read_text(encoding="utf-8").splitlines()[1:]
 ]
 status = {r[2]: (int(r[1]), r[3] if len(r) > 3 else "") for r in rows}
 
@@ -114,8 +114,8 @@ for url, (code, _loc) in sorted(status.items()):
     else:
         golden.append(url)
 
-(ROOT / "checks" / "golden-urls.txt").write_text("".join(f"{u}\n" for u in sorted(golden)))
-(ROOT / "checks" / "redirect-urls.txt").write_text("".join(f"{u}\n" for u in sorted(redirect)))
+(ROOT / "checks" / "golden-urls.txt").write_text("".join(f"{u}\n" for u in sorted(golden)), encoding="utf-8")
+(ROOT / "checks" / "redirect-urls.txt").write_text("".join(f"{u}\n" for u in sorted(redirect)), encoding="utf-8")
 
 shape = Counter()
 for u in golden:
