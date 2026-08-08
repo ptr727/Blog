@@ -4,13 +4,14 @@ Tooling that runs on the **backup host**, not on the web server and not in CI. O
 
 | File | Installs to |
 | --- | --- |
+| `install.sh` | nothing, it does the installing |
 | `vps-backup-pull` | `/usr/local/bin/vps-backup-pull` |
 | `vps-backup-pull.service` | `/etc/systemd/system/` |
 | `vps-backup-pull.timer` | `/etc/systemd/system/` |
 | `vps-backup-pull.env.example` | `/etc/vps-backup-pull.env` |
 | `vps-backup-pull.service.d-local.conf.example` | `/etc/systemd/system/vps-backup-pull.service.d/local.conf` |
 
-**The last two are required, not optional.** Nothing in this directory names a machine, because this repository is public, so the address, the destination paths, and the account the pull runs as are all supplied at install time. A missing value stops the run with the name of what is missing rather than falling back to something plausible, since a wrong-but-valid destination is a backup nobody can find.
+**The last two are required, not optional, and `install.sh` generates both.** Nothing in this directory names a machine, so the address, the destination paths, and the account are supplied at install time from values this repository already holds. A missing value stops the pull with the name of what is missing rather than falling back to something plausible, since a wrong-but-valid destination is a backup nobody can find. The two `.example` files document the format and are not the install path.
 
 ## What it does
 
@@ -37,23 +38,19 @@ Three legs, each skippable, in one direction only:
 ## Install
 
 ```sh
-sudo install -m 755 ops/vps-backup-pull /usr/local/bin/vps-backup-pull
-sudo install -m 644 ops/vps-backup-pull.service ops/vps-backup-pull.timer /etc/systemd/system/
-
-sudo install -m 600 ops/vps-backup-pull.env.example /etc/vps-backup-pull.env
-sudoedit /etc/vps-backup-pull.env
-
-sudo mkdir -p /etc/systemd/system/vps-backup-pull.service.d
-sudo install -m 644 ops/vps-backup-pull.service.d-local.conf.example \
-  /etc/systemd/system/vps-backup-pull.service.d/local.conf
-sudoedit /etc/systemd/system/vps-backup-pull.service.d/local.conf
-
-sudo systemctl daemon-reload
-sudo systemctl enable --now vps-backup-pull.timer
-systemctl list-timers vps-backup-pull.timer
+ops/install.sh --check    # derive, validate, print, write nothing
+ops/install.sh            # the same, then install
 ```
 
-**Check the install before waiting a day to find out.** `vps-backup-pull --dry-run` exercises the SSH and rsync legs, lists what the next run would transfer, and writes nothing.
+**Nothing is typed twice.** The address, both destinations, and the account are already known to this checkout, so `install.sh` derives them rather than asking: `VPS_SSH_HOST`, `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` come from `secrets/<server>.<environment>.env` under the names the log review uses, the account is whoever runs the script, the group is read from the destination, and the mount is resolved with `findmnt`. That is also what keeps the two vocabularies from drifting, since one is generated from the other rather than maintained beside it.
+
+**Run it as the account that will own the backup, not under `sudo`.** It refuses to start as root, because that account's name and its SSH key are what the unit is built around. It calls `sudo` itself for the steps that need it, so expect one password prompt.
+
+**Two derivations are worth knowing, because the obvious answer is wrong for both.** The group comes from the destination rather than from `id -gn`, since `Group=` sets the process's primary group and the account's own group is usually not the one owning the backup tree. And `RequiresMountsFor=` needs the mount point rather than the destination path below it.
+
+**`--check` needs no root and writes nothing.** It prints both generated files, reports whether each would be created or already matches, and proves the VPS answers over SSH. Run it first. It reports "needs root to compare" rather than "already correct" when it cannot read an existing file, because an installer that claims agreement it could not verify is the failure this is written against.
+
+Re-running is safe and is how a changed value is applied. A file that already matches is reported and left alone, and one that differs stops the run until `--force`.
 
 **The timer's hour sits behind both producers on the VPS rather than beside them**, because the VPS rotates its log and writes its archive at times of its own. Pulling before the day's archive exists fetches the previous one and reports success, which is the failure mode that looks like a working backup. `Persistent=true` covers a host that was powered off when the timer should have fired.
 
