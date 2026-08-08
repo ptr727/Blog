@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reorganise the content tree so its shape matches the published URLs.
+"""Reorganize the content tree so its shape matches the published URLs.
 
 wp2hugo files posts by year/month while the URL carries year/month/**day**, so the
 source tree and the URL tree disagree. This makes them identical:
