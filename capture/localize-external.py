@@ -165,12 +165,18 @@ def main(site: pathlib.Path, apply: bool):
             encoding="utf-8",
         )
 
+    print("\nAPPLIED" if apply else "\nDRY RUN - pass --apply")
     if failures:
+        # Non-zero in both modes. An image that cannot be fetched is a reference this site
+        # would keep pointing at someone else's server, which is the dependency this script
+        # exists to remove, so a partial run must not read as a success to whatever ran it.
+        # A dry run counts too: what fails to fetch now fails to fetch under --apply.
         print(f"\nUNRESOLVED ({len(failures)}):")
         for u, why in failures[:20]:
             print(f"  {why:14} {u[:110]}")
-    print("\nAPPLIED" if apply else "\nDRY RUN - pass --apply")
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main(converted_site(sys.argv), "--apply" in sys.argv)
+    sys.exit(main(converted_site(sys.argv), "--apply" in sys.argv))
