@@ -2,7 +2,7 @@
 
 Everything in this repository is derived. What it was derived *from* is a capture directory that lives outside it, and this directory holds the scripts that read that capture.
 
-The capture's path is `CAPTURE_ROOT`, in `secrets/<server>.<environment>.env`, recorded there alongside the other values that name a machine rather than the project. It is not a git repository, so it has no history to revert to, and it is read-only in normal use. Nothing here writes into it except the steps below that say they do.
+The capture's path is `CAPTURE_ROOT`, recorded alongside the other values that name a machine rather than the project. It is environment-independent, so unlike a deploy root it belongs in `secrets/local.production.env` alone rather than in a copy per environment: there is one capture, and four copies of its path is four chances for three of them to be wrong. It is not a git repository, so it has no history to revert to, and it is read-only in normal use. Nothing here writes into it except the steps below that say they do.
 
 **None of this runs in CI, and none of it runs on a schedule.** These are provenance tools, run by hand, and their outputs are committed. That is the whole difference between this directory and [`checks/`](../checks/), which holds gates that run on every change.
 
