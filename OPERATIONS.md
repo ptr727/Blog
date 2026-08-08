@@ -264,7 +264,7 @@ A request crosses the proxy before it reaches the site, so no single log answers
 
 **`ServiceName` is what separates those two cases inside the edge log itself**, which is otherwise a distinction this table draws conceptually and leaves you no way to apply. A Traefik line carrying a service name was routed, so the 404 came from the site. A line with the field absent matched no router at all, so the edge answered and the site never saw the request. The second kind is the one Caddy is structurally blind to, and it is rare enough that it reads as noise in a total and is worth listing individually.
 
-**`ServiceName` says that the edge answered, and `entryPointName` with `RequestScheme` says why**, which is the difference between a finding and a fault. The common cause is a cleartext request to the TLS port: the `websecure` router carries `tls` and therefore matches TLS requests only, so a plaintext request to 443 matches nothing and Traefik answers its own 404 with a body of a few dozen bytes. That is correct behavior rather than a gap, and it needs no action. Read the two fields together before treating a routerless 404 as a routing problem, because the shape that does deserve investigation is a routerless 404 arriving over **https**, which means a hostname the proxy serves no route for.
+**When `ServiceName` is absent the edge answered, and `entryPointName` with `RequestScheme` say why**, which is the difference between a finding and a fault. The common cause is a cleartext request to the TLS port: the `websecure` router carries `tls` and therefore matches TLS requests only, so a plaintext request to 443 matches nothing and Traefik answers its own 404 with a body of a few dozen bytes. That is correct behavior rather than a gap, and it needs no action. Read the two fields together before treating a routerless 404 as a routing problem, because the shape that does deserve investigation is a routerless 404 arriving over **https**, which means a hostname the proxy serves no route for.
 
 Two properties of the Caddy side are worth knowing before parsing it. Its access log is `format console`, so each line is a timestamp, a level, and a logger name followed by a JSON object rather than being JSON itself, and a parser that assumes one object per line reads nothing. And `trusted_proxies` is what makes `client_ip` the reader rather than the proxy, which is the same setting "Serving" describes as a security boundary. Without it every request in the log appears to come from one internal address, and the inward pass cannot distinguish a reader from a health check.
 
@@ -278,10 +278,10 @@ The outward pass is four filters over the edge log, and each one exists because 
 
 ```sh
 # Narrow to this site's own 404s, then keep only referers pointing somewhere else.
-# `// ""` is on the host filter because startswith aborts on a null host; the concatenation
-# below needs no guard, since jq treats null + "/path" as "/path".
+# No null guard is needed anywhere here: == and + both tolerate a null host. Swap the
+# equality for startswith and one becomes mandatory, which is the trap described below.
 jq -c 'select(.DownstreamStatus == 404)
-  | select((.RequestHost // "") == "blog.example.com")
+  | select(.RequestHost == "blog.example.com")
   | select((.["request_Referer"] // "") != "")
   | select((.["request_Referer"] | sub("^https?://"; "")) != (.RequestHost + .RequestPath))'
 ```
@@ -292,7 +292,7 @@ Widen `== 404` to `>= 400` for the whole non-200 sweep the table above describes
 
 **Then cross-reference what remains against the contract**, because that is the only step with an action. A surviving 404 whose path appears in [`checks/golden-urls.txt`](./checks/golden-urls.txt) or in [`deploy/maps/`](./deploy/maps/) is a redirect that is not working. A surviving 404 shaped like real content and present in neither is the case this whole pass exists to find, and it is added to the golden list with a redirect per that file's maintenance rules. A run where nothing survives is the expected result and should be recorded as one.
 
-**A missing `Host` header is the third way this data breaks a filter.** `RequestHost` is null on a request that sends none, which router exploits do. String functions reject that where arithmetic tolerates it, so `.RequestHost | startswith(...)` fails with `startswith() requires string inputs` and takes the whole run with it, while `.RequestHost + .RequestPath` quietly yields the path alone. The failure is loud but partial, which is the worst combination, since it aborts part way through a file having already printed real output. Guard the string functions with `// ""` and know that the concatenations do not need it.
+**A missing `Host` header is the third way this data breaks a filter.** `RequestHost` is null on a request that sends none, which router exploits do. String functions reject that where arithmetic tolerates it, so `.RequestHost | startswith(...)` fails with `startswith() requires string inputs` and takes the whole run with it, while `.RequestHost + .RequestPath` quietly yields the path alone. The failure is loud but partial, which is the worst combination, since it aborts part way through a file having already printed real output. Guard the string functions with `// ""`. Equality and concatenation both tolerate a null, so a guard on those is inert and reads as protection that is not there.
 
 **Two `jq` mistakes each read as a plausible answer rather than as an error.** A hyphenated key parses as subtraction, so `.request_User-Agent` silently is not the field you meant and `.["request_User-Agent"]` is, and the same holds for `Referer`. And `jq 'select(...)'` with no projection pretty-prints each match across many lines, so piping it to `wc -l` counts lines rather than records and overstates by roughly the width of the object. It reported 37 and 1,332 where the true counts were 1 and 36. Project with `@tsv` or pass `-c` before counting anything.
 
