@@ -195,9 +195,15 @@ class GalleryScan(HTMLParser):
 
     A gallery is a flex row of figures, so its column widths are set by `.gallery-cols-N figure`.
     Anything else landing in there is not laid out by that rule and is rendered as one more item
-    in the row, which is how both conversion artifacts this catches presented: a set caption
-    written as trailing text after a figure shortcode became a bare text node, and a gallery item
-    the conversion emitted as a plain markdown image became a `<p>` wrapping two images.
+    in the row.
+
+    This reads the built HTML, so it sees fewer shapes than the markdown has, and deliberately:
+    three source patterns reached it, a set caption written as text trailing a figure shortcode,
+    a bare markdown image, and a linked one, and they arrive here as a bare text node, a `<p>`
+    wrapping images, and an `<a>` with a `<br>` beside it. Enumerating source patterns would
+    make this a list to extend every time the conversion surprises us again. Naming the one
+    invariant instead, that a gallery holds figures and its own caption, covers the shape nobody
+    has thought of yet, which is how the third of the three was found after the first two.
     """
 
     # A void element never closes, so counting it as an open tag desynchronizes the depth for the
