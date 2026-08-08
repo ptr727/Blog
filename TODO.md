@@ -9,6 +9,7 @@ The site is built, gated in CI, and deployed to staging by pipeline. It is not y
 | Piece | State |
 | --- | --- |
 | Content and media | done. Carries every migrated post and page, with the media hash-verified against the export tar |
+| Media integrity | closed for the files themselves. The conversion's only loss was 19 images, inside five galleries, restored from the capture, and the 98 files with no page links are adjudicated rather than unknown, with `ORPHANED_MEDIA` failing if that count moves either way. How media was *presented* was a separate loss, found later and now gated |
 | URL contract | done. 328 render, 917 redirect, 778 legacy image URLs, all gated |
 | Deploy shape | done. Proven on two local mirrors and on the VPS, by hand and by pipeline |
 | CI workflows | green. Validation runs on every pull request and feeds the required check |
