@@ -152,6 +152,7 @@ flowchart LR
 | [`hugo.yaml`][hugo-config] | site configuration, taxonomy URLs, and the feed name |
 | [`checks/`][checks] | the URL contract and the gates that enforce it |
 | [`deploy/`][deploy] | the release script, the web-server config, and the redirect maps |
+| [`ops/`][ops] | the pull that copies the server's backups and access logs off it, and its schedule |
 
 Deploy paths, environment variables, and the server layout are documented in [OPERATIONS.md][operations].
 
@@ -212,6 +213,7 @@ Licensed under the [MIT License][license]\
 [checks]: ./checks/
 [commits-link]: https://github.com/ptr727/Blog/commits
 [deploy]: ./deploy/
+[ops]: ./ops/
 [deploy-readme]: ./deploy/README.md
 [discussions-link]: https://github.com/ptr727/Blog/discussions
 [issues-link]: https://github.com/ptr727/Blog/issues

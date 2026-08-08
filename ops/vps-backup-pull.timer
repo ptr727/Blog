@@ -1,0 +1,19 @@
+[Unit]
+Description=Daily VPS backup and access-log pull
+Documentation=file:/usr/local/bin/vps-backup-pull
+
+[Timer]
+# 09:00 UTC, chosen to sit behind both producers on the VPS rather than beside them:
+# logrotate rotates the access log at 00:00 UTC, and pangolin-backup.timer writes the
+# day's encrypted archive at 08:03 UTC. Running before the archive exists would pull
+# yesterday's and report success, which is the failure that looks like a working backup.
+# Stated in UTC explicitly, because this host runs local time and the VPS does not.
+OnCalendar=*-*-* 09:00:00 UTC
+# The VPS is a single small host; nothing here needs to hit it on the second.
+RandomizedDelaySec=15m
+# Runs on next boot if the host was down at 09:00. Without this a machine that is off
+# overnight silently never backs up, and the gap is only visible by reading timestamps.
+Persistent=true
+
+[Install]
+WantedBy=timers.target
