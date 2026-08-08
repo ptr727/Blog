@@ -76,6 +76,14 @@ def main(argv):
     # whole file would accept a media-only export that happens to contain both words.
     args = [a for a in argv[1:] if a != "--print-export"]
     print_export = "--print-export" in argv[1:]
+    # An unknown option is refused rather than taken as a path. Without this, `--help` is
+    # read as a capture directory and the run fails with "no export XML found under --help",
+    # which sends the reader looking for a missing file rather than a mistyped flag.
+    unknown = [a for a in args if a.startswith("-")]
+    if unknown:
+        print(f"unknown option: {unknown[0]}", file=sys.stderr)
+        print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
+        return 2
     if len(args) > 1:
         print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
         return 2

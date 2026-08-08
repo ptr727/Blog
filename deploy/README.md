@@ -8,6 +8,7 @@ How the site is built, released, and served. The release is a **self-contained b
 | --- | --- | --- | --- |
 | `hugo` (extended) | `make-release.sh` | building the site | see below |
 | `python3` (3.10+) | `check-url-parity.py`, `capture/build-redirects.py` | the build-time gate, regenerating maps | `apt install python3` |
+| PyYAML | `capture/clean-content.py` | reading front matter during a conversion | `apt install python3-yaml` |
 | `rsync` | `make-release.sh` | installing a release, hard-linking unchanged files | `apt install rsync` |
 | `gzip` | `make-release.sh` | precompression | coreutils, already present |
 | `brotli` | `make-release.sh` | precompression | `apt install brotli` |

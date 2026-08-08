@@ -37,7 +37,10 @@ import sys
 import pathlib
 from pathlib import Path
 
-import yaml
+try:
+    import yaml
+except ModuleNotFoundError:  # the only third-party import in capture/ or checks/
+    sys.exit("PyYAML is required by this script: pip install PyYAML (Debian: apt install python3-yaml)")
 
 KEEP = ["title", "date", "url", "categories", "tags", "post_id", "cover"]
 FM = re.compile(r"^---\n(.*?)\n---\n(.*)$", re.S)

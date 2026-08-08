@@ -43,6 +43,8 @@ Two downloads from the WordPress account, both from Tools then Export.
 
 In order. Each Python step is a dry run by default and takes `--apply` to write.
 
+Everything here is standard library except `clean-content.py`, which needs PyYAML to read front matter. It names the package if it is missing rather than raising an import error.
+
 ```sh
 set -a; . secrets/local.production.env; set +a
 
