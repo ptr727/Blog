@@ -41,8 +41,15 @@ ORPHANED_MEDIA = 98
 # Every check above returns a list, and the shared summary called all of them "missing". That is
 # what a URL that did not build is, and it is not what a stray node inside a gallery is: those are
 # present, which is the whole complaint. The default stays "missing" so a check added later reads
-# the way the older ones do unless it says otherwise.
-FAILURE_NOUN = {"gallery": "stray nodes", "robots": "problems"}
+# the way the older ones do unless it says otherwise, and it needs no pair because it is already
+# count-neutral. A count is always printed beside the noun, so the pair is (singular, plural) and
+# "1 stray nodes" was the reason for making it a pair rather than a string.
+FAILURE_NOUN = {"gallery": ("stray node", "stray nodes"), "robots": ("problem", "problems")}
+
+
+def failure_noun(label, count):
+    forms = FAILURE_NOUN.get(label, ("missing", "missing"))
+    return forms[0] if count == 1 else forms[1]
 
 
 def load(name):
@@ -377,7 +384,7 @@ def main(argv):
 
     print()
     for label, found in failures:
-        print(f"FAIL {label}: {len(found)} {FAILURE_NOUN.get(label, 'missing')}")
+        print(f"FAIL {label}: {len(found)} {failure_noun(label, len(found))}")
         for item in found[:20]:
             print(f"  {item}")
         if len(found) > 20:
