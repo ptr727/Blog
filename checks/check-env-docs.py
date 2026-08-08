@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
-"""Fail if a configuration value is declared or consumed anywhere but not described in
-ENVIRONMENT.md, or described there and declared nowhere.
+"""Fail if a configuration value is declared without a description in ENVIRONMENT.md, or
+described there and declared nowhere.
+
+The declared surface is three things, and nothing else: the keys in example.env, the
+vars.X and secrets.X a workflow references, and the KNOBS list below. A variable a script
+merely reads is NOT in scope, because a script-local name and a configuration value are the
+same shape and no pattern separates them, so widening this would report the difference as
+findings nobody can clear. A new knob therefore has to be added to KNOBS by hand.
 
 ENVIRONMENT.md is the single description of every configuration value. A new value gets
 added wherever its author is working, which is rarely the doc, and no linter notices a

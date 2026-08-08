@@ -50,6 +50,15 @@ note() { printf '  %s\n' "$*"; }
 
 REPO=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 ENV_FILE=${ENV_FILE:-$REPO/secrets/local.production.env}
+# Same rule deploy/make-release.sh applies, because the two read the same files and a name
+# that means different things depending on where you stood is worse here: this one installs.
+# A relative name resolves against the repo, so it means the same from any directory, and
+# traversal is refused rather than resolved, since a relative name is meant to reach secrets/.
+case "$ENV_FILE" in
+/*) ;;
+*..*) die "ENV_FILE must not traverse: $ENV_FILE" ;;
+*) ENV_FILE="$REPO/$ENV_FILE" ;;
+esac
 
 [[ $EUID -ne 0 ]] || die "do not run this under sudo -- run it as the account that will own the backup; it calls sudo for the steps that need it"
 [[ -f $ENV_FILE ]] || die "$ENV_FILE does not exist (ENV_FILE overrides which file is read)"

@@ -48,7 +48,7 @@ ops/install.sh            # the same, then install
 
 **`--check` needs no root and writes nothing.** It prints both generated files, reports whether each would be created or already matches, and proves the VPS answers over SSH. Run it first. It reports "needs root to compare" rather than "already correct" when it cannot read an existing file, because an installer that claims agreement it could not verify is the failure this is written against.
 
-Re-running is safe and is how a changed value is applied. A file that already matches is reported and left alone, and one that differs stops the run until `--force`.
+Re-running is safe and is how a changed value is applied. Both generated files are rewritten every run, so the comparison is a report and a guard rather than a skip: a file that already matches says so, and one that differs stops the run until `--force`.
 
 **The timer's hour sits behind both producers on the VPS rather than beside them**, because the VPS rotates its log and writes its archive at times of its own. Pulling before the day's archive exists fetches the previous one and reports success, which is the failure mode that looks like a working backup. `Persistent=true` covers a host that was powered off when the timer should have fired.
 

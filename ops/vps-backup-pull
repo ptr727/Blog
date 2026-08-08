@@ -11,15 +11,18 @@
 # RUN IT AS YOUR NORMAL USER, NOT WITH SUDO. It authenticates to the VPS with that
 # user's SSH key and writes to a tree that user owns. Under sudo it uses root's
 # identity, which the VPS does not trust, and starts mixing root-owned files into a
-# user-owned backup tree. That is why it lives in bin/ rather than sbin/, and why
-# the unit sets User=. Same applies when scheduling it: use the user's crontab or a
-# user systemd timer, not root's.
+# user-owned backup tree. That is why it lives in bin/ rather than sbin/, and why the
+# shipped unit is a system timer that sets User= in a drop-in rather than running as root.
+# A user timer or that account's crontab works equally well. What matters is the account,
+# not which scheduler owns it.
 #
 # The source is ops/vps-backup-pull in the Blog repository. Edit it there and install
 # it. A copy found on a host is an installed artifact, not a place to make a change.
 #
-# Paths below are read from /etc/vps-backup-pull.env, so a host states its own layout
-# there rather than editing this file. See example.env and ENVIRONMENT.md.
+# Paths below come from the environment, and this script reads nothing but the environment.
+# Under the timer, systemd loads /etc/vps-backup-pull.env through the unit's EnvironmentFile.
+# Run by hand, nothing loads it for you, so source an environment file first or the required
+# values are unset. See example.env and ENVIRONMENT.md.
 #
 # Why a PULL and not a push from the VPS: it keeps the VPS free of any credential
 # reaching another system. That rule is item 0 of the VPS's own /root/CONFIG.md, which is
