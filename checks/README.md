@@ -69,7 +69,7 @@ Two properties of the maps are non-obvious and easy to break when regenerating t
 **Checking a count.** Every count above is derivable from the files, so check rather than trust:
 
 ```sh
-wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy.txt
+wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy.txt checks/golden-media-live.txt
 ```
 
 ## `golden-media-live.txt`, and why the media set needs a second list
