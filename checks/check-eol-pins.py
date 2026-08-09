@@ -76,6 +76,34 @@ def has_shebang(path: Path) -> bool:
         return False
 
 
+def pathspec_for(pattern: str) -> str:
+    """Convert a .gitattributes pattern into a pathspec matching the same files.
+
+    A plain `git ls-files -- <pattern>` is the obvious way to ask which files a pin covers
+    and it is wrong in both directions, because pathspec and gitattributes do not share
+    glob semantics:
+
+      under  a pattern with no slash matches its basename at any depth in gitattributes,
+             where bare pathspec reads it as a root-relative path. `Dockerfile` covers
+             `Docker/Dockerfile`, and bare pathspec returns nothing, so a live pin reports
+             dead and reds CI. This is the direction that produces a false failure.
+      over   `*` does not cross a `/` in gitattributes, and does in bare pathspec, so
+             `pkg/*.py` wrongly picks up `pkg/sub/nested.py`. Harmless for this check,
+             since it can only hide a dead pin, never invent one.
+
+    `:(glob)` gives `*` and `**` their gitattributes meaning, and the `**/` prefix supplies
+    the any-depth match for a slash-free pattern. Verified against `git check-attr`, which
+    is what git actually applies: on a tree holding `Docker/Dockerfile`, `pkg/mod.py` and
+    `pkg/sub/nested.py`, check-attr resolves eol=lf for exactly the first two, and this
+    conversion selects exactly those two where the bare form selects the wrong set both
+    times.
+    """
+    body = pattern[1:] if pattern.startswith("/") else pattern
+    # A trailing slash marks a directory, and is not part of the name being matched.
+    anchored = "/" in body.rstrip("/")
+    return f":(glob){body}" if anchored else f":(glob)**/{body}"
+
+
 def eol_attribute(paths: list[str]) -> dict[str, str]:
     """The resolved `eol` attribute per path, from git rather than by re-implementing the
     match rules, because a hand-rolled matcher is a second source of truth that can differ
@@ -116,7 +144,7 @@ def main() -> int:
     for number, pattern in patterns():
         if pattern in BASELINE:
             continue
-        if not git("ls-files", "--", pattern).strip():
+        if not git("ls-files", "--", pathspec_for(pattern)).strip():
             findings.append(
                 f"dead: .gitattributes:{number} pattern {pattern!r} matches no tracked "
                 f"file, so it binds nothing while reading as coverage."
