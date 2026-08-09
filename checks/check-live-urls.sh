@@ -114,7 +114,7 @@ echo "==> tagging requests X-Blog-Check: $CHECK_TAG"
 
 # A resource access token opens the proxy's auth gate.
 # It goes into a curl config file because bash cannot export an array to the parallel checks.
-# A command line is also world-readable in ps output, and this runs one per URL checked.
+# A command line is also world-readable in ps output, and every request would carry it.
 if [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] && [ -n "${PANGOLIN_ACCESS_TOKEN:-}" ]; then
 	# Same hazard as CHECK_TAG above and the same reason, but a narrower rule, because the
 	# grammar of a credential is the issuer's to define and not this script's. Only the
