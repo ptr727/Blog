@@ -4,7 +4,8 @@
 `.gitattributes` keeps git passive with `* -text` and then names the files whose line
 endings are load-bearing. That design is right and it has one weakness: the pins are a
 hand-maintained list, so a new execution-sensitive file is pinned only if its author
-remembers, and nothing reads the list back. Both directions have already failed here.
+remembers, and until this gate nothing read the list back. Both directions had already
+failed by the time it was written.
 
   unpinned    `ops/vps-backup-pull` is extensionless, so no `*.sh` or `*.py` rule reached
               it, and a CRLF checkout would hand systemd a broken interpreter line.
