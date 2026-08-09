@@ -15,6 +15,12 @@
 # A CRLF shebang breaks execution, so scripts stay LF regardless of the default.
 *.sh text eol=lf
 
+# Shebang-executable files carrying no extension, which every rule above matches by
+# extension and therefore misses. `ops/vps-backup-pull` is run by systemd on the backup
+# host. A named line per file, as with the Python rules below, and `check-eol-pins.py`
+# fails if a tracked shebang file ever lands without one.
+ops/vps-backup-pull text eol=lf
+
 # Shebang-executable Python, where a CRLF on line one is a broken interpreter line rather
 # than a cosmetic difference. `capture/` is pinned whole, because everything there is a
 # script; under `checks/` the two executables are named, because that directory also holds
@@ -23,13 +29,21 @@
 capture/*.py text eol=lf
 checks/check-url-parity.py text eol=lf
 checks/check-env-docs.py text eol=lf
+checks/check-eol-pins.py text eol=lf
 
-# These formats are parsed line by line by a daemon rather than by a shell.
-# Caddy and OpenSSH both reject or silently mis-parse a CRLF file.
-# The deploy shell is an extensionless shebang script that matches no rule above.
+# Caddy config is parsed line by line by a daemon rather than by a shell, and a CRLF file
+# is rejected or silently mis-parsed. Both files are named: the bundle's `Caddyfile`, and
+# the bootstrap that is installed into the container's config directory and is the only
+# Caddy file outside the release.
+#
+# The restricted `authorized_keys` and the forced-command deploy shell were pinned here
+# too, and this repository has never carried either: they live on the server, described in
+# OPERATIONS.md "Server Hardening". A pin binds nothing for a file that does not exist,
+# and the comment claiming to cover "the extensionless shebang script" is what let the
+# real one, `ops/vps-backup-pull`, sit unpinned above. `check-eol-pins.py` now fails on a
+# pattern matching no tracked file, so neither can come back silently.
 deploy/Caddyfile text eol=lf
-deploy/blog-deploy-shell text eol=lf
-deploy/authorized_keys text eol=lf
+deploy/bootstrap.Caddyfile text eol=lf
 
 # Caddy map files are tabular data read by `map` directives.
 # They stay LF for the same reason as the Caddyfile.
