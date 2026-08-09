@@ -19,6 +19,10 @@ usage() {
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# The release upstream replaced `git whatchanged` with `git log`. Anything older restores
+# nothing and exits 0, so this is the floor rather than a preference.
+MTIME_MIN=2025.08
+
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
 # ENV_FILE selects the environment, because `set -a` overwrites a value the caller exported.
 # The first argument overrides the root, being read after this.
@@ -93,16 +97,41 @@ cd "$REPO"
 #
 # Required rather than optional. Skipping when absent is how the CI version shipped broken
 # for four releases: it printed a reassuring line and restored nothing.
-command -v git-restore-mtime >/dev/null || {
-	echo "git-restore-mtime not found on PATH" >&2
+# Both invocation forms are accepted, because how it installs decides which one resolves. The
+# Debian and Ubuntu package puts it in git's exec-path at /usr/lib/git-core, where only the
+# subcommand form works; a manual install to /usr/local/bin gives the bare name and no
+# subcommand. Testing only one would refuse a correctly installed tool.
+MTIME_CMD=()
+if command -v git-restore-mtime >/dev/null 2>&1; then
+	MTIME_CMD=(git-restore-mtime)
+elif git restore-mtime --version >/dev/null 2>&1; then
+	MTIME_CMD=(git restore-mtime)
+else
+	echo "git-restore-mtime not found, as either 'git-restore-mtime' or 'git restore-mtime'" >&2
 	echo "  it is what makes --link-dest able to link, and a release built without it is a full copy" >&2
-	echo "  install git-tools v2025.08 or newer -- the v2022.12 in Debian and Ubuntu calls" >&2
-	echo "  'git whatchanged', which current git refuses to run, so it restores nothing and exits 0" >&2
+	echo "  install git-tools $MTIME_MIN or newer, from https://github.com/MestreLion/git-tools" >&2
 	exit 1
-}
+fi
 
-echo "==> restoring file mtimes"
-git-restore-mtime static
+# The version is gated rather than left to the assertion below, because v2022.12 fails in the
+# one way an outcome check catches late and a reader never catches at all: it calls
+# `git whatchanged`, which current git refuses to run, so it reports files to be processed,
+# processes none, and exits 0. Refusing it here names the cause; the assertion would only
+# report the symptom. Versions are YYYY.MM, so dropping the dot compares them as integers.
+mtime_version="$("${MTIME_CMD[@]}" --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]{2}' | head -1)"
+if [ -z "$mtime_version" ]; then
+	echo "${MTIME_CMD[*]} did not report a version, so it cannot be checked for the whatchanged defect" >&2
+	exit 1
+fi
+if [ "${mtime_version//./}" -lt "${MTIME_MIN//./}" ]; then
+	echo "${MTIME_CMD[*]} is $mtime_version, and $MTIME_MIN or newer is required" >&2
+	echo "  before $MTIME_MIN it calls 'git whatchanged', which current git refuses to run, so it" >&2
+	echo "  restores nothing and still exits 0 -- every release would silently be a full copy" >&2
+	exit 1
+fi
+
+echo "==> restoring file mtimes with ${MTIME_CMD[*]} $mtime_version"
+"${MTIME_CMD[@]}" static
 
 # Asserted rather than trusted, because the failure this exists for is a restore that reports
 # success and does nothing. A restored file cannot be newer than the commit it was dated from,
