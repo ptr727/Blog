@@ -76,6 +76,13 @@ fi
 # is only reliable if every tag actually has a source half. A charset check alone would accept
 # `smoke`, `/smoke` and `a/b/c`, each of which reads as conforming and breaks that query.
 # Exactly one slash, both halves non-empty, from a deliberately narrow character set.
+#
+# The range `A-Za-z0-9` is collation-dependent, so the allowlist below is only ASCII-strict
+# because `globasciiranges` happens to be on. Set explicitly rather than inherited, since a
+# guarantee resting on a build default is not a guarantee. Demonstrated rather than assumed:
+# with the option off, under en_US.UTF-8, `aé` and `aÉ` are both ACCEPTED by this pattern,
+# and with it on they are rejected.
+shopt -s globasciiranges
 case "$CHECK_TAG" in
 *[!A-Za-z0-9._/-]*)
 	echo "FAIL CHECK_TAG may contain only letters, digits, and the characters '. _ - /' -- got '$CHECK_TAG'" >&2
