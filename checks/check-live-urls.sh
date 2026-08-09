@@ -78,20 +78,20 @@ fi
 # Exactly one slash, both halves non-empty, from a deliberately narrow character set.
 case "$CHECK_TAG" in
 *[!A-Za-z0-9._/-]*)
-	echo "FAIL CHECK_TAG may contain only letters, digits, and . _ - / -- got '$CHECK_TAG'" >&2
+	echo "FAIL CHECK_TAG may contain only letters, digits, and the characters '. _ - /' -- got '$CHECK_TAG'" >&2
 	exit 2
 	;;
 */*/*)
-	echo "FAIL CHECK_TAG takes exactly one / , as <source>/<id> -- got '$CHECK_TAG'" >&2
+	echo "FAIL CHECK_TAG takes exactly one slash, as <source>/<id> -- got '$CHECK_TAG'" >&2
 	exit 2
 	;;
 /* | */)
-	echo "FAIL CHECK_TAG needs a non-empty half either side of the / -- got '$CHECK_TAG'" >&2
+	echo "FAIL CHECK_TAG needs a non-empty half either side of the slash -- got '$CHECK_TAG'" >&2
 	exit 2
 	;;
 */*) ;;
 *)
-	echo "FAIL CHECK_TAG must be <source>/<id> , such as proxmox/media-dev -- got '$CHECK_TAG'" >&2
+	echo "FAIL CHECK_TAG must be <source>/<id>, such as proxmox/media-dev -- got '$CHECK_TAG'" >&2
 	exit 2
 	;;
 esac
