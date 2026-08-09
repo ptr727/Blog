@@ -65,6 +65,20 @@ if [ -z "${CHECK_TAG:-}" ]; then
 		CHECK_TAG="proxmox/manual"
 	fi
 fi
+# Validated before it is written, because this lands in a curl config file and a curl config
+# file is a list of options rather than a list of headers. A value carrying a newline ends the
+# header line and starts a new directive, so an override could add an option nobody typed; a
+# value carrying a double quote ends the quoted string with the same result. Neither is a
+# legal HTTP header value either, so refusing both loses nothing.
+#
+# The grammar is the one the design already states, `<source>/<id>`, kept deliberately narrow:
+# letters, digits, dot, underscore, hyphen, and the slash that separates the two halves.
+case "$CHECK_TAG" in
+*[!A-Za-z0-9._/-]*)
+	echo "FAIL CHECK_TAG may contain only letters, digits, and . _ - / -- got '$CHECK_TAG'" >&2
+	exit 2
+	;;
+esac
 printf 'header = "X-Blog-Check: %s"\n' "$CHECK_TAG" >"$CHECKRC"
 echo "==> tagging requests X-Blog-Check: $CHECK_TAG"
 
@@ -72,6 +86,19 @@ echo "==> tagging requests X-Blog-Check: $CHECK_TAG"
 # It goes into a curl config file because bash cannot export an array to the parallel checks.
 # A command line is also world-readable in ps output, and this runs 1,245 of them.
 if [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] && [ -n "${PANGOLIN_ACCESS_TOKEN:-}" ]; then
+	# Same hazard as CHECK_TAG above and the same reason, but a narrower rule, because the
+	# grammar of a credential is the issuer's to define and not this script's. Only the two
+	# characters that break out of a quoted config line are refused, and neither is legal in
+	# an HTTP header value, so a token containing one is a paste accident rather than a token.
+	# Reported without echoing the value, since it is a secret and the finding is its shape.
+	for name in PANGOLIN_ACCESS_TOKEN_ID PANGOLIN_ACCESS_TOKEN; do
+		case "${!name}" in
+		*'"'* | *$'\n'*)
+			echo "FAIL $name contains a quote or a newline, which cannot appear in an HTTP header value" >&2
+			exit 2
+			;;
+		esac
+	done
 	CURLRC="$(mktemp)"
 	chmod 600 "$CURLRC"
 	printf 'header = "P-Access-Token-Id: %s"\nheader = "P-Access-Token: %s"\n' \
