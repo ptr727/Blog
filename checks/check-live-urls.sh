@@ -71,11 +71,27 @@ fi
 # value carrying a double quote ends the quoted string with the same result. Neither is a
 # legal HTTP header value either, so refusing both loses nothing.
 #
-# The grammar is the one the design already states, `<source>/<id>`, kept deliberately narrow:
-# letters, digits, dot, underscore, hyphen, and the slash that separates the two halves.
+# The shape is enforced and not merely described, because the whole value of provenance over a
+# boolean is that the log can be grouped by source, and `select(.tag | startswith("github/"))`
+# is only reliable if every tag actually has a source half. A charset check alone would accept
+# `smoke`, `/smoke` and `a/b/c`, each of which reads as conforming and breaks that query.
+# Exactly one slash, both halves non-empty, from a deliberately narrow character set.
 case "$CHECK_TAG" in
 *[!A-Za-z0-9._/-]*)
 	echo "FAIL CHECK_TAG may contain only letters, digits, and . _ - / -- got '$CHECK_TAG'" >&2
+	exit 2
+	;;
+*/*/*)
+	echo "FAIL CHECK_TAG takes exactly one / , as <source>/<id> -- got '$CHECK_TAG'" >&2
+	exit 2
+	;;
+/* | */)
+	echo "FAIL CHECK_TAG needs a non-empty half either side of the / -- got '$CHECK_TAG'" >&2
+	exit 2
+	;;
+*/*) ;;
+*)
+	echo "FAIL CHECK_TAG must be <source>/<id> , such as proxmox/media-dev -- got '$CHECK_TAG'" >&2
 	exit 2
 	;;
 esac
