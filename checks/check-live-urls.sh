@@ -82,7 +82,14 @@ fi
 # guarantee resting on a build default is not a guarantee. Demonstrated rather than assumed:
 # with the option off, under en_US.UTF-8, `aé` and `aÉ` are both ACCEPTED by this pattern,
 # and with it on they are rejected.
-shopt -s globasciiranges
+# Checked, because this script runs under `set -uo pipefail` and not `-e`, so an unsupported
+# option would print to stderr, return 1, and be stepped straight over — leaving the
+# validation locale-dependent underneath a comment promising it is not. `shopt` returns 1 on
+# an unknown option name, which is what makes this testable rather than decorative.
+shopt -s globasciiranges || {
+	echo "FAIL this shell does not support globasciiranges, so the character allowlist below would be locale-dependent" >&2
+	exit 2
+}
 case "$CHECK_TAG" in
 *[!A-Za-z0-9._/-]*)
 	echo "FAIL CHECK_TAG may contain only letters, digits, and the characters '. _ - /' -- got '$CHECK_TAG'" >&2
@@ -110,14 +117,18 @@ echo "==> tagging requests X-Blog-Check: $CHECK_TAG"
 # A command line is also world-readable in ps output, and this runs 1,245 of them.
 if [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] && [ -n "${PANGOLIN_ACCESS_TOKEN:-}" ]; then
 	# Same hazard as CHECK_TAG above and the same reason, but a narrower rule, because the
-	# grammar of a credential is the issuer's to define and not this script's. Only the two
-	# characters that break out of a quoted config line are refused, and neither is legal in
-	# an HTTP header value, so a token containing one is a paste accident rather than a token.
+	# grammar of a credential is the issuer's to define and not this script's. Only the
+	# characters that break out of a quoted config line are refused, and none is legal in an
+	# HTTP header value, so a token containing one is a paste accident rather than a token.
 	# Reported without echoing the value, since it is a secret and the finding is its shape.
+	#
+	# Carriage return counts as a line ending here as much as newline does. Header injection
+	# is classically CRLF, and a lone CR is enough on its own, so refusing LF while allowing
+	# CR would leave the shape this guard exists for.
 	for name in PANGOLIN_ACCESS_TOKEN_ID PANGOLIN_ACCESS_TOKEN; do
 		case "${!name}" in
-		*'"'* | *$'\n'*)
-			echo "FAIL $name contains a quote or a newline, which cannot appear in an HTTP header value" >&2
+		*'"'* | *$'\n'* | *$'\r'*)
+			echo "FAIL $name contains a quote, a newline, or a carriage return, none of which can appear in an HTTP header value" >&2
 			exit 2
 			;;
 		esac
