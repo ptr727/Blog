@@ -118,7 +118,10 @@ fi
 # `git whatchanged`, which current git refuses to run, so it reports files to be processed,
 # processes none, and exits 0. Refusing it here names the cause; the assertion would only
 # report the symptom. Versions are YYYY.MM, so dropping the dot compares them as integers.
-mtime_version="$("${MTIME_CMD[@]}" --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]{2}' | head -1)"
+# `|| true` because `set -e` with `pipefail` makes an unmatched grep abort the script at this
+# assignment, so the check below would never run and an unreadable version would surface as a
+# bare exit 1 with no message. Verified: without it the next line is unreachable.
+mtime_version="$("${MTIME_CMD[@]}" --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]{2}' | head -1)" || true
 if [ -z "$mtime_version" ]; then
 	echo "${MTIME_CMD[*]} did not report a version, so it cannot be checked for the whatchanged defect" >&2
 	exit 1
@@ -146,9 +149,17 @@ mtime_bound="$(git log -1 --format=%ct)"
 # `git status --porcelain` covers modified, staged and untracked in one list, so an empty
 # result means every file under static/ is tracked and unchanged. That is the CI case, and it
 # takes the same one-pass `find` the workflow uses.
+# A rename or a copy emits TWO NUL records, `XY <new>` then a bare `<old>`, so the loop has to
+# consume the second explicitly. Reading it as another status record would strip three
+# characters off a bare path and record `tic/a.txt` for `static/a.txt`, leaving the real path
+# unexcluded and the assertion able to fail on a file that is legitimately uncommitted.
+# Both halves of a rename are excluded, since both are uncommitted.
 declare -A mtime_dirty=()
 while IFS= read -r -d '' entry; do
 	mtime_dirty["${entry:3}"]=1
+	case "${entry:0:1}" in
+	R | C) IFS= read -r -d '' mtime_orig && mtime_dirty["$mtime_orig"]=1 ;;
+	esac
 done < <(git status --porcelain -z -- static)
 
 if [ ${#mtime_dirty[@]} -eq 0 ]; then
