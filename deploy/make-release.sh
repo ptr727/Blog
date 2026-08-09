@@ -101,35 +101,55 @@ cd "$REPO"
 # Debian and Ubuntu package puts it in git's exec-path at /usr/lib/git-core, where only the
 # subcommand form works; a manual install to /usr/local/bin gives the bare name and no
 # subcommand. Testing only one would refuse a correctly installed tool.
+#
+# Each candidate is version-checked and the first ACCEPTABLE one wins, rather than the first
+# one that merely exists. A host can carry both, and an old manual install must not veto a
+# current packaged one sitting behind it.
+#
+# The version is gated rather than left to the assertion below, because before MTIME_MIN the
+# tool calls `git whatchanged`, which current git refuses to run, so it reports files to be
+# processed, processes none, and exits 0. Refusing it here names the cause; the assertion can
+# only report the symptom. Versions are YYYY.MM, so dropping the dot compares them as integers.
+mtime_probe() {
+	# The failed match is tolerated because `set -e` with `pipefail` would otherwise abort the
+	# whole script at the assignment, making every diagnostic below unreachable.
+	"$@" --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]{2}' | head -1 || true
+}
+
 MTIME_CMD=()
-if command -v git-restore-mtime >/dev/null 2>&1; then
-	MTIME_CMD=(git-restore-mtime)
-elif git restore-mtime --version >/dev/null 2>&1; then
-	MTIME_CMD=(git restore-mtime)
-else
-	echo "git-restore-mtime not found, as either 'git-restore-mtime' or 'git restore-mtime'" >&2
+mtime_version=""
+mtime_found=""
+for mtime_form in bare subcommand; do
+	mtime_try=()
+	case "$mtime_form" in
+	bare) command -v git-restore-mtime >/dev/null 2>&1 && mtime_try=(git-restore-mtime) ;;
+	subcommand) git restore-mtime --version >/dev/null 2>&1 && mtime_try=(git restore-mtime) ;;
+	esac
+	[ ${#mtime_try[@]} -gt 0 ] || continue
+
+	mtime_try_version="$(mtime_probe "${mtime_try[@]}")"
+	if [ -z "$mtime_try_version" ]; then
+		mtime_found="${mtime_found}${mtime_found:+, }${mtime_try[*]} (no version reported)"
+		continue
+	fi
+	mtime_found="${mtime_found}${mtime_found:+, }${mtime_try[*]} $mtime_try_version"
+	if [ "${mtime_try_version//./}" -ge "${MTIME_MIN//./}" ]; then
+		MTIME_CMD=("${mtime_try[@]}")
+		mtime_version="$mtime_try_version"
+		break
+	fi
+done
+
+if [ ${#MTIME_CMD[@]} -eq 0 ]; then
+	if [ -z "$mtime_found" ]; then
+		echo "git-restore-mtime not found, as either 'git-restore-mtime' or 'git restore-mtime'" >&2
+	else
+		echo "no usable git-restore-mtime: found $mtime_found, and $MTIME_MIN or newer is required" >&2
+		echo "  before $MTIME_MIN it calls 'git whatchanged', which current git refuses to run, so it" >&2
+		echo "  restores nothing and still exits 0 -- every release would silently be a full copy" >&2
+	fi
 	echo "  it is what makes --link-dest able to link, and a release built without it is a full copy" >&2
 	echo "  install git-tools $MTIME_MIN or newer, from https://github.com/MestreLion/git-tools" >&2
-	exit 1
-fi
-
-# The version is gated rather than left to the assertion below, because v2022.12 fails in the
-# one way an outcome check catches late and a reader never catches at all: it calls
-# `git whatchanged`, which current git refuses to run, so it reports files to be processed,
-# processes none, and exits 0. Refusing it here names the cause; the assertion would only
-# report the symptom. Versions are YYYY.MM, so dropping the dot compares them as integers.
-# `|| true` because `set -e` with `pipefail` makes an unmatched grep abort the script at this
-# assignment, so the check below would never run and an unreadable version would surface as a
-# bare exit 1 with no message. Verified: without it the next line is unreachable.
-mtime_version="$("${MTIME_CMD[@]}" --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]{2}' | head -1)" || true
-if [ -z "$mtime_version" ]; then
-	echo "${MTIME_CMD[*]} did not report a version, so it cannot be checked for the whatchanged defect" >&2
-	exit 1
-fi
-if [ "${mtime_version//./}" -lt "${MTIME_MIN//./}" ]; then
-	echo "${MTIME_CMD[*]} is $mtime_version, and $MTIME_MIN or newer is required" >&2
-	echo "  before $MTIME_MIN it calls 'git whatchanged', which current git refuses to run, so it" >&2
-	echo "  restores nothing and still exits 0 -- every release would silently be a full copy" >&2
 	exit 1
 fi
 
