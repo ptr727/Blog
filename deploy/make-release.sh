@@ -82,6 +82,65 @@ command -v hugo >/dev/null || {
 
 cd "$REPO"
 
+# Git stores no mtimes, so a checkout stamps every file with the moment it was written, and
+# a release built from a fresh clone then links nothing against the previous one. This host's
+# long-lived working tree has old mtimes already and links fine, which is exactly what makes
+# the gap easy to miss: it is invisible here and total in a clean checkout.
+#
+# The deploy workflow does the same thing with the same assertion after it, deliberately, so
+# the local path and CI fail the same way for the same reason rather than one of them being
+# the trusted one.
+#
+# Required rather than optional. Skipping when absent is how the CI version shipped broken
+# for four releases: it printed a reassuring line and restored nothing.
+command -v git-restore-mtime >/dev/null || {
+	echo "git-restore-mtime not found on PATH" >&2
+	echo "  it is what makes --link-dest able to link, and a release built without it is a full copy" >&2
+	echo "  install git-tools v2025.08 or newer -- the v2022.12 in Debian and Ubuntu calls" >&2
+	echo "  'git whatchanged', which current git refuses to run, so it restores nothing and exits 0" >&2
+	exit 1
+}
+
+echo "==> restoring file mtimes"
+git-restore-mtime static
+
+# Asserted rather than trusted, because the failure this exists for is a restore that reports
+# success and does nothing. A restored file cannot be newer than the commit it was dated from,
+# so nothing under static/ may be newer than HEAD's commit time.
+#
+# Locally modified files are excluded, which is the one way this differs from CI. A working
+# tree can legitimately hold a static file newer than any commit; a fresh CI checkout cannot,
+# so there the same check needs no exclusion. Comparing the clean files only keeps the
+# assertion meaningful during an edit loop instead of being skipped whenever the tree is dirty.
+mtime_bound="$(git log -1 --format=%ct)"
+
+# `git status --porcelain` covers modified, staged and untracked in one list, so an empty
+# result means every file under static/ is tracked and unchanged. That is the CI case, and it
+# takes the same one-pass `find` the workflow uses.
+declare -A mtime_dirty=()
+while IFS= read -r -d '' entry; do
+	mtime_dirty["${entry:3}"]=1
+done < <(git status --porcelain -z -- static)
+
+if [ ${#mtime_dirty[@]} -eq 0 ]; then
+	mtime_newest=$(find static -type f -printf '%T@\n' | sort -n | tail -1 | cut -d. -f1)
+else
+	echo "==> ${#mtime_dirty[@]} uncommitted path(s) under static/, excluded from the mtime check"
+	mtime_newest=0
+	while IFS= read -r -d '' f; do
+		[ -n "${mtime_dirty[$f]:-}" ] && continue
+		t=$(stat -c %Y "$f")
+		[ "$t" -gt "$mtime_newest" ] && mtime_newest=$t
+	done < <(git ls-files -z -- static)
+fi
+
+if [ "$mtime_newest" -gt "$mtime_bound" ]; then
+	echo "mtime restore did nothing: static/ holds unmodified files newer than HEAD's commit," >&2
+	echo "  so they still carry their checkout time and --link-dest will link nothing" >&2
+	exit 1
+fi
+echo "==> mtimes restored, newest $mtime_newest against HEAD $mtime_bound"
+
 # Hugo maps HUGO_<KEY> onto config, so HUGO_BASEURL overrides hugo.yaml with no flag.
 # A mirror built without it serves canonical tags, feed links, and permalinks pointing at production.
 # The build gate passes either way, so the effective value is logged rather than left implicit.
