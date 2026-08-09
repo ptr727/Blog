@@ -19,6 +19,10 @@ usage() {
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# The release upstream replaced `git whatchanged` with `git log`. Anything older restores
+# nothing and exits 0, so this is the floor rather than a preference.
+MTIME_MIN=2025.08
+
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
 # ENV_FILE selects the environment, because `set -a` overwrites a value the caller exported.
 # The first argument overrides the root, being read after this.
@@ -81,6 +85,121 @@ command -v hugo >/dev/null || {
 }
 
 cd "$REPO"
+
+# Git stores no mtimes, so a checkout stamps every file with the moment it was written, and
+# a release built from a fresh clone then links nothing against the previous one. This host's
+# long-lived working tree has old mtimes already and links fine, which is exactly what makes
+# the gap easy to miss: it is invisible here and total in a clean checkout.
+#
+# The deploy workflow does the same thing with the same assertion after it, deliberately, so
+# the local path and CI fail the same way for the same reason rather than one of them being
+# the trusted one.
+#
+# Required rather than optional. Skipping when absent is how the CI version shipped broken
+# for four releases: it printed a reassuring line and restored nothing.
+# Both invocation forms are accepted, because how it installs decides which one resolves. The
+# Debian and Ubuntu package puts it in git's exec-path at /usr/lib/git-core, where only the
+# subcommand form works; a manual install to /usr/local/bin gives the bare name and no
+# subcommand. Testing only one would refuse a correctly installed tool.
+#
+# Each candidate is version-checked and the first ACCEPTABLE one wins, rather than the first
+# one that merely exists. A host can carry both, and an old manual install must not veto a
+# current packaged one sitting behind it.
+#
+# The version is gated rather than left to the assertion below, because before MTIME_MIN the
+# tool calls `git whatchanged`, which current git refuses to run, so it reports files to be
+# processed, processes none, and exits 0. Refusing it here names the cause; the assertion can
+# only report the symptom. Versions are YYYY.MM, so dropping the dot compares them as integers.
+mtime_probe() {
+	# The failed match is tolerated because `set -e` with `pipefail` would otherwise abort the
+	# whole script at the assignment, making every diagnostic below unreachable.
+	"$@" --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]{2}' | head -1 || true
+}
+
+MTIME_CMD=()
+mtime_version=""
+mtime_found=""
+for mtime_form in bare subcommand; do
+	mtime_try=()
+	case "$mtime_form" in
+	bare) command -v git-restore-mtime >/dev/null 2>&1 && mtime_try=(git-restore-mtime) ;;
+	subcommand) git restore-mtime --version >/dev/null 2>&1 && mtime_try=(git restore-mtime) ;;
+	esac
+	[ ${#mtime_try[@]} -gt 0 ] || continue
+
+	mtime_try_version="$(mtime_probe "${mtime_try[@]}")"
+	if [ -z "$mtime_try_version" ]; then
+		mtime_found="${mtime_found}${mtime_found:+, }${mtime_try[*]} (no version reported)"
+		continue
+	fi
+	mtime_found="${mtime_found}${mtime_found:+, }${mtime_try[*]} $mtime_try_version"
+	if [ "${mtime_try_version//./}" -ge "${MTIME_MIN//./}" ]; then
+		MTIME_CMD=("${mtime_try[@]}")
+		mtime_version="$mtime_try_version"
+		break
+	fi
+done
+
+if [ ${#MTIME_CMD[@]} -eq 0 ]; then
+	if [ -z "$mtime_found" ]; then
+		echo "git-restore-mtime not found, as either 'git-restore-mtime' or 'git restore-mtime'" >&2
+	else
+		echo "no usable git-restore-mtime: found $mtime_found, and $MTIME_MIN or newer is required" >&2
+		echo "  before $MTIME_MIN it calls 'git whatchanged', which current git refuses to run, so it" >&2
+		echo "  restores nothing and still exits 0 -- every release would silently be a full copy" >&2
+	fi
+	echo "  it is what makes --link-dest able to link, and a release built without it is a full copy" >&2
+	echo "  install git-tools $MTIME_MIN or newer, from https://github.com/MestreLion/git-tools" >&2
+	exit 1
+fi
+
+echo "==> restoring file mtimes with ${MTIME_CMD[*]} $mtime_version"
+"${MTIME_CMD[@]}" static
+
+# Asserted rather than trusted, because the failure this exists for is a restore that reports
+# success and does nothing. A restored file cannot be newer than the commit it was dated from,
+# so nothing under static/ may be newer than HEAD's commit time.
+#
+# Locally modified files are excluded, which is the one way this differs from CI. A working
+# tree can legitimately hold a static file newer than any commit; a fresh CI checkout cannot,
+# so there the same check needs no exclusion. Comparing the clean files only keeps the
+# assertion meaningful during an edit loop instead of being skipped whenever the tree is dirty.
+mtime_bound="$(git log -1 --format=%ct)"
+
+# `git status --porcelain` covers modified, staged and untracked in one list, so an empty
+# result means every file under static/ is tracked and unchanged. That is the CI case, and it
+# takes the same one-pass `find` the workflow uses.
+# A rename or a copy emits TWO NUL records, `XY <new>` then a bare `<old>`, so the loop has to
+# consume the second explicitly. Reading it as another status record would strip three
+# characters off a bare path and record `tic/a.txt` for `static/a.txt`, leaving the real path
+# unexcluded and the assertion able to fail on a file that is legitimately uncommitted.
+# Both halves of a rename are excluded, since both are uncommitted.
+declare -A mtime_dirty=()
+while IFS= read -r -d '' entry; do
+	mtime_dirty["${entry:3}"]=1
+	case "${entry:0:1}" in
+	R | C) IFS= read -r -d '' mtime_orig && mtime_dirty["$mtime_orig"]=1 ;;
+	esac
+done < <(git status --porcelain -z -- static)
+
+if [ ${#mtime_dirty[@]} -eq 0 ]; then
+	mtime_newest=$(find static -type f -printf '%T@\n' | sort -n | tail -1 | cut -d. -f1)
+else
+	echo "==> ${#mtime_dirty[@]} uncommitted path(s) under static/, excluded from the mtime check"
+	mtime_newest=0
+	while IFS= read -r -d '' f; do
+		[ -n "${mtime_dirty[$f]:-}" ] && continue
+		t=$(stat -c %Y "$f")
+		[ "$t" -gt "$mtime_newest" ] && mtime_newest=$t
+	done < <(git ls-files -z -- static)
+fi
+
+if [ "$mtime_newest" -gt "$mtime_bound" ]; then
+	echo "mtime restore did nothing: static/ holds unmodified files newer than HEAD's commit," >&2
+	echo "  so they still carry their checkout time and --link-dest will link nothing" >&2
+	exit 1
+fi
+echo "==> mtimes restored, newest $mtime_newest against HEAD $mtime_bound"
 
 # Hugo maps HUGO_<KEY> onto config, so HUGO_BASEURL overrides hugo.yaml with no flag.
 # A mirror built without it serves canonical tags, feed links, and permalinks pointing at production.
