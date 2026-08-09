@@ -89,6 +89,7 @@ Set on the command line for one run rather than stored anywhere.
 | `NO_LINK_DEST=1` | full copy instead of hard-linking from the previous release |
 | `KEEP_RELEASES` | how many releases `make-release.sh` leaves behind |
 | `EXPECT_RELEASE` | the release id `check-live-urls.sh` requires the live site to report, which is what makes a rollback verifiable rather than merely exiting zero |
+| `MTIME_RESTORED=1` | the caller has already restored `static/` mtimes, so `make-release.sh` skips its own restore and does not require the tool. **CI sets it**, because the workflows restore with a pinned action that runs the tool from the action's directory and never puts it on `PATH`. It skips the work and never the assertion, so a caller that sets it without having restored fails the same check as one that never tried |
 | `CHECK_TAG` | the `X-Blog-Check` provenance this run announces on every request. **`<source>/<id>` is enforced, not merely expected**: exactly one `/`, which is the separator and the only one allowed, with both halves non-empty and each drawn from letters, digits, `.`, `_`, `-`. Rarely set by hand, since `check-live-urls.sh` derives `github/<run-id>-<attempt>` under Actions and `proxmox/manual` elsewhere. Set it to name a purpose for a hand run, as `proxmox/media-dev` |
 
 ## Two credentials to the VPS, and why they are separate

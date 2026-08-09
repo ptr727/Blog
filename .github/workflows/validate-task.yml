@@ -17,8 +17,11 @@ jobs:
 
     steps:
 
+      # Full history, because the mtime restore below has no commit to date a file from without it.
       - name: Checkout code step
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       # Doc linters run as pinned action wrappers.
       # The editorconfig-checker action is install-only, so it runs via Docker instead.
@@ -100,3 +103,20 @@ jobs:
       # 328 URLs must render, 778 legacy image URLs must resolve, and every local asset reference must exist.
       - name: Check URL contract step
         run: python3 checks/check-url-parity.py public
+
+      # The same action the deploy uses, so the two agree on who restores the mtimes.
+      - name: Restore file mtimes step
+        uses: chetan/git-restore-mtime-action@d186aca54f8760da4dec55313195e51ed3ebb0b3 # v2.3
+        with:
+          args: static
+
+      # The release script was linted here and run only by a deploy, so a broken caller contract reached production.
+      # Assembling into an empty scratch root exercises the deploy's path short of the transport.
+      # No previous release exists there, so the hard-link guard does not apply.
+      # REQUIRE_BROTLI stays unset, since installing brotli would cost an apt round trip per pull request.
+      - name: Assemble release bundle step
+        env:
+          MTIME_RESTORED: '1'
+        run: |
+          set -Eeuo pipefail
+          deploy/make-release.sh "${RUNNER_TEMP}/validate-bundle" "$(date -u +%Y%m%d-%H%M%S)"

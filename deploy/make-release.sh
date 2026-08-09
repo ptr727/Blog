@@ -86,94 +86,70 @@ command -v hugo >/dev/null || {
 
 cd "$REPO"
 
-# Git stores no mtimes, so a checkout stamps every file with the moment it was written, and
-# a release built from a fresh clone then links nothing against the previous one. This host's
-# long-lived working tree has old mtimes already and links fine, which is exactly what makes
-# the gap easy to miss: it is invisible here and total in a clean checkout.
-#
-# The deploy workflow does the same thing with the same assertion after it, deliberately, so
-# the local path and CI fail the same way for the same reason rather than one of them being
-# the trusted one.
-#
-# Required rather than optional. Skipping when absent is how the CI version shipped broken
-# for four releases: it printed a reassuring line and restored nothing.
-# Both invocation forms are accepted, because how it installs decides which one resolves. The
-# Debian and Ubuntu package puts it in git's exec-path at /usr/lib/git-core, where only the
-# subcommand form works; a manual install to /usr/local/bin gives the bare name and no
-# subcommand. Testing only one would refuse a correctly installed tool.
-#
-# Each candidate is version-checked and the first ACCEPTABLE one wins, rather than the first
-# one that merely exists. A host can carry both, and an old manual install must not veto a
-# current packaged one sitting behind it.
-#
-# The version is gated rather than left to the assertion below, because before MTIME_MIN the
-# tool calls `git whatchanged`, which current git refuses to run, so it reports files to be
-# processed, processes none, and exits 0. Refusing it here names the cause; the assertion can
-# only report the symptom. Versions are YYYY.MM, so dropping the dot compares them as integers.
-mtime_probe() {
-	# The failed match is tolerated because `set -e` with `pipefail` would otherwise abort the
-	# whole script at the assignment, making every diagnostic below unreachable.
-	"$@" --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]{2}' | head -1 || true
-}
+# Git stores no mtimes, so a checkout stamps every file with the moment it was written.
+# Without restoring them a release links nothing against the previous one.
+# MTIME_RESTORED lets a caller that restored already skip the work, never the assertion below.
+if [ "${MTIME_RESTORED:-0}" = 1 ]; then
+	echo "==> mtimes restored by the caller, per MTIME_RESTORED"
+else
+	# How the tool was installed decides which invocation form resolves, so both are tried.
+	# The first form meeting MTIME_MIN wins, since a stale install must not veto a current one.
+	# Below MTIME_MIN it calls `git whatchanged`, which current git refuses, and it exits 0 anyway.
+	# Versions are YYYY.MM, so dropping the dot compares them as integers.
+	mtime_probe() {
+		# An unmatched grep would abort the script here, leaving the checks below unreachable.
+		"$@" --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]{2}' | head -1 || true
+	}
 
-MTIME_CMD=()
-mtime_version=""
-mtime_found=""
-for mtime_form in bare subcommand; do
-	mtime_try=()
-	case "$mtime_form" in
-	bare) command -v git-restore-mtime >/dev/null 2>&1 && mtime_try=(git-restore-mtime) ;;
-	subcommand) git restore-mtime --version >/dev/null 2>&1 && mtime_try=(git restore-mtime) ;;
-	esac
-	[ ${#mtime_try[@]} -gt 0 ] || continue
+	MTIME_CMD=()
+	mtime_version=""
+	mtime_found=""
+	for mtime_form in bare subcommand; do
+		mtime_try=()
+		case "$mtime_form" in
+		bare) command -v git-restore-mtime >/dev/null 2>&1 && mtime_try=(git-restore-mtime) ;;
+		subcommand) git restore-mtime --version >/dev/null 2>&1 && mtime_try=(git restore-mtime) ;;
+		esac
+		[ ${#mtime_try[@]} -gt 0 ] || continue
 
-	mtime_try_version="$(mtime_probe "${mtime_try[@]}")"
-	if [ -z "$mtime_try_version" ]; then
-		mtime_found="${mtime_found}${mtime_found:+, }${mtime_try[*]} (no version reported)"
-		continue
-	fi
-	mtime_found="${mtime_found}${mtime_found:+, }${mtime_try[*]} $mtime_try_version"
-	if [ "${mtime_try_version//./}" -ge "${MTIME_MIN//./}" ]; then
-		MTIME_CMD=("${mtime_try[@]}")
-		mtime_version="$mtime_try_version"
-		break
-	fi
-done
+		mtime_try_version="$(mtime_probe "${mtime_try[@]}")"
+		if [ -z "$mtime_try_version" ]; then
+			mtime_found="${mtime_found}${mtime_found:+, }${mtime_try[*]} (no version reported)"
+			continue
+		fi
+		mtime_found="${mtime_found}${mtime_found:+, }${mtime_try[*]} $mtime_try_version"
+		if [ "${mtime_try_version//./}" -ge "${MTIME_MIN//./}" ]; then
+			MTIME_CMD=("${mtime_try[@]}")
+			mtime_version="$mtime_try_version"
+			break
+		fi
+	done
 
-if [ ${#MTIME_CMD[@]} -eq 0 ]; then
-	if [ -z "$mtime_found" ]; then
-		echo "git-restore-mtime not found, as either 'git-restore-mtime' or 'git restore-mtime'" >&2
-	else
-		echo "no usable git-restore-mtime: found $mtime_found, and $MTIME_MIN or newer is required" >&2
-		echo "  before $MTIME_MIN it calls 'git whatchanged', which current git refuses to run, so it" >&2
-		echo "  restores nothing and still exits 0 -- every release would silently be a full copy" >&2
+	if [ ${#MTIME_CMD[@]} -eq 0 ]; then
+		if [ -z "$mtime_found" ]; then
+			echo "git-restore-mtime not found, as either 'git-restore-mtime' or 'git restore-mtime'" >&2
+		else
+			echo "no usable git-restore-mtime: found $mtime_found, and $MTIME_MIN or newer is required" >&2
+			echo "  before $MTIME_MIN it calls 'git whatchanged', which current git refuses to run, so it" >&2
+			echo "  restores nothing and still exits 0 -- every release would silently be a full copy" >&2
+		fi
+		echo "  it is what makes --link-dest able to link, and a release built without it is a full copy" >&2
+		echo "  install git-tools $MTIME_MIN or newer, from https://github.com/MestreLion/git-tools" >&2
+		exit 1
 	fi
-	echo "  it is what makes --link-dest able to link, and a release built without it is a full copy" >&2
-	echo "  install git-tools $MTIME_MIN or newer, from https://github.com/MestreLion/git-tools" >&2
-	exit 1
+
+	echo "==> restoring file mtimes with ${MTIME_CMD[*]} $mtime_version"
+	"${MTIME_CMD[@]}" static
 fi
 
-echo "==> restoring file mtimes with ${MTIME_CMD[*]} $mtime_version"
-"${MTIME_CMD[@]}" static
-
-# Asserted rather than trusted, because the failure this exists for is a restore that reports
-# success and does nothing. A restored file cannot be newer than the commit it was dated from,
-# so nothing under static/ may be newer than HEAD's commit time.
-#
-# Locally modified files are excluded, which is the one way this differs from CI. A working
-# tree can legitimately hold a static file newer than any commit; a fresh CI checkout cannot,
-# so there the same check needs no exclusion. Comparing the clean files only keeps the
-# assertion meaningful during an edit loop instead of being skipped whenever the tree is dirty.
+# The restore is asserted because a failing one reports success and does nothing.
+# A restored file cannot be newer than the commit it was dated from.
+# Uncommitted paths are excluded, since a working tree may hold one newer than any commit.
 mtime_bound="$(git log -1 --format=%ct)"
 
-# `git status --porcelain` covers modified, staged and untracked in one list, so an empty
-# result means every file under static/ is tracked and unchanged. That is the CI case, and it
-# takes the same one-pass `find` the workflow uses.
-# A rename or a copy emits TWO NUL records, `XY <new>` then a bare `<old>`, so the loop has to
-# consume the second explicitly. Reading it as another status record would strip three
-# characters off a bare path and record `tic/a.txt` for `static/a.txt`, leaving the real path
-# unexcluded and the assertion able to fail on a file that is legitimately uncommitted.
-# Both halves of a rename are excluded, since both are uncommitted.
+# An empty porcelain list means every file under static/ is tracked and unchanged.
+# A rename emits two NUL records, `XY <new>` then a bare `<old>`, so the second is consumed here.
+# Both halves are excluded, since both are uncommitted.
 declare -A mtime_dirty=()
 while IFS= read -r -d '' entry; do
 	mtime_dirty["${entry:3}"]=1
