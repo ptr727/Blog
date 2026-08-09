@@ -114,7 +114,7 @@ echo "==> tagging requests X-Blog-Check: $CHECK_TAG"
 
 # A resource access token opens the proxy's auth gate.
 # It goes into a curl config file because bash cannot export an array to the parallel checks.
-# A command line is also world-readable in ps output, and this runs 1,245 of them.
+# A command line is also world-readable in ps output, and this runs one per URL checked.
 if [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] && [ -n "${PANGOLIN_ACCESS_TOKEN:-}" ]; then
 	# Same hazard as CHECK_TAG above and the same reason, but a narrower rule, because the
 	# grammar of a credential is the issuer's to define and not this script's. Only the
@@ -269,7 +269,7 @@ export BASE FAILED CURLRC CHECKRC
 
 echo "==> $BASE"
 
-# One request before the 1,245, because an auth gate turns a bad credential into a total failure.
+# One request before the rest, because an auth gate turns a bad credential into a total failure.
 # Otherwise the output reads as a vanished site rather than a wrong token.
 # Transport failures are separated from HTTP ones, since a name that does not resolve otherwise
 # reports as a status code and gets diagnosed as a credential or a symlink.
