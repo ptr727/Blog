@@ -48,26 +48,19 @@ This site has served the same domain across earlier platforms, so its whole oper
 
 ## The Migration Record
 
-**The migration is documented once, as a post on the site, and that post is the artifact to reference.** [`content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md`](./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md) holds how the URL surface was captured, why the contract splits into a render half and a redirect half, why the Blogger permalink map needs more entries than the posts it covers, why the media had to come from the export tar and be hash-verified, and which Hugo taxonomy default moves every archive to a new address without reporting anything.
+**The procedure and the facts live in the directory READMEs.** [`capture/README.md`](./capture/README.md) is the authority on how the inputs were captured and what is derived from them, [`checks/README.md`](./checks/README.md) on the URL contract, and [`deploy/README.md`](./deploy/README.md) on how the redirects are expressed. Each sits beside the thing it describes, which is what keeps it true.
 
-**Read it before changing anything under [`checks/`](./checks/) or [`deploy/maps/`](./deploy/maps/).** Both hold values that no code derives and no test explains, and the reasoning behind them is in the post rather than beside them. Cite the post rather than restating it. This file is the procedure and the post is the account of how the procedure came to be, so where the two disagree this file governs what to do while the post explains why the check exists.
+**The migration also has an account of itself, as a post on the site.** It is the casual version, what was done and how it went, and it is worth reading before changing anything under [`checks/`](./checks/) or [`deploy/maps/`](./deploy/maps/), because those hold values that no code derives.
+
+**The direction between them is one-way.** A post may cite a README. A README never cites the post. A doc that sends a reader to published prose for an operational fact has put the fact where it cannot be kept current, and where correcting it means editing something people have already read.
 
 **The post is content, so it sits under the URL contract.** Editing it moves nothing. Renaming it or taking it down breaks an address the site serves. A fact in it that proves wrong is corrected in the post rather than footnoted here.
 
 ### Rebuilding from the Exports
 
-Everything derived is in this repository. Everything it was derived *from* is in a capture directory outside it, which is where a rebuild starts. **The capture path is `CAPTURE_ROOT` in `secrets/local.production.env`**, recorded alongside the other values that name a machine rather than the project, so it is read from there rather than searched for. The capture is not a git repository, so it has no history to revert to, and it is read-only in normal use.
+Everything derived is in this repository. Everything it was derived *from* is a capture directory outside it, at `CAPTURE_ROOT`, which is where a rebuild starts. The capture is not a git repository, so it has no history to revert to, and it is read-only in normal use.
 
-| Under the capture | Holds | Recoverable |
-| --- | --- | --- |
-| `export/raw/` | the WordPress content export, WXR XML | yes, from the WordPress account while it exists |
-| `export/media-tar/` | the media export, the only trustworthy copy of the images | yes, from the same place |
-| `mirror/` | a crawl of the old platform as it served, including the media it linked from other hosts | no, once the old hosting ends |
-| `inventory/` | the URL and media inventories derived from that crawl | no, for the same reason |
-
-The two exports are the only inputs a person has to fetch, and `EXPORT-INSTRUCTIONS.md` at the root of the capture records which two menu items produce them and the counts each has to reconcile against. The counts are the point, because a partial export is the common way a migration loses posts without reporting anything.
-
-[`checks/build-redirects.py`](./checks/build-redirects.py) takes the capture directory as its one argument and rebuilds everything under `deploy/maps/` from it. It selects the export **by content** rather than by filename and fails unless exactly one candidate holds published posts, because the capture also holds a media-only export whose zero posts produce empty maps that are indistinguishable from working ones until the redirects are live.
+**[`capture/README.md`](./capture/README.md) holds the procedure**: what is under the capture and which parts of it can be fetched again, the two exports and the counts they must reconcile against, the ordered rebuild, and the results that look like success and are not.
 
 ## Local Verification Before a Pull Request
 
@@ -153,7 +146,7 @@ HUGO_BASEURL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --
 checks/check-live-urls.sh <base-url>
 ```
 
-The deploy root and the base URL are the only host-specific values. A local run reads them from an untracked file under `secrets/`, one per environment, copied from [`deploy/env.example`](./deploy/env.example), and CI passes both explicitly. The whole `secrets/` directory is gitignored, so no address, path, or container name belonging to one machine reaches the published history.
+The deploy root and the base URL are the only host-specific values. A local run reads them from an untracked file under `secrets/`, one per environment, copied from [`example.env`](./example.env), and CI passes both explicitly. The whole `secrets/` directory is gitignored, so no address, path, or container name belonging to one machine reaches the published history.
 
 **Always set `HUGO_BASEURL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. The effective value is printed on every build for that reason.
 
@@ -196,6 +189,45 @@ The script asserts both halves of that rather than assuming them. It fails when 
 
 **Nothing prunes on the deploy path, and that is what keeps the deploy key's capability small.** A prune racing a deploy could take the rollback target, where a lingering release only costs disk. This is also why the key needs no delete capability, which is the property "Server Hardening" depends on. The count and the timer belong to the host, so this section records what the host declares rather than holding a second copy of it. See "Who Owns What".
 
+## Working With the VPS
+
+**Every path and hostname on this page is a value in `secrets/`, never a literal to be remembered or asked for.** The convention is the one "Environments" describes and `CAPTURE_ROOT` already follows: a value naming a machine rather than the project lives in the environment file, is sourced with `set -a`, and is read from there rather than searched for. The VPS values are environment-independent, because there is one such host rather than one per environment, so they sit in the default file alongside `CAPTURE_ROOT`.
+
+```sh
+set -a; . secrets/local.production.env; set +a
+ssh "$VPS_SSH_HOST" true && echo reachable
+```
+
+| Value | Names | Side |
+| --- | --- | --- |
+| `VPS_SSH_HOST` | the administrative login | the VPS |
+| `VPS_TRAEFIK_LOG` | today's live access log, still being appended to | the VPS |
+| `VPS_TRAEFIK_LOG_ARCHIVE` | the rotated access logs, and the source of the off-host copy | the VPS |
+| `VPS_COMMS_DIR` | the two agent channel files | the VPS |
+| `LOG_ARCHIVE_ROOT` | the off-host copy of the rotated logs | the backup host |
+| `BACKUP_ARCHIVE_ROOT` | the off-host encrypted archives and the plaintext hostconfig tree beside them | the backup host |
+
+**There are two credentials to this host and picking the wrong one is the first mistake to avoid.** `DEPLOY_SSH_USER`, held per environment and used only by the deploy, reaches a confined account behind an `rrsync` forced command that can write one release tree and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for everything on this page. They are deliberately separate credentials with different blast radii, so reaching for the deploy account to read a log fails in a way that reads like an outage, and reaching for the admin account to deploy grants far more than the deploy needs.
+
+**The off-host copy is made by a script in this repository, [`ops/vps-backup-pull`](./ops/vps-backup-pull), on a `systemd` timer on the backup host.** It copies three things off the VPS into `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT`: the encrypted archives, a plaintext copy of the same non-secret host files, and the rotated access logs. What it does, the three behaviors that look like bugs and are not, how to install it, and how to check it ran are in [`ops/README.md`](./ops/README.md). Read the unit and its last run on the backup host rather than trusting a schedule written down anywhere, including here.
+
+**It is a pull rather than a push, and nothing on the VPS knows it happens.** That direction is the security property rather than an implementation detail: the backup host holds a key the VPS trusts, and the VPS holds no credential reaching any other system, so a compromise of the web server cannot walk into the backups that exist to survive it.
+
+**Both sides use one set of names, so there is nothing to reconcile.** The pull writes `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` and the log review reads the same two, spelled the same way, and [`ops/install.sh`](./ops/install.sh) generates the pull's `EnvironmentFile` from this repository's `secrets/` file by copying rather than translating. Every value is described once, in [`ENVIRONMENT.md`](./ENVIRONMENT.md), and [`checks/check-env-docs.py`](./checks/check-env-docs.py) fails if one is declared without a description or described without existing.
+
+```sh
+set -a; . secrets/local.production.env; set +a
+ls -d "$LOG_ARCHIVE_ROOT" "$BACKUP_ARCHIVE_ROOT"
+```
+
+**Today's traffic is never in the off-host copy, and that is deliberate.** Rotation is what makes a file eligible to be pulled, so a live log would be copied as a torn prefix and fetched again on the next run. An analysis covering today therefore reads `VPS_TRAEFIK_LOG` over SSH and everything older from `LOG_ARCHIVE_ROOT`, and treats the two as one series joined on `StartUTC` rather than on which file a line came from.
+
+**The plaintext `hostconfig` tree under `BACKUP_ARCHIVE_ROOT` is the readable copy of the VPS's own configuration**, carrying the same non-secret files the encrypted archives hold. It exists so a rebuild does not depend on the encryption key, which is not on the backup host and must never be put there, because beside the ciphertext it would make the encryption decorative. What that tree covers is whatever the VPS advertises, read from the host rather than duplicated here, so it tracks the host instead of drifting from a list.
+
+**The channel transfers are the one exception, and they must stay literal.** The permission allowlist in `.claude/settings.local.json` matches the text of a command rather than what it expands to, so substituting `"$VPS_SSH_HOST:$VPS_COMMS_DIR/..."` into those two `rsync` lines turns an allowed command into one that prompts, while looking like a tidy-up that changed nothing. Use the values above everywhere else, and leave the two commands under "The Channel Between the Two Sides" spelled out exactly as they are written there.
+
+**What this section does not cover, and where it lives instead.** Reading the logs for content is "Log Review"; exchanging rounds with the agent that owns the host is "The Channel Between the Two Sides"; the boundary of which side fixes what is "Who Owns What"; and what a rebuild restores, including the host-key step that blocks both deploy and rollback, is "Backup and Restore".
+
 ## Log Review
 
 **Real traffic is the only source that finds what every check here is blind to.** The URL contract proves the URLs someone thought to list and the redirects derived from the export. It cannot know about a URL nobody recorded, because the lists are their own standard: the gates check the built site and the running server against those lists, never against the old platform that served the addresses. An address the crawl missed is therefore missing from every gate that reads them, and a visitor following a sixteen-year-old link is the one reader who tests for it.
@@ -223,7 +255,39 @@ A request crosses the proxy before it reaches the site, so no single log answers
 
 **A 404 count taken from Caddy alone is therefore a floor, not a total.** A request the edge refused is a reader who found nothing just as surely, and it appears in no Caddy log. Read the edge for what never arrived and Caddy for what arrived and failed, and treat the two as one answer.
 
+**`ServiceName` is what separates those two cases inside the edge log itself**, which is otherwise a distinction this table draws conceptually and leaves you no way to apply. A Traefik line carrying a service name was routed, so the 404 came from the site. A line with the field absent matched no router at all, so the edge answered and the site never saw the request. The second kind is the one Caddy is structurally blind to, and it is rare enough that it reads as noise in a total and is worth listing individually.
+
+**When `ServiceName` is absent the edge answered, and `entryPointName` with `RequestScheme` say why**, which is the difference between a finding and a fault. The common cause is a cleartext request to the TLS port: the `websecure` router carries `tls` and therefore matches TLS requests only, so a plaintext request to 443 matches nothing and Traefik answers its own 404 with a body of a few dozen bytes. That is correct behavior rather than a gap, and it needs no action. Read the two fields together before treating a routerless 404 as a routing problem, because the shape that does deserve investigation is a routerless 404 arriving over **https**, which means a hostname the proxy serves no route for.
+
 Two properties of the Caddy side are worth knowing before parsing it. Its access log is `format console`, so each line is a timestamp, a level, and a logger name followed by a JSON object rather than being JSON itself, and a parser that assumes one object per line reads nothing. And `trusted_proxies` is what makes `client_ip` the reader rather than the proxy, which is the same setting "Serving" describes as a security boundary. Without it every request in the log appears to come from one internal address, and the inward pass cannot distinguish a reader from a health check.
+
+### Reading a 404 list without being fooled by it
+
+The outward pass is four filters over the edge log, and each one exists because skipping it produced a wrong answer once.
+
+**Exclude this repository's own deploy gate first.** `check-live-urls.sh` requests the whole URL contract on every deploy, so an unfiltered day is mostly a recording of our own `curl`. Filter on user agent: on 2026-08-08, 9,285 of 9,996 requests were `curl/8.5.0` and the 711 that remained are the entire real dataset. A count that omits this step is measuring the pipeline rather than the readers, and it will be an order of magnitude too large.
+
+**A referer does not implicate this site unless it points somewhere else.** The rule worth applying is that a 404 carrying a referer is a broken link and a 404 without one is a typed or probed address, and it fails on scanners, which set `Referer` to the request URL itself. Every one of the 36 referer-bearing site-host 404s on 2026-08-08 was self-referential, so the unrefined rule reported three dozen broken links on a site that had none. Discard the matches before counting, and **normalize the scheme rather than comparing it**, because a scanner reaching an HTTPS site routinely sends an `http://` referer for the same address. Comparing against the request's own scheme therefore matches nothing and leaves every false positive in place: on the 2026-08-08 data the naive form kept all 36 where the normalized form kept none.
+
+```sh
+# Narrow to this site's own 404s, then keep only referers pointing somewhere else.
+# No null guard is needed anywhere here: == and + both tolerate a null host. Swap the
+# equality for startswith and one becomes mandatory, which is the trap described below.
+jq -c 'select(.DownstreamStatus == 404)
+  | select(.RequestHost == "blog.example.com")
+  | select((.["request_Referer"] // "") != "")
+  | select((.["request_Referer"] | sub("^https?://"; "")) != (.RequestHost + .RequestPath))'
+```
+
+Widen `== 404` to `>= 400` for the whole non-200 sweep the table above describes. The 404 list is the half with an action, which is why it is the default here.
+
+**Filter the scanner shapes by shape, never by investigating them.** A site that used to run WordPress attracts probes for `.env` and its dozen variants, `wp-config.php`, `.git/config`, `phpinfo.php`, cloud credential files, and framework config paths. They dominate the raw list and none is ever a finding. What is left after the three filters above is small enough to read line by line, which is the point of running them.
+
+**Then cross-reference what remains against the contract**, because that is the only step with an action. A surviving 404 whose path appears in [`checks/golden-urls.txt`](./checks/golden-urls.txt) or in [`deploy/maps/`](./deploy/maps/) is a redirect that is not working. A surviving 404 shaped like real content and present in neither is the case this whole pass exists to find, and it is added to the golden list with a redirect per that file's maintenance rules. A run where nothing survives is the expected result and should be recorded as one.
+
+**A missing `Host` header is the third way this data breaks a filter.** `RequestHost` is null on a request that sends none, which router exploits do. String functions reject that where arithmetic tolerates it, so `.RequestHost | startswith(...)` fails with `startswith() requires string inputs` and takes the whole run with it, while `.RequestHost + .RequestPath` quietly yields the path alone. The failure is loud but partial, which is the worst combination, since it aborts part way through a file having already printed real output. Guard the string functions with `// ""`. Equality and concatenation both tolerate a null, so a guard on those is inert and reads as protection that is not there.
+
+**Two `jq` mistakes each read as a plausible answer rather than as an error.** A hyphenated key parses as subtraction, so `.request_User-Agent` silently is not the field you meant and `.["request_User-Agent"]` is, and the same holds for `Referer`. And `jq 'select(...)'` with no projection pretty-prints each match across many lines, so piping it to `wc -l` counts lines rather than records and overstates by roughly the width of the object. It reported 37 and 1,332 where the true counts were 1 and 36. Project with `@tsv` or pass `-c` before counting anything.
 
 ### Retention Is the Prerequisite, and It Belongs to the Host
 
@@ -239,7 +303,9 @@ Two properties of the Caddy side are worth knowing before parsing it. Its access
 
 **The off-host copy of the access log exists, and the schedule that maintains it is younger than the copy.** The pull to the backup host is installed as a `systemd` timer running daily at 09:00 UTC, chosen to sit behind both producers on the VPS rather than beside them, and its first copy was made by hand rather than by the timer. Read the unit and its last run on the backup host rather than trusting this paragraph, for the same reason retention is read from the VPS: a claim about a schedule is only worth what the machine says.
 
-**A rename on the VPS does not propagate to that copy, and nothing reports the divergence.** The pull passes no `--delete` for the logs, deliberately, since an append-only record must never be removed by a transfer. So a file **the VPS** renames, merges, or re-compresses after it has been pulled keeps its old name **on the backup host** forever, alongside the new one, and a count that walks that archive by filename double-counts the overlap. This has already happened once, to two archives whose names were a day ahead of their contents. **Read a date from a line's `StartUTC` rather than from the filename that holds it**, and treat a rename on the VPS as something the channel has to carry, because no transfer will.
+**A rename on the VPS does not propagate to that copy, and nothing reports the divergence.** The pull passes no `--delete` for the logs, deliberately, since an append-only record must never be removed by a transfer. So a file **the VPS** renames, merges, or re-compresses after it has been pulled keeps its old name **on the backup host** forever, alongside the new one, and a count that walks that archive by filename double-counts the overlap. This has already happened once, to two archives whose names were a day ahead of their contents. **Read a date from a line's `StartUTC` rather than from the filename that holds it.** The reconciliation itself now travels with the data: the VPS keeps an append-only `RECONCILE.md` **inside the archive directory**, so the pull carries it automatically and a rename does not depend on someone rereading a channel file. It records what a file contained rather than what it was called, and it is counted among the pulled log files. **The VPS keeps a `MANIFEST.txt` in the same directory**, so expect the count to exceed the number of logs by two rather than by one, and expect any further explanatory file the host side adds to raise it again. Read the count as logs-plus-prose rather than as a number with a fixed offset.
+
+**A journal with one entry is not evidence of one copy.** The pull can be run directly as well as by its timer, and a direct run writes no service record. Directory mtimes on the backup host are the copy times, where the file mtimes are the VPS's, so those are what to read when establishing when something arrived.
 
 ## Who Owns What
 
@@ -270,6 +336,8 @@ The working copies live in `comms/`, which is gitignored, so they are found by n
 rsync -a root@<vps-host>:/srv/agent-comms/vps-agent.md comms/vps-agent.md
 rsync -a --no-o --no-g --chmod=F644 comms/blog-agent.md root@<vps-host>:/srv/agent-comms/blog-agent.md
 ```
+
+**Spell both commands out rather than reading the host and directory from `secrets/`**, which is the opposite of the rule "Working With the VPS" sets for every other path, and is deliberate. These two are allowlisted in `.claude/settings.local.json`, and an allow rule matches the text of the command rather than the value it expands to, so replacing the literals with `$VPS_SSH_HOST` and `$VPS_COMMS_DIR` turns an allowed transfer into one that prompts. The same rule is why neither may be chained behind `cd` or `&&`: an allow rule matches a standalone command only.
 
 **The push suppresses owner and group deliberately.** `-a` implies `-o` and `-g`, and the transfer connects as root, so a plain `rsync -a` carries this workstation's numeric uid onto a host that has no such user and leaves the file owned by a number.
 
@@ -345,7 +413,7 @@ Ordering is load-bearing, so every redirect lives in a single `route` block. Out
 | Blogger label archives | `labels.map`, defaulting to the archive index |
 | Term archives the generator does not build | `terms.map` |
 
-The maps are generated by `checks/build-redirects.py` from the source export, which lives outside this repository. It is a provenance script rather than a CI step, and its outputs are committed. It selects the export by content and refuses to run unless exactly one contains published posts, because the capture holds a full export and a media-only one, and reading the wrong one yields empty maps that are indistinguishable from working ones until the redirects are live.
+The maps are generated by [`capture/build-redirects.py`](./capture/build-redirects.py) and the generated files are committed, so a deploy never regenerates them. How it selects its input, and why that selection is the part to get right, is in [`capture/README.md`](./capture/README.md).
 
 ## Server Hardening
 

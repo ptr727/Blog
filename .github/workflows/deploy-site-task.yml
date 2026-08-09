@@ -69,21 +69,47 @@ jobs:
     steps:
 
       # Full history, because a shallow clone silently changes page metadata if git info is on.
+      # The mtime restore below needs it too: a shallow clone has no commit to date a file from.
       - name: Checkout code step
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      # The pin lives in the action, so the deploy and validation cannot install different generators.
-      - name: Install Hugo step
-        uses: ./.github/actions/install-hugo
-
-      # REQUIRE_BROTLI below makes a missing binary fatal, so this keeps the build from failing.
-      - name: Install brotli step
+      # One update for the job, because each one is a network round trip that can fail on its
+      # own. REQUIRE_BROTLI later makes a missing brotli fatal, so this keeps the build from
+      # failing, and git-restore-mtime is what the next step runs.
+      - name: Install build tools step
         run: |
           set -Eeuo pipefail
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends brotli
+          sudo apt-get install --yes --no-install-recommends brotli git-restore-mtime
+
+      # Git stores no mtimes, so a checkout stamps every file with the moment it was written.
+      # The deploy uploads with --link-dest against the previous release, and a file only links
+      # when size and mtime both match, so today nothing links and every release is a full copy.
+      # Restoring the last-commit time makes static/ match between releases: measured across two
+      # independent clones, all 1052 files land on identical mtimes, which is the same 1052 Hugo
+      # reports as static files and the same 1052 that link on a locally built release.
+      #
+      # static/ only. The generated pages are written fresh by every build and can never match,
+      # and walking the whole tree to prove that costs history reads for nothing.
+      #
+      # ORDERING: this is deliberately behind the live media check that #64 added. While every
+      # file arrives as a fresh inode, the upload re-asserts the mode contract on every deploy.
+      # Once a third of the tree arrives as hard links, a link carries the mode its inode chain
+      # began with, so a media file that acquires a bad one stays present, correctly named and
+      # unreadable, through every later release. The live check is what notices that, by
+      # requesting images and failing on the 403.
+      # `git restore-mtime`, the subcommand form, because the package installs into git's
+      # exec-path at /usr/lib/git-core rather than onto PATH, so the bare name does not resolve.
+      - name: Restore file mtimes step
+        run: |
+          set -Eeuo pipefail
+          git restore-mtime static
+
+      # The pin lives in the action, so the deploy and validation cannot install different generators.
+      - name: Install Hugo step
+        uses: ./.github/actions/install-hugo
 
       # Derived once and used three times, as the directory name, the stamp, and EXPECT_RELEASE.
       # Deriving it twice yields ids seconds apart, and the gate then asserts a phantom version.

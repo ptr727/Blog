@@ -57,6 +57,8 @@ I ended up splitting the contract in two: **328 URLs that Hugo must render**, an
 
 The order matters more than the tools. Everything up to step 4 is reversible and costs nothing. Do all of it before you convert anything.
 
+What follows is how it went. The maintained version, with the scripts, is [`capture/README.md`](https://github.com/ptr727/Blog/blob/main/capture/README.md) in the repository, and that one is kept current while this stays as written.
+
 ### 0. Decide where the inputs live, before you fetch any of them
 
 Every step below produces a file you will still be reading months later. The crawl is the input to every check. The export is the input to every redirect map. The media tar is the only correct copy of your images. Put all of it in one directory, outside the site repository, and keep it there.

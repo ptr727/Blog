@@ -1,0 +1,43 @@
+[Unit]
+# Pulls the VPS's encrypted archives, its plaintext host config, and the rotated
+# access logs. The logs are the reason this has a deadline rather than being a
+# convenience: they are deliberately excluded from the encrypted archives, so the
+# VPS's own retention window is the only copy until this lands.
+Description=Pull the Pangolin VPS backup set and access logs to this host
+Documentation=file:/usr/local/bin/vps-backup-pull
+Documentation=https://github.com/ptr727/Blog/blob/main/ops/README.md
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+# The paths, the address, and the account are all host-specific, and this file is public,
+# so none of them is written here. Two mechanisms supply them and both are required:
+#
+#   /etc/vps-backup-pull.env                             the paths and the address
+#   /etc/systemd/system/vps-backup-pull.service.d/*.conf  User=, Group=, RequiresMountsFor=
+#
+# Templates for both are in ops/, and ops/README.md has the install steps. The leading -
+# below keeps systemd from failing the unit outright when the env file is absent, because
+# the script's own preflight names the missing variable, which is the more useful error.
+EnvironmentFile=-/etc/vps-backup-pull.env
+# NOT set here, deliberately. A username belongs to one machine, and a wrong guess baked
+# into a public file is worse than an absent one: the script refuses to run as root rather
+# than authenticating with an identity the VPS does not trust and writing root-owned files
+# into a user-owned tree. Set User= and Group= in the drop-in.
+#
+# RequiresMountsFor= belongs in the drop-in for the same reason, and it is not optional on
+# a host whose destination is a mount: a run starting before the mount writes a full copy
+# into the mountpoint underneath it, where nothing ever reads it and the space does not
+# show up in du against the mounted path.
+#
+# --quiet prints errors and the one-line summary only, which is what belongs in a journal.
+# Add --delete to mirror the VPS's archive window instead of growing without limit. It is
+# deliberately not set: it is safe only where snapshot history exists off this host, and it
+# never touches the logs whatever is passed.
+ExecStart=/usr/local/bin/vps-backup-pull --quiet
+# The first run transfers the whole archive set.
+TimeoutStartSec=2h
+# A backup pull is never the urgent thing on this host.
+Nice=10
+IOSchedulingClass=idle

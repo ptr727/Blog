@@ -1,0 +1,19 @@
+# Copy to /etc/systemd/system/vps-backup-pull.service.d/local.conf on the backup host.
+# The three settings here name one machine, which is why the unit in git does not carry them.
+#
+# systemd merges drop-ins over the unit, so a later install of the unit leaves this intact.
+
+[Unit]
+# Required when the destination is on a mounted filesystem, which it usually is.
+# A run that starts before the mount writes a full copy into the mountpoint underneath it,
+# where nothing ever reads it and the space does not show up in du against the mounted path.
+# Name the mount point, not the destination directory below it.
+RequiresMountsFor=/path/to/mount
+
+[Service]
+# The account whose SSH key the VPS trusts and that owns the destination tree.
+# Not optional: without it the unit runs as root, and the script refuses to start, because
+# root authenticates with an identity the VPS does not trust and writes root-owned files
+# into a user-owned tree.
+User=someuser
+Group=somegroup

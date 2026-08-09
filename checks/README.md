@@ -54,23 +54,37 @@ An **attachment page** is the page the old platform generated per uploaded image
 
 ## Legacy URL shapes worth knowing
 
-Two properties of the maps are non-obvious and easy to break when regenerating them.
-
-**`blogger.map` carries 59 entries for 48 posts.** Blogger truncated an auto-generated slug at 40 characters on a whole-word boundary, so for the 11 posts with a longer slug the URL actually served, and therefore the one in search indexes and in other people's links, is the truncated form. Both forms are live redirects. A map holding only the full slug keeps the URL that never existed and drops the one that did.
-
 **`/search/label/<Label>` is not a redirect.** The old platform answers it with a generic search page that returns 200 for a label that never existed, so the class is a soft 404 that looks alive. It is handled by choice rather than by preservation: `labels.map` sends each label to its term archive, and anything unmatched falls through to `/all/`.
+
+The other property worth knowing belongs to the generator rather than to the contract, so it is in [`capture/README.md`](../capture/README.md): `blogger.map` holds more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms still answer.
 
 ## Maintaining the contract
 
 **Adding a URL.** Real traffic finds what the lists missed. When a server log shows a 404 for an address that should work, append it to the appropriate list and add a redirect rule or map entry to cover it. The lists are append-only, per Directionality below.
 
-**Regenerating the maps.** `build-redirects.py` rebuilds everything under `deploy/maps/` from the source export, which lives in a capture directory outside this repo and is passed as an argument. **That directory's path is `CAPTURE_ROOT` in `secrets/local.production.env`**, and `OPERATIONS.md` "Rebuilding from the Exports" records what it holds and which parts of it a person can fetch again. It is a provenance tool rather than a CI step, and it selects the export **by content**, failing unless exactly one candidate contains published posts. The capture holds both a full export and a media-only one with zero posts, and taking the wrong one yields empty maps that are indistinguishable from working ones until the redirects are live.
+**Regenerating the maps.** The generator is [`capture/build-redirects.py`](../capture/build-redirects.py), and it lives there rather than here because it generates rather than gates. [`capture/README.md`](../capture/README.md) covers how to run it and how it chooses its input.
 
 **Checking a count.** Every count above is derivable from the files, so check rather than trust:
 
 ```sh
-wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy.txt
+wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy.txt checks/golden-media-live.txt
 ```
+
+## `golden-media-live.txt`, and why the media set needs a second list
+
+`golden-media-legacy.txt` proves the **set**, at build time, against files on disk. That cannot prove the files reached the server or that the server can read them, and the live check requested pages and redirects and never one image, so a media tree lost between a passing build and the server was caught by neither gate. `golden-media-live.txt` closes that, and it is fetched by `check-live-urls.sh` against a running server.
+
+**It is a handful rather than exhaustive, deliberately.** The set is already proven, so this is a delivery check, and its entries are chosen to cover both trees and a spread of years because the trees arrive by different routes and a partial transfer is unlikely to land evenly.
+
+| Entry shape | Proves |
+| --- | --- |
+| `/media/` paths | the imported uploads tree arrives and is served |
+| `/external/` paths | the tree of media localized from other hosts arrives too |
+| `/wp-content/uploads/` paths | the `@uploads` rule still lands on the image, which nothing else exercises against a running server |
+
+**Three assertions rather than one, because each catches a different loss.** A file missing from the transfer answers 404. A file whose mode went wrong answers 403, which is the case this exists for. A file truncated to nothing still answers 200, so the byte count is asserted. And a server that answers an error page for a missing asset answers 200 with `text/html`, so the content type is asserted as well. The check follows one redirect by hand rather than passing `-L` to curl, for the reason `check_redirect` does: `-L` would carry the auth-gate credential to wherever the rule points.
+
+**The mode case is why this is not theoretical.** A hard-linked file carries its inode's mode, so a media file that acquires a bad one rides the chain into every later release, present and correctly named and unreadable to the server. A build-time `is_file()` on the runner cannot see it, and neither can a check that never requests an image.
 
 ## Directionality
 
