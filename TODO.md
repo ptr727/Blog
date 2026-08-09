@@ -19,7 +19,7 @@ The site is built, gated in CI, and deployed to staging by pipeline. It is not y
 | Deploy pipeline | `deploy-site.yml` is dispatchable and has deployed staging from CI end to end, through a transport retested against the real host |
 | VPS staging | live at `blog.vps.insanegenius.net`, behind the auth gate, serving a pipeline release |
 | VPS production | **M7a done 2026-08-08.** Serving release `20260808-154717` at `blog.insanegenius.net`, answering `200` unauthenticated, deployed from `main` by pipeline with the 1,245-URL contract verified against the live site. `/robots.txt` answers 200 carrying a `.net` sitemap line, and the gallery fix is live. DNS for the public name is still on the old platform |
-| Operations | started, and neither half has completed a **scheduled** run. The off-host log pull is installed, armed for 09:00 UTC daily, and has copied once, started by hand, so the timer itself has never fired and 2026-08-09 is its first scheduled run. The periodic log review has not run at all |
+| Operations | started, and neither half has completed a **scheduled** run. The off-host log pull is installed, armed for 09:00 UTC daily, and has copied once, started by hand, so the timer itself has never fired and 2026-08-09 is its first scheduled run. The periodic log review has run once by hand, outward only: it read 2026-08-08 traffic and found nothing to add to the URL contract, the inward pass has not run, and neither pass is on the cadence **Recurring operations** sets |
 
 ## Blocked on the maintainer
 
