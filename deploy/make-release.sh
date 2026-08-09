@@ -88,9 +88,10 @@ cd "$REPO"
 
 # Git stores no mtimes, so a checkout stamps every file with the moment it was written.
 # Without restoring them a release links nothing against the previous one.
-# MTIME_RESTORED lets a caller that restored already skip the work, never the assertion below.
+# MTIME_RESTORED skips only the restore, for a caller that has already done it.
+# The assertion below always runs, so a caller claiming this wrongly still fails.
 if [ "${MTIME_RESTORED:-0}" = 1 ]; then
-	echo "==> mtimes restored by the caller, per MTIME_RESTORED"
+	echo "==> skipping the restore: MTIME_RESTORED says the caller did it, still asserting below"
 else
 	# How the tool was installed decides which invocation form resolves, so both are tried.
 	# The first form meeting MTIME_MIN wins, since a stale install must not veto a current one.
