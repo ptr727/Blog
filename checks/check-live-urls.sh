@@ -40,12 +40,99 @@ done
 FAILED="$(mktemp)"
 CURLERR="$(mktemp)"
 CURLRC=""
-trap 'rm -f "$FAILED" "$CURLERR" ${CURLRC:+"$CURLRC"}' EXIT
+CHECKRC="$(mktemp)"
+trap 'rm -f "$FAILED" "$CURLERR" "$CHECKRC" ${CURLRC:+"$CURLRC"}' EXIT
+
+# Every request this script makes announces itself as synthetic, so the server's log can be
+# filtered down to real visitors with one clause. Agreed with the host side, whose Traefik
+# captures the field and whose own `ci/smoke.sh` already sends `vps/smoke`.
+#
+# The value carries provenance rather than a boolean, `<source>/<id>`, because "which run
+# produced this 404" is then a one-line query against the log.
+#
+# The run attempt is part of the id deliberately. A re-run of a failed workflow keeps the
+# same GITHUB_RUN_ID and gets a new GITHUB_RUN_ATTEMPT, so the id alone would merge a
+# retried run into the run it was retrying, which is exactly the case someone reads the log
+# to understand.
+#
+# It is forgeable and it gates nothing. Absence of the header is not proof of a human
+# either: a scanner sends no header and neither does a forged request. It must never reach
+# auth, rate limiting, robots handling, or caching.
+if [ -z "${CHECK_TAG:-}" ]; then
+	if [ -n "${GITHUB_RUN_ID:-}" ]; then
+		CHECK_TAG="github/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT:-1}"
+	else
+		CHECK_TAG="proxmox/manual"
+	fi
+fi
+# Validated before it is written, because this lands in a curl config file and a curl config
+# file is a list of options rather than a list of headers. A value carrying a newline ends the
+# header line and starts a new directive, so an override could add an option nobody typed; a
+# value carrying a double quote ends the quoted string with the same result. Neither is a
+# legal HTTP header value either, so refusing both loses nothing.
+#
+# The shape is enforced and not merely described, because the whole value of provenance over a
+# boolean is that the log can be grouped by source, and `select(.tag | startswith("github/"))`
+# is only reliable if every tag actually has a source half. A charset check alone would accept
+# `smoke`, `/smoke` and `a/b/c`, each of which reads as conforming and breaks that query.
+# Exactly one slash, both halves non-empty, from a deliberately narrow character set.
+#
+# The range `A-Za-z0-9` is collation-dependent, so the allowlist below is only ASCII-strict
+# because `globasciiranges` happens to be on. Set explicitly rather than inherited, since a
+# guarantee resting on a build default is not a guarantee. Demonstrated rather than assumed:
+# with the option off, under en_US.UTF-8, `aé` and `aÉ` are both ACCEPTED by this pattern,
+# and with it on they are rejected.
+# Checked, because this script runs under `set -uo pipefail` and not `-e`, so an unsupported
+# option would print to stderr, return 1, and be stepped straight over — leaving the
+# validation locale-dependent underneath a comment promising it is not. `shopt` returns 1 on
+# an unknown option name, which is what makes this testable rather than decorative.
+shopt -s globasciiranges || {
+	echo "FAIL this shell does not support globasciiranges, so the character allowlist below would be locale-dependent" >&2
+	exit 2
+}
+case "$CHECK_TAG" in
+*[!A-Za-z0-9._/-]*)
+	echo "FAIL CHECK_TAG may contain only letters, digits, and the characters '. _ - /' -- got '$CHECK_TAG'" >&2
+	exit 2
+	;;
+*/*/*)
+	echo "FAIL CHECK_TAG takes exactly one slash, as <source>/<id> -- got '$CHECK_TAG'" >&2
+	exit 2
+	;;
+/* | */)
+	echo "FAIL CHECK_TAG needs a non-empty half either side of the slash -- got '$CHECK_TAG'" >&2
+	exit 2
+	;;
+*/*) ;;
+*)
+	echo "FAIL CHECK_TAG must be <source>/<id>, such as proxmox/media-dev -- got '$CHECK_TAG'" >&2
+	exit 2
+	;;
+esac
+printf 'header = "X-Blog-Check: %s"\n' "$CHECK_TAG" >"$CHECKRC"
+echo "==> tagging requests X-Blog-Check: $CHECK_TAG"
 
 # A resource access token opens the proxy's auth gate.
 # It goes into a curl config file because bash cannot export an array to the parallel checks.
 # A command line is also world-readable in ps output, and this runs 1,245 of them.
 if [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] && [ -n "${PANGOLIN_ACCESS_TOKEN:-}" ]; then
+	# Same hazard as CHECK_TAG above and the same reason, but a narrower rule, because the
+	# grammar of a credential is the issuer's to define and not this script's. Only the
+	# characters that break out of a quoted config line are refused, and none is legal in an
+	# HTTP header value, so a token containing one is a paste accident rather than a token.
+	# Reported without echoing the value, since it is a secret and the finding is its shape.
+	#
+	# Carriage return counts as a line ending here as much as newline does. Header injection
+	# is classically CRLF, and a lone CR is enough on its own, so refusing LF while allowing
+	# CR would leave the shape this guard exists for.
+	for name in PANGOLIN_ACCESS_TOKEN_ID PANGOLIN_ACCESS_TOKEN; do
+		case "${!name}" in
+		*'"'* | *$'\n'* | *$'\r'*)
+			echo "FAIL $name contains a quote, a newline, or a carriage return, none of which can appear in an HTTP header value" >&2
+			exit 2
+			;;
+		esac
+	done
 	CURLRC="$(mktemp)"
 	chmod 600 "$CURLRC"
 	printf 'header = "P-Access-Token-Id: %s"\nheader = "P-Access-Token: %s"\n' \
@@ -58,14 +145,18 @@ elif [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] || [ -n "${PANGOLIN_ACCESS_TOKEN:-}"
 fi
 
 # Assembled once here rather than per request, since it is the same for every call.
-AUTH=()
-[ -n "$CURLRC" ] && AUTH=(-K "$CURLRC")
+# The check tag is unconditional and the token is not, which is why they are two files
+# rather than one. Every request should be attributable; only a same-origin request may
+# carry the credential, and folding them together would make the tag inherit that
+# restriction for no reason, or the token lose it, depending on which way it was folded.
+AUTH=(-K "$CHECKRC")
+[ -n "$CURLRC" ] && AUTH+=(-K "$CURLRC")
 
 # Invoked indirectly, through `export -f` and the `xargs bash -c` calls below.
 # shellcheck disable=SC2329
 check_render() {
-	local url="$1" code auth=()
-	[ -n "$CURLRC" ] && auth=(-K "$CURLRC")
+	local url="$1" code auth=(-K "$CHECKRC")
+	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
 	code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$BASE$url")
 	[ "$code" = "200" ] || echo "render $url expected 200, got $code" >>"$FAILED"
 }
@@ -81,8 +172,8 @@ check_render() {
 # arrived truncated to nothing, which still answers 200. Content type is asserted because a
 # server misconfigured into serving an error page for a missing asset answers 200 as well.
 check_media() {
-	local url="$1" code len type target auth=() target_auth=()
-	[ -n "$CURLRC" ] && auth=(-K "$CURLRC")
+	local url="$1" code len type target auth=(-K "$CHECKRC") target_auth=()
+	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
 	target="$BASE$url"
 	target_auth=("${auth[@]}")
 	# One hop is followed rather than passed to curl -L, because -L would carry the
@@ -102,10 +193,10 @@ check_media() {
 		# Same origin boundary as check_redirect, and for the same reason: a rule that one
 		# day points off-site must not mail the token there. A bare prefix would also accept
 		# a lookalike host registered as an attacker's subdomain.
-		target_auth=()
+		target_auth=(-K "$CHECKRC")
 		if [ -n "$CURLRC" ]; then
 			case "$target" in
-			"$BASE" | "$BASE"/*) target_auth=(-K "$CURLRC") ;;
+			"$BASE" | "$BASE"/*) target_auth+=(-K "$CURLRC") ;;
 			esac
 		fi
 		;;
@@ -144,8 +235,8 @@ check_media() {
 # Invoked indirectly, the same way as check_render above.
 # shellcheck disable=SC2329
 check_redirect() {
-	local url="$1" code dest dcode auth=() dest_auth=()
-	[ -n "$CURLRC" ] && auth=(-K "$CURLRC")
+	local url="$1" code dest dcode auth=(-K "$CHECKRC") dest_auth=(-K "$CHECKRC")
+	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
 	code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$BASE$url")
 	case "$code" in
 	301 | 308) ;;
@@ -162,7 +253,7 @@ check_redirect() {
 	# starts with this one, such as a lookalike registered as an attacker's subdomain.
 	if [ -n "$CURLRC" ]; then
 		case "$dest" in
-		"$BASE" | "$BASE"/*) dest_auth=(-K "$CURLRC") ;;
+		"$BASE" | "$BASE"/*) dest_auth+=(-K "$CURLRC") ;;
 		esac
 	fi
 	dcode=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest")
@@ -174,7 +265,7 @@ check_redirect() {
 }
 
 export -f check_render check_redirect check_media
-export BASE FAILED CURLRC
+export BASE FAILED CURLRC CHECKRC
 
 echo "==> $BASE"
 

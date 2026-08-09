@@ -40,7 +40,14 @@ WORKFLOWS = sorted((REPO / ".github" / "workflows").glob("*.yml"))
 # Set per invocation rather than stored, so they appear in no template and would otherwise
 # be invisible to this check. Listed here because the doc has a table for them, and a knob
 # nobody documented is the same failure as an undocumented file value.
-KNOBS = {"ENV_FILE", "REQUIRE_BROTLI", "NO_LINK_DEST", "KEEP_RELEASES", "EXPECT_RELEASE"}
+KNOBS = {
+    "ENV_FILE",
+    "REQUIRE_BROTLI",
+    "NO_LINK_DEST",
+    "KEEP_RELEASES",
+    "EXPECT_RELEASE",
+    "CHECK_TAG",
+}
 
 # Names that look like configuration to the patterns above but are not.
 # ENVIRONMENT and RELEASE_ID are computed inside the workflow and passed down, and
