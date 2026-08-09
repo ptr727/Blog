@@ -17,8 +17,11 @@ jobs:
 
     steps:
 
+      # Full history, because the mtime restore below has no commit to date a file from without it.
       - name: Checkout code step
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
 
       # Doc linters run as pinned action wrappers.
       # The editorconfig-checker action is install-only, so it runs via Docker instead.
@@ -89,14 +92,23 @@ jobs:
       - name: Install Hugo step
         uses: ./.github/actions/install-hugo
 
-      # --panicOnWarning is the real gate.
-      # Two PaperMod templates are overridden in layouts/ precisely so it can stay on.
-      - name: Build site step
+      # The same action the deploy uses, so the two agree on who restores the mtimes.
+      - name: Restore file mtimes step
+        uses: chetan/git-restore-mtime-action@d186aca54f8760da4dec55313195e51ed3ebb0b3 # v2.3
+        with:
+          args: static
+
+      # This is the build and URL-contract gate, not an extra step beside one.
+      # The script runs `hugo --panicOnWarning` and check-url-parity itself, so a separate build would repeat both.
+      # --panicOnWarning is the real gate, and two PaperMod templates are overridden in layouts/ so it can stay on.
+      # 328 URLs must render, 778 legacy image URLs must resolve, and every local asset reference must exist.
+      #
+      # Running the script here is also the point: it was linted and never run, so a broken caller contract reached a deploy.
+      # An empty scratch root exercises the deploy's path short of the transport, with no previous release for the hard-link guard.
+      # REQUIRE_BROTLI stays unset, since installing brotli would cost an apt round trip per pull request.
+      - name: Assemble release bundle step
+        env:
+          MTIME_RESTORED: '1'
         run: |
           set -Eeuo pipefail
-          hugo --gc --minify --panicOnWarning
-
-      # The URL contract is this repo's reason to exist, so a build that drops a legacy URL fails here.
-      # 328 URLs must render, 778 legacy image URLs must resolve, and every local asset reference must exist.
-      - name: Check URL contract step
-        run: python3 checks/check-url-parity.py public
+          deploy/make-release.sh "${RUNNER_TEMP}/validate-bundle" "$(date -u +%Y%m%d-%H%M%S)"

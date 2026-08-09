@@ -47,6 +47,7 @@ KNOBS = {
     "KEEP_RELEASES",
     "EXPECT_RELEASE",
     "CHECK_TAG",
+    "MTIME_RESTORED",
 }
 
 # Names that look like configuration to the patterns above but are not.
