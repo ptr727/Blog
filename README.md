@@ -33,14 +33,14 @@ See [Release History][history] for complete release notes and older versions.
 
 ## Table of Contents <!-- omit from toc -->
 
-- [Use Cases](#use-cases)
+- [Overview](#overview)
 - [Migration from WordPress](#migration-from-wordpress)
 - [How a Change Reaches the Site](#how-a-change-reaches-the-site)
 - [Configuration](#configuration)
 - [Questions or Issues](#questions-or-issues)
 - [Development Environment Setup](#development-environment-setup)
 
-## Use Cases
+## Overview
 
 A personal technical blog, published as a static site and served from a host the author owns. It holds the writing itself and everything needed to put it online, so the site is reproducible from this repository alone.
 
@@ -186,11 +186,11 @@ The deploy root and the base URL come from an untracked file per environment und
 
 ## 3rd Party Tools <!-- omit from toc -->
 
-| Tool | Role | License |
-| --- | --- | --- |
-| [Hugo][hugo-link] | static site generator | Apache-2.0 |
-| [PaperMod][papermod-link] | theme, vendored under `themes/` | MIT |
-| [Caddy][caddy-link] | web server, serving the built site and the redirects | Apache-2.0 |
+| Tool | Role |
+| --- | --- |
+| [Caddy][caddy-link] | Web server. |
+| [Hugo][hugo-link] | Static site generator. |
+| [PaperMod][papermod-link] | Hugo theme. |
 
 ## License <!-- omit from toc -->
 
@@ -199,36 +199,36 @@ Licensed under the [MIT License][license]\
 
 <!-- Shields -->
 
-[pre-release-version-shield]: https://img.shields.io/github/v/release/ptr727/Blog?include_prereleases&label=GitHub%20Pre-Release&logo=github
-[release-version-shield]: https://img.shields.io/github/v/release/ptr727/Blog?logo=github&label=GitHub%20Release
 [last-commit-shield]: https://img.shields.io/github/last-commit/ptr727/Blog?logo=github&label=Last%20Commit
 [license-shield]: https://img.shields.io/github/license/ptr727/Blog?label=License
+[pre-release-version-shield]: https://img.shields.io/github/v/release/ptr727/Blog?include_prereleases&label=GitHub%20Pre-Release&logo=github
 [release-status-shield]: https://img.shields.io/github/actions/workflow/status/ptr727/Blog/publish-release.yml?event=workflow_dispatch&logo=github&label=Release%20Status
+[release-version-shield]: https://img.shields.io/github/v/release/ptr727/Blog?logo=github&label=GitHub%20Release
 
-<!-- Workflow -->
+<!-- Distribution -->
 
 [actions-link]: https://github.com/ptr727/Blog/actions
+[commits-link]: https://github.com/ptr727/Blog/commits
+[discussions-link]: https://github.com/ptr727/Blog/discussions
+[github-link]: https://github.com/ptr727/Blog
+[issues-link]: https://github.com/ptr727/Blog/issues
+[releases-link]: https://github.com/ptr727/Blog/releases
 
 <!-- Repo -->
 
-[github-link]: https://github.com/ptr727/Blog
-[checks]: ./checks/
-[commits-link]: https://github.com/ptr727/Blog/commits
-[deploy]: ./deploy/
 [capture]: ./capture/
 [capture-readme]: ./capture/README.md
-[ops]: ./ops/
-[environment]: ./ENVIRONMENT.md
+[checks]: ./checks/
+[deploy]: ./deploy/
 [deploy-readme]: ./deploy/README.md
-[discussions-link]: https://github.com/ptr727/Blog/discussions
-[issues-link]: https://github.com/ptr727/Blog/issues
 [env-example]: ./example.env
+[environment]: ./ENVIRONMENT.md
 [history]: ./HISTORY.md
 [hugo-config]: ./hugo.yaml
 [license]: ./LICENSE
 [migration-post]: ./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md
 [operations]: ./OPERATIONS.md
-[releases-link]: https://github.com/ptr727/Blog/releases
+[ops]: ./ops/
 [workflow]: ./WORKFLOW.md
 
 <!-- External -->
