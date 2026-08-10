@@ -1,0 +1,18 @@
+{
+    "note": "This repository's own host-tool declaration, layered over the fleet declaration in the hub's spec/host-tools.json by the hub's scripts/host_gate.py, which reads this file relative to its --repo argument. Layering is tighten-only: an entry here may add a tool, raise a floor, or turn an optional tool required, and may not lower a floor or turn a required tool optional. It carries no $schema pointer, because the schemas are hub-only and no selector carries one, so a relative pointer here would resolve to a path this repository does not have. The carried spec/secrets.json already works that way. Only hugo is declared. The deploy reaches rsync and ssh, and the live URL check reaches curl, but all three run on the CI runner or the VPS rather than on a maintainer's host, so declaring them here would fail a host that never needed them.",
+    "tools": [
+        {
+            "name": "hugo",
+            "required": true,
+            "probes": [["hugo", "version"]],
+            "pattern": "hugo v(\\d+(?:\\.\\d+)*)",
+            "minimum": "0.164.0",
+            "why": "The site generator, and this repository's whole output. AUDIT.md section 3 runs it locally to prove the URL contract, so a host auditing this repository needs it rather than only the CI runner. The floor is a target rather than a measured breakage one version below it, and it says so rather than implying a defect nobody found: it is the version .github/actions/install-hugo pins, and that action states why the pin exists, since a minor bump can change rendered output and the site is reproducible only if the generator is. What the floor cannot do is enforce the pin, because a floor is a minimum and the pin is exact, so a host above 0.164.0 passes here and can still build output CI would not. The checksum-verified install in that action is what guarantees reproducibility, and this entry only catches the too-old half. One lower boundary is measured rather than chosen: the vendored PaperMod theme names 0.146.0 as its minimum and does not build below it. The extended build is required for the theme's SCSS and is not expressible as a version, so the probe reads the version and a reader confirms the extended suffix themselves.",
+            "source": {
+                "linux": "The checksum-verified .deb from https://github.com/gohugoio/hugo/releases, matching the version .github/actions/install-hugo pins, so a local build and a CI build use the same generator. The extended build is required.",
+                "macos": "Homebrew's hugo, which is the extended build, checked against the pinned version.",
+                "windows": "Not applicable, since every consumer of this repository is Linux, which is also why it declares lineEndings lf."
+            }
+        }
+    ]
+}

@@ -22,6 +22,7 @@ Three dimensions, each independently checkable:
 ## 1. Settings and Rulesets
 
 ```sh
+# From a hub checkout, which hosts the script rather than this repo carrying a copy.
 repo-config/configure.sh check ptr727/Blog release
 ```
 
