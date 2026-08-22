@@ -2,7 +2,7 @@
 
 How an agent audits **this repository** against its own committed ground truth and reports drift. The audit is read-only. It never edits the repo, and it never touches another repository.
 
-The ground truth is the hub's committed [`repo-config/`](https://github.com/ptr727/ProjectTemplate/tree/main/repo-config) payloads, which this repo does not carry a copy of, the secrets manifest in [`spec/secrets.json`](./spec/secrets.json), and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md)). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
+The ground truth is the hub's committed `repo-config/` payloads, which this repo does not carry a copy of, the secrets manifest in [`spec/secrets.json`](./spec/secrets.json), and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md)). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
 
 ## Scope
 
@@ -30,7 +30,7 @@ Exits non-zero on any drift. It asserts rule presence, merge methods, and requir
 
 Two facts specific to this repo:
 
-- The `develop` payload is the hub's [`repo-config/develop.json`](https://github.com/ptr727/ProjectTemplate/blob/main/repo-config/develop.json), the `release` variant, which gates `develop` behind a pull request and the required status check. The `operational/develop.json` variant permits direct signed pushes and does not apply here, since this repo's `workflowModel` is `release`.
+- The `develop` payload is the hub's `repo-config/develop.json`, the `release` variant, which gates `develop` behind a pull request and the required status check. The `operational/develop.json` variant permits direct signed pushes and does not apply here, since this repo's `workflowModel` is `release`.
 - The required check binds by name, `Check pull request workflow status job`, and turns green only after the pull request workflow has run once.
 
 ## 2. Secrets

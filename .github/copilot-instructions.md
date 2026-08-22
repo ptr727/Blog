@@ -60,7 +60,7 @@ Review effort is user-controlled. The automation observes `Lite`, `Balanced`, or
 
 **The entries are this repository's own.** Each names a file and a revision, so a repository holding a copy of this file carries the shape and the rules above rather than these findings, deletes an entry whose subject it does not carry, and records what it has proved itself.
 
-*(No entries yet. Add one here only after disproving a claim against this repository's own tree at a named revision.)*
+No entries yet. Add one here only after disproving a claim against this repository's own tree at a named revision.
 
 ## When in Doubt
 
