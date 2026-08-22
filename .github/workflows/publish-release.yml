@@ -28,7 +28,7 @@ jobs:
   # linters (see AGENTS.md/GOVERNANCE.md for why this repo has not yet adopted the hub-hosted validate-task.yml).
   validate:
     name: Validate sources job
-    needs: [ plan ]
+    needs: [plan]
     if: ${{ needs.plan.outputs.publish == 'true' }}
     uses: ./.github/workflows/validate-task.yml
     permissions:
@@ -39,7 +39,7 @@ jobs:
   # This is a source-only repo with no build targets, so every enable_* input is false.
   publish:
     name: Publish project release job
-    needs: [ plan, validate ]
+    needs: [plan, validate]
     if: ${{ needs.plan.outputs.publish == 'true' }}
     uses: ptr727/ProjectTemplate/.github/workflows/build-release-task.yml@37aa042042f51655ce368ec62dd1a655ac4b3716 # 2.0.428
     permissions:

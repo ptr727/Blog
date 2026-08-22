@@ -51,7 +51,7 @@ The deploy and check scripts are Bash. They run on a Linux host and in CI, never
 
 ### Conventions
 
-- **Every script opens with `set -euo pipefail`.** A deploy that continues past a failed step is worse than one that stops.
+- **Every script opens with `set -Eeuo pipefail`.** A deploy that continues past a failed step is worse than one that stops, and `-E` lets an `ERR` trap inherit into functions, subshells, and command substitutions if one is ever added.
 - **Pin `umask` in any script that creates files a service reads.** An inherited umask is invisible until a file lands unreadable.
 - **Use `if` rather than `&&` for a conditional whose test may be false as the last command in a loop body or function.** Under `set -e` the false test becomes the block's exit status and terminates the script, which is precisely the case a tolerated-absence branch exists to handle.
 - **Quote every expansion.** An unquoted path splits on whitespace, and the failure surfaces only on the one file with a space in its name.
