@@ -1,6 +1,6 @@
 # AUDIT.md
 
-How an agent audits **this repository** against its own committed ground truth and reports drift. The audit is read-only. It never edits the repo, and it never touches another repository.
+How an agent audits **this repository** against its ground truth and reports drift. The audit is read-only: it never edits this repo, and it reads the hub only, never writes to it or any other repository.
 
 The ground truth is the hub's committed `repo-config/` payloads, which this repo does not carry a copy of, the secrets manifest in [`spec/secrets.json`](./spec/secrets.json), and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md)). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
 
