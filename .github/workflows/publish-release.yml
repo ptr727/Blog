@@ -9,59 +9,50 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
+permissions: {}
+
 jobs:
 
+  # Single source of the release-gate decision (publish or not, stable or not), reused by every job below.
+  # Also replaces this repo's own dispatch-ref assertion: the hub task errors identically on a ref other than main/develop.
+  plan:
+    name: Plan release job
+    uses: ptr727/ProjectTemplate/.github/workflows/publish-plan-task.yml@37aa042042f51655ce368ec62dd1a655ac4b3716 # 2.0.428
+    with:
+      event_name: ${{ github.event_name }}
+      actor: ${{ github.actor }}
+      ref_name: ${{ github.ref_name }}
+
   # The same reusable gate the PR runs - a dispatch cannot release a ref that fails validation.
+  # This repo's own validate-task.yml carries the Hugo build and URL-parity gate alongside the generic
+  # linters (see AGENTS.md/GOVERNANCE.md for why this repo has not yet adopted the hub-hosted validate-task.yml).
   validate:
     name: Validate sources job
+    needs: [ plan ]
+    if: ${{ needs.plan.outputs.publish == 'true' }}
     uses: ./.github/workflows/validate-task.yml
     permissions:
       contents: read
 
   # Publish the dispatched branch, where main is a release and develop a prerelease.
-  # NBGV computes the tag from the ref, then a GitHub release is created.
-  # The release is the tag plus the auto source archive, README, and LICENSE.
-  # This is a source-only repo, so there are no build targets.
+  # NBGV computes the tag; the release is the tag plus the auto source archive, README, and LICENSE.
+  # This is a source-only repo with no build targets, so every enable_* input is false.
   publish:
     name: Publish project release job
-    runs-on: ubuntu-latest
-    needs: [ validate ]
+    needs: [ plan, validate ]
+    if: ${{ needs.plan.outputs.publish == 'true' }}
+    uses: ptr727/ProjectTemplate/.github/workflows/build-release-task.yml@37aa042042f51655ce368ec62dd1a655ac4b3716 # 2.0.428
     permissions:
       contents: write
-
-    steps:
-
-      - name: Assert dispatch ref step
-        run: |
-          set -Eeuo pipefail
-          if [ "${{ github.ref_name }}" != "main" ] && [ "${{ github.ref_name }}" != "develop" ]; then
-            echo "::error::Dispatch publish-release from main (release) or develop (prerelease); got ${{ github.ref_name }}."
-            exit 1
-          fi
-
+      actions: write
+    with:
       # Full history for NBGV; pin the dispatch-time commit - a push landing after dispatch must not release unvalidated.
-      - name: Checkout code step
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 0
-
-      # NBGV versions the dispatched ref: main is the public-release ref (clean X.Y.Z), develop a prerelease.
-      # The action brings its own toolchain, so this repo needs no .NET SDK of its own.
-      - name: Compute version step
-        id: nbgv
-        uses: dotnet/nbgv@master
-
-      # Create-or-refresh: every trigger here is a dispatch, so an existing tag is refreshed, never skipped.
-      # The target_commitish input pins the tag to the exact built commit, not the default branch.
-      # The release is the tag plus GitHub's auto source archive, README, and LICENSE, with no build assets.
-      - name: Create GitHub release step
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
-        with:
-          generate_release_notes: true
-          tag_name: ${{ steps.nbgv.outputs.SemVer2 }}
-          target_commitish: ${{ steps.nbgv.outputs.GitCommitId }}
-          prerelease: ${{ github.ref_name != 'main' }}
-          files: |
-            LICENSE
-            README.md
+      ref: ${{ github.sha }}
+      branch: ${{ github.ref_name }}
+      smoke: false
+      github: true
+      enable_docker: false
+      enable_nuget: false
+      enable_pypi: false
+      enable_dotnet_publish: false
+      expect_release_assets: false
