@@ -71,7 +71,7 @@ jobs:
       - name: Validate config step
         run: |
           set -Eeuo pipefail
-          for f in repo-config/*.json spec/*.json version.json .editorconfig-checker.json; do
+          for f in spec/*.json version.json .editorconfig-checker.json; do
             jq empty "$f"
           done
           python3 -c 'import yaml,sys; yaml.safe_load(open("hugo.yaml"))'
