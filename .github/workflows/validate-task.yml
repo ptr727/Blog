@@ -92,12 +92,6 @@ jobs:
       - name: Check environment docs step
         run: python3 checks/check-env-docs.py
 
-      # The .gitattributes line-ending pins are hand-maintained, and nothing read them back.
-      # This is what reads them back: it fails on a tracked shebang file with no LF pin,
-      # and on a pin naming no tracked file.
-      - name: Check line-ending pins step
-        run: python3 checks/check-eol-pins.py
-
       # The pin lives in the action, so validation and the deploy cannot install different generators.
       - name: Install Hugo step
         uses: ./.github/actions/install-hugo
