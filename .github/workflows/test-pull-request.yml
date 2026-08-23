@@ -18,7 +18,7 @@ jobs:
 
   validate:
     name: Validate sources job
-    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@3927fec1e5d6b6b756d8ddbc6763c658a2804b91 # 2.0.445
+    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@cd7bae9ea830d2e42d1f7bb6e45b3e7f631c0668 # 2.0.448
     permissions:
       contents: read
     with:
@@ -27,6 +27,10 @@ jobs:
       markdown-exclude-globs: |
         !content/**
         !themes/*/**
+      # The vendored theme stays byte-identical to upstream.
+      # Its own floating-tag action pins are never locally edited to satisfy this repo's sha-pin gate.
+      repo-gate-exclude-globs: |
+        themes/*/**
 
   # GitHub Actions does not support required status checks on conditional jobs.
   # A single always-run aggregator therefore gates the merge.

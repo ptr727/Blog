@@ -31,7 +31,7 @@ jobs:
     name: Validate sources job
     needs: [plan]
     if: ${{ needs.plan.outputs.publish == 'true' }}
-    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@3927fec1e5d6b6b756d8ddbc6763c658a2804b91 # 2.0.445
+    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@cd7bae9ea830d2e42d1f7bb6e45b3e7f631c0668 # 2.0.448
     permissions:
       contents: read
     with:
@@ -40,6 +40,10 @@ jobs:
       markdown-exclude-globs: |
         !content/**
         !themes/*/**
+      # The vendored theme stays byte-identical to upstream.
+      # Its own floating-tag action pins are never locally edited to satisfy this repo's sha-pin gate.
+      repo-gate-exclude-globs: |
+        themes/*/**
 
   # Publish the dispatched branch, where main is a release and develop a prerelease.
   # NBGV computes the tag; the release is the tag plus the auto source archive, README, and LICENSE.
