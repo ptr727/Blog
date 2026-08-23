@@ -3,6 +3,7 @@
   "language": "en-US",
   "ignorePaths": [
     ".git/**",
+    "reports/*/**",
     "content/**",
     "static/**",
     "themes/**",
