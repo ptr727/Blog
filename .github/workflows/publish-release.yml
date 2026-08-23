@@ -23,20 +23,27 @@ jobs:
       actor: ${{ github.actor }}
       ref_name: ${{ github.ref_name }}
 
-  # The same reusable gate the PR runs - a dispatch cannot release a ref that fails validation.
-  # This repo's own validate-task.yml carries the Hugo build and URL-parity gate alongside the generic
-  # linters (see AGENTS.md/GOVERNANCE.md for why this repo has not yet adopted the hub-hosted validate-task.yml).
+  # The same reusable gate the pull request runs.
+  # A dispatch cannot release a ref that fails validation.
+  # No ref input to pin: the called workflow already checks out this run's dispatch-time github.sha by default.
+  # That is the same commit the publish job below builds.
   validate:
     name: Validate sources job
     needs: [plan]
     if: ${{ needs.plan.outputs.publish == 'true' }}
-    uses: ./.github/workflows/validate-task.yml
-    with:
-      # Pin the same dispatch-time commit publish below builds, so a push landing after dispatch
-      # cannot make validate and publish run against two different commits.
-      ref: ${{ github.sha }}
+    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@cd7bae9ea830d2e42d1f7bb6e45b3e7f631c0668 # 2.0.448
     permissions:
       contents: read
+    with:
+      # This repo's whole Hugo content tree (content/) and the vendored PaperMod theme are both excluded here.
+      # .markdownlint-cli2.jsonc is carried verbatim, so it cannot scope them locally.
+      markdown-exclude-globs: |
+        !content/**
+        !themes/*/**
+      # The vendored theme stays byte-identical to upstream.
+      # Its own floating-tag action pins are never locally edited to satisfy this repo's sha-pin gate.
+      repo-gate-exclude-globs: |
+        themes/*/**
 
   # Publish the dispatched branch, where main is a release and develop a prerelease.
   # NBGV computes the tag; the release is the tag plus the auto source archive, README, and LICENSE.
@@ -50,7 +57,8 @@ jobs:
       contents: write
       actions: write
     with:
-      # Full history for NBGV; pin the dispatch-time commit - a push landing after dispatch must not release unvalidated.
+      # Full history for NBGV.
+      # Pin the dispatch-time commit, since a push landing after dispatch must not release unvalidated.
       ref: ${{ github.sha }}
       branch: ${{ github.ref_name }}
       smoke: false
