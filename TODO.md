@@ -78,7 +78,7 @@ The site is built, gated in CI, and deployed to staging by pipeline. It is not y
 
 ## Owed to the hub
 
-**The one open item here closed itself.** [ProjectTemplate#633][issue-633] reported that the hub's `repo_gate.py --check eol` compares `.gitattributes` and `.editorconfig` to each other and never to the tree, citing two shapes this repo's own [`checks/check-eol-pins.py`](./checks/check-eol-pins.py) had caught. Rather than porting this repo's script, the hub built the equivalent directly into `repo_gate.py` as `eol-coverage` (`unpinned` plus `dead`), closing #633. This repo has since retired `check-eol-pins.py` and switched `.gitattributes` to the fleet-standard `text=auto eol=lf`, which structurally removes the bug class the script existed to catch (a tracked file with no pin keeping whatever encoding it arrived with, only possible when git stays passive by default) rather than merely fixing an instance of it.
+**The one open item here closed itself.** [ProjectTemplate#633][issue-633] reported that the hub's `repo_gate.py --check eol` compares `.gitattributes` and `.editorconfig` to each other and never to the tree, citing two shapes this repo's own `checks/check-eol-pins.py` had caught. Rather than porting this repo's script, the hub built the equivalent directly into `repo_gate.py` as `eol-coverage` (`unpinned` plus `dead`), closing #633. This repo has since retired `check-eol-pins.py` and switched `.gitattributes` to the fleet-standard `text=auto eol=lf`, which structurally removes the bug class the script existed to catch (a tracked file with no pin keeping whatever encoding it arrived with, only possible when git stays passive by default) rather than merely fixing an instance of it.
 
 The spec update this repo owed the hub has landed: [ProjectTemplate#560][hub-type-pr] authored the `hugo` type, the `self-hosted` target, the `deploy-ssh` mechanism, guarantees D4.6 and D5.6, and a reference leaf pair, all measured from what this repo actually runs rather than from the prediction the intake carried. [#456][hub-issue] and [#558][hub-spec-issue] are closed with it.
 
@@ -211,7 +211,6 @@ The deploy root is deliberately absent from this table. The rsync destination is
 [pr-65]: https://github.com/ptr727/Blog/pull/65
 [pr-66]: https://github.com/ptr727/Blog/pull/66
 [pr-68]: https://github.com/ptr727/Blog/pull/68
-[pr-69]: https://github.com/ptr727/Blog/pull/69
 [pr-70]: https://github.com/ptr727/Blog/pull/70
 [pr-75]: https://github.com/ptr727/Blog/pull/75
 [pr-76]: https://github.com/ptr727/Blog/pull/76
