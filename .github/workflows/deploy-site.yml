@@ -44,7 +44,7 @@ jobs:
     permissions:
       contents: read
     with:
-      # This repo vendors the PaperMod theme and carries an imported WordPress content archive, neither authored here.
+      # This repo's whole Hugo content tree (content/) and the vendored PaperMod theme are both excluded here.
       # .markdownlint-cli2.jsonc is carried verbatim, so it cannot scope them locally.
       markdown-exclude-globs: |
         !content/**
