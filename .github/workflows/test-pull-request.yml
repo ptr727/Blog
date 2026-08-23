@@ -1,5 +1,8 @@
 name: Test pull request action
 
+# Thin caller: the gate is the hub's reusable validate-task.yml, which this repo reaches rather than carries.
+# This is a release-model repo with no build target, so the trigger is pull_request only.
+# It has no direct-commit allowance to keep advisory.
 on:
   pull_request:
     branches: [ main, develop ]
@@ -9,14 +12,21 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
 
-  # The reusable validation gate (validate-task.yml) - the same job publish-release runs before a release.
   validate:
     name: Validate sources job
-    uses: ./.github/workflows/validate-task.yml
+    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@3927fec1e5d6b6b756d8ddbc6763c658a2804b91 # 2.0.445
     permissions:
       contents: read
+    with:
+      # This repo vendors the PaperMod theme and carries an imported WordPress content archive, neither authored here.
+      # .markdownlint-cli2.jsonc is carried verbatim, so it cannot scope them locally.
+      markdown-exclude-globs: |
+        !content/**
+        !themes/*/**
 
   # GitHub Actions does not support required status checks on conditional jobs.
   # A single always-run aggregator therefore gates the merge.
