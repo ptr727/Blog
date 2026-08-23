@@ -9,9 +9,9 @@
 # Repo-specific below: this repo's own additions layered on the fleet baseline above.
 
 # Media is 566 MB of images, video, and archives across two trees.
-# `binary` suppresses normalization plus textual diff and merge, so a `git log -p` or a
-# bad merge never renders a 4 MB PNG as text, and text=auto's own heuristic is never
-# consulted for these paths regardless of what it would guess.
+# `binary` suppresses normalization plus textual diff and merge.
+# A `git log -p` or a bad merge never renders a 4 MB PNG as text.
+# The text=auto heuristic itself is never consulted for these paths regardless of what it would guess.
 # Extensions present are png, jpg, gif, webp, mov, zip, and ico, with nothing textual.
 static/media/** binary
 static/external/** binary

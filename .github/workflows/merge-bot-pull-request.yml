@@ -23,5 +23,6 @@ jobs:
     secrets:
       CODEGEN_APP_CLIENT_ID: ${{ secrets.CODEGEN_APP_CLIENT_ID }}
       CODEGEN_APP_PRIVATE_KEY: ${{ secrets.CODEGEN_APP_PRIVATE_KEY }}
-    # This repo has no tracker outside the built-in codegen/upstream-version pairs, and keeps the
-    # repository-wide branch auto-delete off with no bot-branch exception, so no `with:` block is needed.
+    # This repo has no tracker outside the built-in codegen/upstream-version pairs.
+    # It also keeps the repository-wide branch auto-delete off with no bot-branch exception.
+    # No `with:` block is needed.
