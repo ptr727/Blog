@@ -31,6 +31,10 @@ jobs:
     needs: [plan]
     if: ${{ needs.plan.outputs.publish == 'true' }}
     uses: ./.github/workflows/validate-task.yml
+    with:
+      # Pin the same dispatch-time commit publish below builds, so a push landing after dispatch
+      # cannot make validate and publish run against two different commits.
+      ref: ${{ github.sha }}
     permissions:
       contents: read
 

@@ -4,6 +4,15 @@ name: Validate task
 
 on:
   workflow_call:
+    inputs:
+      # Empty (the default) checks out github.sha, which is already the dispatch-time commit for
+      # every job in this run. A caller that publishes/deploys off a separately-pinned ref (a
+      # cross-repo reusable-workflow call, which gets its own checkout context) passes that same
+      # ref here explicitly, so what validate checks stays provably the same commit as what ships.
+      ref:
+        required: false
+        type: string
+        default: ''
 
 jobs:
 
@@ -21,6 +30,7 @@ jobs:
       - name: Checkout code step
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.ref || github.sha }}
           fetch-depth: 0
 
       # Doc linters run as pinned action wrappers.
