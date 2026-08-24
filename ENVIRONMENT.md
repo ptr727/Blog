@@ -33,30 +33,10 @@ Held in `~/.secrets/Blog.<server>.<environment>.env`, one file per environment, 
 | `CAPTURE_AUTHOR_SLUG` | the old platform's author slug, used to backfill the author archive and its pagination | Optional, and an account name rather than a site value, which is why it is a variable at all. Unset, [`capture/classify.py`](./capture/classify.py) skips the backfill and says so, rather than emitting a list that is silently short by the author URLs. Environment-independent. |
 | `VPS_SSH_HOST` | the VPS administrative login | Not the deploy account. See "Two credentials" below. Environment-independent. |
 | `VPS_TRAEFIK_LOG` | today's live access log on the VPS, still being appended to | Never pulled, because rotation is what makes a file eligible. An analysis covering today reads it over SSH. Nothing sources it. |
-| `VPS_TRAEFIK_LOG_ARCHIVE` | the rotated access logs on the VPS, and the source of the off-host copy | Also read by the pull, below. |
 | `VPS_COMMS_DIR` | the two agent channel files on the VPS | Nothing sources it, and the transfer commands in `OPERATIONS.md` are spelled out rather than using it. See "The one place indirection is wrong" below. |
-| `BACKUP_ARCHIVE_ROOT` | the off-host encrypted archives and the plaintext `hostconfig` tree beside them | Written by the pull, read by a rebuild. |
-| `LOG_ARCHIVE_ROOT` | the off-host copy of the rotated logs | Written by the pull, read by the log review. |
+| `LOG_ARCHIVE_ROOT` | the off-host copy of the rotated logs | Written by a pull maintained outside this repository, read by the log review. |
 
 Three more are named in the template but commented out, because CI resolves them from the GitHub Environment and a local run deploys to a path and needs none of them: `DEPLOY_SSH_HOST`, `DEPLOY_SSH_USER`, `DEPLOY_SSH_KNOWN_HOSTS`. They are listed there so the local file and the environment describe the same shape.
-
-## The backup host
-
-Held in `/etc/vps-backup-pull.env`, read by `vps-backup-pull` through the unit's `EnvironmentFile`. Template: [`.secrets/example.env`](./.secrets/example.env). [`ops/install.sh`](./ops/install.sh) generates it by copying from the repository environment file, which is why the four shared names are spelled identically in both.
-
-| Value | Names | Notes |
-| --- | --- | --- |
-| `VPS_SSH_HOST` | where to pull from | Required. No default. |
-| `BACKUP_ARCHIVE_ROOT` | where the archives and host config land | Required. No default. |
-| `LOG_ARCHIVE_ROOT` | where both log sets land | Required unless `--no-logs`. No default. Mode 700, because query strings are logged in full. |
-| `VPS_ARCHIVE_DIR` | the encrypted archives on the VPS | Defaults to the documented layout. |
-| `VPS_TRAEFIK_LOG_ARCHIVE` | the rotated edge access logs on the VPS | Defaults to the documented layout. |
-| `VPS_BLOG_LOG_DIR` | one-off Caddy container dumps on the VPS, kept from before rotation existed | Defaults to the documented layout. |
-| `SSH_OPTS` | the SSH options the transfer uses | `BatchMode` makes an unusable key fail immediately rather than hanging a timed run on a password prompt nobody sees. |
-
-**The three marked required carry no default on purpose.** An address and a destination belong to one host, and a wrong-but-valid destination is a backup nobody can find, so the pull names what is missing and refuses to run rather than falling back to something plausible.
-
-**`systemd` parses this file itself rather than passing it to a shell**, so there is no expansion and no command substitution, and a `$` or a backtick is a literal character. It does strip matching quotes, verified rather than assumed, so a value containing spaces is quoted and arrives without them. That matters because [`.secrets/example.env`](./.secrets/example.env) is also sourced by a shell for the other destination, where an unquoted value would run everything after the first space as a command.
 
 ## The GitHub Environments
 
