@@ -62,10 +62,9 @@ jobs:
       environment: ${{ inputs.environment }}
     permissions:
       contents: read
-    # Cross-repo, so secrets: inherit does not apply, and the names differ from what this repo stores.
-    # PANGOLIN_ACCESS_TOKEN_ID/PANGOLIN_ACCESS_TOKEN forward as the hub task's generic SITE_AUTH_TOKEN_ID/SITE_AUTH_TOKEN.
-    # Production maps both to empty, since neither secret is set there, which the hub task's own assert step treats as a public site.
+    # Cross-repo, so secrets: inherit does not apply.
+    # Production maps both auth-token secrets to empty, since neither is set there, which the hub task's own assert step treats as a public site.
     secrets:
       DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
-      SITE_AUTH_TOKEN_ID: ${{ secrets.PANGOLIN_ACCESS_TOKEN_ID }}
-      SITE_AUTH_TOKEN: ${{ secrets.PANGOLIN_ACCESS_TOKEN }}
+      SITE_AUTH_TOKEN_ID: ${{ secrets.SITE_AUTH_TOKEN_ID }}
+      SITE_AUTH_TOKEN: ${{ secrets.SITE_AUTH_TOKEN }}
