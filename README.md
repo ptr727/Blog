@@ -178,9 +178,11 @@ checks/check-url-parity.py public
 Build a release and verify it against a running server:
 
 ```sh
+set -e
 set -a; . ~/.secrets/Blog.local.production.env; set +a
-ENV_FILE=~/.secrets/Blog.local.production.env deploy/make-release.sh
-checks/check-live-urls.sh "$SITE_BASE_URL"
+RELEASE="$(git rev-parse --short HEAD)"
+ENV_FILE=~/.secrets/Blog.local.production.env deploy/make-release.sh "" "$RELEASE"
+EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
 The deploy root and the base URL come from a file per environment in `~/.secrets/`, named `Blog.<server>.<environment>.env`, copied from [example.env][env-example] and selected with `ENV_FILE`. `~/.secrets/Blog.local.production.env` is the one read when `ENV_FILE` is unset. The real files live on the host, never in this checkout.
