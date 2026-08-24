@@ -53,39 +53,41 @@ neither. Seven facts are the whole contract:
 ## Building a release
 
 ```sh
+set -a; . ~/.secrets/Blog.local.production.env; set +a
 deploy/make-release.sh
-checks/check-live-urls.sh "$HUGO_BASEURL"
+checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
 The deploy root and the base URL are the only host-specific values, and they pair per
-environment. Copy [`example.env`](../example.env) to `secrets/local.production.env`, which is the
-file read when `ENV_FILE` is unset, and add `secrets/<server>.<environment>.env` for each further
-environment. A single environment therefore needs `secrets/local.production.env` and nothing
-else, since a differently named file is read only when `ENV_FILE` names it. `secrets/` is
-gitignored as a whole directory, so a value naming one machine cannot reach a public repo by
-being added to a file nobody remembered to ignore. CI passes them explicitly instead, which
+environment. Copy [`example.env`](../.secrets/example.env) to `~/.secrets/Blog.local.production.env`, which is the
+file read when `ENV_FILE` is unset, and add `~/.secrets/Blog.<server>.<environment>.env` for each further
+environment. A single environment therefore needs `~/.secrets/Blog.local.production.env` and nothing
+else, since a differently named file is read only when `ENV_FILE` names it. The real files
+live on the host, in `~/.secrets/`, never in this checkout. CI passes them explicitly instead, which
 keeps a pipeline run self-describing:
 
 ```sh
-HUGO_BASEURL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
+SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
 ```
 
-**One file per environment, named `secrets/<server>.<environment>.env`, selected by `ENV_FILE`.**
+**That command-prefix form is CI-only.** A local run whose default environment file exists sources it after the command-prefix assignment and overwrites it, since `set -a` overwrites a value the caller exported first. Locally, select the environment through `ENV_FILE` instead, per the table below.
+
+**One file per environment, named `~/.secrets/Blog.<server>.<environment>.env`, selected by `ENV_FILE`.**
 Both halves are spelled out, so a name says which machine it describes as well as which
-environment on it, and the four in the fleet read as one set. `secrets/local.production.env` is
+environment on it, and the four in the fleet read as one set. `~/.secrets/Blog.local.production.env` is
 the default and is read when `ENV_FILE` is unset, so a single-environment host needs nothing
 else:
 
 ```sh
-deploy/make-release.sh                                       # secrets/local.production.env
-ENV_FILE=secrets/local.staging.env deploy/make-release.sh    # the staging site on the same host
+deploy/make-release.sh                                       # ~/.secrets/Blog.local.production.env
+ENV_FILE=~/.secrets/Blog.local.staging.env deploy/make-release.sh    # the staging site on the same host
 ```
 
 A file whose `DEPLOY_SSH_HOST` is set describes a root on another machine, so this script refuses
 to create that path here and asks for a local one to assemble a bundle into:
 
 ```sh
-ENV_FILE=secrets/vps.staging.env deploy/make-release.sh /path/to/bundle
+ENV_FILE=~/.secrets/Blog.vps.staging.env deploy/make-release.sh /path/to/bundle
 ```
 
 Selecting the file is the only way to switch environments. The file is sourced with `set -a`,
@@ -95,19 +97,20 @@ still wins, because it is read after the file. A named file that does not exist 
 failure rather than a fall-through to the ambient environment, since on a host running two sites
 the ambient value is the other site's root.
 
-**Always set `HUGO_BASEURL` for anything that is not production.** The base URL is baked into
+**Always set `SITE_BASE_URL` for anything that is not production.** The base URL is baked into
 the canonical tag, the feed links, and every absolute permalink, so a mirror built without it
 serves pages that all point back at production. Nothing downstream catches this, because the
-pages render at the right paths and the parity gate passes. The effective value is printed on
-every build for that reason.
+pages render at the right paths and the parity gate passes. `make-release.sh` bridges it to
+Hugo's own `HUGO_BASEURL` internally, and the effective value is printed on every build for
+that reason.
 
 ### Environment variables
 
 | Variable | Effect |
 | --- | --- |
-| `ENV_FILE` | Which environment file to source. Defaults to `secrets/local.production.env`. |
+| `ENV_FILE` | Which environment file to source. Defaults to `~/.secrets/Blog.local.production.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
-| `HUGO_BASEURL` | Overrides the site base URL. Hugo maps `HUGO_<KEY>` onto config natively. |
+| `SITE_BASE_URL` | Overrides the site base URL. Bridged internally to `HUGO_BASEURL`, the name Hugo maps `HUGO_<KEY>` onto config natively. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
 | `NO_LINK_DEST=1` | Full copy instead of hard-linking from the previous release. |
 
@@ -116,8 +119,8 @@ open the auth gate:
 
 | Variable | Effect |
 | --- | --- |
-| `PANGOLIN_ACCESS_TOKEN_ID` | Resource access token id, sent as the `P-Access-Token-Id` header. |
-| `PANGOLIN_ACCESS_TOKEN` | The token itself, sent as `P-Access-Token`. |
+| `SITE_AUTH_TOKEN_ID` | Resource access token id, sent as the `P-Access-Token-Id` header. |
+| `SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
 
 Set both or neither; half a pair is rejected as the typo it is. They go to curl through a
 mode-`600` config file rather than as `-H` arguments, which keeps the credential out of the

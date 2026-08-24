@@ -2,7 +2,7 @@
 """Fail if a configuration value is declared without a description in ENVIRONMENT.md, or
 described there and declared nowhere.
 
-The declared surface is three things, and nothing else: the keys in example.env, the
+The declared surface is three things, and nothing else: the keys in .secrets/example.env, the
 vars.X and secrets.X a workflow references, and the KNOBS list below. A variable a script
 merely reads is NOT in scope, because a script-local name and a configuration value are the
 same shape and no pattern separates them, so widening this would report the difference as
@@ -31,7 +31,7 @@ REPO = Path(__file__).resolve().parent.parent
 DOC = REPO / "ENVIRONMENT.md"
 
 # The one template, whose keys are the declared configuration surface.
-TEMPLATES = [REPO / "example.env"]
+TEMPLATES = [REPO / ".secrets" / "example.env"]
 
 # Workflow references. `vars.X` and `secrets.X` are the GitHub Environment surface, and a
 # value added there is exactly as undocumented as one added to a template.

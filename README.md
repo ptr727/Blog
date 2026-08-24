@@ -178,11 +178,12 @@ checks/check-url-parity.py public
 Build a release and verify it against a running server:
 
 ```sh
+set -a; . ~/.secrets/Blog.local.production.env; set +a
 deploy/make-release.sh
-checks/check-live-urls.sh "$HUGO_BASEURL"
+checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-The deploy root and the base URL come from an untracked file per environment under `secrets/`, named `<server>.<environment>.env`, copied from [example.env][env-example] and selected with `ENV_FILE`. `secrets/local.production.env` is the one read when `ENV_FILE` is unset. The whole `secrets/` directory is gitignored, so host-specific values stay out of the published history.
+The deploy root and the base URL come from a file per environment in `~/.secrets/`, named `Blog.<server>.<environment>.env`, copied from [example.env][env-example] and selected with `ENV_FILE`. `~/.secrets/Blog.local.production.env` is the one read when `ENV_FILE` is unset. The real files live on the host, never in this checkout.
 
 ## 3rd Party Tools <!-- omit from toc -->
 
@@ -221,7 +222,7 @@ Licensed under the [MIT License][license]\
 [checks]: ./checks/
 [deploy]: ./deploy/
 [deploy-readme]: ./deploy/README.md
-[env-example]: ./example.env
+[env-example]: ./.secrets/example.env
 [environment]: ./ENVIRONMENT.md
 [history]: ./HISTORY.md
 [hugo-config]: ./hugo.yaml

@@ -39,7 +39,7 @@ def capture_root() -> pathlib.Path:
     """
     root = os.environ.get("CAPTURE_ROOT", "")
     if not root:
-        sys.exit("CAPTURE_ROOT is not set -- see example.env and ENVIRONMENT.md")
+        sys.exit("CAPTURE_ROOT is not set -- see .secrets/example.env and ENVIRONMENT.md")
     return pathlib.Path(root)
 
 

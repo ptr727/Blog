@@ -15,7 +15,7 @@ set -Eeuo pipefail
 # A `go install`ed wp2hugo lands here. $HOME rather than a literal path.
 export PATH="$HOME/.local/bin:$PATH"
 
-: "${CAPTURE_ROOT:?CAPTURE_ROOT is not set -- see example.env and ENVIRONMENT.md}"
+: "${CAPTURE_ROOT:?CAPTURE_ROOT is not set -- see .secrets/example.env and ENVIRONMENT.md}"
 [ -d "$CAPTURE_ROOT" ] || {
 	echo "CAPTURE_ROOT is not a directory: $CAPTURE_ROOT" >&2
 	exit 1

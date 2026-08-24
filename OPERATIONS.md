@@ -8,16 +8,16 @@ Four environments, in two pairs. Each pair is one publish site and one staging s
 
 | Environment | Address | Fronted by | Purpose |
 | --- | --- | --- | --- |
-| Local publish mirror | a private hostname, set in `secrets/local.production.env` | Traefik, on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
-| Local staging mirror | a second private hostname, set in `secrets/local.staging.env` | Traefik | Proves that two environments on one host stay independent, before that matters on a server. |
-| Staging | `blog.vps.insanegenius.net`, behind the auth gate, set in `secrets/vps.staging.env` | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
-| Production | `blog.insanegenius.com`, set in `secrets/vps.production.env` | Pangolin | The public site. |
+| Local publish mirror | a private hostname, set in `~/.secrets/Blog.local.production.env` | Traefik, on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
+| Local staging mirror | a second private hostname, set in `~/.secrets/Blog.local.staging.env` | Traefik | Proves that two environments on one host stay independent, before that matters on a server. |
+| Staging | `blog.vps.insanegenius.net`, behind the auth gate, set in `~/.secrets/Blog.vps.staging.env` | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
+| Production | `blog.insanegenius.com`, set in `~/.secrets/Blog.vps.production.env` | Pangolin | The public site. |
 
 The local mirrors are not staging. They run the same bundle against the same web server, so they catch a broken redirect or a bad permission for free, but they exercise none of the routing, authentication, or certificate machinery that only exists on the VPS. Passing locally says the artifact is right. It says nothing about whether the server in front of it is.
 
 **The two words are `production` and `staging`, spelled out, in every position.** No `prod`, no `stage`. The same two name the container, the deploy root, the environment file, the `X-Blog-Env` value, and the GitHub Environment. This is not tidiness: the environment name is a value that gets **compared**, by `EXPECT_SITE_ENV` and by the deploy, so a spelling that differs in one position fails a deploy for a reason that reads like an outage. The local mirrors prefix the same words, `mirror-production` and `mirror-staging`, so a header names exactly one of the four environments in the fleet.
 
-Each environment is one file under `secrets/`, named `<server>.<environment>.env`, selected with `ENV_FILE`, and holding the deploy root, the base URL, and the container name. The name carries both halves because the two pairs differ in server as well as environment, so a file says which machine it describes rather than leaving that to the value inside it, and the four in the table above are the four files. `secrets/local.production.env` is the one read when `ENV_FILE` is unset. Selecting the file is how an environment is chosen: the file is sourced with `set -a`, so it overwrites a `DEPLOY_ROOT` the caller exported and setting that variable by hand does not switch anything. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
+Each environment is one file under `~/.secrets/`, named `Blog.<server>.<environment>.env`, selected with `ENV_FILE`, and holding the deploy root, the base URL, and the container name. The name carries both halves because the two pairs differ in server as well as environment, so a file says which machine it describes rather than leaving that to the value inside it, and the four in the table above are the four files. `~/.secrets/Blog.local.production.env` is the one read when `ENV_FILE` is unset. Selecting the file is how an environment is chosen: the file is sourced with `set -a`, so it overwrites a `DEPLOY_ROOT` the caller exported and setting that variable by hand does not switch anything. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
 
 **The staging FQDN sits under the VPS wildcard deliberately.** `blog.vps.insanegenius.net` needs no new certificate and no new DNS record, and it keeps the staging name off the production domain.
 
@@ -76,17 +76,17 @@ So release to the local mirror and run the live check **before** opening a pull 
 | `hugo.yaml`, `layouts/` | Permalink and taxonomy changes move URLs underneath the redirects that point at them. |
 
 ```sh
-set -a; . secrets/local.production.env; set +a
+set -a; . ~/.secrets/Blog.local.production.env; set +a
 deploy/make-release.sh
-checks/check-live-urls.sh "$HUGO_BASEURL"
+checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
 Against the staging mirror, name its file in both places, since the sourced values and the ones `make-release.sh` reads must describe the same environment:
 
 ```sh
-set -a; . secrets/local.staging.env; set +a
-ENV_FILE=secrets/local.staging.env deploy/make-release.sh
-checks/check-live-urls.sh "$HUGO_BASEURL"
+set -a; . ~/.secrets/Blog.local.staging.env; set +a
+ENV_FILE=~/.secrets/Blog.local.staging.env deploy/make-release.sh
+checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
 **There is no restart step, and that depends on one flag.** The container runs `caddy run --watch`, which re-adapts the config on a timer and reloads it in process. Re-adapting re-executes every `import`, so a new release's `Caddyfile` and `maps/*.map` are picked up through the unchanged `/config/Caddyfile` that the watcher actually names. Measured on this host: content is live the instant the symlink moves, and the rules follow within about a quarter of a second.
@@ -102,14 +102,14 @@ That is why the check verifies the config rather than trusting it. **When the re
 So the bundle stamps its own version as `X-Blog-Release`, and `check-live-urls.sh` compares it against `EXPECT_RELEASE` before checking a single URL. It **waits** for a match rather than sampling once, because the reload is asynchronous and a check that starts immediately after a deploy will otherwise race it. The timeout is what still catches a container that is not watching at all, since that one never converges:
 
 ```sh
-EXPECT_RELEASE=<version> checks/check-live-urls.sh "$HUGO_BASEURL"
+EXPECT_RELEASE=<version> checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
 Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and [Deploying](#deploying) below passes them explicitly, which is what CI does so a pipeline run names the commit it built rather than the clock. Either form works locally, and the argument wins over the environment.
 
-`ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `secrets/local.production.env` while the shell's `$HUGO_BASEURL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
+`ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `~/.secrets/Blog.local.production.env` while the shell's `$SITE_BASE_URL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
 
-It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$HUGO_BASEURL` goes. It follows every URL in the contract against the running mirror, checking each redirect's destination rather than trusting its status code.
+It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$SITE_BASE_URL` goes. It follows every URL in the contract against the running mirror, checking each redirect's destination rather than trusting its status code.
 
 Expect a `PASS` naming the number of URLs honored, which is the two lists' combined length and grows as they do. Anything less is a finding, and the output names each URL that failed and what it answered.
 
@@ -120,16 +120,16 @@ A documentation-only or workflow-only change does not need this. A change to the
 Staging keeps Pangolin's authentication on, so an unauthenticated request never reaches the site. `check-live-urls.sh` presents a Pangolin resource access token when both halves of the pair are set, and sends nothing when neither is:
 
 ```sh
-set -a; . secrets/vps.staging.env; set +a
-checks/check-live-urls.sh "$HUGO_BASEURL"
+set -a; . ~/.secrets/Blog.vps.staging.env; set +a
+checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-The gate is the VPS staging environment's, so this is `secrets/vps.staging.env`. The local staging mirror sits behind Traefik on the maintainer's own network and carries neither half of the pair.
+The gate is the VPS staging environment's, so this is `~/.secrets/Blog.vps.staging.env`. The local staging mirror sits behind Traefik on the maintainer's own network and carries neither half of the pair.
 
 | Variable | Header |
 | --- | --- |
-| `PANGOLIN_ACCESS_TOKEN_ID` | `P-Access-Token-Id` |
-| `PANGOLIN_ACCESS_TOKEN` | `P-Access-Token` |
+| `SITE_AUTH_TOKEN_ID` | `P-Access-Token-Id` |
+| `SITE_AUTH_TOKEN` | `P-Access-Token` |
 
 Set both or neither. Half a pair is a typo rather than a choice, and it is rejected as one rather than presented as a failing site.
 
@@ -142,19 +142,21 @@ Three properties of how the credential is handled, each there for a reason worth
 ## Deploying
 
 ```sh
-HUGO_BASEURL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
+SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
 checks/check-live-urls.sh <base-url>
 ```
 
-The deploy root and the base URL are the only host-specific values. A local run reads them from an untracked file under `secrets/`, one per environment, copied from [`example.env`](./example.env), and CI passes both explicitly. The whole `secrets/` directory is gitignored, so no address, path, or container name belonging to one machine reaches the published history.
+The deploy root and the base URL are the only host-specific values. A local run reads them from a file under `~/.secrets/`, one per environment, copied from [`.secrets/example.env`](./.secrets/example.env), and CI passes both explicitly. The real files live on the host, never in this checkout.
 
-**Always set `HUGO_BASEURL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. The effective value is printed on every build for that reason.
+**The command-prefix form above is CI-only.** A local run whose default environment file exists sources it after the command-prefix assignment and overwrites it, since `set -a` overwrites a value the caller exported first. Locally, select the environment through `ENV_FILE` instead, as the two examples earlier in this section do.
+
+**Always set `SITE_BASE_URL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` internally, and the effective value is printed on every build for that reason.
 
 | Variable | Effect |
 | --- | --- |
-| `ENV_FILE` | Which environment file to source. Defaults to `secrets/local.production.env`. |
+| `ENV_FILE` | Which environment file to source. Defaults to `~/.secrets/Blog.local.production.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
-| `HUGO_BASEURL` | Overrides the site base URL. |
+| `SITE_BASE_URL` | Overrides the site base URL. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
 | `NO_LINK_DEST=1` | Full copy instead of hard-linking from the previous release. |
 
@@ -191,10 +193,10 @@ The script asserts both halves of that rather than assuming them. It fails when 
 
 ## Working With the VPS
 
-**Every path and hostname on this page is a value in `secrets/`, never a literal to be remembered or asked for.** The convention is the one "Environments" describes and `CAPTURE_ROOT` already follows: a value naming a machine rather than the project lives in the environment file, is sourced with `set -a`, and is read from there rather than searched for. The VPS values are environment-independent, because there is one such host rather than one per environment, so they sit in the default file alongside `CAPTURE_ROOT`.
+**Every path and hostname on this page is a value in `~/.secrets/`, never a literal to be remembered or asked for.** The convention is the one "Environments" describes and `CAPTURE_ROOT` already follows: a value naming a machine rather than the project lives in the environment file, is sourced with `set -a`, and is read from there rather than searched for. The VPS values are environment-independent, because there is one such host rather than one per environment, so they sit in the default file alongside `CAPTURE_ROOT`.
 
 ```sh
-set -a; . secrets/local.production.env; set +a
+set -a; . ~/.secrets/Blog.local.production.env; set +a
 ssh "$VPS_SSH_HOST" true && echo reachable
 ```
 
@@ -213,10 +215,10 @@ ssh "$VPS_SSH_HOST" true && echo reachable
 
 **It is a pull rather than a push, and nothing on the VPS knows it happens.** That direction is the security property rather than an implementation detail: the backup host holds a key the VPS trusts, and the VPS holds no credential reaching any other system, so a compromise of the web server cannot walk into the backups that exist to survive it.
 
-**Both sides use one set of names, so there is nothing to reconcile.** The pull writes `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` and the log review reads the same two, spelled the same way, and [`ops/install.sh`](./ops/install.sh) generates the pull's `EnvironmentFile` from this repository's `secrets/` file by copying rather than translating. Every value is described once, in [`ENVIRONMENT.md`](./ENVIRONMENT.md), and [`checks/check-env-docs.py`](./checks/check-env-docs.py) fails if one is declared without a description or described without existing.
+**Both sides use one set of names, so there is nothing to reconcile.** The pull writes `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` and the log review reads the same two, spelled the same way, and [`ops/install.sh`](./ops/install.sh) generates the pull's `EnvironmentFile` from this repository's `~/.secrets/` file by copying rather than translating. Every value is described once, in [`ENVIRONMENT.md`](./ENVIRONMENT.md), and [`checks/check-env-docs.py`](./checks/check-env-docs.py) fails if one is declared without a description or described without existing.
 
 ```sh
-set -a; . secrets/local.production.env; set +a
+set -a; . ~/.secrets/Blog.local.production.env; set +a
 ls -d "$LOG_ARCHIVE_ROOT" "$BACKUP_ARCHIVE_ROOT"
 ```
 
@@ -345,7 +347,7 @@ rsync -a root@<vps-host>:/srv/agent-comms/vps-agent.md comms/vps-agent.md
 rsync -a --no-o --no-g --chmod=F644 comms/blog-agent.md root@<vps-host>:/srv/agent-comms/blog-agent.md
 ```
 
-**Spell both commands out rather than reading the host and directory from `secrets/`**, which is the opposite of the rule "Working With the VPS" sets for every other path, and is deliberate. These two are allowlisted in `.claude/settings.local.json`, and an allow rule matches the text of the command rather than the value it expands to, so replacing the literals with `$VPS_SSH_HOST` and `$VPS_COMMS_DIR` turns an allowed transfer into one that prompts. The same rule is why neither may be chained behind `cd` or `&&`: an allow rule matches a standalone command only.
+**Spell both commands out rather than reading the host and directory from `~/.secrets/`**, which is the opposite of the rule "Working With the VPS" sets for every other path, and is deliberate. These two are allowlisted in `.claude/settings.local.json`, and an allow rule matches the text of the command rather than the value it expands to, so replacing the literals with `$VPS_SSH_HOST` and `$VPS_COMMS_DIR` turns an allowed transfer into one that prompts. The same rule is why neither may be chained behind `cd` or `&&`: an allow rule matches a standalone command only.
 
 **The push suppresses owner and group deliberately.** `-a` implies `-o` and `-g`, and the transfer connects as root, so a plain `rsync -a` carries this workstation's numeric uid onto a host that has no such user and leaves the file owned by a number.
 
@@ -391,7 +393,7 @@ The container reads three host paths, and only one of them a release ever writes
 Because it sits outside the bundle, no release updates it. Install or refresh it explicitly, once per environment, which is the same command against a different sourced file:
 
 ```sh
-set -a; . secrets/local.production.env; set +a   # or any other secrets/<server>.<environment>.env
+set -a; . ~/.secrets/Blog.local.production.env; set +a   # or any other ~/.secrets/Blog.<server>.<environment>.env
 install -m 644 deploy/bootstrap.Caddyfile "$CADDY_APPDATA/config/Caddyfile"
 docker restart "$CADDY_CONTAINER"   # only this file needs one, see below
 ```
