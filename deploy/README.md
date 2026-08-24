@@ -110,7 +110,7 @@ that reason.
 | --- | --- |
 | `ENV_FILE` | Which environment file to source. Defaults to `~/.secrets/Blog.local.production.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
-| `SITE_BASE_URL` | Overrides the site base URL. Bridged internally to `HUGO_BASEURL`, the name Hugo maps `HUGO_<KEY>` onto config with natively. |
+| `SITE_BASE_URL` | Overrides the site base URL. Bridged internally to `HUGO_BASEURL`, the name Hugo maps `HUGO_<KEY>` onto config natively. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
 | `NO_LINK_DEST=1` | Full copy instead of hard-linking from the previous release. |
 
