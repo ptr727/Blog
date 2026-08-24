@@ -1,0 +1,101 @@
+# Blog's own deploy hook, run by the hub's deploy-site-task.yml in build, prune, and verify modes.
+# The hub task forwards SITE_BASE_URL, SITE_AUTH_TOKEN_ID, and SITE_AUTH_TOKEN as plain process env vars, not through this composite action's own expression context.
+# This hook therefore reads them as $SITE_BASE_URL and so on in its run: steps, never as ${{ env.* }}.
+# Hugo's own HUGO_BASEURL convention is bridged from SITE_BASE_URL inside build mode only.
+# Every other script in this repo keeps reading HUGO_BASEURL exactly as OPERATIONS.md documents.
+name: Deploy hook (Blog)
+description: The build, prune, and verify modes deploy-site-task.yml calls.
+
+inputs:
+  mode:
+    description: build, prune, or verify.
+    required: true
+  bundle-path:
+    description: Scratch path for the assembled release bundle, used by build mode.
+    required: false
+    default: ''
+  release-id:
+    description: The release id this run is building or verifying.
+    required: false
+    default: ''
+  environment:
+    description: The GitHub Environment name, used by verify mode.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+
+    # One update for the job, since each is a network round trip that can fail on its own.
+    # REQUIRE_BROTLI later makes a missing brotli fatal.
+    - name: Install build tools step
+      if: inputs.mode == 'build'
+      shell: bash
+      run: |
+        set -Eeuo pipefail
+        sudo apt-get update
+        sudo apt-get install --yes --no-install-recommends brotli
+
+    # A file links under --link-dest only when size and mtime both match, and git stores no mtimes.
+    # This restores static/ only, since generated pages are written fresh by every build and can never match.
+    - name: Restore file mtimes step
+      if: inputs.mode == 'build'
+      uses: chetan/git-restore-mtime-action@d186aca54f8760da4dec55313195e51ed3ebb0b3 # v2.3
+      with:
+        args: static
+
+    # The outcome is asserted because a failing restore reports success and does nothing.
+    # A restored file cannot be newer than the commit it was dated from.
+    - name: Assert mtimes were restored step
+      if: inputs.mode == 'build'
+      shell: bash
+      run: |
+        set -Eeuo pipefail
+        bound=$(git log -1 --format=%ct)
+        newest=$(find static -type f -printf '%T@\n' | sort -n | tail -1 | cut -d. -f1)
+        echo "static/ newest mtime $newest, HEAD committed $bound, margin $((bound - newest))s"
+        if [ "$newest" -gt "$bound" ]; then
+          echo "::error::mtime restore did nothing: static/ carries files newer than HEAD's commit, so they still hold their checkout time and --link-dest will link nothing."
+          exit 1
+        fi
+
+    # The pin lives in the action, so this hook and the validate hook install the same generator.
+    - name: Install Hugo step
+      if: inputs.mode == 'build'
+      uses: ./.github/actions/install-hugo
+
+    # HUGO_BASEURL is set here, once, from the hub's SITE_BASE_URL.
+    # Everything downstream, Hugo itself and the verify step below, reads whichever name it already expects.
+    # No other script in this repo touches SITE_BASE_URL directly.
+    - name: Assemble release bundle step
+      if: inputs.mode == 'build'
+      shell: bash
+      env:
+        REQUIRE_BROTLI: '1'
+        MTIME_RESTORED: '1'
+      run: |
+        set -Eeuo pipefail
+        HUGO_BASEURL="$SITE_BASE_URL" deploy/make-release.sh "${{ inputs.bundle-path }}" "${{ inputs.release-id }}"
+
+    # Deliberately a no-op.
+    # OPERATIONS.md "Who Owns What" states it directly: the host's blog-prune-releases.timer owns retention, and nothing in this repo does.
+    # The deploy key needs no delete capability at all.
+    - name: No-op prune step
+      if: inputs.mode == 'prune'
+      shell: bash
+      run: |
+        echo "no-op: the host's blog-prune-releases.timer owns retention, not this deploy key"
+
+    # The only step that observes the running site.
+    # The token pair is set on staging alone, since production answers unauthenticated.
+    - name: Verify URL contract step
+      if: inputs.mode == 'verify'
+      shell: bash
+      env:
+        EXPECT_SITE_ENV: ${{ inputs.environment }}
+        EXPECT_RELEASE: ${{ inputs.release-id }}
+      run: |
+        set -Eeuo pipefail
+        PANGOLIN_ACCESS_TOKEN_ID="$SITE_AUTH_TOKEN_ID" PANGOLIN_ACCESS_TOKEN="$SITE_AUTH_TOKEN" \
+          checks/check-live-urls.sh "$SITE_BASE_URL"

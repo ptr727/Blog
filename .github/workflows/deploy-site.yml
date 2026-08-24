@@ -57,9 +57,15 @@ jobs:
   deploy:
     name: Deploy site job
     needs: [ validate ]
-    uses: ./.github/workflows/deploy-site-task.yml
+    uses: ptr727/ProjectTemplate/.github/workflows/deploy-site-task.yml@cd7bae9ea830d2e42d1f7bb6e45b3e7f631c0668 # 2.0.448
     with:
       environment: ${{ inputs.environment }}
     permissions:
       contents: read
-    secrets: inherit
+    # Cross-repo, so secrets: inherit does not apply, and the names differ from what this repo stores.
+    # PANGOLIN_ACCESS_TOKEN_ID/PANGOLIN_ACCESS_TOKEN forward as the hub task's generic SITE_AUTH_TOKEN_ID/SITE_AUTH_TOKEN.
+    # Production maps both to empty, since neither secret is set there, which the hub task's own assert step treats as a public site.
+    secrets:
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+      SITE_AUTH_TOKEN_ID: ${{ secrets.PANGOLIN_ACCESS_TOKEN_ID }}
+      SITE_AUTH_TOKEN: ${{ secrets.PANGOLIN_ACCESS_TOKEN }}

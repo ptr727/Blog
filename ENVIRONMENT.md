@@ -64,7 +64,7 @@ Held on the `production` and `staging` environments. The deploy workflow reads n
 
 | Value | Kind | Names |
 | --- | --- | --- |
-| `HUGO_BASEURL` | variable | the base URL, used twice: the site is built with it and `check-live-urls.sh` is pointed at it |
+| `SITE_BASE_URL` | variable | the base URL, used twice: `.github/actions/deploy/action.yml` builds the site with it (as `HUGO_BASEURL`) and points `check-live-urls.sh` at it |
 | `DEPLOY_SSH_HOST` | variable | the deploy endpoint |
 | `DEPLOY_SSH_USER` | variable | the confined deploy account |
 | `DEPLOY_SSH_KNOWN_HOSTS` | variable | the pinned host key. A variable rather than a secret, deliberately, since it is public by nature |
@@ -72,7 +72,7 @@ Held on the `production` and `staging` environments. The deploy workflow reads n
 | `PANGOLIN_ACCESS_TOKEN_ID` | secret | as above, for an environment behind the gate |
 | `PANGOLIN_ACCESS_TOKEN` | secret | as above |
 
-**`HUGO_BASEURL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes.
+**`SITE_BASE_URL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes. Its generic name is the hub's own `deploy-site-task.yml` interface, since that task is not Hugo-specific. Blog's own scripts and `OPERATIONS.md` keep reading `HUGO_BASEURL`, which the deploy hook bridges from `SITE_BASE_URL` in one place.
 
 **A host rebuild regenerates the SSH host keys and the pinned value stops matching**, which fails every deploy closed and blocks the rollback path at the same moment a rebuild makes both matter. Replace `DEPLOY_SSH_KNOWN_HOSTS` on **both** environments before the first deploy after a rebuild.
 

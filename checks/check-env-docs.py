@@ -50,18 +50,28 @@ KNOBS = {
     "MTIME_RESTORED",
 }
 
+# Real, stored GitHub Environment values, invisible to WORKFLOWS for a different reason.
+# The hub-hosted deploy-site-task.yml reads these by its own vars.X/secrets.X reference.
+# Since that reference lives outside this repo's own workflow files, this scan never sees them declared.
+HUB_HOSTED_ENVIRONMENT_VALUES = {
+    "SITE_BASE_URL",
+    "DEPLOY_SSH_HOST",
+    "DEPLOY_SSH_USER",
+    "DEPLOY_SSH_KNOWN_HOSTS",
+}
+
 # Names that look like configuration to the patterns above but are not.
 # ENVIRONMENT and RELEASE_ID are computed inside the workflow and passed down, and
 # GITHUB_* is the runner's own namespace.
 IGNORE = {"ENVIRONMENT", "RELEASE_ID", "SSH_TRANSPORT"}
 
-DECL = re.compile(r"^([A-Z][A-Z0-9_]*)=", re.M)
-COMMENTED_DECL = re.compile(r"^#\s*([A-Z][A-Z0-9_]*)=", re.M)
+DECL = re.compile(r"^([A-Z][A-Z0-9_]*)=", re.MULTILINE)
+COMMENTED_DECL = re.compile(r"^#\s*([A-Z][A-Z0-9_]*)=", re.MULTILINE)
 GH_REF = re.compile(r"\b(?:vars|secrets)\.([A-Z][A-Z0-9_]*)\b")
 # A row is `| `NAME` | ...`, and the backticks are what separate a described value from a
 # mention of one in a sentence. The trailing `=value` is optional because a knob is
 # documented as REQUIRE_BROTLI=1, which names the value that switches it on.
-DOC_ROW = re.compile(r"^\|\s*`([A-Z][A-Z0-9_]*)(?:=[^`]*)?`", re.M)
+DOC_ROW = re.compile(r"^\|\s*`([A-Z][A-Z0-9_]*)(?:=[^`]*)?`", re.MULTILINE)
 # Values the doc names in prose rather than in a table row, which is how the three
 # commented-out template keys and the two bot secrets are covered.
 DOC_INLINE = re.compile(r"`([A-Z][A-Z0-9_]{2,})(?:=[^`]*)?`")
@@ -102,6 +112,9 @@ def main() -> int:
 
     for name in KNOBS:
         note(name, "per-invocation knob")
+
+    for name in HUB_HOSTED_ENVIRONMENT_VALUES:
+        note(name, "read by the hub-hosted deploy-site-task.yml")
 
     undocumented = sorted(n for n in declared if n not in documented_any)
     # Only table rows count as "described", so a value the doc merely mentions in passing
