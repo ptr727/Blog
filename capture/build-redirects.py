@@ -91,7 +91,7 @@ def main(argv):
     if not root:
         print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
         print("CAPTURE_ROOT is not set and no capture directory was given", file=sys.stderr)
-        print("see example.env and ENVIRONMENT.md", file=sys.stderr)
+        print("see .secrets/example.env and ENVIRONMENT.md", file=sys.stderr)
         return 2
     capture = pathlib.Path(root)
     out = REPO / "deploy" / "maps"

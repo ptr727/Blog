@@ -12,7 +12,7 @@ KEEP_RELEASES=10
 usage() {
 	echo "usage: $0 [deploy-root] [version]" >&2
 	echo "       deploy-root defaults to DEPLOY_ROOT, from the environment or \$ENV_FILE" >&2
-	echo "       ENV_FILE defaults to secrets/local.production.env, and a relative path resolves against the repo" >&2
+	echo "       ENV_FILE defaults to ~/.secrets/Blog.local.production.env, and a relative path resolves against ~/.secrets" >&2
 	echo "       deploy-root is required when the environment file sets DEPLOY_SSH_HOST, since that root is on another host" >&2
 	exit 2
 }
@@ -26,19 +26,19 @@ MTIME_MIN=2025.08
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
 # ENV_FILE selects the environment, because `set -a` overwrites a value the caller exported.
 # The first argument overrides the root, being read after this.
-# Files are named secrets/<server>.<environment>.env, both words spelled out, so the default names
-# the environment it actually selects rather than being the one file whose name says nothing.
-DEFAULT_ENV_FILE="$REPO/secrets/local.production.env"
+# Files are named ~/.secrets/Blog.<server>.<environment>.env, both words spelled out, so the default names the environment it actually selects rather than being the one file whose name says nothing.
+# The leading Blog segment disambiguates this repo's files in ~/.secrets, since other repos on the same host also write there.
+DEFAULT_ENV_FILE="$HOME/.secrets/Blog.local.production.env"
 ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
-# A relative name resolves against the repo, so it means the same from any working directory.
-# Traversal is refused rather than resolved, since a relative name is meant to reach secrets/.
+# A relative name resolves against ~/.secrets, so it means the same from any working directory.
+# Traversal is refused rather than resolved, since a relative name is meant to reach ~/.secrets.
 case "$ENV_FILE" in
 /*) ;;
 *..*)
 	echo "ENV_FILE must not traverse: $ENV_FILE" >&2
 	exit 1
 	;;
-*) ENV_FILE="$REPO/$ENV_FILE" ;;
+*) ENV_FILE="$HOME/.secrets/$ENV_FILE" ;;
 esac
 if [ -f "$ENV_FILE" ]; then
 	echo "==> environment: $ENV_FILE"
@@ -51,6 +51,12 @@ elif [ "$ENV_FILE" != "$DEFAULT_ENV_FILE" ]; then
 	# A named file is not, since a typo would fall through to the other environment's root.
 	echo "environment file not found: $ENV_FILE" >&2
 	exit 1
+fi
+
+# Hugo maps HUGO_<KEY> onto config natively, and only that name, so this is the one place SITE_BASE_URL becomes the name Hugo actually reads.
+# CI reads no env file here, it already has SITE_BASE_URL in the process environment, so this bridge covers both callers alike.
+if [ -n "${SITE_BASE_URL:-}" ]; then
+	export HUGO_BASEURL="$SITE_BASE_URL"
 fi
 
 # This script installs to a local path, so a remote environment's DEPLOY_ROOT would be built here.

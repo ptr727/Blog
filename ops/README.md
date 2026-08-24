@@ -9,7 +9,7 @@ The pull that copies the VPS's backup set and its access logs off the VPS. It ru
 | `vps-backup-pull.service` | `/etc/systemd/system/` |
 | `vps-backup-pull.timer` | `/etc/systemd/system/` |
 | `vps-backup-pull.service.d-local.conf.example` | `/etc/systemd/system/vps-backup-pull.service.d/local.conf` |
-| [`example.env`](../example.env) | `/etc/vps-backup-pull.env` |
+| [`example.env`](../.secrets/example.env) | `/etc/vps-backup-pull.env` |
 
 **The last two are required, not optional, and `install.sh` generates both.** Nothing in this directory names a machine, so the address, the destination paths, and the account are supplied at install time from values this repository already holds. A missing value stops the pull with the name of what is missing rather than falling back to something plausible, since a wrong-but-valid destination is a backup nobody can find. The two `.example` files document the format and are not the install path.
 
@@ -42,7 +42,7 @@ ops/install.sh --check    # derive, validate, print, write nothing
 ops/install.sh            # the same, then install
 ```
 
-**Nothing is typed twice.** The address, both destinations, and the account are already known to this checkout, so `install.sh` copies them rather than asking: `VPS_SSH_HOST`, `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` come straight from `secrets/<server>.<environment>.env`, the account is whoever runs the script, the group is read from the destination, and the mount is resolved with `findmnt`.
+**Nothing is typed twice.** The address, both destinations, and the account are already known to this checkout, so `install.sh` copies them rather than asking: `VPS_SSH_HOST`, `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` come straight from `~/.secrets/Blog.<server>.<environment>.env`, the account is whoever runs the script, the group is read from the destination, and the mount is resolved with `findmnt`.
 
 **Two derivations are worth knowing, because the obvious answer is wrong for both.** The group comes from the destination rather than from `id -gn`, since `Group=` sets the process's primary group and the account's own group is usually not the one owning the backup tree. And `RequiresMountsFor=` needs the mount point rather than the destination path below it.
 
@@ -65,9 +65,9 @@ systemctl list-timers vps-backup-pull.timer --all
 
 ## Variables
 
-Every path is a variable, so a host states its own layout rather than editing a file git owns. [`example.env`](../example.env) lists them and [`ENVIRONMENT.md`](../ENVIRONMENT.md) describes them. The three `systemd` settings that cannot come from an environment file are in [`vps-backup-pull.service.d-local.conf.example`](./vps-backup-pull.service.d-local.conf.example).
+Every path is a variable, so a host states its own layout rather than editing a file git owns. [`example.env`](../.secrets/example.env) lists them and [`ENVIRONMENT.md`](../ENVIRONMENT.md) describes them. The three `systemd` settings that cannot come from an environment file are in [`vps-backup-pull.service.d-local.conf.example`](./vps-backup-pull.service.d-local.conf.example).
 
-**They are the same names Blog's own `secrets/` file uses, which is the point.** `VPS_*` is something on the VPS and `*_ROOT` is something on this host, and the pull writes the two roots that the log review reads. One name per directory means the writing side and the reading side cannot disagree, and it is why `install.sh` copies rather than translates. Every value is described in [`ENVIRONMENT.md`](../ENVIRONMENT.md).
+**They are the same names Blog's own `~/.secrets/` file uses, which is the point.** `VPS_*` is something on the VPS and `*_ROOT` is something on this host, and the pull writes the two roots that the log review reads. One name per directory means the writing side and the reading side cannot disagree, and it is why `install.sh` copies rather than translates. Every value is described in [`ENVIRONMENT.md`](../ENVIRONMENT.md).
 
 ## This directory is the source
 
