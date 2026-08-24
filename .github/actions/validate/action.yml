@@ -1,0 +1,59 @@
+# Blog's own validate hook, run by the hub's validate-task.yml validate job.
+# The fleet doc-lint block and the generic unit-test job in validate-task.yml do not cover this repo's own domain checks.
+name: Validate repository (Blog)
+description: Config/env-docs checks and the Hugo build/URL-parity gate.
+
+runs:
+  using: composite
+  steps:
+
+    - name: Validate config step
+      shell: bash
+      run: |
+        set -Eeuo pipefail
+        for f in spec/*.json version.json .editorconfig-checker.json; do
+          jq empty "$f"
+        done
+        python3 -c 'import yaml,sys; yaml.safe_load(open("hugo.yaml"))'
+
+    # Every configuration value is described once, in ENVIRONMENT.md.
+    # A new value gets added wherever its author is working, and nothing else notices a missing row.
+    # This check runs both directions: undocumented values, and rows describing nothing.
+    - name: Check environment docs step
+      shell: bash
+      run: python3 checks/check-env-docs.py
+
+    # The hub's validate job checkout is shallow.
+    # The mtime restore below needs full history to date each file from its last commit.
+    # This hook deepens the checkout before the build.
+    - name: Deepen checkout step
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ github.sha }}
+        fetch-depth: 0
+
+    # The pin lives in the action, so validation and the deploy cannot install different generators.
+    - name: Install Hugo step
+      uses: ./.github/actions/install-hugo
+
+    # The same action the deploy uses, so the two agree on who restores the mtimes.
+    - name: Restore file mtimes step
+      uses: chetan/git-restore-mtime-action@d186aca54f8760da4dec55313195e51ed3ebb0b3 # v2.3
+      with:
+        args: static
+
+    # This is the build and URL-contract gate, not an extra step beside one.
+    # The script runs `hugo --panicOnWarning` and check-url-parity itself, so a separate build would repeat both.
+    # --panicOnWarning is the real gate, and two PaperMod templates are overridden in layouts/ so it can stay on.
+    # Every local asset reference must resolve, and every legacy image URL from the WordPress import must too.
+    #
+    # Running the script here is also the point: it was linted and never run, so a broken caller contract reached a deploy.
+    # An empty scratch root exercises the deploy's path short of the transport, with no previous release for the hard-link guard.
+    # REQUIRE_BROTLI stays unset, since installing brotli would cost an apt round trip per pull request.
+    - name: Assemble release bundle step
+      shell: bash
+      env:
+        MTIME_RESTORED: '1'
+      run: |
+        set -Eeuo pipefail
+        deploy/make-release.sh "${RUNNER_TEMP}/validate-bundle" "$(date -u +%Y%m%d-%H%M%S)"

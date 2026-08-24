@@ -40,9 +40,19 @@ jobs:
   validate:
     name: Validate sources job
     needs: [ assert-ref ]
-    uses: ./.github/workflows/validate-task.yml
+    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@cd7bae9ea830d2e42d1f7bb6e45b3e7f631c0668 # 2.0.448
     permissions:
       contents: read
+    with:
+      # This repo's whole Hugo content tree (content/) and the vendored PaperMod theme are both excluded here.
+      # .markdownlint-cli2.jsonc is carried verbatim, so it cannot scope them locally.
+      markdown-exclude-globs: |
+        !content/**
+        !themes/*/**
+      # The vendored theme stays byte-identical to upstream.
+      # Its own floating-tag action pins are never locally edited to satisfy this repo's sha-pin gate.
+      repo-gate-exclude-globs: |
+        themes/*/**
 
   deploy:
     name: Deploy site job

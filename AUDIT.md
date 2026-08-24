@@ -1,21 +1,22 @@
 # AUDIT.md
 
-How an agent audits **this repository** against its own committed ground truth and reports drift. The audit is read-only. It never edits the repo, and it never touches another repository.
+How an agent audits **this repository** against its ground truth and reports drift. The audit is read-only: it never edits this repo, and it reads the hub only, never writes to it or any other repository.
 
-The ground truth is what this repo commits: the payloads in [`repo-config/`](./repo-config/), the secrets manifest in [`spec/secrets.json`](./spec/secrets.json), and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md)). A live setting that disagrees with a committed payload is drift, and the payload is right until a human decides otherwise.
+The ground truth is the hub's committed `repo-config/` payloads, which this repo does not carry a copy of, the secrets manifest in [`spec/secrets.json`](./spec/secrets.json), and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md)). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
 
 ## Scope
 
 This repo declares `types: ["source-only"]` and `workflowModel: release` with `lineEndings: "lf"`.
 
-Two of those three are deliberate deviations from what the fleet spec would predict, recorded here rather than left to be rediscovered as drift:
+Two of those three are deliberate deviations from what the fleet spec would predict, recorded here rather than left to be rediscovered as drift. A third gap is not a deviation from the spec but from this repo's own progress adopting it, recorded the same way:
 
+- **`deploy-site.yml` still calls this repo's own local `deploy-site-task.yml`, not the hub-hosted one [WORKFLOW.md](./WORKFLOW.md) describes.** Splitting `make-release.sh`'s hard-link and assertion logic into the documented build/prune/verify hook shape is deferred: this repo's script layout (pruning lives inside `make-release.sh` rather than as its own script) doesn't match what the adoption guide assumes, and untangling that on the live SSH deploy path needs more care than a quick fix gives it. `WORKFLOW.md` describes the fleet's target shape, not yet this repo's actual one, for this one guarantee.
 - **`lineEndings: "lf"` on a `release` repo.** [`GOVERNANCE.md` "Line Endings"](./GOVERNANCE.md#line-endings) grants the native-platform default to operational repos only and holds `release` repos to the CRLF fleet default. Every consumer here is Linux: Hugo builds in CI, Caddy and OpenSSH read their config on Ubuntu, and the deploy scripts run there. Taking CRLF would mean an LF override for the shell scripts, the workflow YAML, the Caddyfile, the generated Caddy maps, and the content tree, which is the over-normalization that rule exists to prevent. The rule ties the ending to the workflow model when the thing that actually determines it is the consuming platform.
 - **`types: ["source-only"]` rather than `docs`.** `docs` detects a "governance-only repo" and asserts that CI runs linting only with no build. Both are false here, since this repo builds a site with Hugo and gates it on a URL contract. `source-only` detects "no `build-*-task.yml`", which is true, and its checks describe the release shape this repo actually has. Both selectors resolve to the same 24 baseline files, so the choice costs nothing and only one of them is honest.
 
 Three dimensions, each independently checkable:
 
-1. **Settings and rulesets**, against the committed `repo-config/` payloads.
+1. **Settings and rulesets**, against the hub's committed `repo-config/` payloads.
 2. **Secrets**, by name only, against `spec/secrets.json`.
 3. **The URL contract**, which is this repo's own reason to exist.
 
@@ -30,7 +31,7 @@ Exits non-zero on any drift. It asserts rule presence, merge methods, and requir
 
 Two facts specific to this repo:
 
-- The `develop` payload is [`repo-config/develop.json`](./repo-config/develop.json), the `release` variant, which gates `develop` behind a pull request and the required status check. The `operational/develop.json` variant permits direct signed pushes and is **absent** here. Carrying it would apply the wrong ruleset.
+- The `develop` payload is the hub's `repo-config/develop.json`, the `release` variant, which gates `develop` behind a pull request and the required status check. The `operational/develop.json` variant permits direct signed pushes and does not apply here, since this repo's `workflowModel` is `release`.
 - The required check binds by name, `Check pull request workflow status job`, and turns green only after the pull request workflow has run once.
 
 ## 2. Secrets

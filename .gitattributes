@@ -1,58 +1,17 @@
-# Git stays passive on line endings by default.
-# The .editorconfig end_of_line rules guide what the editor writes.
-# The pins below are git's own enforcement for execution-sensitive files.
-# - git config --global core.autocrlf false
-# - git add --renormalize .
-# - git ls-files --eol
-* -text
+# Normalize every detected text file to LF in the index and on checkout.
+# `text=auto` leaves binary files byte-preserved.
+* text=auto eol=lf
 
-# This repo declares LF, so .editorconfig already defaults every file to LF.
-# That does not make the pins below redundant.
-# `* -text` keeps git passive, so .editorconfig binds only the editor.
-# An explicit `text eol=lf` is what binds git on checkout and on renormalize.
-# Execution-sensitive files therefore get both.
+# Windows command scripts require CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
 
-# A CRLF shebang breaks execution, so scripts stay LF regardless of the default.
-*.sh text eol=lf
-
-# Shebang-executable files carrying no extension, which every rule above matches by
-# extension and therefore misses. `ops/vps-backup-pull` is run by systemd on the backup
-# host. A named line per file, as with the Python rules below, and `check-eol-pins.py`
-# fails if a tracked shebang file ever lands without one.
-ops/vps-backup-pull text eol=lf
-
-# Shebang-executable Python, where a CRLF on line one is a broken interpreter line rather
-# than a cosmetic difference. `capture/` is pinned whole, because everything there is a
-# script; under `checks/` the two executables are named, because that directory also holds
-# lists and fixtures. Neither is a blanket `*.py` rule, so a future non-executable module
-# elsewhere is not swept in by accident, and a new executable needs a line here.
-capture/*.py text eol=lf
-checks/check-url-parity.py text eol=lf
-checks/check-env-docs.py text eol=lf
-checks/check-eol-pins.py text eol=lf
-
-# Caddy config is parsed line by line by a daemon rather than by a shell, and a CRLF file
-# is rejected or silently mis-parsed. Both files are named: the bundle's `Caddyfile`, and
-# the bootstrap that is installed into the container's config directory and is the only
-# Caddy file outside the release.
-#
-# The restricted `authorized_keys` and the forced-command deploy shell were pinned here
-# too, and this repository has never carried either: they live on the server, described in
-# OPERATIONS.md "Server Hardening". A pin binds nothing for a file that does not exist,
-# and the comment claiming to cover "the extensionless shebang script" is what let the
-# real one, `ops/vps-backup-pull`, sit unpinned above. `check-eol-pins.py` now fails on a
-# pattern matching no tracked file, so neither can come back silently.
-deploy/Caddyfile text eol=lf
-deploy/bootstrap.Caddyfile text eol=lf
-
-# Caddy map files are tabular data read by `map` directives.
-# They stay LF for the same reason as the Caddyfile.
-deploy/maps/*.map text eol=lf
+# Repo-specific below: this repo's own additions layered on the fleet baseline above.
 
 # Media is 566 MB of images, video, and archives across two trees.
-# `* -text` already stops git normalizing them.
-# `binary` additionally suppresses textual diff and merge.
-# That keeps a `git log -p` or a bad merge from rendering a 4 MB PNG as text.
+# `binary` suppresses normalization plus textual diff and merge.
+# A `git log -p` or a bad merge never renders a 4 MB PNG as text.
+# The text=auto heuristic itself is never consulted for these paths regardless of what it would guess.
 # Extensions present are png, jpg, gif, webp, mov, zip, and ico, with nothing textual.
 static/media/** binary
 static/external/** binary
