@@ -7,7 +7,7 @@ exposing one.
 
 ## Real values live on the host, never in the checkout
 
-Every real value this repo's scripts read comes from `~/.secrets/`, not from this directory.
+Every real value a local invocation of this repo's scripts reads comes from `~/.secrets/`, not from this directory. CI supplies the same values directly from the GitHub Environment instead, reading no file here at all.
 `ENV_FILE=<name> deploy/make-release.sh` and `ops/install.sh` both resolve a relative `ENV_FILE`
 against `$HOME/.secrets`, refuse a traversing one, and default to
 `~/.secrets/Blog.local.production.env`. `~/.secrets/` is shared across every repo on the host,

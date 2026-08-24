@@ -77,11 +77,11 @@ So release to the local mirror and run the live check **before** opening a pull 
 
 ```sh
 set -a; . ~/.secrets/Blog.local.production.env; set +a
-deploy/make-release.sh
+ENV_FILE=~/.secrets/Blog.local.production.env deploy/make-release.sh
 checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-Against the staging mirror, name its file in both places, since the sourced values and the ones `make-release.sh` reads must describe the same environment:
+Name the file in both places, even when it is the default, since `make-release.sh` sources `ENV_FILE` independently of the shell above and a value already exported earlier in the same session would otherwise win silently over the sourced one:
 
 ```sh
 set -a; . ~/.secrets/Blog.local.staging.env; set +a
@@ -142,8 +142,9 @@ Three properties of how the credential is handled, each there for a reason worth
 ## Deploying
 
 ```sh
-SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
-checks/check-live-urls.sh <base-url>
+RELEASE="$(git rev-parse --short HEAD)"
+SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> "$RELEASE"
+EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh <base-url>
 ```
 
 The deploy root and the base URL are the only host-specific values. A local run reads them from a file under `~/.secrets/`, one per environment, copied from [`.secrets/example.env`](./.secrets/example.env), and CI passes both explicitly. The real files live on the host, never in this checkout.
