@@ -178,6 +178,7 @@ checks/check-url-parity.py public
 Build a release and verify it against a running server:
 
 ```sh
+set -e
 set -a; . ~/.secrets/Blog.local.production.env; set +a
 RELEASE="$(git rev-parse --short HEAD)"
 ENV_FILE=~/.secrets/Blog.local.production.env deploy/make-release.sh "" "$RELEASE"
