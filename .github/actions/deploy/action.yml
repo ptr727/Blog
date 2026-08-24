@@ -97,5 +97,5 @@ runs:
         EXPECT_RELEASE: ${{ inputs.release-id }}
       run: |
         set -Eeuo pipefail
-        PANGOLIN_ACCESS_TOKEN_ID="$SITE_AUTH_TOKEN_ID" PANGOLIN_ACCESS_TOKEN="$SITE_AUTH_TOKEN" \
+        PANGOLIN_ACCESS_TOKEN_ID="${SITE_AUTH_TOKEN_ID:-}" PANGOLIN_ACCESS_TOKEN="${SITE_AUTH_TOKEN:-}" \
           checks/check-live-urls.sh "$SITE_BASE_URL"
