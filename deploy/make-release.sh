@@ -55,8 +55,11 @@ fi
 
 # Hugo maps HUGO_<KEY> onto config natively, and only that name, so this is the one place SITE_BASE_URL becomes the name Hugo actually reads.
 # CI reads no env file here, it already has SITE_BASE_URL in the process environment, so this bridge covers both callers alike.
+# The unset branch matters too: an inherited HUGO_BASEURL left over from an older shell export would otherwise survive an unset SITE_BASE_URL and quietly win, since Hugo gives the environment variable precedence over hugo.yaml.
 if [ -n "${SITE_BASE_URL:-}" ]; then
 	export HUGO_BASEURL="$SITE_BASE_URL"
+else
+	unset HUGO_BASEURL
 fi
 
 # This script installs to a local path, so a remote environment's DEPLOY_ROOT would be built here.

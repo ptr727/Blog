@@ -178,6 +178,7 @@ checks/check-url-parity.py public
 Build a release and verify it against a running server:
 
 ```sh
+set -a; . ~/.secrets/Blog.local.production.env; set +a
 deploy/make-release.sh
 checks/check-live-urls.sh "$SITE_BASE_URL"
 ```

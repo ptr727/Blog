@@ -53,6 +53,7 @@ neither. Seven facts are the whole contract:
 ## Building a release
 
 ```sh
+set -a; . ~/.secrets/Blog.local.production.env; set +a
 deploy/make-release.sh
 checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
@@ -68,6 +69,8 @@ keeps a pipeline run self-describing:
 ```sh
 SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
 ```
+
+**That command-prefix form is CI-only.** A local run whose default environment file exists sources it after the command-prefix assignment and overwrites it, since `set -a` overwrites a value the caller exported first. Locally, select the environment through `ENV_FILE` instead, per the table below.
 
 **One file per environment, named `~/.secrets/Blog.<server>.<environment>.env`, selected by `ENV_FILE`.**
 Both halves are spelled out, so a name says which machine it describes as well as which
