@@ -7,11 +7,14 @@ exposing one.
 
 ## Real values live on the host, never in the checkout
 
-Every real value this repo's scripts read comes from `~/.secrets/`, not from this directory.
+The documented local convention is `~/.secrets/`, not this directory. CI supplies the same
+values directly from the GitHub Environment instead, reading no file here at all.
 `ENV_FILE=<name> deploy/make-release.sh` and `ops/install.sh` both resolve a relative `ENV_FILE`
 against `$HOME/.secrets`, refuse a traversing one, and default to
-`~/.secrets/Blog.local.production.env`. `~/.secrets/` is shared across every repo on the host,
-so each of this repo's files carries the `Blog.` prefix:
+`~/.secrets/Blog.local.production.env`. An absolute `ENV_FILE` is honored as given rather than
+resolved against `~/.secrets/`, an escape hatch rather than the documented shape.
+`~/.secrets/` is shared across every repo on the host, so each of this repo's files carries the
+`Blog.` prefix:
 
 | File | Selects |
 | --- | --- |
