@@ -115,7 +115,7 @@ echo "==> tagging requests X-Blog-Check: $CHECK_TAG"
 # A resource access token opens the proxy's auth gate.
 # It goes into a curl config file because bash cannot export an array to the parallel checks.
 # A command line is also world-readable in ps output, and every request would carry it.
-if [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] && [ -n "${PANGOLIN_ACCESS_TOKEN:-}" ]; then
+if [ -n "${SITE_AUTH_TOKEN_ID:-}" ] && [ -n "${SITE_AUTH_TOKEN:-}" ]; then
 	# Same hazard as CHECK_TAG above and the same reason, but a narrower rule, because the
 	# grammar of a credential is the issuer's to define and not this script's. Only the
 	# characters that break out of a quoted config line are refused, and none is legal in an
@@ -125,7 +125,7 @@ if [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] && [ -n "${PANGOLIN_ACCESS_TOKEN:-}" ]
 	# Carriage return counts as a line ending here as much as newline does. Header injection
 	# is classically CRLF, and a lone CR is enough on its own, so refusing LF while allowing
 	# CR would leave the shape this guard exists for.
-	for name in PANGOLIN_ACCESS_TOKEN_ID PANGOLIN_ACCESS_TOKEN; do
+	for name in SITE_AUTH_TOKEN_ID SITE_AUTH_TOKEN; do
 		case "${!name}" in
 		*'"'* | *$'\n'* | *$'\r'*)
 			echo "FAIL $name contains a quote, a newline, or a carriage return, none of which can appear in an HTTP header value" >&2
@@ -136,11 +136,11 @@ if [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] && [ -n "${PANGOLIN_ACCESS_TOKEN:-}" ]
 	CURLRC="$(mktemp)"
 	chmod 600 "$CURLRC"
 	printf 'header = "P-Access-Token-Id: %s"\nheader = "P-Access-Token: %s"\n' \
-		"$PANGOLIN_ACCESS_TOKEN_ID" "$PANGOLIN_ACCESS_TOKEN" >"$CURLRC"
+		"$SITE_AUTH_TOKEN_ID" "$SITE_AUTH_TOKEN" >"$CURLRC"
 	echo "==> sending a Pangolin access token"
-elif [ -n "${PANGOLIN_ACCESS_TOKEN_ID:-}" ] || [ -n "${PANGOLIN_ACCESS_TOKEN:-}" ]; then
+elif [ -n "${SITE_AUTH_TOKEN_ID:-}" ] || [ -n "${SITE_AUTH_TOKEN:-}" ]; then
 	# Half a credential is a typo rather than a choice, and it would otherwise fail as an outage.
-	echo "FAIL set both PANGOLIN_ACCESS_TOKEN_ID and PANGOLIN_ACCESS_TOKEN, or neither" >&2
+	echo "FAIL set both SITE_AUTH_TOKEN_ID and SITE_AUTH_TOKEN, or neither" >&2
 	exit 2
 fi
 
@@ -295,7 +295,7 @@ if [ "$preflight" != "200" ]; then
 		echo "     a token was sent, so check the pair is valid for this resource" >&2
 	else
 		echo "     no token was sent. If this site is behind the auth gate, set" >&2
-		echo "     PANGOLIN_ACCESS_TOKEN_ID and PANGOLIN_ACCESS_TOKEN" >&2
+		echo "     SITE_AUTH_TOKEN_ID and SITE_AUTH_TOKEN" >&2
 	fi
 	exit 1
 fi

@@ -37,7 +37,7 @@ def env(name: str) -> str:
     """
     v = os.environ.get(name, "")
     if not v:
-        sys.exit(f"{name} is not set -- see example.env and ENVIRONMENT.md")
+        sys.exit(f"{name} is not set -- see .secrets/example.env and ENVIRONMENT.md")
     return v
 
 
