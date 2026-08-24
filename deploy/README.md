@@ -54,8 +54,9 @@ neither. Seven facts are the whole contract:
 
 ```sh
 set -a; . ~/.secrets/Blog.local.production.env; set +a
-ENV_FILE=~/.secrets/Blog.local.production.env deploy/make-release.sh
-checks/check-live-urls.sh "$SITE_BASE_URL"
+RELEASE="$(git rev-parse --short HEAD)"
+ENV_FILE=~/.secrets/Blog.local.production.env deploy/make-release.sh "" "$RELEASE"
+EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
 The deploy root and the base URL are the only host-specific values, and they pair per

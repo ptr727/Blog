@@ -77,16 +77,18 @@ So release to the local mirror and run the live check **before** opening a pull 
 
 ```sh
 set -a; . ~/.secrets/Blog.local.production.env; set +a
-ENV_FILE=~/.secrets/Blog.local.production.env deploy/make-release.sh
-checks/check-live-urls.sh "$SITE_BASE_URL"
+RELEASE="$(git rev-parse --short HEAD)"
+ENV_FILE=~/.secrets/Blog.local.production.env deploy/make-release.sh "" "$RELEASE"
+EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-Name the file in both places, even when it is the default, since `make-release.sh` sources `ENV_FILE` independently of the shell above and a value already exported earlier in the same session would otherwise win silently over the sourced one:
+Name the file in both places, even when it is the default, since `make-release.sh` sources `ENV_FILE` independently of the shell above and a value already exported earlier in the same session would otherwise win silently over the sourced one. The empty first argument leaves the deploy root at the sourced `DEPLOY_ROOT`, and `RELEASE` is reused so `EXPECT_RELEASE` verifies the release the command just built rather than skipping the release-stamp guard:
 
 ```sh
 set -a; . ~/.secrets/Blog.local.staging.env; set +a
-ENV_FILE=~/.secrets/Blog.local.staging.env deploy/make-release.sh
-checks/check-live-urls.sh "$SITE_BASE_URL"
+RELEASE="$(git rev-parse --short HEAD)"
+ENV_FILE=~/.secrets/Blog.local.staging.env deploy/make-release.sh "" "$RELEASE"
+EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
 **There is no restart step, and that depends on one flag.** The container runs `caddy run --watch`, which re-adapts the config on a timer and reloads it in process. Re-adapting re-executes every `import`, so a new release's `Caddyfile` and `maps/*.map` are picked up through the unchanged `/config/Caddyfile` that the watcher actually names. Measured on this host: content is live the instant the symlink moves, and the rules follow within about a quarter of a second.
