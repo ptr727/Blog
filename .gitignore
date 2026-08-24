@@ -35,6 +35,11 @@ __pycache__/
 !.secrets/example.env
 !.secrets/README.md
 
+# The retired convention this replaced kept real per-environment files in secrets/ at the repository root, ignored by a rule this migration otherwise removes.
+# A checkout that predates the migration and still carries that directory would have those real files turn up as untracked instead, one git add -A away from being committed.
+# Kept here as a permanent backstop against exactly that, even though the convention itself is gone and no current checkout carries the directory.
+/secrets/
+
 # The working copies of the host channel described in OPERATIONS.md.
 # They carry server internals, and the host's own backup is what makes them durable.
 # A fixed path so the files are found by name rather than in a session directory.
