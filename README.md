@@ -153,7 +153,6 @@ flowchart LR
 | [`checks/`][checks] | the URL contract and the gates that enforce it |
 | [`deploy/`][deploy] | the release script, the web-server config, and the redirect maps |
 | [`capture/`][capture] | the migration's provenance tooling, and how the site was derived from the old platform's exports |
-| [`ops/`][ops] | the pull that copies the server's backups and access logs off it, and its schedule |
 | [`ENVIRONMENT.md`][environment] | every configuration value, described once |
 
 Every configuration value is described in [ENVIRONMENT.md][environment]. The deploy procedure and the server layout are in [OPERATIONS.md][operations].
@@ -231,7 +230,6 @@ Licensed under the [MIT License][license]\
 [license]: ./LICENSE
 [migration-post]: ./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md
 [operations]: ./OPERATIONS.md
-[ops]: ./ops/
 [workflow]: ./WORKFLOW.md
 
 <!-- External -->

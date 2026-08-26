@@ -210,27 +210,21 @@ ssh "$VPS_SSH_HOST" true && echo reachable
 | --- | --- | --- |
 | `VPS_SSH_HOST` | the administrative login | the VPS |
 | `VPS_TRAEFIK_LOG` | today's live access log, still being appended to | the VPS |
-| `VPS_TRAEFIK_LOG_ARCHIVE` | the rotated access logs, and the source of the off-host copy | the VPS |
 | `VPS_COMMS_DIR` | the two agent channel files | the VPS |
 | `LOG_ARCHIVE_ROOT` | the off-host copy of the rotated logs | the backup host |
-| `BACKUP_ARCHIVE_ROOT` | the off-host encrypted archives and the plaintext hostconfig tree beside them | the backup host |
 
 **There are two credentials to this host and picking the wrong one is the first mistake to avoid.** `DEPLOY_SSH_USER`, held per environment and used only by the deploy, reaches a confined account behind an `rrsync` forced command that can write one release tree and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for everything on this page. They are deliberately separate credentials with different blast radii, so reaching for the deploy account to read a log fails in a way that reads like an outage, and reaching for the admin account to deploy grants far more than the deploy needs.
 
-**The off-host copy is made by a script in this repository, [`ops/vps-backup-pull`](./ops/vps-backup-pull), on a `systemd` timer on the backup host.** It copies three things off the VPS into `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT`: the encrypted archives, a plaintext copy of the same non-secret host files, and the rotated access logs. What it does, the three behaviors that look like bugs and are not, how to install it, and how to check it ran are in [`ops/README.md`](./ops/README.md). Read the unit and its last run on the backup host rather than trusting a schedule written down anywhere, including here.
+**The off-host copy, maintained outside this repository, writes the rotated access logs to `LOG_ARCHIVE_ROOT`, and this section covers nothing more about it.** Its installation, how the VPS itself is provisioned, and its trust model are the backup host's own configuration to document, not this repository's. What "Log Review" needs from its schedule and copy behavior, to read the logs correctly, is covered there instead. Read the unit and its last run on the backup host rather than trusting a schedule written down anywhere, including here.
 
-**It is a pull rather than a push, and nothing on the VPS knows it happens.** That direction is the security property rather than an implementation detail: the backup host holds a key the VPS trusts, and the VPS holds no credential reaching any other system, so a compromise of the web server cannot walk into the backups that exist to survive it.
-
-**Both sides use one set of names, so there is nothing to reconcile.** The pull writes `BACKUP_ARCHIVE_ROOT` and `LOG_ARCHIVE_ROOT` and the log review reads the same two, spelled the same way, and [`ops/install.sh`](./ops/install.sh) generates the pull's `EnvironmentFile` from this repository's `~/.secrets/` file by copying rather than translating. Every value is described once, in [`ENVIRONMENT.md`](./ENVIRONMENT.md), and [`checks/check-env-docs.py`](./checks/check-env-docs.py) fails if one is declared without a description or described without existing.
+**`LOG_ARCHIVE_ROOT` is spelled the same way on both sides, so there is nothing to reconcile.** The pull writes it and the log review reads it, under the one name. Every value this repository reads or writes is described once, in [`ENVIRONMENT.md`](./ENVIRONMENT.md), and [`checks/check-env-docs.py`](./checks/check-env-docs.py) fails if one is declared without a description or described without existing.
 
 ```sh
 set -a; . ~/.secrets/Blog.local.production.env; set +a
-ls -d "$LOG_ARCHIVE_ROOT" "$BACKUP_ARCHIVE_ROOT"
+ls -d "$LOG_ARCHIVE_ROOT"
 ```
 
 **Today's traffic is never in the off-host copy, and that is deliberate.** Rotation is what makes a file eligible to be pulled, so a live log would be copied as a torn prefix and fetched again on the next run. An analysis covering today therefore reads `VPS_TRAEFIK_LOG` over SSH and everything older from `LOG_ARCHIVE_ROOT`, and treats the two as one series joined on `StartUTC` rather than on which file a line came from.
-
-**The plaintext `hostconfig` tree under `BACKUP_ARCHIVE_ROOT` is the readable copy of the VPS's own configuration**, carrying the same non-secret files the encrypted archives hold. It exists so a rebuild does not depend on the encryption key, which is not on the backup host and must never be put there, because beside the ciphertext it would make the encryption decorative. What that tree covers is whatever the VPS advertises, read from the host rather than duplicated here, so it tracks the host instead of drifting from a list.
 
 **The channel transfers are the one exception, and they must stay literal.** The permission allowlist in `.claude/settings.local.json` matches the text of a command rather than what it expands to, so substituting `"$VPS_SSH_HOST:$VPS_COMMS_DIR/..."` into those two `rsync` lines turns an allowed command into one that prompts, while looking like a tidy-up that changed nothing. Use the values above everywhere else, and leave the two commands under "The Channel Between the Two Sides" spelled out exactly as they are written there.
 
