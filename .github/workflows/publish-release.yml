@@ -17,7 +17,7 @@ jobs:
   # Also replaces this repo's own dispatch-ref assertion: the hub task errors identically on a ref other than main/develop.
   plan:
     name: Plan release job
-    uses: ptr727/ProjectTemplate/.github/workflows/publish-plan-task.yml@a33d7d77ffa7f6af52cddce01f7250be282546ed # 2.0.483
+    uses: ptr727/ProjectTemplate/.github/workflows/publish-plan-task.yml@b823bc493fcdc47e9d9d9d2fc183e3ca10114146 # 2.0.512
     with:
       event_name: ${{ github.event_name }}
       actor: ${{ github.actor }}
@@ -31,7 +31,7 @@ jobs:
     name: Validate sources job
     needs: [plan]
     if: ${{ needs.plan.outputs.publish == 'true' }}
-    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@a33d7d77ffa7f6af52cddce01f7250be282546ed # 2.0.483
+    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@b823bc493fcdc47e9d9d9d2fc183e3ca10114146 # 2.0.512
     permissions:
       contents: read
     with:
@@ -52,7 +52,7 @@ jobs:
     name: Publish project release job
     needs: [plan, validate]
     if: ${{ needs.plan.outputs.publish == 'true' }}
-    uses: ptr727/ProjectTemplate/.github/workflows/build-release-task.yml@a33d7d77ffa7f6af52cddce01f7250be282546ed # 2.0.483
+    uses: ptr727/ProjectTemplate/.github/workflows/build-release-task.yml@b823bc493fcdc47e9d9d9d2fc183e3ca10114146 # 2.0.512
     permissions:
       contents: write
       actions: write
