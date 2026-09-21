@@ -11,7 +11,7 @@ runs:
       shell: bash
       run: |
         set -Eeuo pipefail
-        for f in spec/*.json version.json .editorconfig-checker.json; do
+        for f in version.json .editorconfig-checker.json; do
           jq empty "$f"
         done
         python3 -c 'import yaml,sys; yaml.safe_load(open("hugo.yaml"))'

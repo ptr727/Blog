@@ -1,0 +1,5 @@
+{
+    // The vendored theme stays byte-identical to upstream, so its Markdown is never edited to satisfy a gate here.
+    // These patterns resolve against this directory, not the repository root.
+    "ignores": ["**/*.md"]
+}
