@@ -38,8 +38,8 @@ apktool d net.microair.easystart-4.2-19.apk -o app-apktool  # smali, closer to t
 jadx net.microair.easystart-4.2-19.apk -d app-jadx  # Java, easier to read
 
 # c. then just grep
-grep -rn "0000180[0-9a-f]\|[0-9a-f]\{8\}-[0-9a-f]\{4\}-" app-apktool/smali | sort -u
-grep -rn "writeCharacteristic\|onCharacteristicChanged\|setValue" app-apktool/smali
+grep -rEn "0000180[0-9a-f]|[0-9a-f]{8}-[0-9a-f]{4}-" app-apktool/smali | sort -u
+grep -rEn "writeCharacteristic|onCharacteristicChanged|setValue" app-apktool/smali
 ```
 
 Three classes had everything. `Connect` does the connection and the service discovery. `MainActivityKt$gattCallBack$1` is the Generic Attribute Profile (GATT) callback, which is where the response framing lives. `Status` polls on a timer and parses the frame, and it carries the fault-code table as a plain array of strings. I had the transport, the command, and the byte layout before I went anywhere near a compressor.
@@ -83,7 +83,7 @@ The frame, little-endian and unsigned throughout:
 | --- | --- | --- | --- |
 | `[0]` | header | constant `0x10` | 16 |
 | `[1]` | reserved | always zero | 0 |
-| `[2]` | system state | table below | 0, Normal |
+| `[2]` | system state | table below | 0, `Normal` |
 | `[3]` | learned starts | raw | 5 |
 | `[4..5]` | **live current** | `u16 / 10` A | 6.3 A |
 | `[6..7]` | **line frequency** | `500000 / u16` Hz | 59.8 Hz |
@@ -102,16 +102,16 @@ The state byte is a lookup into an array the app carries:
 
 | Code | Meaning |
 | --- | --- |
-| 0 | Normal |
-| 1 | Unexpctd Curr Flt |
-| 2 | Short Cycle Delay |
-| 3 | Pwr Intrrptn Fault |
-| 4 | Stall Fault |
-| 5 | Stuck SR Fault |
-| 6 | Open Ovrld Fault |
-| 7 | Overcurrent Fault |
-| 8 | Bad Wiring Fault |
-| 9 | Wrong Voltage Flt |
+| 0 | `Normal` |
+| 1 | `Unexpctd Curr Flt` |
+| 2 | `Short Cycle Delay` |
+| 3 | `Pwr Intrrptn Fault` |
+| 4 | `Stall Fault` |
+| 5 | `Stuck SR Fault` |
+| 6 | `Open Ovrld Fault` |
+| 7 | `Overcurrent Fault` |
+| 8 | `Bad Wiring Fault` |
+| 9 | `Wrong Voltage Flt` |
 
 Code 2 is worth knowing. It is a transient waiting state after a stop, not a fault, and treating it as one gives you an alert every cycle.
 
@@ -148,7 +148,7 @@ The decode is only worth anything if it agrees with the instrument that already 
 | Last start peak | 24.5 A | 24.5 A |
 | Line frequency | 59.8 Hz | 59.8 Hz |
 | Total starts | 4947 | 4947 |
-| System state | Normal | 0 |
+| System state | `Normal` | 0 |
 
 Peak, frequency, and the counter match exactly, which is what pins the scaling and the endianness. Live current is a live value and moves between the two readings, so agreeing to a few tenths is the most that measurement can prove.
 
