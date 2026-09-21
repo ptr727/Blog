@@ -38,8 +38,8 @@ apktool d net.microair.easystart-4.2-19.apk -o app-apktool  # smali, closer to t
 jadx net.microair.easystart-4.2-19.apk -d app-jadx  # Java, easier to read
 
 # c. then just grep
-grep -rEn "0000180[0-9a-f]|[0-9a-f]{8}-[0-9a-f]{4}-" app-apktool/smali | sort -u
-grep -rEn "writeCharacteristic|onCharacteristicChanged|setValue" app-apktool/smali
+grep -rhoiE "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f-]+" app-apktool/smali* | sort -u
+grep -rEn "writeCharacteristic|onCharacteristicChanged|setValue" app-apktool/smali*
 ```
 
 Three classes had everything. `Connect` does the connection and the service discovery. `MainActivityKt$gattCallBack$1` is the Generic Attribute Profile (GATT) callback, which is where the response framing lives. `Status` polls on a timer and parses the frame, and it carries the fault-code table as a plain array of strings. I had the transport, the command, and the byte layout before I went anywhere near a compressor.
@@ -85,7 +85,7 @@ The frame, little-endian and unsigned throughout:
 | `[1]` | reserved | always zero | 0 |
 | `[2]` | system state | table below | 0, `Normal` |
 | `[3]` | learned starts | raw | 5 |
-| `[4..5]` | **live current** | `u16 / 10` A | 6.3 A |
+| `[4..5]` | live current | `u16 / 10` A | 6.3 A |
 | `[6..7]` | **line frequency** | `500000 / u16` Hz | 59.8 Hz |
 | `[8..9]` | last start peak | `u16 / 10` A | 24.5 A |
 | `[10..11]` | short-cycle delay | raw u16 | 0 |
@@ -148,7 +148,7 @@ The decode is only worth anything if it agrees with the instrument that already 
 | Last start peak | 24.5 A | 24.5 A |
 | Line frequency | 59.8 Hz | 59.8 Hz |
 | Total starts | 4947 | 4947 |
-| System state | `Normal` | 0 |
+| System state | `Normal` | 0, `Normal` |
 
 Peak, frequency, and the counter match exactly, which is what pins the scaling and the endianness. Live current is a live value and moves between the two readings, so agreeing to a few tenths is the most that measurement can prove.
 
@@ -231,7 +231,7 @@ My own component is fixed by moving one line. It reports `ESTABLISHED` inside th
 
 ## Physical installation
 
-I used an [Unexpected Maker ProS3D](https://esp32s3.com/pros3d.html), an ESP32-S3 board running ESPHome as the BLE proxy, connected over Wi-Fi. I like the ProS3D because its internal or external antenna is selectable in software. It sits in a [TICON Outdoor Enclosure](https://link.amazon/B03yMJFKS) on one of the compressors. That is close enough to the other compressor to get a good BLE signal from both. A [PoE Texas in-wall USB-C PSU](https://link.amazon/B01XETxce) rated for 240 VAC powers it from the compressor's 240 VAC supply line. 
+I used an [Unexpected Maker ProS3D](https://esp32s3.com/pros3d.html), an ESP32-S3 board running ESPHome as the BLE proxy, connected over Wi-Fi. I like the ProS3D because its internal or external antenna is selectable in software. It sits in a [TICON Outdoor Enclosure](https://link.amazon/B03yMJFKS) on one of the compressors. That is close enough to the other compressor to get a good BLE signal from both. A [PoE Texas in-wall USB-C PSU](https://link.amazon/B01XETxce) rated for 240 VAC powers it from the compressor's 240 VAC supply line.
 
 When I bought my EasyStarts, the installation instructions allowed an outdoor install without any additional protection. They now recommend an enclosure, and I can see why, because the wiring inside the EasyStart's clear enclosure is fading. I applied BDF NSN70 heat-rejecting window film over both clear lids to help protect the components from heat and UV damage.
 
