@@ -76,7 +76,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
-**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Redact a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Cover each one with a flat opaque fill rather than a blur or a mosaic, because both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
+**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Redact a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Cover each one with a flat opaque fill, never a blur or a mosaic. Both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
 
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
 
@@ -96,7 +96,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **A filename is published.** Hugo serves `static/` verbatim, so a hostname, an address, or a name in a filename reaches the URL. Rename the file, since redacting the pixels leaves it untouched.
 
-**Some frames cannot be patched.** Locators spread across a frame, a street sign and a neighbor's facade and a ridgeline and an overhead line run. Covering one leaves the rest, so crop to the subject or drop the image.
+**Some frames cannot be patched.** A single frame can carry a street sign, a neighbor's facade, a ridgeline, and an overhead line run at once. Covering one locator leaves the rest, so crop to the subject or drop the image.
 
 **A hand at close range can carry ridge detail.** A fingertip filling part of a high-resolution frame is a biometric. Frame the work rather than the hand.
 
