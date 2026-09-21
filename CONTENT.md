@@ -112,7 +112,7 @@ The fleet's prose rules apply to a post, with the vocabulary unrestricted and th
 - **No semicolon joining a sentence.**
 - **No spaced hyphen joining or interrupting a sentence.**
 - **Sentences stay under thirty-five words, and forty is the defect.** Between those two, recast rather than split where a split would leave a fragment or drop the link between a cause and its effect. Active voice.
-- **One idea per sentence, which is what length only approximates.** A third independent clause is a signal rather than a limit. Reread it, and split it where it turned out to carry two ideas. A sentence that chains "and", then "which", then "because" is the shape to catch, whatever any count says.
+- **One idea per sentence, which is what length only approximates.** A third independent clause is a signal rather than a limit. Reread that sentence, and split it where it turned out to carry two ideas. A sentence that chains "and", then "which", then "because" is the shape to catch, whatever any count says.
 - **No comma splice.** Two independent clauses take a period or a conjunction, never a bare comma. A short parallel series is the exception, where clauses of the same shape are the point, such as "Pull the APK, automate it."
 - **A paragraph runs to about five sentences, or a hundred and twenty words.** A wall of text is what a reader leaves, and the word count is the half that matters most on a phone.
 - **Vary sentence length within a paragraph.** Sentences all of one length read mechanically however short they are, so a long one after two short ones is doing work.
