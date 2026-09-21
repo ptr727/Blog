@@ -76,6 +76,8 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
+**Every image is stripped of identifying data before it is committed.** Remove all metadata, since a phone photo carries GPS location, capture time, and the camera model. Then inspect the image at full resolution and pixelate anything that identifies a person, a place, or a device: a serial number, a rating plate, a barcode, a MAC address, a street or house number, a license plate, a face. Verify both halves. `exiftool` reports no EXIF or GPS tags, and a full-resolution crop of each redacted area is unreadable.
+
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
 
 ## Links
@@ -85,6 +87,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 - An external link is absolute: `[Hugo](https://gohugo.io/)`.
 - A link to another post is a root-relative permalink: `[From Blogger to WordPress](/2012/07/15/from-blogger-to-wordpress/)`.
 - A link to a file in this repository is an absolute GitHub URL, because the post is served from a different origin and a repo-relative path resolves to nothing there.
+- **Link a tool, project, product, or person on first mention, and only there.** A later mention stays plain text, so a reader meets each link once, at the point the post introduces it.
 
 `refLinksErrorLevel: ERROR` fails the build on an unresolved `ref`, so a broken internal reference never ships. It says nothing about a root-relative path that points at a page which does not exist, which the parity gate catches instead.
 
@@ -103,6 +106,7 @@ The fleet's prose rules apply to a post the same way they apply to a comment, wi
 
 - **First person singular, past tense, for what was done.** Second person imperative for advice to the reader. Present tense for how a thing works.
 - **US English spelling.**
+- **Spell out an abbreviation on first use**, as the expansion followed by the abbreviation in parentheses, such as "Bluetooth Low Energy (BLE)". Later uses take the abbreviation alone. Units, and abbreviations every reader already knows, such as AC, HVAC, PSU, UV, USB, ASCII, and JSON, are exempt.
 - **Punctuation is ASCII.** No em dash or en dash, recast as a comma or two sentences rather than a spaced hyphen. No curly quotes, no ellipsis character, no arrows. Write a relational or arithmetic operator as `<=`, `>=`, `!=`, or `+/-` in flowing prose, and keep the symbol only next to a number.
 - **A unit or scientific symbol is the exception**, because its ASCII form would be a lie. Degree, micro, ohm, and pi stay as themselves rather than being approximated or spelled out. Any other non-ASCII character is a defect rather than a judgment call.
 - **No semicolon joining a sentence.**

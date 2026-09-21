@@ -13,40 +13,40 @@ tags:
 - reverse-engineering
 - claude
 ---
-I have two [Micro-Air EasyStart](https://www.microair.net/products/easystart-flex-home-ac-soft-starter) soft starters, one on each HVAC compressor, fitted in 2023. They exist because a compressor starting on a hot afternoon used to pull enough inrush current to brown out the house, and my server UPSs would notice before I did. A soft starter ramps the motor instead of slamming it, and the brownouts stopped.
+We have [Micro-Air EasyStart](https://www.microair.net/products/easystart-flex-home-ac-soft-starter) soft starters installed on both our HVAC compressors. I installed them in the summer of 2023, after we started getting frequent brownouts whenever a compressor started. The brownouts came from a combination of low supply voltage, since addressed by our electricity provider, and rising neighborhood demand. Older homes are being torn down and replaced with much larger ones, panels are going from 80 A to 400 A, and every year more homes add AC and electric car chargers.
 
-The modules have a Bluetooth radio and a phone app that shows live current, line frequency, and a start counter. I wanted those numbers in Home Assistant. Micro-Air would not share the protocol, I could not find anyone who had decoded it, and I gave up on it for about two years.
+The EasyStart modules have built-in Bluetooth Low Energy (BLE) and a diagnostic phone app showing live current, line frequency, peak startup current, and a start counter. I monitor whole-home power usage and solar generation in [Home Assistant](https://www.home-assistant.io/). I wanted to use the BLE data for more granular AC power usage reporting, without installing additional current monitors in my panel. I reached out to Micro-Air, but they would not share the protocol. At the time I could not find anyone else who had decoded the protocol, and I lost interest.
 
-This post is about picking it back up, decoding the protocol out of the vendor's own Android app, and what happened when the result promptly started rebooting my ESP32.
+In the meantime I had been watching [Matt Brown's YouTube channel](https://www.youtube.com/@mattbrwn) on reverse engineering and Internet of Things (IoT) hacking. [ESPHome](https://esphome.io/) had also made BLE device support much easier. With renewed motivation I set out to reverse engineer the BLE protocol myself, or rather, myself with a lot of automation and decoding help from [Claude Code](https://claude.com/claude-code). This post walks through pulling the protocol out of the vendor's Android app, checking the decode against the live module, and bringing the result into Home Assistant with ESPHome.
 
 ## The app already has the protocol in it
 
-The thing I had been missing is that a Bluetooth device's protocol is rarely secret. It is compiled into the app that talks to it, and an Android app is a zip file full of bytecode that decompiles cleanly.
+A Bluetooth device's protocol is rarely secret when you have the app that talks to it. An Android app ships as an Android Package (APK), a zip file of bytecode that decompiles cleanly.
 
-The whole first phase is three commands and no hardware:
+The reverse engineering needed a laptop with Bluetooth and an Android phone. The phone needs developer options and USB debugging enabled so the [Android Debug Bridge](https://developer.android.com/tools/adb) (`adb`) can reach it, plus [nRF Connect](https://www.nordicsemi.com/Products/Development-tools/nRF-Connect-for-mobile) and the EasyStart app. On the laptop, [apktool](https://apktool.org/) and [jadx](https://github.com/skylot/jadx) do the decompiling.
+
+The first phase pulls the app off the phone onto the laptop:
 
 ```sh
-# a. pull the app off a phone with USB debugging on
+# a. pull the app off a phone with USB debugging enabled
 adb shell pm list packages | grep -i easystart
 adb shell pm path net.microair.easystart
 adb pull /data/app/.../base.apk net.microair.easystart-4.2-19.apk
 
 # b. unpack it two ways, because they are good at different things
-apktool d net.microair.easystart-4.2-19.apk -o app-apktool   # smali, closer to the truth
-jadx     net.microair.easystart-4.2-19.apk -d app-jadx       # Java, easier to read
+apktool d net.microair.easystart-4.2-19.apk -o app-apktool  # smali, closer to the truth
+jadx net.microair.easystart-4.2-19.apk -d app-jadx  # Java, easier to read
 
 # c. then just grep
 grep -rn "0000180[0-9a-f]\|[0-9a-f]\{8\}-[0-9a-f]\{4\}-" app-apktool/smali | sort -u
 grep -rn "writeCharacteristic\|onCharacteristicChanged\|setValue" app-apktool/smali
 ```
 
-The version matters and is worth putting in the filename. I decoded `net.microair.easystart` 4.2, version code 19, and a future reader deserves to know whether they are looking at the same app I was.
-
-Three classes had everything. `Connect` does the connection and the service discovery. `MainActivityKt$gattCallBack$1` is the GATT callback, which is where the response framing lives. `Status` polls on a timer and parses the frame, and it carries the fault-code table as a plain array of strings. **No hardware was involved in any of this.** I had the transport, the command, and the byte layout before I went anywhere near a compressor.
+Three classes had everything. `Connect` does the connection and the service discovery. `MainActivityKt$gattCallBack$1` is the Generic Attribute Profile (GATT) callback, which is where the response framing lives. `Status` polls on a timer and parses the frame, and it carries the fault-code table as a plain array of strings. I had the transport, the command, and the byte layout before I went anywhere near a compressor.
 
 ## What the app said, including one thing that is a trap
 
-The transport is a Laird BLE module exposing the Laird VSP service, which tunnels a byte stream over GATT:
+The transport is a Laird BLE module exposing the Laird Virtual Serial Port (VSP) service, which tunnels a byte stream over GATT:
 
 ```text
 service d973f2e0-b19e-11e2-9e96-0800200c9a66
@@ -54,9 +54,9 @@ service d973f2e0-b19e-11e2-9e96-0800200c9a66
   d973f2e2-...  write    host -> module, carries the commands
 ```
 
-**`e1` is notify and `e2` is write, which is the reverse of the usual Laird convention.** I had read enough about VSP to "know" which way round it went, and I was wrong. I confirmed the real roles by opening the GATT table once in nRF Connect on my phone and reading the properties off the two characteristics. That is the only thing I used a phone app for in the whole project.
+**`e1` is notify and `e2` is write, which is the reverse of the usual Laird convention.** I had read enough about VSP to "know" which way around it went, and I was wrong. I confirmed the real roles by opening the GATT table once in nRF Connect on my phone and reading the properties off the two characteristics.
 
-There is no pairing, no bonding, no PIN, no passkey, and no application handshake. I am claiming that from absence, which is normally weak evidence, but the decompiled app contains no `createBond`, no `setPin`, no `passkey`, and no auth strings at all. There is nothing there to call.
+The module needs no pairing, and decoding it needed no Host Controller Interface (HCI) logging, packet capture, or [Wireshark](https://www.wireshark.org/). Everything was in the code.
 
 Commands are ASCII strings written to `e2`. They look like JSON and are not:
 
@@ -67,9 +67,9 @@ Commands are ASCII strings written to `e2`. They look like JSON and are not:
 {"Cmd": ProgMode}
 ```
 
-The value is unquoted and there is a space after the colon. Feeding that to a JSON encoder produces something the module ignores, so the bytes go out as a literal string. Only `ReadLive` matters for monitoring. The OTA and flash-buffer commands are in there too, and I left them alone: I wanted to read this thing, not brick it.
+The value is unquoted and there is a space after the colon. Feeding that to a JSON encoder produces something the module ignores, so the bytes go out as a literal string. Only `ReadLive` matters for monitoring. The over-the-air (OTA) update and flash-buffer commands are in there too, but I did not explore them.
 
-## Eighteen bytes, and no checksum anywhere
+## Eighteen bytes, and no checksum
 
 Each `ReadLive` produces **two** notifications, which is the framing detail that cost me the most time later. One is an 18-byte binary frame. The other is an ASCII `{"Sts": Success}` acknowledgment. They arrive in that order and a host has to handle both.
 
@@ -96,7 +96,7 @@ Two of those are not guessable from staring at bytes.
 
 **Line frequency is a period, not a scaled reading.** The field holds 8361, and 8361 is not 59.8 in any scaling. It is `500000 / 8361 = 59.80`. I would have burned a long time trying to fit a multiplier to that if the app had not shown me the division.
 
-**Total starts is 32 bits**, spanning four bytes where every other multi-byte field uses two. A 16-bit read looks completely fine until the counter passes 65535, which on a compressor is a few years out, and then it silently wraps.
+**Total starts is 32 bits**, spanning four bytes where every other multi-byte field uses two. A 16-bit read looks completely fine until the counter passes 65535, which is decades away at my compressors' rate, and then it silently wraps.
 
 The state byte is a lookup into an array the app carries:
 
@@ -115,17 +115,17 @@ The state byte is a lookup into an array the app carries:
 
 Code 2 is worth knowing. It is a transient waiting state after a stop, not a fault, and treating it as one gives you an alert every cycle.
 
-**There is no checksum and no CRC in the frame.** I went looking for one, because you expect one, and the two unexplained bytes at `[0]` and `[1]` look exactly like where it would live. `[0]` is a constant `0x10` and `[1]` is always zero, in every frame I have captured. Neither is needed to decode anything.
+**There is no checksum and no cyclic redundancy check (CRC) in the frame.** I went looking for one, because you expect one, and the two unexplained bytes at `[0]` and `[1]` look exactly like where it would live. `[0]` is a constant `0x10` and `[1]` is always zero, in every frame I have captured. Neither is needed to decode anything.
 
 ## The phone is the wrong tool for capture
 
 Having the layout is not the same as having it right, so the decode needed a real capture. Two approaches failed first, and both fail in a way that looks like success.
 
-**nRF Connect on a phone only shows you the latest value of a characteristic.** Both notifications land on the same characteristic, and the ASCII ack arrives second, so the app faithfully displayed `{"Sts": Success}` and the binary frame was simply never on screen. I spent a while believing the module answered a poll with a status string and nothing else.
+**nRF Connect on a phone only shows you the latest value of a characteristic.** Both notifications land on the same characteristic, and the ASCII acknowledgment arrives second, so the app faithfully displayed `{"Sts": Success}` and the binary frame was simply never on screen. I spent a while believing the module answered a poll with a status string and nothing else.
 
-**Android's HCI snoop log is useless on a stock phone.** Turning on "Enable Bluetooth HCI snoop log" produces a log, and you feel like you are getting somewhere. On a stock Pixel it runs in `FILTERED` mode, and the `btsnooz_hci.log` inside a bugreport keeps only the first few bytes of each ATT payload. It confirmed the handles and that the write payload started `7b 22 43`, which is `{"C`, and it gave me a frame-length estimate of about 20 bytes that turned out to be wrong. The real frame is 18. Unfiltered capture needs root.
+**Android's HCI snoop log is useless on a stock phone.** Turning on "Enable Bluetooth HCI snoop log" produces a log, and you feel like you are getting somewhere. On a stock Pixel it runs in `FILTERED` mode, and the `btsnooz_hci.log` inside a bugreport keeps only the first few bytes of each Attribute Protocol (ATT) payload. It confirmed the handles and that the write payload started `7b 22 43`, which is `{"C`, and it gave me a frame-length estimate of about 20 bytes that turned out to be wrong. The real frame is 18. Unfiltered capture needs root.
 
-What worked was the boring option: use the laptop as the Bluetooth central. A short [bleak](https://bleak.readthedocs.io/) script, run with `uv` so there is no virtualenv to set up, connects, polls, and prints every notification raw with a per-byte index alongside the decoded interpretation:
+What worked was the boring option: use the laptop as the Bluetooth central. A short [bleak](https://bleak.readthedocs.io/) script, run with [uv](https://docs.astral.sh/uv/) so there is no virtualenv to set up, connects, polls, and prints every notification raw with a per-byte index alongside the decoded interpretation:
 
 ```sh
 uv run easystart_monitor.py --discover
@@ -156,11 +156,11 @@ Then a behavior I did not design for and would not have predicted.
 
 **The module powers its Bluetooth radio only while the compressor is running.** When the compressor stops, the module stops advertising and drops the connection. There is no idle state to poll.
 
-That sounds like a limitation and it is actually the single most useful thing I learned. **The presence of the BLE connection is a reliable compressor-running signal**, more reliable than any threshold I would have picked on the current reading. The `running` sensor in my integration is driven by the GATT connection state, not by comparing current against some number I made up.
+That sounds like a limitation, but it is actually the single most useful thing I learned. **The presence of the BLE connection is a reliable compressor-running signal**, more reliable than any threshold I would have picked on the current reading. The `running` sensor in my integration is driven by the GATT connection state, not by comparing current against some number I made up.
 
 It does have one consequence worth stating plainly: **there is no such thing as a standby current reading here.** Every sample is a running sample, so the `/10` scaling is validated against running values only, and I have no evidence about what the field would do at rest because the field does not exist at rest.
 
-When a compressor stops, `running` goes off, the live sensors publish NaN so Home Assistant shows `unknown` rather than a stale number, and the cumulative counters keep their last value, because there is nothing fresher to show and a counter reading zero would be a lie.
+When a compressor stops, `running` goes off, the live sensors publish not-a-number (NaN) so Home Assistant shows `unknown` rather than a stale number, and the cumulative counters keep their last value, because there is nothing fresher to show and a counter reading zero would be a lie.
 
 ## Then I found the same decode, twice
 
@@ -174,13 +174,15 @@ I will not pretend that was the plan. Searching harder in 2023 would have saved 
 
 The integration is an ESPHome external component: a `ble_client` node that polls `ReadLive` on an interval, parses the frame, and publishes current, an estimated power, line frequency, last start peak, short-cycle delay, system state, the running flag, and the three counters.
 
-**The power figure is an estimate and the sensor says so.** The module reports single-leg current and no voltage at all, so power is `current * line_voltage * power_factor` with defaults of 240 V and 1.0. It is useful for spotting a change. It is not a meter.
+**The power figure is an estimate and the sensor says so.** The module reports single-leg current and no voltage at all, so power is `current * line_voltage * power_factor` with defaults of 240 V and 1.0. It is close enough for the energy dashboard, but it is not a meter. In Home Assistant, a Riemann sum integration helper turns that power into the energy sensor the dashboard reads. It pauses while the compressor is off, because the power sensor reports `unknown` rather than zero.
+
+{{< figure src="/media/2026/07/easystart-home-assistant-sensors.png" alt="Home Assistant sensor card for a running compressor: 6.5 A current, 1,560 W estimated power, 59.82 Hz line frequency, 24.7 A last start peak, Running, system state Normal, 3,224 total starts" >}}
 
 Four things cost me real time on the hardware side.
 
 **Range is much worse than you expect.** These radios are weak. My existing Bluetooth proxy, in the office, would not hold a connection at all. The eventual answer was a dedicated ESP32 with an external antenna, physically sited at the units outside.
 
-That diagnosis was guesswork until I added a signal-strength sensor, using ESPHome's built-in `ble_client` RSSI type. It reads the RSSI of the live connection rather than of advertisements, which matters here because a module stops advertising once something is connected to it. The office proxy measured **-93 dBm** on a live link, which is essentially the sensitivity floor. Around -60 dBm is healthy. That one number turned "everything is intermittently unavailable" into "the radio is too far away", which is a fixable problem.
+That diagnosis was guesswork until I added a signal-strength sensor, using ESPHome's built-in `ble_client` received signal strength indicator (RSSI) type. It reads the RSSI of the live connection rather than of advertisements, which matters here because a module stops advertising once something is connected to it. The office proxy measured **-93 dBm** on a live link, which is essentially the sensitivity floor. Around -60 dBm is healthy. That one number turned "everything is intermittently unavailable" into "the radio is too far away", which is a fixable problem.
 
 **Connection slots are finite and the accounting is not obvious.** An active `bluetooth_proxy` reserves three, so a proxy hosting two modules needs `esp32_ble: max_connections: 5`. The RSSI sensor attaches to an existing client and costs nothing extra.
 
@@ -205,9 +207,9 @@ Two symptoms, same firmware, same peer, no pattern I could see:
 [11:49:40][W][esp32_ble_client:224]: [0] esp_ble_gattc_get_descr_by_char_handle error, status=10
 ```
 
-Status 10 is `ESP_GATT_NOT_FOUND`. The CCCD never gets written, so no notification ever arrives, while the node believes it is subscribed. That is the worse of the two, because a reboot at least announces itself.
+Status 10 is `ESP_GATT_NOT_FOUND`. The Client Characteristic Configuration Descriptor (CCCD) never gets written, so no notification ever arrives, while the node believes it is subscribed. That is the worse of the two, because a reboot at least announces itself.
 
-I left a device capturing serial for eighty minutes. In that window there were **five service releases and five races: four silent, one panic.** Only the consequence varied. The ordering was wrong every single time.
+I left a device capturing serial for 80 minutes. In that window there were **five service releases and five races: four silent, one panic.** Only the consequence varied. The ordering was wrong every single time.
 
 The cause turned out to be in ESPHome itself, and it takes three things happening together:
 
@@ -221,15 +223,24 @@ The reason this is not a famous bug is the genuinely interesting part. Several o
 
 So I wrote a reproduction: about sixty lines carrying no protocol knowledge, whose only job is to report `ESTABLISHED` one line too early, driven by a config that forces reconnects with a `lambda` rather than the disconnect action, because the action would have masked the very thing under test.
 
-Then I filed it, with the capture, the decoded backtrace, and the reduced case: [esphome/esphome#17921](https://github.com/esphome/esphome/issues/17921). Two fixes went with it. [#17919](https://github.com/esphome/esphome/pull/17919) holds the release while a registration is outstanding and guards the lookup, and it merged on 30 July, shipping in 2026.8.0. [#17920](https://github.com/esphome/esphome/pull/17920) fixes the nodes that never report established, and was deliberately held in draft until the first had landed, because restoring the release would otherwise have re-exposed those configurations to the crash. It merged on 8 September and shipped in 2026.9.0.
+Then I filed it, with the capture, the decoded backtrace, and the reduced case: [esphome/esphome#17921](https://github.com/esphome/esphome/issues/17921). Two fixes went with it. [#17919](https://github.com/esphome/esphome/pull/17919) holds the release while a registration is outstanding and guards the lookup, and it merged on July 30, shipping in 2026.8.0. [#17920](https://github.com/esphome/esphome/pull/17920) fixes the nodes that never report `ESTABLISHED`, and was deliberately held in draft until the first had landed, because restoring the release would otherwise have re-exposed those configurations to the crash. It merged on September 8 and shipped in 2026.9.0.
 
 My own component is fixed by moving one line: it reports `ESTABLISHED` inside the registration event, after checking that the registration actually succeeded, instead of four lines earlier. That was always the correct thing to do. It is still a workaround, and worth saying so plainly, because obeying an unwritten rule is not the same as the rule being enforced, and the penalty for not knowing it was a reboot.
 
+## Physical installation
+
+I used an [Unexpected Maker ProS3D](https://esp32s3.com/pros3d.html), an ESP32-S3 board running ESPHome as the BLE proxy, connected over Wi-Fi. I like the ProS3D because its internal or external antenna is selectable in software. It sits in a [TICON Outdoor Enclosure](https://link.amazon/B03yMJFKS) on one of the compressors, close enough to the other compressor to get a good BLE signal from both. A [PoE Texas in-wall USB-C PSU](https://link.amazon/B01XETxce) rated for 240 VAC powers it from the compressor's 240 VAC supply line. When I bought my EasyStarts, the installation instructions allowed an outdoor install without any additional protection. They now recommend an enclosure, and I can see why, because the wiring inside the EasyStart's clear enclosure is fading. I applied BDF NSN70 heat-rejecting window film over both clear lids to help protect the components from heat and UV damage.
+
+{{< gallery cols="2" >}}
+{{< figure src="/media/2026/07/easystart-ble-proxy-enclosure-inside.jpg" alt="Inside the outdoor enclosure: the ProS3D board with its external antenna lead, beside the in-wall USB-C power supply" >}}
+{{< figure src="/media/2026/07/easystart-ble-proxy-enclosure-mounted.jpg" alt="The proxy enclosure with its antenna mounted on the compressor, directly above the EasyStart in its own enclosure" >}}
+{{< /gallery >}}
+
 ## I did almost none of this by hand
 
-Like the [blog migration](/2026/08/01/moving-this-blog-from-wordpress-to-hugo/), I ran this through [Claude Code](https://claude.com/claude-code), and the shape of it is worth describing because it is not what I expected.
+I ran this through Claude Code, as I did the [blog migration](/2026/08/01/moving-this-blog-from-wordpress-to-hugo/), and the shape of it is worth describing because it is not what I expected.
 
-I did not hand it the problem and wait. I did a step manually, from what I had learned watching [Matt Brown's reverse engineering videos](https://www.youtube.com/@mattbrwn), then asked it to automate that step, then did the next step manually, then automated that. Pull the APK, automate it. Decompile and grep, automate it. Decode a field, generalize the decoder. Each round I also asked it to write up what we had just done, and refine the write-up with whatever had actually gone wrong, which is how the gotchas in this post came to be written down at all rather than forgotten.
+I did not hand it the problem and wait. I did a step manually, then asked it to automate that step, then did the next step manually, then automated that. Pull the APK, automate it. Decompile and grep, automate it. Decode a field, generalize the decoder. Each round I also asked it to write up what we had just done, and refine the write-up with whatever had actually gone wrong, which is how the gotchas in this post came to be written down at all rather than forgotten.
 
 At the end I deleted every artifact I had made by hand and gave it one prompt:
 
@@ -241,10 +252,10 @@ That is the part I would emphasize to anyone thinking about this kind of project
 
 ## Was it worth it
 
-For the telemetry, honestly, marginally. I now have compressor current and start counts on a dashboard, and I look at them rarely.
+For the telemetry, yes. Per-compressor power now feeds the Home Assistant energy dashboard, next to whole-home usage and solar generation, and I use it.
 
-For everything else, yes. I have a repeatable method written down, I found a real defect in a widely deployed project and it is fixed upstream for everyone, and I learned that the thing I had assumed was hard was mostly just slow.
+For everything else, also yes. I have a repeatable method written down. I also found a real defect in a widely deployed project, and it is fixed upstream for everyone. And I learned that the thing I had assumed was hard was mostly just tedious.
 
-The method generalized, which was the point of writing it down. The next target is a Goodnature A24 rat trap, which is a much smaller problem: the community reckons it broadcasts its kill count in the advertisement, so if that still holds it needs no connection and no APK at all. Capture the advertisement first, and only reach for the decompiler if that comes up empty.
+The method generalized, which was the point of writing it down. The next target is a [Goodnature](https://www.goodnature.com/) A24 rat trap, which is a much smaller problem: the community reckons it broadcasts its kill count in the advertisement, so if that still holds it needs no connection and no APK at all. Capture the advertisement first, and only reach for the decompiler if that comes up empty.
 
 The protocol, the ESPHome component, the monitor, and the full byte-level documentation are [on GitHub](https://github.com/ptr727/ESPHome-Config/tree/main/easystart). If you want to discuss any of it, the repo has Discussions enabled, which is also why this post has no comment box below it.
