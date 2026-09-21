@@ -137,7 +137,7 @@ ssh "$VPS_SSH_HOST" true && echo reachable
 
 **There are two credentials to this host and picking the wrong one is the first mistake to avoid.** `DEPLOY_SSH_USER`, held per environment and used only by the deploy, reaches a confined account behind an `rrsync` forced command that can write one release tree and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for everything on this page. They are deliberately separate credentials with different blast radii, so reaching for the deploy account to read a log fails in a way that reads like an outage, and reaching for the admin account to deploy grants far more than the deploy needs.
 
-**The off-host copy, maintained outside this repository, writes the rotated access logs to `LOG_ARCHIVE_ROOT`, and this section covers nothing more about it.** Its installation, how the VPS itself is provisioned, and its trust model are the backup host's own configuration to document, not this repository's. What "Log Review" needs from its schedule and copy behavior, to read the logs correctly, is covered there instead. Read the unit and its last run on the backup host rather than trusting a schedule written down anywhere, including here.
+**The off-host copy, maintained outside this repository, writes the rotated access logs to `LOG_ARCHIVE_ROOT`, and this section covers nothing more about it.** Its installation, how the VPS itself is provisioned, and its trust model are the backup host's own configuration to document, not this repository's. What "Logs and Debugging" needs from its schedule and copy behavior, to read the logs correctly, is covered there instead. Read the unit and its last run on the backup host rather than trusting a schedule written down anywhere, including here.
 
 **`LOG_ARCHIVE_ROOT` is spelled the same way on both sides, so there is nothing to reconcile.** The pull writes it and the log review reads it, under the one name. Every value this repository reads or writes is described once, in [`ENVIRONMENT.md`](./ENVIRONMENT.md), and [`checks/check-env-docs.py`](./checks/check-env-docs.py) fails if one is declared without a description or described without existing.
 
@@ -150,7 +150,7 @@ ls -d "$LOG_ARCHIVE_ROOT"
 
 **The channel transfers are the one exception, and they must stay literal.** The permission allowlist in `.claude/settings.local.json` matches the text of a command rather than what it expands to, so substituting `"$VPS_SSH_HOST:$VPS_COMMS_DIR/..."` into those two `rsync` lines turns an allowed command into one that prompts, while looking like a tidy-up that changed nothing. Use the values above everywhere else, and leave the two commands under "The Channel Between the Two Sides" spelled out exactly as they are written there.
 
-**What this section does not cover, and where it lives instead.** Reading the logs for content is "Log Review"; exchanging rounds with the agent that owns the host is "The Channel Between the Two Sides"; the boundary of which side fixes what is "Who Owns What"; and what a rebuild restores, including the host-key step that blocks both deploy and rollback, is "Backup and Restore".
+**What this section does not cover, and where it lives instead.** Reading the logs for content is "Logs and Debugging". Exchanging rounds with the agent that owns the host is "The Channel Between the Two Sides". The boundary of which side fixes what is "Who Owns What". What a rebuild restores, including the host-key step that blocks both deploy and rollback, is "Backup and Recovery".
 
 ### Server Hardening
 
@@ -395,7 +395,7 @@ docker restart "$CADDY_CONTAINER"   # only this file needs one, see below
 
 **This is the one file whose change still needs a restart**, and the reason is a nice inversion of why everything else does not. The watcher polls `/config/Caddyfile` and reloads when the *adapted result* changes, which is how a release reaches it at all: this file never changes, but re-adapting re-executes its `import` and picks up the new release behind it. Editing this file itself is the case the watcher handles worst, because a bootstrap that no longer parses leaves nothing to reload into. Restart, and read the log.
 
-Everything inside the bundle, `deploy/Caddyfile` and anything under `deploy/maps/`, reloads without one. See "Local Verification Before a Pull Request" above.
+Everything inside the bundle, `deploy/Caddyfile` and anything under `deploy/maps/`, reloads without one. See "Local Verification" above.
 
 `CADDY_APPDATA` is recorded in each environment's file for exactly this reason. No script reads it, so a rebuild would otherwise depend on someone remembering where the bootstrap goes.
 
