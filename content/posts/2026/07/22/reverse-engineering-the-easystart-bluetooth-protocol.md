@@ -242,7 +242,7 @@ When I bought my EasyStarts, the installation instructions allowed an outdoor in
 
 ## I did almost none of this by hand
 
-I ran this through Claude Code, as I did the [blog migration](/2026/08/01/moving-this-blog-from-wordpress-to-hugo/). The shape of it is worth describing, because it is not what I expected.
+I ran this through Claude Code, and the shape of it is worth describing, because it is not what I expected.
 
 I did not hand it the problem and wait. I did a step manually, then asked it to automate that step, then did the next step manually, then automated that. Pull the APK, automate it. Decompile and grep, automate it. Decode a field, generalize the decoder. Each round I also asked it to write up the step just finished, and to refine the write-up with whatever had gone wrong. That is how the gotchas in this post came to be written down at all rather than forgotten.
 
