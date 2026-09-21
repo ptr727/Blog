@@ -76,7 +76,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
-**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Pixelate anything that identifies a person, a place, or a device: a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Verify both halves. `exiftool -a -G1 -s` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
+**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Pixelate anything that identifies a person, a place, or a device: a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
 
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
 
@@ -87,7 +87,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 - An external link is absolute: `[Hugo](https://gohugo.io/)`.
 - A link to another post is a root-relative permalink: `[From Blogger to WordPress](/2012/07/15/from-blogger-to-wordpress/)`.
 - A link to a file in this repository is an absolute GitHub URL, because the post is served from a different origin and a repo-relative path resolves to nothing there.
-- **Link a tool, project, product, or person on first mention, and only there.** A later mention stays plain text, so a reader meets each link once, at the point the post introduces it.
+- **A link goes on the first mention, and only there.** A later mention stays plain text, so a reader meets each link once, at the point the post introduces it. Link a tool, project, product, or person a reader would go and look up, and leave a name they already know, such as GitHub or Android, as plain text.
 
 `refLinksErrorLevel: ERROR` fails the build on an unresolved `ref`, so a broken internal reference never ships. It says nothing about a root-relative path that points at a page which does not exist, which the parity gate catches instead.
 
