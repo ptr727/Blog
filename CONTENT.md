@@ -76,7 +76,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
-**Every image is stripped of identifying data before it is committed.** Remove all metadata, since a phone photo carries GPS location, capture time, and the camera model. Then inspect the image at full resolution and pixelate anything that identifies a person, a place, or a device: a serial number, a rating plate, a barcode, a MAC address, a street or house number, a license plate, a face. Verify both halves. `exiftool` reports no EXIF or GPS tags, and a full-resolution crop of each redacted area is unreadable.
+**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile is display data rather than capture data, and it stays. Then inspect the image at full resolution and pixelate anything that identifies a person, a place, or a device: a serial number, a rating plate, a barcode, a MAC address, a street or house number, a license plate, a face. Verify both halves. `exiftool` reports no EXIF, GPS, or XMP tags, and a full-resolution crop of each redacted area is unreadable.
 
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
 
@@ -102,7 +102,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 ## Voice
 
-The fleet's prose rules apply to a post the same way they apply to a comment, with the vocabulary unrestricted and the structure restricted. Read the `comment-and-doc-style` Skill for the full set. What that means here:
+The fleet's prose rules apply to a post, with the vocabulary unrestricted and the structure restricted. Read the `comment-and-doc-style` Skill for the full set. One of them does not carry over. The fleet's twenty-five word sentence cap comes from ASD-STE100, a controlled language for maintenance and assembly instructions, and it governs a comment and a procedure step because a reader follows those one action at a time. A post is narrative, so it carries causality, asides, and rhythm, and rhythm needs sentences of differing length. The sentence rules below replace that cap for a post, and nowhere else. What the fleet's rules mean here:
 
 - **First person singular, past tense, for what was done.** Second person imperative for advice to the reader. Present tense for how a thing works.
 - **US English spelling.**
@@ -111,8 +111,13 @@ The fleet's prose rules apply to a post the same way they apply to a comment, wi
 - **A unit or scientific symbol is the exception**, because its ASCII form would be a lie. Degree, micro, ohm, and pi stay as themselves rather than being approximated or spelled out. Any other non-ASCII character is a defect rather than a judgment call.
 - **No semicolon joining a sentence.**
 - **No spaced hyphen joining or interrupting a sentence.**
-- **Short sentences, twenty-five words as the cap.** Active voice.
-- **Bold carries the load-bearing claim**, once or twice a section. It is emphasis, not decoration.
+- **Sentences stay under thirty-five words, and forty is the defect.** Between those two, recast rather than split where a split would leave a fragment or drop the link between a cause and its effect. Active voice.
+- **One idea per sentence, which is what length only approximates.** At most two independent clauses, and never a third subordinate clause hung off those. A sentence that chains "and", then "which", then "because" is the shape this rule exists to catch, whatever it measures.
+- **No comma splice.** Two independent clauses take a period or a conjunction, never a bare comma.
+- **A paragraph runs to about five sentences, or a hundred and twenty words.** A wall of text is what a reader leaves, and the cap is the one that matters most on a phone.
+- **Vary sentence length within a paragraph.** Sentences all of one length read mechanically however short they are, so a long one after two short ones is doing work.
+- **The post reads at a Flesch reading ease of fifty or better.** One number over the whole post catches drift that no single-sentence rule sees.
+- **Bold marks what a skimmer must not miss.** At most one per paragraph, and a parallel series of lead-ins across a section counts as one. It is emphasis, not decoration.
 - **A number is exact and is verified before it is written.** The post is the only place most of these numbers appear, so a wrong one is not caught anywhere else.
 
 **No data that identifies a machine.** A post never carries a real MAC address, hostname, serial number, device name, IP address, or absolute home path, and neither does a screenshot. Use a constructed placeholder that carries the same shape, and say it is one.
