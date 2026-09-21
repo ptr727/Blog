@@ -76,9 +76,37 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
-**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Pixelate anything that identifies a person, a place, or a device. Redact a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
+**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Redact a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Cover each one with a flat opaque fill rather than a blur or a mosaic, because both are reversible for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
 
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
+
+## What Identifies
+
+"Media" above says to strip the metadata and redact the obvious. This section is the part that is not obvious. Each rule below is a finding from a sweep of the imported archive. That sweep found one home address disclosed six independent ways, a third-party API key, and children's faces.
+
+**A locator is usually not a number.** A street sign, an intersection, a neighbor's distinctive facade, a water tower, or a skyline places a photograph as surely as an address does. Judge an exterior shot on whether a stranger could find it, never on whether a number appears in it.
+
+**A BSSID is a location, not a device.** Public databases map an access point's hardware address to the coordinates where it was seen. A BSSID in a screenshot is therefore a live lookup rather than a fingerprint, and an SSID names the household.
+
+**A service identifier can be a live pin.** A sensor ID, a weather-station ID, or a map link carrying coordinates resolves to a location today. That is worse than stale capture metadata, so link the service rather than the instance.
+
+**A barcode outlives its printed digits.** A label still scans after its text has gone too soft to read. "Too blurry to read" is therefore not the test, and the fill covers the bars as well as the text.
+
+**A shipping label is an address lookup.** An order number, a tracking number, or a packing barcode resolves at the carrier or the retailer. Redact the whole label rather than the printed address alone.
+
+**A filename is published.** Hugo serves `static/` verbatim, so a hostname, an address, or a name in a filename reaches the URL. Rename the file, since redacting the pixels leaves it untouched.
+
+**Some frames cannot be patched.** Locators spread across a frame, a street sign and a neighbor's facade and a ridgeline and an overhead line run. Covering one leaves the rest, so crop to the subject or drop the image.
+
+**A hand at close range can carry ridge detail.** A fingertip filling part of a high-resolution frame is a biometric. Frame the work rather than the hand.
+
+**A partial redaction is worse than none, because it looks handled.** Cover the whole value rather than the part that named it.
+
+**A screen in the frame is a document.** An account name, an email address, a room labeled with a person's name, and an occupancy time each count. Treat one as a serial on a case.
+
+**Other people are not the author's to publish.** A third party's name, face, or address is redacted whatever is decided about the author's own, since consent was never the author's to give.
+
+**A credential that reached the site is rotated, not redacted.** A key hides in a URL query string, a console log, or a packet capture. Editing the image stops further exposure and revokes nothing, so treat anything published as already fetched.
 
 ## Links
 
@@ -120,7 +148,7 @@ The fleet's prose rules apply to a post, with the vocabulary unrestricted and th
 - **Bold marks what a skimmer must not miss.** At most one span per paragraph, and at most one series of parallel lead-ins per section. It is emphasis, not decoration.
 - **A number is exact and is verified before it is written.** The post is the only place most of these numbers appear, so a wrong one is not caught anywhere else.
 
-**No data that identifies a machine.** A post never carries a real MAC address, hostname, serial number, device name, IP address, or absolute home path, and neither does a screenshot. Use a constructed placeholder that carries the same shape, and say it is one.
+**No data that identifies a machine.** A post never carries a real MAC address, hostname, serial number, device name, IP address, or absolute home path, and neither does a screenshot. Use a constructed placeholder that carries the same shape, and say it is one. "What Identifies" above carries the same rule for a photograph.
 
 ## What Is and Is Not Gated
 
