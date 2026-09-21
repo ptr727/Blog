@@ -113,13 +113,13 @@ Reconverged 2026-08-05, and the run is written up in [`reports/Blog/audit.md`](.
 
 **Measured against hub `main` `3b802b9eb9a841c0149d018f4db6ffa1b9419051`**, and the ref is named because `main` moves, which is the trap below. Every verbatim unit now matches: the re-vendor of `repo-config/configure.sh` this record previously owed, for the jq portability defect reported as [#549][issue-549] and fixed at the hub in [#553][pr-553], landed with this change. The links above are pinned to that same ref rather than to `main`, so this record stays checkable after the hub moves again.
 
-Three findings are open at the hub, plus one already resolved and kept for the record, each recorded here rather than only in the issues because it changes what a fleet audit of this repo means. Of the three open, the first two are not work this repo can do. The third is, once the change answering it is ground truth, and what it will ask is stated below the table.
+Three findings are open at the hub, plus one already resolved and kept for the record, each recorded here rather than only in the issues because it changes what a fleet audit of this repo means. Of the three open, the first two are not work this repo can do. The third was, the change answering it is ground truth now, and that work is done, per the note below the table.
 
 | Issue | What it means here |
 | --- | --- |
 | [#550][issue-550] | Nothing detects a repo missing from the registry, which is how this repo stayed invisible. Three other repos are still absent. |
 | [#552][issue-552] | The audit flags any carried `AGENTS.md` naming the template repo, and the byte-locked `Fleet Bootstrap` section names it. Carrying the canonical correctly cannot pass, and it is the one finding the current run cannot clear. |
-| [#597][issue-597] | Filed from here, after a mandatory pre-merge gate in `OPERATIONS.md` was skipped on [#40][pr-40]. The ruling is that a verification a runner cannot perform needs a declared destination, not a better per-repo pointer. Answered by [#598][pr-598], which this repo owes work against once it is ground truth. |
+| [#597][issue-597] | Filed from here, after a mandatory pre-merge gate in `OPERATIONS.md` was skipped on [#40][pr-40]. The ruling is that a verification a runner cannot perform needs a declared destination, not a better per-repo pointer. Answered by [#598][pr-598], which is ground truth now, and the work it asked of this repo is done. |
 | [#633][issue-633] | Filed from here, 2026-08-09, closed on the hub's side via `eol-coverage` (see **Owed to the hub**). Resolved rather than open, kept in this table as the record of what was filed and why. |
 
 **[#598][pr-598] is ground truth, and this repo has done what it asks.** It declares `Local Verification` as the first of six `OPERATIONS.md` headings, leading the file as the only pre-merge one. This repo's `OPERATIONS.md` now carries exactly those six, with every section it already had filed under the one that owns it: `Local Verification Before a Pull Request` became `Local Verification`, `Backup and Restore` became `Backup and Recovery`, and `Log Review` became `Logs and Debugging`.
