@@ -349,7 +349,7 @@ This site has served the same domain across earlier platforms, so its whole oper
 
 **The direction between them is one-way.** A post may cite a README. A README never cites the post. A doc that sends a reader to published prose for an operational fact has put the fact where it cannot be kept current, and where correcting it means editing something people have already read.
 
-**The post is content, so it sits under the URL contract.** Editing it moves nothing. Renaming it or taking it down breaks an address the site serves. A fact in it that proves wrong is corrected in the post rather than footnoted here.
+**The post is content, so it sits under the URL contract.** Editing it moves nothing. Renaming it or taking it down breaks an address the site serves. A fact in it that proves wrong is corrected in the post rather than footnoted here. [`CONTENT.md`](./CONTENT.md) holds that rule for every post, along with where a post goes, what its front matter carries, and how it is written.
 
 #### Rebuilding from the Exports
 

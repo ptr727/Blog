@@ -267,7 +267,7 @@ Every repo's GitHub repository details (the About panel) follow a fixed conventi
 
 - [`AGENTS.md`](./AGENTS.md): the agent entry point, carrying context and delegation rules plus the map to the sections below.
 - [`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md), [`AUDIT.md`](./AUDIT.md): the governance, operations, and audit docs. This file is the cross-cutting-rules authority.
-- [`content/`](./content/): the posts and pages, one file per URL. An imported archive, and out of scope for prose and spelling sweeps.
+- [`content/`](./content/): the posts and pages, one file per URL. An imported archive, and out of scope for prose and spelling sweeps. [`CONTENT.md`](./CONTENT.md) is the contract for writing a new one.
 - [`static/`](./static/): the media the posts reference, verified by content hash against the source export.
 - [`layouts/`](./layouts/), [`themes/`](./themes/), [`assets/`](./assets/), [`i18n/`](./i18n/): the theme and the template overrides that keep a strict build warning-free.
 - [`checks/`](./checks/): the URL contract and the gates that enforce it, covering both the built output and a running server.
