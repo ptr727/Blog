@@ -76,6 +76,8 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
+**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Pixelate anything that identifies a person, a place, or a device. Redact a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
+
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
 
 ## Links
@@ -85,6 +87,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 - An external link is absolute: `[Hugo](https://gohugo.io/)`.
 - A link to another post is a root-relative permalink: `[From Blogger to WordPress](/2012/07/15/from-blogger-to-wordpress/)`.
 - A link to a file in this repository is an absolute GitHub URL, because the post is served from a different origin and a repo-relative path resolves to nothing there.
+- **A link goes on the first mention, and only there.** A later mention stays plain text, so a reader meets each link once, at the point the post introduces it. Link a tool, project, product, or person a reader would go and look up. A name they already know, such as Android or Wi-Fi, stays plain text.
 
 `refLinksErrorLevel: ERROR` fails the build on an unresolved `ref`, so a broken internal reference never ships. It says nothing about a root-relative path that points at a page which does not exist, which the parity gate catches instead.
 
@@ -99,16 +102,22 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 ## Voice
 
-The fleet's prose rules apply to a post the same way they apply to a comment, with the vocabulary unrestricted and the structure restricted. Read the `comment-and-doc-style` Skill for the full set. What that means here:
+The fleet's prose rules apply to a post, with the vocabulary unrestricted and the structure restricted. Read the `comment-and-doc-style` Skill for the full set. One of them does not carry over. The fleet caps a sentence at twenty-five words across agent-authored prose, taking the structural half of ASD-STE100 as its house style. That controlled language was written for maintenance and assembly instructions, where a reader follows one action at a time. A post is narrative, and it carries causality, asides, and rhythm. Rhythm needs sentences of differing length, so the rules below replace that cap for a post, and nowhere else. What the fleet's rules mean here:
 
 - **First person singular, past tense, for what was done.** Second person imperative for advice to the reader. Present tense for how a thing works.
 - **US English spelling.**
+- **Spell out an abbreviation on first use**, as the expansion followed by the abbreviation in parentheses, such as "Bluetooth Low Energy (BLE)". Later uses take the abbreviation alone. Units, and abbreviations every reader already knows, such as AC, HVAC, PSU, UV, USB, ASCII, and JSON, are exempt.
 - **Punctuation is ASCII.** No em dash or en dash, recast as a comma or two sentences rather than a spaced hyphen. No curly quotes, no ellipsis character, no arrows. Write a relational or arithmetic operator as `<=`, `>=`, `!=`, or `+/-` in flowing prose, and keep the symbol only next to a number.
 - **A unit or scientific symbol is the exception**, because its ASCII form would be a lie. Degree, micro, ohm, and pi stay as themselves rather than being approximated or spelled out. Any other non-ASCII character is a defect rather than a judgment call.
 - **No semicolon joining a sentence.**
 - **No spaced hyphen joining or interrupting a sentence.**
-- **Short sentences, twenty-five words as the cap.** Active voice.
-- **Bold carries the load-bearing claim**, once or twice a section. It is emphasis, not decoration.
+- **Sentences stay under thirty-five words, and forty is the defect.** Between those two, recast rather than split where a split would leave a fragment or drop the link between a cause and its effect. Active voice.
+- **One idea per sentence, which is what length only approximates.** A third independent clause is a signal rather than a limit. Reread that sentence, and split it where it turned out to carry two ideas. A sentence that chains "and", then "which", then "because" is the shape to catch, whatever any count says.
+- **No comma splice.** Two independent clauses take a period or a conjunction, never a bare comma. A short parallel series is the exception, where clauses of the same shape are the point, such as "Pull the APK, automate it."
+- **A paragraph runs to about five sentences, or a hundred and twenty words.** A wall of text is what a reader leaves, and the word count is the half that matters most on a phone.
+- **Vary sentence length within a paragraph.** Sentences all of one length read mechanically however short they are, so a long one after two short ones is doing work.
+- **The post reads at a Flesch reading ease of fifty or better**, measured over the prose paragraphs alone. Front matter, fenced blocks, tables, and alt text are left out. One number over the whole post catches drift that no single-sentence rule sees. Syllable counting differs between tools, so a score near the floor is a prompt to reread rather than a verdict. Nothing computes it for you.
+- **Bold marks what a skimmer must not miss.** At most one span per paragraph, and at most one series of parallel lead-ins per section. It is emphasis, not decoration.
 - **A number is exact and is verified before it is written.** The post is the only place most of these numbers appear, so a wrong one is not caught anywhere else.
 
 **No data that identifies a machine.** A post never carries a real MAC address, hostname, serial number, device name, IP address, or absolute home path, and neither does a screenshot. Use a constructed placeholder that carries the same shape, and say it is one.
