@@ -1,7 +1,7 @@
 ---
 title: Reverse Engineering the EasyStart Bluetooth Protocol
-date: '2026-07-22T12:00:00+00:00'
-url: /2026/07/22/reverse-engineering-the-easystart-bluetooth-protocol/
+date: '2026-09-16T12:00:00+00:00'
+url: /2026/09/16/reverse-engineering-the-easystart-bluetooth-protocol/
 categories:
 - solution
 - homeautomation
@@ -178,7 +178,7 @@ The integration is an ESPHome external component, a `ble_client` node that polls
 
 The power figure is an estimate by design. The module reports single-leg current and no voltage at all, so power is `current * line_voltage * power_factor` with defaults of 240 V and 1.0. It is close enough for the energy dashboard, but it is not a meter. In Home Assistant, a Riemann sum integration helper turns that power into the energy sensor the dashboard reads. It pauses while the compressor is off, because the power sensor reports `unknown` rather than zero.
 
-{{< figure src="/media/2026/07/easystart-home-assistant-sensors.png" alt="Home Assistant sensor card for a running compressor: 6.5 A current, 1,560 W estimated power, 59.82 Hz line frequency, 24.7 A last start peak, Running, system state Normal, 3,224 total starts" >}}
+{{< figure src="/media/2026/09/easystart-home-assistant-sensors.png" alt="Home Assistant sensor card for a running compressor: 6.5 A current, 1,560 W estimated power, 59.82 Hz line frequency, 24.7 A last start peak, Running, system state Normal, 3,224 total starts" >}}
 
 Four things cost me real time on the hardware side.
 
@@ -236,13 +236,13 @@ I used an [Unexpected Maker ProS3D](https://esp32s3.com/pros3d.html), an ESP32-S
 When I bought my EasyStarts, the installation instructions allowed an outdoor install without any additional protection. They now recommend an enclosure, and I can see why, because the wiring inside the EasyStart's clear enclosure is fading. I applied BDF NSN70 heat-rejecting window film over both clear lids to help protect the components from heat and UV damage.
 
 {{< gallery cols="2" >}}
-{{< figure src="/media/2026/07/easystart-ble-proxy-enclosure-inside.jpg" alt="Inside the outdoor enclosure: the ProS3D board with its external antenna lead, beside the in-wall USB-C power supply" >}}
-{{< figure src="/media/2026/07/easystart-ble-proxy-enclosure-mounted.jpg" alt="The proxy enclosure with its antenna mounted on the compressor, directly above the EasyStart in its own enclosure" >}}
+{{< figure src="/media/2026/09/easystart-ble-proxy-enclosure-inside.jpg" alt="Inside the outdoor enclosure: the ProS3D board with its external antenna lead, beside the in-wall USB-C power supply" >}}
+{{< figure src="/media/2026/09/easystart-ble-proxy-enclosure-mounted.jpg" alt="The proxy enclosure with its antenna mounted on the compressor, directly above the EasyStart in its own enclosure" >}}
 {{< /gallery >}}
 
 ## I did almost none of this by hand
 
-I ran this through Claude Code, and the shape of it is worth describing, because it is not what I expected.
+I ran this through Claude Code, as I did the [blog migration](/2026/08/01/moving-this-blog-from-wordpress-to-hugo/). The shape of it is worth describing, because it is not what I expected.
 
 I did not hand it the problem and wait. I did a step manually, then asked it to automate that step, then did the next step manually, then automated that. Pull the APK, automate it. Decompile and grep, automate it. Decode a field, generalize the decoder. Each round I also asked it to write up the step just finished, and to refine the write-up with whatever had gone wrong. That is how the gotchas in this post came to be written down at all rather than forgotten.
 
