@@ -35,11 +35,6 @@ jobs:
     permissions:
       contents: read
     with:
-      # This repo's whole Hugo content tree (content/) and the vendored PaperMod theme are both excluded here.
-      # .markdownlint-cli2.jsonc is carried verbatim, so it cannot scope them locally.
-      markdown-exclude-globs: |
-        !content/**
-        !themes/*/**
       # The vendored theme stays byte-identical to upstream.
       # Its own floating-tag action pins are never locally edited to satisfy this repo's sha-pin gate.
       repo-gate-exclude-globs: |
@@ -51,7 +46,9 @@ jobs:
   publish:
     name: Publish project release job
     needs: [plan, validate]
-    if: ${{ needs.plan.outputs.publish == 'true' }}
+    # An if: on a job replaces the implicit success() over its needs.
+    # Without the validate arm a failed gate would publish anyway.
+    if: ${{ needs.plan.outputs.publish == 'true' && needs.validate.result == 'success' }}
     uses: ptr727/ProjectTemplate/.github/workflows/build-release-task.yml@9129f41e180d9fec80fbd6d9e47c4d3d1cb0dab0 # 2.0.645
     permissions:
       contents: write
