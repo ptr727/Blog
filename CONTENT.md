@@ -76,7 +76,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
-**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Pixelate anything that identifies a person, a place, or a device: a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
+**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Pixelate anything that identifies a person, a place, or a device. Redact a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
 
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
 
@@ -112,7 +112,7 @@ The fleet's prose rules apply to a post, with the vocabulary unrestricted and th
 - **No semicolon joining a sentence.**
 - **No spaced hyphen joining or interrupting a sentence.**
 - **Sentences stay under thirty-five words, and forty is the defect.** Between those two, recast rather than split where a split would leave a fragment or drop the link between a cause and its effect. Active voice.
-- **One idea per sentence, which is what length only approximates.** A third independent clause is a signal rather than a limit, so reread that sentence and split it where it turned out to carry two ideas. A sentence that chains "and", then "which", then "because" is the shape to catch, whatever any count says.
+- **One idea per sentence, which is what length only approximates.** A third independent clause is a signal rather than a limit. Reread it, and split it where it turned out to carry two ideas. A sentence that chains "and", then "which", then "because" is the shape to catch, whatever any count says.
 - **No comma splice.** Two independent clauses take a period or a conjunction, never a bare comma. A short parallel series is the exception, where clauses of the same shape are the point, such as "Pull the APK, automate it."
 - **A paragraph runs to about five sentences, or a hundred and twenty words.** A wall of text is what a reader leaves, and the word count is the half that matters most on a phone.
 - **Vary sentence length within a paragraph.** Sentences all of one length read mechanically however short they are, so a long one after two short ones is doing work.
