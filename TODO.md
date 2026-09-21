@@ -84,10 +84,9 @@ The spec update this repo owed the hub has landed: [ProjectTemplate#560][hub-typ
 
 **It is on the hub's `develop` and not on `main`, so it is not ground truth yet.** The registry entry that reclassifies this repo to `types: ["hugo", "source-only"]` with both publish targets sits on the same unpromoted branch. Until the hub promotes, this repo stays `source-only` for audit purposes, and the anticipatory evaluation of the nine `hugo` checks is in [the audit report](./reports/Blog/audit.md).
 
-Two things become due at that promotion, neither of them work this repo can do first:
+One thing becomes due at that promotion, and it is not work this repo can do first:
 
 - The two `driftNotes` the hub's registry carries for `hugo.vendored.provenance` and `hugo.generator.pinned` describe work [#30][pr-30] already finished, so they are reconciled away rather than carried. Filed as [ProjectTemplate#563][issue-563], with the measurement that nothing retires them mechanically despite the intent to: the freshness check is gated on a repo having no findings at all, and this repo has one it cannot clear.
-- This repo's [`spec/secrets.json`](./spec/secrets.json) note states `types: ["source-only"]` in prose and needs the second type once the registry declares it.
 
 The reference leaf the hub now ships carries one step this repo's deploy does not, a prune of the remote release tree. That is the corrected form of the check rather than a gap here: this repo's credential cannot observe the destination, so the leaf's own comments say to delete the step and record the ownership on the host side, which is what the entry above tracks.
 
