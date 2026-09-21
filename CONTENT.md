@@ -103,7 +103,8 @@ The fleet's prose rules apply to a post the same way they apply to a comment, wi
 
 - **First person singular, past tense, for what was done.** Second person imperative for advice to the reader. Present tense for how a thing works.
 - **US English spelling.**
-- **ASCII only.** No em dash or en dash, recast as a comma or two sentences rather than a spaced hyphen. No curly quotes, no ellipsis character, no arrows. A unit or scientific symbol whose ASCII form would be a lie stays, so degree and micro are fine.
+- **Punctuation is ASCII.** No em dash or en dash, recast as a comma or two sentences rather than a spaced hyphen. No curly quotes, no ellipsis character, no arrows. Write a relational or arithmetic operator as `<=`, `>=`, `!=`, or `+/-` in flowing prose, and keep the symbol only next to a number.
+- **A unit or scientific symbol is the exception**, because its ASCII form would be a lie. Degree, micro, ohm, and pi stay as themselves rather than being approximated or spelled out. Any other non-ASCII character is a defect rather than a judgment call.
 - **No semicolon joining a sentence.**
 - **No spaced hyphen joining or interrupting a sentence.**
 - **Short sentences, twenty-five words as the cap.** Active voice.
