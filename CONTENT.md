@@ -87,7 +87,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 - An external link is absolute: `[Hugo](https://gohugo.io/)`.
 - A link to another post is a root-relative permalink: `[From Blogger to WordPress](/2012/07/15/from-blogger-to-wordpress/)`.
 - A link to a file in this repository is an absolute GitHub URL, because the post is served from a different origin and a repo-relative path resolves to nothing there.
-- **A link goes on the first mention, and only there.** A later mention stays plain text, so a reader meets each link once, at the point the post introduces it. Link a tool, project, product, or person a reader would go and look up, and leave a name they already know, such as GitHub or Android, as plain text.
+- **A link goes on the first mention, and only there.** A later mention stays plain text, so a reader meets each link once, at the point the post introduces it. Link a tool, project, product, or person a reader would go and look up. A name they already know, such as Android or Wi-Fi, stays plain text.
 
 `refLinksErrorLevel: ERROR` fails the build on an unresolved `ref`, so a broken internal reference never ships. It says nothing about a root-relative path that points at a page which does not exist, which the parity gate catches instead.
 
