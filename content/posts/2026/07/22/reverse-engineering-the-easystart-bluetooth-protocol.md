@@ -13,9 +13,9 @@ tags:
 - reverse-engineering
 - claude
 ---
-I have [Micro-Air EasyStart](https://www.microair.net/products/easystart-flex-home-ac-soft-starter) soft starters installed on both my HVAC compressors. I installed them in the summer of 2023, after I started getting frequent brownouts whenever a compressor started. The brownouts came from a combination of low supply voltage, since addressed by my electricity provider, and rising neighborhood demand. Older homes are being torn down and replaced with much larger ones, so panels are going from 80 A to 400 A. Every year more homes add AC and electric car chargers.
+I have [Micro-Air EasyStart](https://www.microair.net/products/easystart-flex-home-ac-soft-starter) soft starters installed on both my HVAC compressors. I installed them in the summer of 2023, after I started getting frequent brownouts whenever a compressor started. The brownouts came from a combination of low supply voltage, later addressed by my electricity provider, and rising neighborhood demand. Older homes are being torn down and replaced with much larger ones, so panels are going from 80 A to 400 A. Every year more homes add AC and electric car chargers.
 
-The EasyStart modules have built-in Bluetooth Low Energy (BLE), and a diagnostic phone app showing live current, line frequency, peak startup current, and a start counter. I monitor whole-home power usage and solar generation in [Home Assistant](https://www.home-assistant.io/). I wanted to use the BLE data for more granular AC power usage reporting, without installing additional current monitors in my panel. I reached out to Micro-Air, but they would not share the protocol. At the time I could not find anyone else who had decoded the protocol, and I lost interest.
+The EasyStart modules have built-in Bluetooth Low Energy (BLE), and the vendor's phone app shows live current, line frequency, peak startup current, and a start counter. I monitor whole-home power usage and solar generation in [Home Assistant](https://www.home-assistant.io/). I wanted to use the BLE data for more granular AC power usage reporting, without installing additional current monitors in my panel. I reached out to Micro-Air, but they would not share the protocol. At the time I could not find anyone else who had decoded the protocol, and I lost interest.
 
 In the meantime I had been watching [Matt Brown's YouTube channel](https://www.youtube.com/@mattbrwn) on reverse engineering and Internet of Things (IoT) hacking. [ESPHome](https://esphome.io/) had also made BLE device support much easier. With renewed motivation I set out to reverse engineer the BLE protocol myself, or rather, myself with a lot of automation and decoding help from [Claude Code](https://claude.com/claude-code). This post walks through pulling the protocol out of the vendor's Android app and checking the decode against the live module. It ends with the result running in Home Assistant through ESPHome.
 
@@ -96,7 +96,7 @@ Two of those are not guessable from staring at bytes.
 
 **Line frequency is a period, not a scaled reading.** The field holds 8361, and 8361 is not 59.8 in any scaling. It is `500000 / 8361 = 59.80`. I would have burned a long time trying to fit a multiplier to that if the app had not shown me the division.
 
-**Total starts is 32 bits**, spanning four bytes where every other multi-byte field uses two. A 16-bit read looks completely fine until the counter passes 65535, which is decades away at my compressors' rate, and then it silently wraps.
+**Total starts is 32 bits**, spanning four bytes where every other multi-byte field uses two. A 16-bit read looks completely fine until the counter passes 65535, which is decades away at my compressors' rate. Then it silently wraps.
 
 The state byte is a lookup into an array the app carries:
 
@@ -123,7 +123,7 @@ Having the layout is not the same as having it right, so the decode needed a rea
 
 **nRF Connect on a phone only shows you the latest value of a characteristic.** Both notifications land on the same characteristic, and the ASCII acknowledgment arrives second. The app faithfully displayed `{"Sts": Success}`, and the binary frame was simply never on screen. I spent a while believing the module answered a poll with a status string and nothing else.
 
-**Android's HCI snoop log is useless on a stock phone.** Turning on "Enable Bluetooth HCI snoop log" produces a log, and you feel like you are getting somewhere. On a stock Pixel it runs in `FILTERED` mode, so the `btsnooz_hci.log` inside a bugreport keeps only the first few bytes of each Attribute Protocol (ATT) payload. It confirmed the handles, and that the write payload started `7b 22 43`, which is `{"C`. It also gave me a frame-length estimate of about 20 bytes that turned out to be wrong. The real frame is 18. Unfiltered capture needs root.
+**Android's HCI snoop log is useless on a stock phone.** Turning on "Enable Bluetooth HCI snoop log" produces a log, and you feel like you are getting somewhere. On a stock Pixel it runs in `FILTERED` mode, so the `btsnooz_hci.log` inside a bugreport keeps only the first few bytes of each Attribute Protocol (ATT) payload. It confirmed the handles, and that the write payload started with `7b 22 43`, which is `{"C`. It also gave me a frame-length estimate of about 20 bytes that turned out to be wrong. The real frame is 18. Unfiltered capture needs root.
 
 What worked was the boring option: use the laptop as the Bluetooth central. A short [bleak](https://bleak.readthedocs.io/) script, run with [uv](https://docs.astral.sh/uv/) so there is no virtualenv to set up, connects and polls. It prints every notification raw, with a per-byte index alongside the decoded interpretation:
 
@@ -154,7 +154,7 @@ Peak, frequency, and the counter match exactly, which is what pins the scaling a
 
 ## The radio is the sensor
 
-Then a behavior I did not design for and would not have predicted.
+Then came a behavior I did not design for and would not have predicted.
 
 **The module powers its Bluetooth radio only while the compressor is running.** When the compressor stops, the module stops advertising and drops the connection. There is no idle state to poll.
 
@@ -231,7 +231,9 @@ My own component is fixed by moving one line. It reports `ESTABLISHED` inside th
 
 ## Physical installation
 
-I used an [Unexpected Maker ProS3D](https://esp32s3.com/pros3d.html), an ESP32-S3 board running ESPHome as the BLE proxy, connected over Wi-Fi. I like the ProS3D because its internal or external antenna is selectable in software. It sits in a [TICON Outdoor Enclosure](https://link.amazon/B03yMJFKS) on one of the compressors. That is close enough to the other compressor to get a good BLE signal from both. A [PoE Texas in-wall USB-C PSU](https://link.amazon/B01XETxce) rated for 240 VAC powers it from the compressor's 240 VAC supply line. When I bought my EasyStarts, the installation instructions allowed an outdoor install without any additional protection. They now recommend an enclosure, and I can see why, because the wiring inside the EasyStart's clear enclosure is fading. I applied BDF NSN70 heat-rejecting window film over both clear lids to help protect the components from heat and UV damage.
+I used an [Unexpected Maker ProS3D](https://esp32s3.com/pros3d.html), an ESP32-S3 board running ESPHome as the BLE proxy, connected over Wi-Fi. I like the ProS3D because its internal or external antenna is selectable in software. It sits in a [TICON Outdoor Enclosure](https://link.amazon/B03yMJFKS) on one of the compressors. That is close enough to the other compressor to get a good BLE signal from both. A [PoE Texas in-wall USB-C PSU](https://link.amazon/B01XETxce) rated for 240 VAC powers it from the compressor's 240 VAC supply line. 
+
+When I bought my EasyStarts, the installation instructions allowed an outdoor install without any additional protection. They now recommend an enclosure, and I can see why, because the wiring inside the EasyStart's clear enclosure is fading. I applied BDF NSN70 heat-rejecting window film over both clear lids to help protect the components from heat and UV damage.
 
 {{< gallery cols="2" >}}
 {{< figure src="/media/2026/07/easystart-ble-proxy-enclosure-inside.jpg" alt="Inside the outdoor enclosure: the ProS3D board with its external antenna lead, beside the in-wall USB-C power supply" >}}
@@ -250,7 +252,7 @@ At the end I deleted every artifact I had made by hand and gave it one prompt:
 
 It drove the whole thing: `adb`, `apktool`, `jadx`, the grepping, the byte layout, the monitor, the component. My entire contribution was plugging in the phone, tapping one USB debugging prompt, standing near a compressor, running a couple of commands, and pasting text back.
 
-That is the part I would emphasize to anyone thinking about this kind of project. **The barrier to reverse engineering a device was never the difficulty. It was the tedium**, and the tedium is the part that is now cheap. The judgment still has to come from somewhere. I decided the swapped characteristics needed confirming against real hardware rather than assuming the convention. I decided an 80-minute capture was the evidence the upstream issue needed, and decided not to touch the OTA commands. But the ratio of what I decided to what I would have had to type is not close.
+That is the part I would emphasize to anyone thinking about this kind of project. **The barrier to reverse engineering a device was never the difficulty. It was the tedium**, and the tedium is the part that is now cheap. The judgment still has to come from somewhere. I decided to confirm the swapped characteristics against real hardware rather than trust the convention. I decided an 80-minute capture was the evidence the upstream issue needed, and decided not to touch the OTA commands. But the ratio of what I decided to what I would have had to type is not close.
 
 ## Was it worth it
 
