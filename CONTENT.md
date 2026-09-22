@@ -86,11 +86,11 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Two questions decide it. Does this locate the home, or does it identify a person?** Every rule below is one of those two applied.
 
-### Redact by Default in New Media
+### Adding an Image to a Post
 
-**Redaction costs almost nothing while a post is being written, so the default is broad.** A shot can be reframed, retaken, or cropped before it is published. An author who wants a label in frame says so and keeps it. That freedom is what makes a wide default affordable here.
+**This is the checklist for the moment an image is added, and the default is broad.** Redaction costs almost nothing here, because a shot can be reframed, retaken, or cropped before anyone sees it. An author who wants a label in frame says so and keeps it. That freedom is what makes a wide default affordable.
 
-Redact on sight, and argue afterwards if the image needs it:
+Check for each of these, redact on sight, and argue afterwards if the image needs it:
 
 - A face, including the author's own. A published name is not a published likeness.
 - Precise location. A house number, a street sign, a kerbside plate, a shipping label, a neighbor's facade, or a civic landmark.
@@ -110,7 +110,7 @@ These are settled, in new media and old alike, and reopening one wastes a review
 - **Private-range addresses.** Reaching one needs presence on the network already.
 - **Generic room and device labels.** A thermostat zone named for a room, or an automation entity named for an appliance.
 
-### The Imported Archive Is Judged Differently
+### Remediating an Image Already Published
 
 **A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else. A sweep proposed 158 redactions against it and 36 survived review.
 
