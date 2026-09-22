@@ -2,7 +2,7 @@
 
 How an agent audits **this repository** against its ground truth and reports drift. The audit is read-only: it never edits this repo, and it reads the hub only, never writes to it or any other repository.
 
-The ground truth is the hub's committed `repo-config/` payloads, which this repo does not carry a copy of, the secrets manifest in [`spec/secrets.json`](./spec/secrets.json), and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md)). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
+The ground truth is the hub's committed `repo-config/` payloads and secrets manifest, neither of which this repo carries a copy of, and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md)). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
 
 ## Scope
 
@@ -16,7 +16,7 @@ Both are deliberate deviations from what the fleet spec would predict, recorded 
 Three dimensions, each independently checkable:
 
 1. **Settings and rulesets**, against the hub's committed `repo-config/` payloads.
-2. **Secrets**, by name only, against `spec/secrets.json`.
+2. **Secrets**, by name only, against the hub's manifest for the repository scope and against this file for the environment scope.
 3. **The URL contract**, which is this repo's own reason to exist.
 
 ## 1. Settings and Rulesets
@@ -41,23 +41,30 @@ Two scopes, checked separately, because a name present in one is not present in 
 
 ### Repository scope
 
+This repo carries no secrets registry of its own. The required and forbidden repository-secret names are the fleet baseline plus whatever the registry entry's `requiredSecrets` adds, both resolved and cross-checked against the live stores by the hub's own runner:
+
+```sh
+# From a hub checkout, which hosts the registry rather than this repo carrying a copy.
+python3 spec/audit.py Blog
+```
+
+The baseline is two required names, `CODEGEN_APP_CLIENT_ID` and `CODEGEN_APP_PRIVATE_KEY`, in both the Actions and the Dependabot store, and one forbidden name, `CODEGEN_APP_ID`. `CODEGEN_APP_ID` is forbidden because the App-token action takes `client-id`, and the deprecated `app-id` name silently does nothing. Read the names from the run rather than from this paragraph when the two disagree, since the hub computes them and this restates them.
+
 ```sh
 gh secret list --repo ptr727/Blog
 gh secret list --repo ptr727/Blog --app dependabot
 ```
 
-Assert that every name under `baseline.requires` is present in both stores, and that every name under `baseline.forbids` is absent. `CODEGEN_APP_ID` is forbidden: the App-token action takes `client-id`, and the deprecated `app-id` name silently does nothing.
-
 ### Environment scope
 
-`configure.sh check` does not reach these and says so, deferring the secrets question to a manual verification. Assert them against `spec/secrets.json`:
+No fleet tool reaches these. `configure.sh check` asserts that each environment the registry declares exists and carries its declared branch policy, and says outright that it reads neither secrets nor variables, so the names below are this repo's own record and this section is the only thing that checks them.
+
+One key covers both environments, a deliberate decision recorded in `OPERATIONS.md`: the per-environment split only pays where the two keys never share a machine, and both sit on one workstation and in one secret store. The split still carries the base URL, the SSH endpoint, and the staging-only access token, so it is not decorative.
+
+The two environments are `staging` and `production`. Every environment carries the secret `DEPLOY_SSH_PRIVATE_KEY` and the variables `DEPLOY_SSH_HOST`, `DEPLOY_SSH_USER`, `DEPLOY_SSH_KNOWN_HOSTS`, and `SITE_BASE_URL`. `staging` additionally carries `SITE_AUTH_TOKEN_ID` and `SITE_AUTH_TOKEN`, and `production` carries neither.
 
 ```sh
-# Read the lists first, so a moved key fails here rather than emptying the loop below.
-envs=$(jq -e -r '.environments.names[]' spec/secrets.json) || exit 1
-jq -e '.environments.environmentSecrets' spec/secrets.json > /dev/null || exit 1
-
-for env in $envs; do
+for env in staging production; do
   gh secret list   --repo ptr727/Blog --env "$env" --json name --jq '.[].name'
   gh variable list --repo ptr727/Blog --env "$env" --json name --jq '.[].name'
 done
@@ -65,13 +72,11 @@ done
 
 `--json name` is not decoration. The bare `gh variable list` prints a value column, and when its output is captured rather than shown it prints each value in full, so an audit run without it writes the deploy endpoint into its own log. Never request the `value` field here, and never use `gh variable view`, which prints one by design.
 
-**Assert the query matched before reading what it returned.** A `jq` path that no longer resolves yields nothing, a loop over nothing runs zero times, and a check that counts failures reports none. Every lookup is `jq -e`, which exits non-zero on a null or missing key, and each is **assigned before it is iterated**: command substitution in a `for` header discards the exit status, so a guard written there is a guard that never fires.
-
 Three assertions, and the third is the one presence-checking misses:
 
-- Every name under `environments.secrets` and `environments.variables` is present in **every** environment named in `environments.names`.
-- Every name under `environmentSecrets.<env>` is present in that environment.
-- A name under `environmentSecrets` is **absent** from an environment that does not list it. `production` holding a Pangolin access token is a finding rather than a harmless extra: production answers unauthenticated, so a token there means a check could pass through a gate production is not supposed to have.
+- Every shared secret and variable name above is present in **both** environments.
+- `SITE_AUTH_TOKEN_ID` and `SITE_AUTH_TOKEN` are present in `staging`.
+- Both are **absent** from `production`. A Pangolin access token there is a finding rather than a harmless extra: production answers unauthenticated, so a token there means a check could pass through a gate production is not supposed to have.
 
 A **declared but unset** name is drift in the same way an undeclared one is. The deploy root is deliberately not declared, because the rsync destination is anchored at the deploy key's confinement root and the workflow names an environment rather than a host path.
 

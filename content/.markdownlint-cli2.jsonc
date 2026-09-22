@@ -1,0 +1,5 @@
+{
+    // The content tree is an imported archive rather than authored prose, so no prose gate reaches it.
+    // These patterns resolve against this directory, not the repository root.
+    "ignores": ["**/*.md"]
+}
