@@ -112,7 +112,7 @@ These are settled, in new media and old alike, and reopening one wastes a review
 
 ### Remediating an Image Already Published
 
-**A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else. A sweep proposed 158 redactions against it and 36 survived review.
+**A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else.
 
 That review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. None of it was worth the damage.
 
