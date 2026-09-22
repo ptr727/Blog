@@ -30,6 +30,7 @@ import re
 import struct
 import sys
 import zipfile
+import zlib
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 TREES = ("static/media", "static/external")
@@ -200,7 +201,7 @@ def scan_jpeg(data: bytes) -> set[str]:
         segment = data[i + 4 : i + 2 + length]
         if any(marker == m and segment.startswith(p) for m, p in JPEG_APP_ALLOWED):
             pass
-        elif marker == 0xE1 and segment.startswith(b"Exif\x00"):
+        elif marker == 0xE1 and segment.startswith(b"Exif\x00\x00"):
             out |= exif_unrecognized(segment)
         elif 0xE0 <= marker <= 0xEF:
             out.add(f"JPEG APP{marker - 0xE0} segment")
@@ -360,7 +361,16 @@ def walk_archive(path: pathlib.Path, name: str) -> list[tuple[str, set[str]]]:
                 if info.file_size > SIZE_LIMIT:
                     out.append((f"{name}!{info.filename}", {"too large to read"}))
                     continue
-                member = archive.read(info)
+                try:
+                    member = archive.read(info)
+                except (RuntimeError, zipfile.BadZipFile, zlib.error) as exc:
+                    out.append(
+                        (
+                            f"{name}!{info.filename}",
+                            {f"unreadable member: {type(exc).__name__}"},
+                        )
+                    )
+                    continue
                 # Only media is in scope, so a source file or a binary is left alone.
                 hit = scan(member)
                 if hit and hit != {"unrecognized container"}:

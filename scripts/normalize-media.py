@@ -82,7 +82,7 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         keep = True
         if any(marker == m and segment.startswith(p) for m, p in gate.JPEG_APP_ALLOWED):
             keep = True
-        elif marker == 0xE1 and segment.startswith(b"Exif\x00"):
+        elif marker == 0xE1 and segment.startswith(b"Exif\x00\x00"):
             # An Exif segment with an unrecognized tag goes whole.
             # Rewriting an IFD in place means re-computing every offset in it.
             keep = not gate.exif_unrecognized(segment)
@@ -156,7 +156,7 @@ def normalize_iso(path: pathlib.Path, destination: pathlib.Path) -> bool:
     if not shutil.which("ffmpeg"):
         return False
     result = subprocess.run(
-        # -bitexact stops ffmpeg stamping its own version into the file it just cleaned.
+        # The bitexact flags stop ffmpeg stamping its own version into the file it cleaned.
         [
             "ffmpeg",
             "-y",
@@ -323,15 +323,16 @@ def main() -> int:
         elif data[:4] == b"RIFF" and data[8:12] == b"WEBP":
             new = normalize_webp(data)
         elif data[4:8] in (b"ftyp", b"moov", b"wide", b"mdat", b"free", b"skip"):
-            new = b"" if not args.apply else None
-            if args.apply:
+            if not shutil.which("ffmpeg"):
+                # Reported as needing a re-encode, since nothing here can perform one.
+                new = None
+            elif not args.apply:
+                # A report does not run ffmpeg, so it stands in for the rewrite.
+                new = b""
+            else:
                 scratch = path.with_name(f".normalize-{path.name}")
-                if normalize_iso(path, scratch):
-                    new = scratch.read_bytes()
-                    scratch.unlink()
-                else:
-                    scratch.unlink(missing_ok=True)
-                    new = None
+                new = scratch.read_bytes() if normalize_iso(path, scratch) else None
+                scratch.unlink(missing_ok=True)
         else:
             new = None
 
