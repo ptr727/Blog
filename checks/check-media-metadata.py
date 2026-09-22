@@ -35,6 +35,40 @@ import zlib
 REPO = pathlib.Path(__file__).resolve().parent.parent
 TREES = ("static/media", "static/external")
 
+# Extensions that name a picture or a video, used only inside an archive.
+# A member is judged by its bytes where they are recognized, and an unrecognized
+# container is a finding only where the name says the member was meant to be media,
+# since an archive here also carries source files and binaries that are not in scope.
+MEDIA_SUFFIXES = frozenset(
+    (
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp",
+        ".bmp",
+        ".tif",
+        ".tiff",
+        ".heic",
+        ".heif",
+        ".avif",
+        ".jxl",
+        ".mov",
+        ".mp4",
+        ".m4v",
+        ".avi",
+        ".mkv",
+        ".webm",
+        ".mpg",
+        ".mpeg",
+        ".3gp",
+        ".raw",
+        ".dng",
+        ".cr2",
+        ".nef",
+    )
+)
+
 # A file or archive member larger than this is reported rather than read.
 SIZE_LIMIT = 256 * 1024 * 1024
 
@@ -387,8 +421,14 @@ def walk_archive(path: pathlib.Path, name: str) -> list[tuple[str, set[str]]]:
                     )
                     continue
                 # Only media is in scope, so a source file or a binary is left alone.
+                # A member named as media is in scope even where its bytes are not
+                # recognized, or the same file would fail loose and pass inside a zip.
                 hit = scan(member)
-                if hit and hit != {"unrecognized container"}:
+                named_media = (
+                    pathlib.PurePosixPath(info.filename).suffix.lower()
+                    in MEDIA_SUFFIXES
+                )
+                if hit and (named_media or hit != {"unrecognized container"}):
                     out.append((f"{name}!{info.filename}", hit))
     except (zipfile.BadZipFile, RuntimeError, NotImplementedError) as exc:
         out.append((name, {f"unreadable archive: {type(exc).__name__}"}))

@@ -60,8 +60,9 @@ def normalize_png(data: bytes) -> bytes | None:
             out += data[i : i + 12 + length]
         i += 12 + length
         if chunk == b"IEND":
-            break
-    return bytes(out)
+            return bytes(out)
+    # No IEND means the stream was truncated, so there is nothing safe to write.
+    return None
 
 
 def normalize_jpeg(data: bytes) -> bytes | None:
@@ -99,7 +100,8 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         if keep:
             out += data[i : i + 2 + length]
         i += 2 + length
-    return bytes(out)
+    # The loop ended without reaching the scan, so the picture was never found.
+    return None
 
 
 def normalize_gif(data: bytes) -> bytes | None:
@@ -118,8 +120,7 @@ def normalize_gif(data: bytes) -> bytes | None:
     while i < len(data):
         marker = data[i]
         if marker == 0x3B:
-            out += b"\x3b"
-            break
+            return bytes(out) + b"\x3b"
         if marker == 0x21:
             label = data[i + 1]
             end = block_end(i + 2)
@@ -137,7 +138,8 @@ def normalize_gif(data: bytes) -> bytes | None:
             i = end
         else:
             return None
-    return bytes(out)
+    # No trailer means the stream was truncated.
+    return None
 
 
 def normalize_webp(data: bytes) -> bytes | None:
@@ -153,6 +155,8 @@ def normalize_webp(data: bytes) -> bytes | None:
         if chunk in gate.WEBP_ALLOWED:
             body += data[i : i + span]
         i += span
+    if not body:
+        return None
     return b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + bytes(body)
 
 
