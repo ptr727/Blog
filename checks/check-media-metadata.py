@@ -35,10 +35,10 @@ import zlib
 REPO = pathlib.Path(__file__).resolve().parent.parent
 TREES = ("static/media", "static/external")
 
-# Extensions that name a picture or a video, used only inside an archive.
-# A member is judged by its bytes where they are recognized, and an unrecognized
-# container is a finding only where the name says the member was meant to be media,
-# since an archive here also carries source files and binaries that are not in scope.
+# Extensions that name a picture or a video, read only inside an archive.
+# A member is judged by its bytes wherever they are recognized.
+# An unrecognized container is a finding only where the name says the member is media.
+# An archive here also carries source files and binaries, which are not in scope.
 MEDIA_SUFFIXES = frozenset(
     (
         ".jpg",
@@ -421,8 +421,8 @@ def walk_archive(path: pathlib.Path, name: str) -> list[tuple[str, set[str]]]:
                     )
                     continue
                 # Only media is in scope, so a source file or a binary is left alone.
-                # A member named as media is in scope even where its bytes are not
-                # recognized, or the same file would fail loose and pass inside a zip.
+                # A member named as media counts even where its bytes are unrecognized.
+                # Otherwise the same file fails loose and passes inside a zip.
                 hit = scan(member)
                 named_media = (
                     pathlib.PurePosixPath(info.filename).suffix.lower()
