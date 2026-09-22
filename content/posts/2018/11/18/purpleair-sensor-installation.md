@@ -12,7 +12,7 @@ cover:
   alt: Annotation 2018-11-18 160901
   image: /media/2018/11/annotation-2018-11-18-160901.png
 ---
-I've had a [Ambient Weather WS-1400-IP](https://www.ambientweather.com/amws1400ip.html) weather station installed for some time, reporting to [Weather Underground](https://www.wunderground.com/personal-weather-station/dashboard?ID=KCAMANHA8). During the fires of previous years, I considered getting an air quality monitor, but I could never find anything worth the installation effort. During this year's fire season I saw several ads for [PurpleAir](https://www.purpleair.com/), advertising that they collaborate with [Weather Underground](https://www.wunderground.com/cat6/purple-airs-250-air-pollution-monitor-gives-government-equipment-run-money), so I decided to purchase and install a [PA-II](http://www.aqmd.gov/aq-spec/product/purpleair-pa-ii) outdoor sensor.
+I've had a [Ambient Weather WS-1400-IP](https://www.ambientweather.com/amws1400ip.html) weather station installed for some time, reporting to [Weather Underground](https://www.wunderground.com/). During the fires of previous years, I considered getting an air quality monitor, but I could never find anything worth the installation effort. During this year's fire season I saw several ads for [PurpleAir](https://www.purpleair.com/), advertising that they collaborate with [Weather Underground](https://www.wunderground.com/cat6/purple-airs-250-air-pollution-monitor-gives-government-equipment-run-money), so I decided to purchase and install a [PA-II](http://www.aqmd.gov/aq-spec/product/purpleair-pa-ii) outdoor sensor.
 
 The [installation instructions](https://www.purpleair.com/install) are sparse, and the device is not really what I would call rugged or weather proof. I would not put money it on it surviving outdoors for longer than a year, specifically because of the use a vanilla Micro-USB power plug that offers no corrosion protection. The unit I received came with a Nest outdoor camera power cable, but unlike the Nest camera that uses a watertight plug, the sensor uses an open USB cable. The instructions do say to point the open USB port downwards, instead I opted to seal it in using clear silicone sealer.
 
@@ -33,7 +33,7 @@ I installed the sensor next to my [UniFi AC Mesh AP](https://store.ubnt.com/prod
 {{< figure src="/media/2018/11/20181118%5F220623193%5Fios.jpg" title="20181118\_220623193\_iOS" alt="20181118\_220623193\_iOS" >}}  
 {{< /gallery >}}  
 
-Configuring the device is reasonably simple, but a mobile app would have been easier. Power up the device, connect to it's WiFi access point, access a web page hosted by the device, configure the local WiFi SSID and password, connect to local WiFi, then register the device with PurpleAir. After all is done, I received a welcome email, and I could see the device on the PurpleAir [map](https://www.purpleair.com/map?622370|622372#11/33.8807/-118.3888).
+Configuring the device is reasonably simple, but a mobile app would have been easier. Power up the device, connect to it's WiFi access point, access a web page hosted by the device, configure the local WiFi SSID and password, connect to local WiFi, then register the device with PurpleAir. After all is done, I received a welcome email, and I could see the device on the PurpleAir [map](https://map.purpleair.com/).
 
 ![Annotation 2018-11-18 160901](/media/2018/11/annotation-2018-11-18-160901.png)
 
