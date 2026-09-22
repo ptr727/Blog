@@ -89,9 +89,10 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         elif 0xE0 <= marker <= 0xEF or marker == 0xFE:
             keep = False
         if marker == 0xDA:
-            # Everything after the end marker is not part of the picture, so it goes.
-            end = data.rfind(b"\xff\xd9")
-            if end < i:
+            # The first end marker after the scan is the real one.
+            # A later one is appended, so searching backwards would keep what it hides.
+            end = data.find(b"\xff\xd9", i)
+            if end < 0:
                 return None
             out += data[i : end + 2]
             return bytes(out)
@@ -319,10 +320,10 @@ def pixel_payload(data: bytes) -> bytes | None:
                 i += 2
                 continue
             if marker == 0xDA:
-                # To the end marker, not to the end of the file, so bytes appended after
-                # the picture are not mistaken for picture data.
-                end = data.rfind(b"\xff\xd9")
-                return data[i : end + 2] if end >= i else data[i:]
+                # To the first end marker after the scan.
+                # A later one is appended, and reading to it counts a payload as picture.
+                end = data.find(b"\xff\xd9", i)
+                return data[i : end + 2] if end >= 0 else data[i:]
             i += 2 + struct.unpack_from(">H", data, i + 2)[0]
     return None
 

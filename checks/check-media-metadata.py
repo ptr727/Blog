@@ -210,7 +210,10 @@ def scan_jpeg(data: bytes) -> set[str]:
         elif marker not in JPEG_STRUCTURAL:
             out.add(f"JPEG marker 0x{marker:02X}")
         if marker == 0xDA:
-            if not data.endswith(b"\xff\xd9"):
+            end = data.find(b"\xff\xd9", i)
+            if end < 0:
+                out.add("JPEG has no end marker")
+            elif end + 2 != len(data):
                 out.add("JPEG trailing bytes after the end marker")
             break
         i += 2 + length
@@ -251,9 +254,13 @@ def scan_gif(data: bytes) -> set[str]:
             j += data[j] + 1
         return j + 1
 
+    seen_trailer = False
     while i < len(data):
         marker = data[i]
         if marker == 0x3B:
+            seen_trailer = True
+            if i + 1 != len(data):
+                out.add("GIF trailing bytes after the trailer")
             break
         if marker == 0x21:
             label = data[i + 1]
@@ -272,6 +279,8 @@ def scan_gif(data: bytes) -> set[str]:
         else:
             out.add("GIF block structure not understood")
             break
+    if not seen_trailer:
+        out.add("GIF ends without a trailer")
     return out
 
 
