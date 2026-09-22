@@ -51,6 +51,10 @@ UNREADABLE = (
     "unreadable",
 )
 
+# The only PNG chunks this reads.
+# A chunk outside the set is skipped by length, so an IDAT stream is never copied.
+READ_CHUNKS = frozenset((b"eXIf", b"tEXt", b"zTXt", b"iTXt"))
+
 # A PNG text chunk expanding past this is reported rather than read.
 # A few compressed bytes can otherwise expand without bound.
 TEXT_LIMIT = 8 * 1024 * 1024
@@ -185,10 +189,13 @@ def scan_png(data: bytes) -> set[str]:
         except struct.error:
             break
         chunk_type = data[i + 4 : i + 8]
+        if chunk_type not in READ_CHUNKS:
+            i += 12 + length
+            continue
         body = data[i + 8 : i + 8 + length]
         if chunk_type == b"eXIf":
             found |= tiff_tags(body)
-        elif chunk_type in (b"tEXt", b"zTXt", b"iTXt"):
+        else:
             try:
                 text = png_text(chunk_type, body)
             except (zlib.error, IndexError, ValueError):
