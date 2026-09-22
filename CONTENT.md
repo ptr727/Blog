@@ -84,34 +84,39 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 "Media" above says to strip the metadata and redact the obvious. This section is the part that is not obvious.
 
-**Two questions decide it. Does this locate the home, or does it identify a person?** Every rule below is one of those two applied. A sweep of the imported archive proposed 158 redactions against an earlier draft of this section. Thirty-six survived review, so the scope below carries more weight than the rules do.
+**Two questions decide it. Does this locate the home, or does it identify a person?** Every rule below is one of those two applied.
 
-### Out of Scope
+### Redact by Default in New Media
 
-Listed first, because over-redaction has a real cost and most proposed redactions fail here rather than on the rules.
+**Redaction costs almost nothing while a post is being written, so the default is broad.** A shot can be reframed, retaken, or cropped before it is published. An author who wants a label in frame says so and keeps it. That freedom is what makes a wide default affordable here.
 
-- **The author's own name.** It is on the About page and in the site config. In a nav bar, a greeting, or a window title it is interface chrome.
-- **Coarse location.** A city, a country, or a timezone. The street, the block, and the neighbors are a different matter.
-- **The author's own infrastructure.** Machine names, server names, share names, and hostnames on a domain he owns.
+Redact on sight, and argue afterwards if the image needs it:
+
+- A face, including the author's own. A published name is not a published likeness.
+- Precise location. A house number, a street sign, a kerbside plate, a shipping label, a neighbor's facade, or a civic landmark.
+- A serial number, a service tag, a hardware address, a barcode, or a QR code. A code still scans after its printed digits go soft, so legibility is not the test.
+- An account handle, an email address, or a hostname.
+- A BSSID, and the SSID beside it. Public databases map an access point's hardware address to the coordinates where it was seen.
+- A service identifier that still resolves, such as a sensor ID or a map link carrying coordinates. Link the service rather than the instance.
+- A child's name, and most of all where it labels a room beside an occupancy time.
+- Anything belonging to someone else. That consent was never the author's to give.
+
+### Never In Scope
+
+These are settled, in new media and old alike, and reopening one wastes a reviewer's time.
+
+- **The author's own name.** It is on the About page and in the site config. In a nav bar or a window title it is interface chrome.
+- **Coarse location.** A city, a country, or a timezone. The street and the block are a different matter.
 - **Private-range addresses.** Reaching one needs presence on the network already.
-- **Anything retired.** A serial, a hardware address, or a key belonging to a device or account that no longer exists.
 - **Generic room and device labels.** A thermostat zone named for a room, or an automation entity named for an appliance.
 
-### In Scope
+### The Imported Archive Is Judged Differently
 
-**A face, including the author's own.** A published name is not a published likeness, and the two are decided separately.
+**A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else. A sweep proposed 158 redactions against it and 36 survived review.
 
-**An account handle or an email address.** Each identifies an account, which is different from a name the author publishes anyway.
+That review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. None of it was worth the damage.
 
-**A child's name**, and most of all where it labels a room beside an occupancy time, which turns a name into a schedule.
-
-**Precise location.** A house number, a street sign, a kerbside plate, a shipping label, a neighbor's facade, or a civic landmark. Judge an exterior on whether a stranger could find it, never on whether a number appears in it.
-
-**A BSSID, and the SSID beside it.** Public databases map an access point's hardware address to the coordinates where it was seen. A BSSID is therefore a live lookup rather than a fingerprint.
-
-**A service identifier that still resolves.** A sensor ID, a weather-station ID, or a map link carrying coordinates. Link the service rather than the instance.
-
-**Anything belonging to someone else.** A third party's name, face, or address, whatever is decided about the author's own. That consent was never his to give.
+Treat that as a judgement about the archive, never as a precedent for a new post.
 
 ### Judging One
 
