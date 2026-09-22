@@ -31,6 +31,7 @@ import struct
 import subprocess
 import sys
 import zipfile
+import zlib
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
@@ -219,9 +220,14 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
     removed = []
     with zipfile.ZipFile(path) as archive:
         for info in archive.infolist():
-            if info.is_dir():
+            if info.is_dir() or info.file_size > gate.SIZE_LIMIT:
                 continue
-            data = archive.read(info)
+            try:
+                data = archive.read(info)
+            except (RuntimeError, zipfile.BadZipFile, zlib.error) as exc:
+                # An encrypted or corrupt member is left as it is, and said so.
+                print(f"{path}!{info.filename}: unreadable, {type(exc).__name__}")
+                continue
             holds = gate.scan(data)
             unvouched = holds and holds != {"unrecognized container"}
             if unvouched and normalize_member(data, path.parent) is not None:
@@ -235,7 +241,12 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
         zipfile.ZipFile(scratch, "w", zipfile.ZIP_DEFLATED) as target,
     ):
         for info in source.infolist():
-            data = source.read(info)
+            try:
+                data = source.read(info)
+            except (RuntimeError, zipfile.BadZipFile, zlib.error):
+                # A member that cannot be read cannot be repacked, so the rewrite stops.
+                scratch.unlink(missing_ok=True)
+                raise
             new = None if info.is_dir() else normalize_member(data, path.parent)
             target.writestr(info, data if new is None else new)
             del data

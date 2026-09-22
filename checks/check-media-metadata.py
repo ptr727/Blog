@@ -362,10 +362,9 @@ def walk_archive(path: pathlib.Path, name: str) -> list[tuple[str, set[str]]]:
                     continue
                 member = archive.read(info)
                 # Only media is in scope, so a source file or a binary is left alone.
-                if scan(member) != {"unrecognized container"}:
-                    hit = scan(member)
-                    if hit:
-                        out.append((f"{name}!{info.filename}", hit))
+                hit = scan(member)
+                if hit and hit != {"unrecognized container"}:
+                    out.append((f"{name}!{info.filename}", hit))
     except (zipfile.BadZipFile, RuntimeError, NotImplementedError) as exc:
         out.append((name, {f"unreadable archive: {type(exc).__name__}"}))
     return out
