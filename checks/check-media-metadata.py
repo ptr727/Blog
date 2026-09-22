@@ -140,7 +140,13 @@ def png_text(chunk_type: bytes, body: bytes) -> bytes:
     if chunk_type == b"zTXt":
         return zlib.decompress(body.split(b"\x00", 1)[1][1:])
     if chunk_type == b"iTXt":
-        return body.split(b"\x00", 5)[-1]
+        # keyword NUL, compression flag, compression method, language NUL, translated NUL, text.
+        key_end = body.index(b"\x00")
+        compressed = body[key_end + 1] == 1
+        lang_end = body.index(b"\x00", key_end + 3)
+        text_start = body.index(b"\x00", lang_end + 1) + 1
+        payload = body[text_start:]
+        return zlib.decompress(payload) if compressed else payload
     return body.split(b"\x00", 1)[1]
 
 
@@ -159,7 +165,7 @@ def scan_png(data: bytes) -> set[str]:
         elif chunk_type in (b"tEXt", b"zTXt", b"iTXt"):
             try:
                 text = png_text(chunk_type, body)
-            except (zlib.error, IndexError):
+            except (zlib.error, IndexError, ValueError):
                 i += 12 + length
                 continue
             if body.startswith(b"Raw profile type"):
