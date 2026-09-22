@@ -140,7 +140,7 @@ def png_text(chunk_type: bytes, body: bytes) -> bytes:
     if chunk_type == b"zTXt":
         return zlib.decompress(body.split(b"\x00", 1)[1][1:])
     if chunk_type == b"iTXt":
-        # keyword NUL, compression flag, compression method, language NUL, translated NUL, text.
+        # The layout is keyword NUL, compression flag, method, language NUL, translated NUL, text.
         key_end = body.index(b"\x00")
         compressed = body[key_end + 1] == 1
         lang_end = body.index(b"\x00", key_end + 3)
