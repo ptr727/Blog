@@ -272,6 +272,7 @@ Every repo's GitHub repository details (the About panel) follow a fixed conventi
 - [`layouts/`](./layouts/), [`themes/`](./themes/), [`assets/`](./assets/), [`i18n/`](./i18n/): the theme and the template overrides that keep a strict build warning-free.
 - [`checks/`](./checks/): the URL contract and the gates that enforce it, covering both the built output and a running server.
 - [`deploy/`](./deploy/): the release script, the web-server config, and the redirect maps.
+- [`scripts/`](./scripts/): tooling run by hand rather than by CI, where a gate reports a problem and a script here resolves it.
 - Branch rulesets and repository settings are hub-hosted rather than carried, so this repo checks and applies them from a hub checkout, per [Hub-Hosted Tooling](#hub-hosted-tooling).
 - [`host-tools.json`](./host-tools.json): the tools a host needs to work on this repo beyond the fleet's own declaration, layered over it tighten-only by the hub's host gate. It declares Hugo, since the URL contract is proven by building the site locally.
 - [`.github/workflows/`](./.github/workflows/): this repo's CI.
