@@ -37,8 +37,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 TREES = ("static/media", "static/external")
 
-# A member larger than this is reported rather than decompressed.
-# Reading an archive to clear it must not become a way to exhaust the runner.
+# A file or archive member larger than this is reported rather than read.
+# Clearing a file must not become a way to exhaust the runner.
 MEMBER_LIMIT = 256 * 1024 * 1024
 
 # A TIFF tag whose presence in a carried file is a finding on its own.
@@ -207,7 +207,6 @@ def findings() -> list[tuple[str, set[str]]]:
             if not path.is_file():
                 continue
             name = str(path.relative_to(REPO))
-            data = path.read_bytes()
             if path.suffix.lower() == ".zip":
                 try:
                     with zipfile.ZipFile(path) as archive:
@@ -227,7 +226,10 @@ def findings() -> list[tuple[str, set[str]]]:
                     # An encrypted or corrupt archive cannot be read, so it cannot be cleared.
                     out.append((name, {f"unreadable archive: {type(exc).__name__}"}))
                 continue
-            hit = scan(data)
+            if path.stat().st_size > MEMBER_LIMIT:
+                out.append((name, {"file too large to read"}))
+                continue
+            hit = scan(path.read_bytes())
             if hit:
                 out.append((name, hit))
     return out
