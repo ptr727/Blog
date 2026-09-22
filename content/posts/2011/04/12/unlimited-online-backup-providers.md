@@ -26,18 +26,18 @@ Carbonite offers a [$55 per year for unlimited storage](https://buy.carbonite.co
 [AVG LiveKive](http://www.avg.com/us-en/avg-livekive) offers a [$80 per year for unlimited storage](http://www.avg.com/us-en/avg-livekive) plan, but the [terms of service](http://www.avg.com/us-en/livekive-terms) defines unlimited as 500GB.  
 [BackBlaze](http://www.backblaze.com/) offers a [$60 per year for unlimited storage](http://www.backblaze.com/) plan.  
 [CrashPlan](http://www.crashplan.com/) offers a [$50 per year for unlimited storage](http://www.crashplan.com/consumer/store.vtl) plan.   
-Neither [BackBlaze](http://www.backblaze.com/)nor [CrashPlan](http://www.crashplan.com/) supports their unlimited plan on server class machines.
+Neither [BackBlaze](http://www.backblaze.com/)nor [CrashPlan](http://www.crashplan.com/) supports their unlimited plan on server class machines.
 
 I currently have 2.1TB of data backed up online with [ElephantDrive](http://www.elephantdrive.com/) running on my Windows Server 2008 R2 machine. Needles to say, none of their new plans are affordable for that amount of storage. I either need to significantly trim down what I backup, or I need to find a new unlimited storage provider, that also allows installs on Windows Server.  
-For now, I’m uninstalling ElephantDrive.
+For now, I'm uninstalling ElephantDrive.
 
 \[Update\]  
 CrashPlan's new v3 software installs and runs fine on Windows Server 2008 R2, and I have switched to using CrashPlan for my backup needs.
 
 Here is an example snippet of the status emails I receive from CrashPlan:  
-Source → TargetSelectedFilesBacked  
+Source -> TargetSelectedFilesBacked  
 Up %Last  
 ConnectedLast  
-BackupVM-STORAGE → CrashPlan Central2.1TB ↑1KB423k 0100.0%2.5 hrs4.3 hrs  
+BackupVM-STORAGE -> CrashPlan Central2.1TB up 1KB423k 0100.0%2.5 hrs4.3 hrs  
 
 

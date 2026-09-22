@@ -20,7 +20,7 @@ tags:
 post_id: '108'
 ---
 As I was testing the ID11, I noticed differences in the thermal behavior based on how the case was positioned.   
-I tested three positions; case open, case vertical, and case horizontal.
+I tested three positions: case open, case vertical, and case horizontal.
 
 This is the fifth post in a [series of posts related to the Zotac ZBOX ZBOXHD-ID11](/2010/05/zotac-zbox-mini-pc-zboxhd-id11.html).
 

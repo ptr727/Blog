@@ -13,7 +13,7 @@ post_id: '241'
 ---
 Part of the research I did before [migrating from Blogger to WordPress.com](/2012/07/15/from-blogger-to-wordpress/), was to make sure that current Blogger permalinks will resolve correctly once the old posts were imported into WordPress.com. At the time all seemed fine, but soon after migrating, I received alerts from [Google Webmaster Tools](http://www.google.com/webmasters/tools/) that there is an increase in site errors, specifically 404 errors.
 
-Some background: [Permalinks](http://en.wikipedia.org/wiki/Permalink) are the URL’s that point directly to specific posts on the blog. These URL’s are known by search engines, are shared on forums, and are basically the static address of posts. Blogger and WordPress.com use different styles of permalinks. WordPress.com allows some [customization of permalinks](http://codex.wordpress.org/Using_Permalinks), but unlike WordPress.org, there is no support for custom plugins to handle rewrites for permalinks, 302’s or 404’s.
+Some background: [Permalinks](http://en.wikipedia.org/wiki/Permalink) are the URL's that point directly to specific posts on the blog. These URL's are known by search engines, are shared on forums, and are basically the static address of posts. Blogger and WordPress.com use different styles of permalinks. WordPress.com allows some [customization of permalinks](http://codex.wordpress.org/Using_Permalinks), but unlike WordPress.org, there is no support for custom plugins to handle rewrites for permalinks, 302's or 404's.
 
 Although not documented anywhere, WordPress.com [does support](http://en.forums.wordpress.com/topic/migrate-from-blogger-with-custom-domain-name-and-keep-seo) Blogger style permalinks, and will correctly redirect the Blogger style link to the WordPress.com style page. As an example, see the links below, one for Blogger and one for WordPress.com:
 
@@ -25,7 +25,7 @@ Search engines will know the link using the old blogger style URL, and both styl
 `/2012/06/19/looks-can-be-deceiving
 /2012/06/looks-can-be-deceiving.html`
 
-So why is it that Google Webmaster Tools reported a suddenly spike in 404’s?
+So why is it that Google Webmaster Tools reported a suddenly spike in 404's?
 
 [![Google.404.1](/media/2012/08/google-404-1_thumb.png)](/media/2012/08/google-404-1.png)
 
@@ -37,13 +37,13 @@ http://blogdotinsanegenius.blogspot.com/2008/03/printing-from-network.html` `/20
 /2010/05/28/zotac-xboxhd-id11-mkv-h-264-video-playback-performance/
 /2008/03/30/printing-from-the-network/`
 
-Notice the difference? Blogger appears to keep links short, and remove words like “the” and “and”.
+Notice the difference? Blogger appears to keep links short, and remove words like "the" and "and".
 
-I contacted WordPress.com support, and they provided a manual [solution](http://en.forums.wordpress.com/topic/migrate-from-blogger-with-custom-domain-name-and-keep-seo). They suggested that I modify the “slug” of each 404 post to match the Blogger style permalink.
+I contacted WordPress.com support, and they provided a manual [solution](http://en.forums.wordpress.com/topic/migrate-from-blogger-with-custom-domain-name-and-keep-seo). They suggested that I modify the "slug" of each 404 post to match the Blogger style permalink.
 
 [![Slug](/media/2012/08/slug_thumb.png)](/media/2012/08/slug.png)
 
-This resolved the problem with the top 404’s, but I would have expected the Blogger import plugin to take care of this for me.
+This resolved the problem with the top 404's, but I would have expected the Blogger import plugin to take care of this for me.
 
 But, I soon received another alert email from Google Webmaster Tools, and this time the 404 posts looked a bit different.
 

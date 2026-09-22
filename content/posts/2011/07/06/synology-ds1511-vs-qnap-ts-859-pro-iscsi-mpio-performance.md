@@ -14,7 +14,7 @@ tags:
 - synology
 post_id: '120'
 ---
-Untitled Page I have been very happy with my [QNap TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146) ([Amazon](http://amzn.to/Lpv6Yr)), but I’ve run out of space while archiving my media collection, and I needed to expand the storage capacity. You can read about my experience with the TS-859 Pro [here](/2010/01/data-robotics-drobopro-vs-qnap-ts-859.html), and my experience archiving my media collection [here](/2011/04/archiving-my-cd-dvd-and-bd-collection.html).  
+Untitled Page I have been very happy with my [QNap TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146) ([Amazon](http://amzn.to/Lpv6Yr)), but I've run out of space while archiving my media collection, and I needed to expand the storage capacity. You can read about my experience with the TS-859 Pro [here](/2010/01/data-robotics-drobopro-vs-qnap-ts-859.html), and my experience archiving my media collection [here](/2011/04/archiving-my-cd-dvd-and-bd-collection.html).  
  My primary objective with this project is storage capacity expansion, and my secondary objective is improved performance.
 
 My choices for storage capacity expansion included:  
@@ -24,12 +24,12 @@ My choices for storage capacity expansion included:
 - Get a [Synology DS1511+](http://www.synology.com/us/products/DS1511+/index.php) ([Amazon](http://amzn.to/LOWKlL)) and a [DX510](http://www.synology.com/us/products/DX510/index.php) ([Amazon](http://amzn.to/M98qwB)) expansion unit with 10 x 3TB drives to replace the QNap, to give me 12TB of extra storage, expandable to 15 x 3TB drives for 36TB of total storage. I will need to copy all data to the new device, then mount the new device in place of the old device.
 
  I opted for the DS1511+ with one DX510 expansion unit, I can always add a second DX510 and expand the volume later if needed.  
- As far as hard drives go, I’ve been very happy with the [Hitachi Ultrastar A7K2000](http://www.hitachigst.com/internal-drives/enterprise/ultrastar/ultrastar-a7k2000) 2TB drives I use in my workstations and the QNap, so I stayed with the larger [Hitachi Ultrastar 7k3000](http://www.hitachigst.com/internal-drives/enterprise/ultrastar/ultrastar-7k3000) 3TB drives for the Synology expansion.
+ As far as hard drives go, I've been very happy with the [Hitachi Ultrastar A7K2000](http://www.hitachigst.com/internal-drives/enterprise/ultrastar/ultrastar-a7k2000) 2TB drives I use in my workstations and the QNap, so I stayed with the larger [Hitachi Ultrastar 7k3000](http://www.hitachigst.com/internal-drives/enterprise/ultrastar/ultrastar-7k3000) 3TB drives for the Synology expansion.
 
 For improving performance I had a few ideas:  
 
 - The TS-859 Pro is a bit older than the DS1511+, and there are newer and more powerful QNap models available, like the [TS-859 Pro+](http://www.qnap.com/pro_detail_feature.asp?p_id=180) ([Amazon](http://amzn.to/LpvAO6)) with a faster processor, or the [TS-659 Pro II](http://www.qnap.com/pro_detail_feature.asp?p_id=167) ([Amazon](http://amzn.to/LdoEIw)) with a faster processor and SATA3 support, so it not totally fair to compare the TS-859 Pro performance against the newer DS1511+. But, the newer QNap models do not support my capacity needs.
-- I use Hyper-V clients and dynamic VHD files located on an iSCSI volume mounted in the host server. I elected this setup because it allowed me great flexibility in creating logical volumes for the VM’s, without actually requiring the space to be allocated. In retrospect this may have been convenient, but it was not performing well in large file transfers between the iSCSI target and the file server Hyper-V client.   
+- I use Hyper-V clients and dynamic VHD files located on an iSCSI volume mounted in the host server. I elected this setup because it allowed me great flexibility in creating logical volumes for the VM's, without actually requiring the space to be allocated. In retrospect this may have been convenient, but it was not performing well in large file transfers between the iSCSI target and the file server Hyper-V client.   
  For my new setup I was going to mount the iSCSI volume as a raw disk in the file server Hyper-V client. This still allowed me to easily move the iSCSI volume between hosts, but the performance will be better than fixed size VHD files, and much better than dynamic VHD files.   
  Here is a [blog post](http://blogs.msdn.com/b/virtual_pc_guy/archive/2010/07/02/hyper-v-amp-iscsi-in-the-parent-or-in-the-virtual-machine.aspx) describing some options for using iSCSI and Hyper-V.
 - I used iSCSI thin provisioning, meaning that the logical target has a fixed size, but the physical storage only gets allocated as needed. This is very convenient, but turned out to be slower than instant allocation. The QNap iSCSI implementation is also a file-level iSCSI LUN, meaning that the iSCSI volume is backed by a file on an EXT4 volume.   
@@ -40,7 +40,7 @@ For improving performance I had a few ideas:
 
  To create a 2Gb/s network link between the server and storage, I [teamed two LAN ports on the Intel server adapter](http://www.intel.com/support/network/sb/cs-009747.htm), I created a bond of the two LAN ports on the Synology, and I created two trunks for those connections on the switch. This gave me a theoretical 2Gb/s pipe between the server and the iSCSI target. But my testing showed no improvement in performance over a single 1Gb/s link. After some research I found that the logical link is 2Gb/s, but that the physical network stream going from one MAC address to another MAC address is still limited by the physical transport speed, i.e. 1Gb/s. This means that the link aggregation setup is very well suited to e.g. connect a server to a switch using a trunk, and allow multiple clients access to the server over the switch, each at full speed, but it has no performance benefit when there is a single source and destination, as is the case with iSCSI. Since link aggregation did not improve the iSCSI performance, I used MPIO instead.
 
-I set up a test environment where I could compare the performance of different network and device configurations using readily available hardware and test tools. Although my testing produced reasonably accurate relative results, due to the differences in environments, it can’t really be used for absolute performance comparisons.
+I set up a test environment where I could compare the performance of different network and device configurations using readily available hardware and test tools. Although my testing produced reasonably accurate relative results, due to the differences in environments, it can't really be used for absolute performance comparisons.
 
 Disk performance test tools:  
 
@@ -83,19 +83,19 @@ Disk performance test tools:
  A few notes on setting up iSCSI:  
 
 - The QNap MPIO documentation shows that LAN-1 and LAN-2 are in a trunked configuration. As far as I could tell the best practices documentation from Microsoft, DELL, Synology, and other SAN vendors, say that trunking and MPIO should not be mixed. As such I did not trunk the LAN ports on the QNap.
-- I connected all LAN cables to the switch. I could have done direct connections to eliminate the impact of the switch, but this is not how how I will install the setup, and the switch should be sufficiently capable of handling the load and not add any performance degradation.
+- I connected all LAN cables to the switch. I could have done direct connections to eliminate the impact of the switch, but this is not how I will install the setup, and the switch should be sufficiently capable of handling the load and not add any performance degradation.
 - Before trying to enable MPIO on Windows Server, first connect one iSCSI target and map the device, then add the MPIO feature. If you do not have a mapped device, the MPIO iSCSI option will be greyed out.
-- The server’s iSCSI target configuration explicitly bound the source and destination devices based on the adapters IP address, i.e. server LAN-1 would bind to NAS LAN-1, etc. This ensured that traffic would only be routed to and from the specified adapters.
+- The server's iSCSI target configuration explicitly bound the source and destination devices based on the adapters IP address, i.e. server LAN-1 would bind to NAS LAN-1, etc. This ensured that traffic would only be routed to and from the specified adapters.
 - I found that the best [MPIO load balance policy](http://technet.microsoft.com/en-us/library/dd851699.aspx) was the Least Queue Depth Option.
 
 
  During my testing I encountered a few problems:  
 
-- The DX510 expansion unit would sometimes not power on when the DS1511+ is powered on, or would sometimes fail to initialize the RAID volume, or would sometimes go offline while powered on. I RMA’d the device, and the replacement unit works fine.
-- During testing of the DS1511+, the write performance would sometimes degrade by 50% and never recover. The only solution was to reboot the device. Upgrading the the latest 3.1-1748 DSM firmware solved this problem.
-- During testing of the DS1511+, when one of the MPIO network links would go down, e.g. I unplug a cable, ghost iSCSI connections would remain open, and the iSCSI processes would consume 50% of the NAS CPU time. The only solution was to reboot the device. Upgrading the the latest 3.1-1748 DSM firmware solved this problem.
+- The DX510 expansion unit would sometimes not power on when the DS1511+ is powered on, or would sometimes fail to initialize the RAID volume, or would sometimes go offline while powered on. I RMA'd the device, and the replacement unit works fine.
+- During testing of the DS1511+, the write performance would sometimes degrade by 50% and never recover. The only solution was to reboot the device. Upgrading the latest 3.1-1748 DSM firmware solved this problem.
+- During testing of the DS1511+, when one of the MPIO network links would go down, e.g. I unplug a cable, ghost iSCSI connections would remain open, and the iSCSI processes would consume 50% of the NAS CPU time. The only solution was to reboot the device. Upgrading the latest 3.1-1748 DSM firmware solved this problem.
 - I could not get MPIO to work with the DS1511+, yet no errors were reported. It turns out that LAN-1 and LAN-2 must be on different subnets for MPIO to work.
-- Both the QNap and Synology exhibits weird LAN traffic behavior when both LAN-1 and LAN-2 is connected, and the server generates traffic directed to LAN-1 only. The NAS resource monitor would show high traffic volumes on LAN-1 and and LAN-2, even with no traffic directed at LAN-2. I am uncertain why this happens, maybe a reporting issue, maybe a switching issue, but to avoid it influencing the tests, I disconnected LAN-2 while not testing MPIO.
+- Both the QNap and Synology exhibits weird LAN traffic behavior when both LAN-1 and LAN-2 is connected, and the server generates traffic directed to LAN-1 only. The NAS resource monitor would show high traffic volumes on LAN-1 and LAN-2, even with no traffic directed at LAN-2. I am uncertain why this happens, maybe a reporting issue, maybe a switching issue, but to avoid it influencing the tests, I disconnected LAN-2 while not testing MPIO.
 
 
  My test methodology was as follows:  
@@ -140,7 +140,7 @@ Initially, I was a little concerned about the DX510 being in a separate case con
 As you can see from the results, the DS1511+ with MPIO performs really very well. Especially the 244MB/s ATTO read performance that gets close to the theoretical maximum of 250MB/s over a 2Gb/s link.
 
 But technology moves quickly, and as I was compiling my test data for this post, Synology released two new NAS units, the [DS3611xs](http://www.synology.com/products/product.php?product_name=DS3611xs&lang=enu) and the [DS2411+](http://www.synology.com/products/product.php?product_name=DS2411%2B&lang=enu). The DS2411+ is very appealing, it is equivalent in performance to the DS1511+, but supports 12 drives in the main enclosure.  
- I may just have to exchange my DS1511+ and DX510 for a DS2411+…
+ I may just have to exchange my DS1511+ and DX510 for a DS2411+...
 
 \[Update: 25 July 2011\]  
  I returned the DS1511+ and DX510 in exchange for a DS2411+.  

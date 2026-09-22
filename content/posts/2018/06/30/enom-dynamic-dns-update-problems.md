@@ -65,7 +65,7 @@ The two addresses above are constructed placeholders from the range reserved for
 
 As of yesterday, I could not find any other reports of similar issues on google, and the [eNom status page](https://enomstatus.com/) showed no problems.
 
-I use a [Ubiquity UniFi Security Gateway Pro](https://www.ubnt.com/unifi-routing/unifi-security-gateway-pro-4/) as home router, and I have the dynamic DNS service in the UniFi controller configured to point to DNS-O-Matic, but it offered no additional hints as to the cause of the problem.
+I use a [Ubiquity UniFi Security Gateway Pro](https://www.ubnt.com/unifi-routing/unifi-security-gateway-pro-4/) as home router, and I have the dynamic DNS service in the UniFi controller configured to point to DNS-O-Matic, but it offered no additional hints as to the cause of the problem.
 
 ![DNS](/media/2018/06/dns.png)
 

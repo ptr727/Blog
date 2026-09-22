@@ -18,20 +18,20 @@ This article was originally posted [here](http://www.insanegenius.com/expression
 
 Because of severe performance problems I experienced with both iView Media Pro and Microsoft Expression Media, I decided to switch to Adobe Lightroom.
 
-Unfortunately Lightroom does not understand catalog sets nor does it understand people tags, so the transition is not that simple.
+Unfortunately Lightroom does not understand catalog sets nor does it understand people tags, so the transition is not that simple.
 
-After I could not find a simple, or even complicated solution, I decided to write my own conversion application.
+After I could not find a simple, or even complicated solution, I decided to write my own conversion application.
 
-This application will convert hierarchical catalog sets into keywords, and will add people tags to keywords.
+This application will convert hierarchical catalog sets into keywords, and will add people tags to keywords.
 
-I considered directly converting to Lightroom's native SQLite database format, but the reverse engineering effort did not seem justified.
+I considered directly converting to Lightroom's native SQLite database format, but the reverse engineering effort did not seem justified.
 
 ### Disclaimer:
 
 
-I am providing this utility and the source code as is, no warranties are provided, use at your own risk.
+I am providing this utility and the source code as is, no warranties are provided, use at your own risk.
 
-Backup all your data, validate the conversion results, do not discard your backups.
+Backup all your data, validate the conversion results, do not discard your backups.
 
 ### Source:
 
@@ -44,7 +44,7 @@ I tested with Microsoft Expression Media 1.0.8104.0, and iView Media Pro 3.1.3.4
 
 The code utilizes the COM API's exposed by Expression Media and Media Pro.
 
-Unfortunately neither application's COM API's work reliably, I can only hope that the quality of future versions will improve.
+Unfortunately neither application's COM API's work reliably, I can only hope that the quality of future versions will improve.
 
 See the source code comments for problems I encountered.
 
@@ -58,7 +58,7 @@ See the source code comments for problems I encountered.
 The archive contains the source, and two binaries, one for Expression Media  
 and one for Media Pro.
 
-The binaries are compiled to use either the Expression Media or the Media Pro COM type libraries.
+The binaries are compiled to use either the Expression Media or the Media Pro COM type libraries.
 
 1. Run Expression Media or Media Pro, and open the catalog you want to convert.
 

@@ -10,6 +10,6 @@ cover:
 ## Viljoen Family Information:
 
 [Viljoen Family Association](https://hcv625.wixsite.com/viljoen)  
-[Huguenot Society of South Africa  
+[Huguenot Society of South Africa  
 ](http://www.hugenoot.org.za/Viljoen/) [My Heritage](https://www.myheritage.com/site-27656022/viljoen-familie-webwerf) [  
 Geni](http://www.geni.com/surnames/viljoen)
