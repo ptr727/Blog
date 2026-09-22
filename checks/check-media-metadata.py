@@ -239,6 +239,10 @@ def findings() -> list[tuple[str, set[str]]]:
         if not root.is_dir():
             continue
         for path in sorted(root.rglob("*")):
+            if path.is_symlink():
+                # Never followed, since a target can sit outside the tree or be a device that never ends.
+                out.append((str(path.relative_to(REPO)), {"unreadable symlink"}))
+                continue
             if not path.is_file():
                 continue
             name = str(path.relative_to(REPO))
@@ -272,7 +276,12 @@ def findings() -> list[tuple[str, set[str]]]:
 
 def main() -> int:
     found = findings()
-    scanned = sum(1 for tree in TREES for p in (REPO / tree).rglob("*") if p.is_file())
+    scanned = sum(
+        1
+        for tree in TREES
+        for p in (REPO / tree).rglob("*")
+        if p.is_file() and not p.is_symlink()
+    )
     if found:
         for name, tags in found:
             print(f"{name}: {', '.join(sorted(tags))}")
