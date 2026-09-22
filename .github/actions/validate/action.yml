@@ -23,6 +23,13 @@ runs:
       shell: bash
       run: python3 checks/check-env-docs.py
 
+    # Hugo copies static/ byte for byte, so whatever a camera wrote is served with the image.
+    # The build gate reads pages and the prose gate reads text, so nothing else looks inside a file.
+    # This reads values rather than tag names, and opens archives, since both hid findings before.
+    - name: Check media metadata step
+      shell: bash
+      run: python3 checks/check-media-metadata.py
+
     # The hub's validate job checkout is shallow.
     # The mtime restore below needs full history to date each file from its last commit.
     # This hook deepens the checkout before the build.
