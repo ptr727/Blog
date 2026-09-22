@@ -33,7 +33,7 @@ I installed the sensor next to my [UniFi AC Mesh AP](https://store.ubnt.com/prod
 {{< figure src="/media/2018/11/20181118%5F220623193%5Fios.jpg" title="20181118\_220623193\_iOS" alt="20181118\_220623193\_iOS" >}}  
 {{< /gallery >}}  
 
-Configuring the device is reasonably simple, but a mobile app would have been easier. Power up the device, connect to it's WiFi access point, access a web page hosted by the device, configure the local WiFi SSID and password, connect to local WiFi, then register the device with PurpleAir. After all is done, I received a welcome email, and I could see the device on the PurpleAir [map](https://map.purpleair.com/).
+Configuring the device is reasonably simple, but a mobile app would have been easier. Power up the device, connect to its WiFi access point, access a web page hosted by the device, configure the local WiFi SSID and password, connect to local WiFi, then register the device with PurpleAir. After all is done, I received a welcome email, and I could see the device on the PurpleAir [map](https://map.purpleair.com/).
 
 ![Annotation 2018-11-18 160901](/media/2018/11/annotation-2018-11-18-160901.png)
 
