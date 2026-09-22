@@ -259,7 +259,11 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
                 print(f"{path}!{info.filename}: unreadable, {type(exc).__name__}")
                 continue
             holds = gate.scan(data)
-            unvouched = holds and holds != {"unrecognized container"}
+            named_media = (
+                pathlib.PurePosixPath(info.filename).suffix.lower()
+                in gate.MEDIA_SUFFIXES
+            )
+            unvouched = holds and (named_media or holds != {"unrecognized container"})
             if unvouched:
                 if (
                     normalize_member(data, path.parent, False, member_suffix(info))
@@ -361,7 +365,7 @@ def main() -> int:
             continue
         data = path.read_bytes()
         holds = gate.scan(data)
-        if not holds or holds == {"unrecognized container"}:
+        if not holds:
             continue
         if data[:8] == b"\x89PNG\r\n\x1a\n":
             new = normalize_png(data)

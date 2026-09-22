@@ -297,6 +297,9 @@ def scan_gif(data: bytes) -> set[str]:
                 out.add("GIF trailing bytes after the trailer")
             break
         if marker == 0x21:
+            if i + 2 > len(data) - 1:
+                out.add("GIF extension runs past the end of the file")
+                break
             label = data[i + 1]
             if label == 0xFF:
                 if data[i + 3 : i + 14] != b"NETSCAPE2.0":
@@ -305,6 +308,9 @@ def scan_gif(data: bytes) -> set[str]:
                 out.add(f"GIF extension 0x{label:02X}")
             i = skip_blocks(i + 2)
         elif marker == 0x2C:
+            if i + 10 > len(data):
+                out.add("GIF image descriptor runs past the end of the file")
+                break
             flags = data[i + 9]
             i += 10
             if flags & 0x80:
