@@ -15,9 +15,10 @@ should not ship. That turns an unbounded question into a short list that can be 
 one sitting and argued with.
 
 What survives an allowlist is only what exists for display correctness: the dimensions,
-the color profile, the orientation, and the timestamp. Identity, location, device and
-authorship are not enumerated here at all, because they do not need to be. They are not
-on the list, so they fail.
+the color profile, and the orientation, plus the capture timestamp on the formats whose
+tags carry one, which is JPEG here and not PNG. Identity, location, device and authorship
+are not enumerated here at all, because they do not need to be. They are not on the list,
+so they fail.
 
 A file this reports is not accused of carrying anything. It is a file whose form cannot
 be vouched for, and `scripts/normalize-media.py` is what resolves that, by decoding to
@@ -193,6 +194,9 @@ def scan_jpeg(data: bytes) -> set[str]:
             i += 2
             continue
         length = struct.unpack_from(">H", data, i + 2)[0]
+        if length < 2 or i + 2 + length > len(data):
+            out.add("JPEG segment runs past the end of the file")
+            break
         segment = data[i + 4 : i + 2 + length]
         if any(marker == m and segment.startswith(p) for m, p in JPEG_APP_ALLOWED):
             pass
@@ -272,9 +276,13 @@ def scan_webp(data: bytes) -> set[str]:
     while i + 8 <= len(data):
         chunk = data[i : i + 4]
         length = struct.unpack_from("<I", data, i + 4)[0]
+        span = 8 + length + (length & 1)
+        if i + span > len(data):
+            out.add("WebP chunk runs past the end of the file")
+            break
         if chunk not in WEBP_ALLOWED:
             out.add(f"WebP {chunk.decode('ascii', 'replace')} chunk")
-        i += 8 + length + (length & 1)
+        i += span
     return out
 
 

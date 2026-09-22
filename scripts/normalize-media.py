@@ -75,6 +75,8 @@ def normalize_jpeg(data: bytes) -> bytes | None:
             i += 2
             continue
         length = struct.unpack_from(">H", data, i + 2)[0]
+        if length < 2 or i + 2 + length > len(data):
+            return None
         segment = data[i + 4 : i + 2 + length]
         keep = True
         if any(marker == m and segment.startswith(p) for m, p in gate.JPEG_APP_ALLOWED):
@@ -140,6 +142,8 @@ def normalize_webp(data: bytes) -> bytes | None:
         chunk = data[i : i + 4]
         length = struct.unpack_from("<I", data, i + 4)[0]
         span = 8 + length + (length & 1)
+        if i + span > len(data):
+            return None
         if chunk in gate.WEBP_ALLOWED:
             body += data[i : i + span]
         i += span
@@ -193,35 +197,49 @@ def normalize_bytes(data: bytes) -> bytes | None:
     return None
 
 
+def normalize_member(data: bytes, scratch_dir: pathlib.Path) -> bytes | None:
+    """Normalize one archive member, using a scratch file only for a video."""
+    if data[4:8] in (b"ftyp", b"moov", b"wide", b"mdat", b"free", b"skip"):
+        source = scratch_dir / ".normalize-member-in"
+        cleaned = scratch_dir / ".normalize-member-out"
+        source.write_bytes(data)
+        result = cleaned.read_bytes() if normalize_iso(source, cleaned) else None
+        source.unlink(missing_ok=True)
+        cleaned.unlink(missing_ok=True)
+        return result
+    return normalize_bytes(data)
+
+
 def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
-    """Normalize the media inside an archive, repacking it under the same entry names."""
+    """Normalize the media inside an archive, repacking it under the same entry names.
+
+    Each member is read, decided on, and released before the next one, so peak memory is
+    one member rather than the whole archive twice over.
+    """
     removed = []
     with zipfile.ZipFile(path) as archive:
-        entries = [(i, archive.read(i)) for i in archive.infolist()]
-    rebuilt = []
-    for info, data in entries:
-        holds = gate.scan(data) if not info.is_dir() else set()
-        if not holds or holds == {"unrecognized container"}:
-            rebuilt.append((info, data))
-            continue
-        if data[4:8] in (b"ftyp", b"moov", b"wide", b"mdat", b"free", b"skip"):
-            scratch = path.with_name(f".normalize-{pathlib.Path(info.filename).name}")
-            scratch.write_bytes(data)
-            cleaned = scratch.with_name(f"out-{scratch.name}")
-            new = cleaned.read_bytes() if normalize_iso(scratch, cleaned) else None
-            scratch.unlink(missing_ok=True)
-            cleaned.unlink(missing_ok=True)
-        else:
-            new = normalize_bytes(data)
-        if new is None:
-            rebuilt.append((info, data))
-            continue
-        removed.append(f"{info.filename}: {', '.join(sorted(holds))}")
-        rebuilt.append((info, new))
-    if apply and removed:
-        with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as archive:
-            for info, data in rebuilt:
-                archive.writestr(info, data)
+        for info in archive.infolist():
+            if info.is_dir():
+                continue
+            data = archive.read(info)
+            holds = gate.scan(data)
+            unvouched = holds and holds != {"unrecognized container"}
+            if unvouched and normalize_member(data, path.parent) is not None:
+                removed.append(f"{info.filename}: {', '.join(sorted(holds))}")
+            del data
+    if not (apply and removed):
+        return removed
+    scratch = path.with_name(f".normalize-{path.name}")
+    with (
+        zipfile.ZipFile(path) as source,
+        zipfile.ZipFile(scratch, "w", zipfile.ZIP_DEFLATED) as target,
+    ):
+        for info in source.infolist():
+            data = source.read(info)
+            new = None if info.is_dir() else normalize_member(data, path.parent)
+            target.writestr(info, data if new is None else new)
+            del data
+    scratch.replace(path)
     return removed
 
 
