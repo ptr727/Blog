@@ -114,10 +114,9 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         if any(marker == m and segment.startswith(p) for m, p in gate.JPEG_APP_ALLOWED):
             keep = True
         elif marker == 0xE1 and segment.startswith(b"Exif\x00\x00"):
-            # An Exif segment with an unrecognized tag goes whole, since rewriting an IFD
-            # in place means re-computing every offset in it.
-            # Orientation decides which way the picture displays, so it is re-emitted on
-            # its own rather than going down with the segment that carried it.
+            # An Exif segment with an unrecognized tag goes whole.
+            # Rewriting an IFD in place means re-computing every offset in it.
+            # Orientation decides which way the picture displays, so it is re-emitted alone.
             keep = not gate.exif_unrecognized(segment)
             if not keep:
                 turned = exif_orientation(segment)

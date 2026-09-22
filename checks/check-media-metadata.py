@@ -250,8 +250,10 @@ def scan_jpeg(data: bytes) -> set[str]:
                 out.add("JPEG has no end marker")
             elif end + 2 != len(data):
                 out.add("JPEG trailing bytes after the end marker")
-            break
+            return out
         i += 2 + length
+    # The markers ran out before the picture began.
+    out.add("JPEG has no scan")
     return out
 
 
