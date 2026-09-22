@@ -52,6 +52,10 @@ TAGS = {
     0x0201: "EmbeddedThumbnail",
 }
 
+# A pointer to a sub-IFD.
+# GPS, and most of the identity tags, live behind one rather than in IFD0.
+SUB_IFD = {0x8769, 0x8825, 0xA005}
+
 # An ISO6709 coordinate, which is what a QuickTime location actually looks like on disk.
 COORDINATE = re.compile(rb"[+-]\d{2}\.\d{2,}[+-]\d{3}\.\d{2,}")
 
@@ -66,17 +70,20 @@ def tiff_tags(raw: bytes) -> set[str]:
         return found
     fmt = "<" if raw[:2] == b"II" else ">"
     try:
-        offset = struct.unpack_from(fmt + "I", raw, 4)[0]
+        pending = [struct.unpack_from(fmt + "I", raw, 4)[0]]
     except struct.error:
         return found
-    # Bounded, because a malformed chain can point at itself.
-    for _ in range(8):
-        if not 0 < offset < len(raw):
-            break
+    seen: set[int] = set()
+    # Bounded and cycle-guarded, because a malformed chain can point at itself.
+    while pending and len(seen) < 16:
+        offset = pending.pop()
+        if not 0 < offset < len(raw) or offset in seen:
+            continue
+        seen.add(offset)
         try:
             count = struct.unpack_from(fmt + "H", raw, offset)[0]
         except struct.error:
-            break
+            continue
         for i in range(count):
             entry = offset + 2 + i * 12
             if entry + 12 > len(raw):
@@ -84,10 +91,16 @@ def tiff_tags(raw: bytes) -> set[str]:
             tag = struct.unpack_from(fmt + "H", raw, entry)[0]
             if tag in TAGS:
                 found.add(TAGS[tag])
+            if tag in SUB_IFD:
+                sub = struct.unpack_from(fmt + "I", raw, entry + 8)[0]
+                if 0 < sub < len(raw) and sub not in seen:
+                    pending.append(sub)
         try:
-            offset = struct.unpack_from(fmt + "I", raw, offset + 2 + count * 12)[0]
+            nxt = struct.unpack_from(fmt + "I", raw, offset + 2 + count * 12)[0]
         except struct.error:
-            break
+            nxt = 0
+        if 0 < nxt < len(raw) and nxt not in seen:
+            pending.append(nxt)
     return found
 
 
@@ -146,7 +159,8 @@ def scan_png(data: bytes) -> set[str]:
                 i += 12 + length
                 continue
             if body.startswith(b"Raw profile type"):
-                # A hex-encoded segment. Decode it and read the tags rather than the label.
+                # A hex-encoded segment.
+                # Decode it and read the tags rather than the label.
                 hexed = b"".join(line.strip() for line in text.split(b"\n")[2:])
                 try:
                     found |= tiff_tags(binascii.unhexlify(hexed))
@@ -191,8 +205,9 @@ def findings() -> list[tuple[str, set[str]]]:
                             hit = scan(archive.read(member))
                             if hit:
                                 out.append((f"{name}!{member}", hit))
-                except (zipfile.BadZipFile, RuntimeError):
-                    pass
+                except (zipfile.BadZipFile, RuntimeError, NotImplementedError) as exc:
+                    # An encrypted or corrupt archive cannot be read, so it cannot be cleared.
+                    out.append((name, {f"unreadable archive: {type(exc).__name__}"}))
                 continue
             hit = scan(data)
             if hit:
