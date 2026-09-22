@@ -114,7 +114,7 @@ These are settled, in new media and old alike, and reopening one wastes a review
 
 **A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else.
 
-That review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. None of it was worth the damage.
+The archive was reviewed image by image, and that review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. None of it was worth the damage.
 
 Treat that as a judgement about the archive, never as a precedent for a new post.
 
