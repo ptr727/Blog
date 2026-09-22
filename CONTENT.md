@@ -76,9 +76,63 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
-**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Pixelate anything that identifies a person, a place, or a device. Redact a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
+**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Redact a house number, a license plate, a face, a serial number, a rating plate, a barcode, and a hardware address. "What Identifies" below gives the full checklist and the narrower rule for an image already published. Cover each one with a flat opaque fill, never a blur or a mosaic. Both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
 
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
+
+## What Identifies
+
+"Media" above says to strip the metadata and redact the obvious. This section is the part that is not obvious.
+
+**Two questions decide it. Does this locate the home, or does it identify a person?** Every rule below is one of those two applied.
+
+### Adding an Image to a Post
+
+**This is the checklist for the moment an image is added, and the default is broad.** Redaction costs almost nothing here, because a shot can be reframed, retaken, or cropped before anyone sees it. An author who wants a label in frame says so and keeps it. That freedom is what makes a wide default affordable.
+
+Check for each of these, redact on sight, and argue afterwards if the image needs it:
+
+- A face, including the author's own. A published name is not a published likeness.
+- Precise location. A house number, a street sign, a curbside plate, a shipping label, a neighbor's facade, or a civic landmark.
+- A serial number, a service tag, a hardware address, a barcode, or a QR code. A code still scans after its printed digits go soft, so legibility is not the test.
+- An account handle, an email address, or a hostname.
+- A BSSID, and the SSID beside it. Public databases map an access point's hardware address to the coordinates where it was seen.
+- A service identifier that still resolves, such as a sensor ID or a map link carrying coordinates. Link the service rather than the instance.
+- A child's name, and most of all where it labels a room beside an occupancy time.
+- Anything belonging to someone else. That consent was never the author's to give.
+- A private-range address, which Voice already requires replacing with a placeholder, in a screenshot as much as in prose.
+
+### Never In Scope
+
+These are settled, in new media and old alike, and reopening one wastes a reviewer's time.
+
+- **The author's own name.** It is on the About page and in the site config. In a nav bar or a window title it is interface chrome.
+- **Coarse location.** A city, a country, or a timezone. The street and the block are a different matter.
+- **Generic room and device labels.** A thermostat zone named for a room, or an automation entity named for an appliance.
+
+### Remediating an Image Already Published
+
+**A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else.
+
+The archive was reviewed image by image, and that review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. Private-range addresses went too, since reaching one needs presence on the network already. None of it was worth the damage.
+
+Treat that as a judgment about the archive, never as a precedent for a new post.
+
+### Judging One
+
+**Look at what the photograph is of.** A frame may hold a photograph, a printed advertisement, or a screen showing either. Faces in an advertisement belong to the advertiser.
+
+**Read the post first.** Redacting a value the post prints in its own code block protects nothing and costs the screenshot its worked example.
+
+**A fill over distant or defocused background is cost with no protection.** Where a locator is not readable, covering it only damages the image.
+
+**Some frames cannot be patched.** One frame can carry a street sign, a neighbor's facade, and a ridgeline at once. Crop to the subject, or drop it.
+
+**A partial redaction is worse than none, because it looks handled.** Cover the whole value rather than the part that named it.
+
+**A filename is published.** Hugo serves `static/` verbatim, so a name in a filename reaches the URL, where a fill cannot touch it.
+
+**A credential is rotated, not redacted.** Editing the image stops further exposure and revokes nothing.
 
 ## Links
 
@@ -120,7 +174,7 @@ The fleet's prose rules apply to a post, with the vocabulary unrestricted and th
 - **Bold marks what a skimmer must not miss.** At most one span per paragraph, and at most one series of parallel lead-ins per section. It is emphasis, not decoration.
 - **A number is exact and is verified before it is written.** The post is the only place most of these numbers appear, so a wrong one is not caught anywhere else.
 
-**No data that identifies a machine.** A post never carries a real MAC address, hostname, serial number, device name, IP address, or absolute home path, and neither does a screenshot. Use a constructed placeholder that carries the same shape, and say it is one.
+**No data that identifies a machine.** A post never carries a real MAC address, hostname, serial number, device name, IP address, or absolute home path, and neither does a screenshot. Use a constructed placeholder that carries the same shape, and say it is one. "What Identifies" above carries the same rule for a photograph.
 
 ## What Is and Is Not Gated
 
