@@ -89,7 +89,11 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         elif 0xE0 <= marker <= 0xEF or marker == 0xFE:
             keep = False
         if marker == 0xDA:
-            out += data[i:]
+            # Everything after the end marker is not part of the picture, so it goes.
+            end = data.rfind(b"\xff\xd9")
+            if end < i:
+                return None
+            out += data[i : end + 2]
             return bytes(out)
         if keep:
             out += data[i : i + 2 + length]
@@ -198,11 +202,27 @@ def normalize_bytes(data: bytes) -> bytes | None:
     return None
 
 
-def normalize_member(data: bytes, scratch_dir: pathlib.Path) -> bytes | None:
-    """Normalize one archive member, using a scratch file only for a video."""
+def member_suffix(info: zipfile.ZipInfo) -> str:
+    """The member's own extension, which ffmpeg needs to pick an output container."""
+    return pathlib.PurePosixPath(info.filename).suffix
+
+
+def normalize_member(
+    data: bytes, scratch_dir: pathlib.Path, apply: bool, suffix: str = ""
+) -> bytes | None:
+    """Normalize one archive member, using a scratch file only for a video.
+
+    The scratch file keeps the member's extension, because ffmpeg picks the output
+    container from it and writes nothing when given a name it cannot infer one from.
+    """
     if data[4:8] in (b"ftyp", b"moov", b"wide", b"mdat", b"free", b"skip"):
-        source = scratch_dir / ".normalize-member-in"
-        cleaned = scratch_dir / ".normalize-member-out"
+        if not shutil.which("ffmpeg"):
+            return None
+        if not apply:
+            # A report stands in for the rewrite rather than paying for one.
+            return b""
+        source = scratch_dir / f".normalize-member-in{suffix}"
+        cleaned = scratch_dir / f".normalize-member-out{suffix}"
         source.write_bytes(data)
         result = cleaned.read_bytes() if normalize_iso(source, cleaned) else None
         source.unlink(missing_ok=True)
@@ -222,7 +242,10 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
     stuck: list[str] = []
     with zipfile.ZipFile(path) as archive:
         for info in archive.infolist():
-            if info.is_dir() or info.file_size > gate.SIZE_LIMIT:
+            if info.is_dir():
+                continue
+            if info.file_size > gate.SIZE_LIMIT:
+                stuck.append(f"{info.filename}: too large to read")
                 continue
             try:
                 data = archive.read(info)
@@ -233,7 +256,10 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
             holds = gate.scan(data)
             unvouched = holds and holds != {"unrecognized container"}
             if unvouched:
-                if normalize_member(data, path.parent) is not None:
+                if (
+                    normalize_member(data, path.parent, False, member_suffix(info))
+                    is not None
+                ):
                     removed.append(f"{info.filename}: {', '.join(sorted(holds))}")
                 else:
                     # Named rather than skipped, since the member stays as it is.
@@ -255,8 +281,15 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
                 # A member that cannot be read cannot be repacked, so the rewrite stops.
                 scratch.unlink(missing_ok=True)
                 raise
-            new = None if info.is_dir() else normalize_member(data, path.parent)
-            target.writestr(info, data if new is None else new)
+            new = (
+                None
+                if info.is_dir()
+                else normalize_member(data, path.parent, True, member_suffix(info))
+            )
+            if new is None and not info.is_dir():
+                # Carried over rather than dropped, and never in silence.
+                print(f"{path}!{info.filename}: not normalized, carried over as it was")
+            target.writestr(info, new if new else data)
             del data
     scratch.replace(path)
     return removed
@@ -286,7 +319,10 @@ def pixel_payload(data: bytes) -> bytes | None:
                 i += 2
                 continue
             if marker == 0xDA:
-                return data[i:]
+                # To the end marker, not to the end of the file, so bytes appended after
+                # the picture are not mistaken for picture data.
+                end = data.rfind(b"\xff\xd9")
+                return data[i : end + 2] if end >= i else data[i:]
             i += 2 + struct.unpack_from(">H", data, i + 2)[0]
     return None
 

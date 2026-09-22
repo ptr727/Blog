@@ -210,6 +210,8 @@ def scan_jpeg(data: bytes) -> set[str]:
         elif marker not in JPEG_STRUCTURAL:
             out.add(f"JPEG marker 0x{marker:02X}")
         if marker == 0xDA:
+            if not data.endswith(b"\xff\xd9"):
+                out.add("JPEG trailing bytes after the end marker")
             break
         i += 2 + length
     return out
@@ -232,6 +234,8 @@ def scan_png(data: bytes) -> set[str]:
             out.add(f"PNG {chunk.decode('ascii', 'replace')} chunk")
         i += 12 + length
         if chunk == b"IEND":
+            if i != len(data):
+                out.add("PNG trailing bytes after IEND")
             break
     return out
 
@@ -304,6 +308,8 @@ def scan_iso(data: bytes, start: int = 0, end: int | None = None) -> set[str]:
         elif atom in ISO_CONTAINERS:
             out |= scan_iso(data, i + 8, i + length)
         i += length
+    if i != end:
+        out.add("ISO trailing bytes outside any atom")
     if start == 0 and COORDINATE.search(data):
         out.add("ISO6709 coordinate")
     return out
