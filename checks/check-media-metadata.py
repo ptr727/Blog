@@ -41,6 +41,16 @@ TREES = ("static/media", "static/external")
 # Clearing a file must not become a way to exhaust the runner.
 MEMBER_LIMIT = 256 * 1024 * 1024
 
+# The XMP spelling of a GPS tag, read the same way in a JPEG segment and a PNG text chunk.
+XMP_GPS = b"exif:GPS"
+
+# A finding raised because the bytes were never read, rather than because metadata was found in them.
+UNREADABLE = (
+    "file too large to read",
+    "member too large to read",
+    "unreadable archive",
+)
+
 # A TIFF tag whose presence in a carried file is a finding on its own.
 TAGS = {
     0x8825: "GPS",
@@ -131,7 +141,7 @@ def scan_jpeg(data: bytes) -> set[str]:
         segment = data[i + 4 : i + 2 + length]
         if marker == 0xE1:
             found |= tiff_tags(segment)
-            if b"exif:GPS" in segment:
+            if XMP_GPS in segment:
                 found.add("XMP GPS")
         elif marker == 0xFE:
             found.add("JPEG comment")
@@ -180,7 +190,7 @@ def scan_png(data: bytes) -> set[str]:
                     found |= tiff_tags(binascii.unhexlify(hexed))
                 except binascii.Error:
                     pass
-            elif b"GPS" in text:
+            elif XMP_GPS in text:
                 found.add("XMP GPS")
         i += 12 + length
     return found
@@ -245,9 +255,17 @@ def main() -> int:
     if found:
         for name, tags in found:
             print(f"{name}: {', '.join(sorted(tags))}")
-        print(
-            f"\n{len(found)} file(s) carry metadata. Strip before committing, see CONTENT.md."
+        unreadable = sum(
+            1 for _, tags in found if any(t.startswith(UNREADABLE) for t in tags)
         )
+        carrying = len(found) - unreadable
+        print()
+        if carrying:
+            print(
+                f"{carrying} file(s) carry metadata. Strip before committing, see CONTENT.md."
+            )
+        if unreadable:
+            print(f"{unreadable} file(s) could not be read, so they cannot be cleared.")
         return 1
     print(
         f"media   : {scanned} carried file(s), none carry location, device, or authorship metadata"
