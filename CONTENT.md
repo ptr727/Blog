@@ -76,37 +76,58 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
-**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Redact a serial number, a rating plate, a barcode, a MAC address, a house number, a license plate, a face. Cover each one with a flat opaque fill, never a blur or a mosaic. Both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
+**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Redact a house number, a license plate, and a face. A serial, a rating plate, a barcode, or a hardware address is in scope only when the device is still in service. Cover each one with a flat opaque fill, never a blur or a mosaic. Both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
 
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
 
 ## What Identifies
 
-"Media" above says to strip the metadata and redact the obvious. This section is the part that is not obvious. Each rule below is a finding from a sweep of the imported archive. That sweep found one home address disclosed six independent ways, a third-party API key, and children's faces.
+"Media" above says to strip the metadata and redact the obvious. This section is the part that is not obvious.
 
-**A locator is usually not a number.** A street sign, an intersection, a neighbor's distinctive facade, a water tower, or a skyline places a photograph as surely as an address does. Judge an exterior shot on whether a stranger could find it, never on whether a number appears in it.
+**Two questions decide it. Does this locate the home, or does it identify a person?** Every rule below is one of those two applied. A sweep of the imported archive proposed 158 redactions against an earlier draft of this section. Thirty-six survived review, so the scope below carries more weight than the rules do.
 
-**A BSSID is a location, not a device.** Public databases map an access point's hardware address to the coordinates where it was seen. A BSSID in a screenshot is therefore a live lookup rather than a fingerprint, and an SSID names the household.
+### Out of Scope
 
-**A service identifier can be a live pin.** A sensor ID, a weather-station ID, or a map link carrying coordinates resolves to a location today. That is worse than stale capture metadata, so link the service rather than the instance.
+Listed first, because over-redaction has a real cost and most proposed redactions fail here rather than on the rules.
 
-**A barcode outlives its printed digits.** A label still scans after its text has gone too soft to read. "Too blurry to read" is therefore not the test, and the fill covers the bars as well as the text.
+- **The author's own name.** It is on the About page and in the site config. In a nav bar, a greeting, or a window title it is interface chrome.
+- **Coarse location.** A city, a country, or a timezone. The street, the block, and the neighbors are a different matter.
+- **The author's own infrastructure.** Machine names, server names, share names, and hostnames on a domain he owns.
+- **Private-range addresses.** Reaching one needs presence on the network already.
+- **Anything retired.** A serial, a hardware address, or a key belonging to a device or account that no longer exists.
+- **Generic room and device labels.** A thermostat zone named for a room, or an automation entity named for an appliance.
 
-**A shipping label is an address lookup.** An order number, a tracking number, or a packing barcode resolves at the carrier or the retailer. Redact the whole label rather than the printed address alone.
+### In Scope
 
-**A filename is published.** Hugo serves `static/` verbatim, so a hostname, an address, or a name in a filename reaches the URL. Rename the file, since redacting the pixels leaves it untouched.
+**A face, including the author's own.** A published name is not a published likeness, and the two are decided separately.
 
-**Some frames cannot be patched.** A single frame can carry a street sign, a neighbor's facade, a ridgeline, and an overhead line run at once. Covering one locator leaves the rest, so crop to the subject or drop the image.
+**An account handle or an email address.** Each identifies an account, which is different from a name the author publishes anyway.
 
-**A hand at close range can carry ridge detail.** A fingertip filling part of a high-resolution frame is a biometric. Frame the work rather than the hand.
+**A child's name**, and most of all where it labels a room beside an occupancy time, which turns a name into a schedule.
+
+**Precise location.** A house number, a street sign, a kerbside plate, a shipping label, a neighbor's facade, or a civic landmark. Judge an exterior on whether a stranger could find it, never on whether a number appears in it.
+
+**A BSSID, and the SSID beside it.** Public databases map an access point's hardware address to the coordinates where it was seen. A BSSID is therefore a live lookup rather than a fingerprint.
+
+**A service identifier that still resolves.** A sensor ID, a weather-station ID, or a map link carrying coordinates. Link the service rather than the instance.
+
+**Anything belonging to someone else.** A third party's name, face, or address, whatever is decided about the author's own. That consent was never his to give.
+
+### Judging One
+
+**Look at what the photograph is of.** A frame may hold a photograph, a printed advertisement, or a screen showing either. Faces in an advertisement belong to the advertiser.
+
+**Read the post first.** Redacting a value the post prints in its own code block protects nothing and costs the screenshot its worked example.
+
+**A fill over distant or defocused background is cost with no protection.** Where a locator is not readable, covering it only damages the image.
+
+**Some frames cannot be patched.** One frame can carry a street sign, a neighbor's facade, and a ridgeline at once. Crop to the subject, or drop it.
 
 **A partial redaction is worse than none, because it looks handled.** Cover the whole value rather than the part that named it.
 
-**A screen in the frame is a document.** An account name, an email address, a room labeled with a person's name, and an occupancy time each count. Treat one as a serial on a case.
+**A filename is published.** Hugo serves `static/` verbatim, so a name in a filename reaches the URL, where a fill cannot touch it.
 
-**Other people are not the author's to publish.** A third party's name, face, or address is redacted whatever is decided about the author's own, since consent was never the author's to give.
-
-**A credential that reached the site is rotated, not redacted.** A key hides in a URL query string, a console log, or a packet capture. Editing the image stops further exposure and revokes nothing, so treat anything published as already fetched.
+**A credential is rotated, not redacted.** Editing the image stops further exposure and revokes nothing.
 
 ## Links
 
