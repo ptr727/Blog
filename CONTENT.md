@@ -1,0 +1,205 @@
+# Writing a Post
+
+How a post on this site is written and filed. [`OPERATIONS.md`][operations] holds the procedures that publish it and [`CODESTYLE.md`][codestyle] the rules for the code around it. This file is the content half, and it exists because no gate has an opinion about the writing.
+
+Everything here applies to `content/`. The imported archive under it predates these rules and is not swept to match them, so read this as the contract for a new post rather than as a description of all 109 old ones.
+
+## Where a Post Lives
+
+A post is one Markdown file, never a page bundle, at:
+
+```text
+content/posts/<YYYY>/<MM>/<DD>/<slug>.md
+```
+
+The tree mirrors the address the site serves, which is what makes a file findable from a URL and a URL predictable from a file. The date in the path is the date in the front matter.
+
+**The slug is decided before the post merges and never after.** A published path is an address this site is contracted to answer, so renaming the file breaks it, and the URL contract in [`checks/`][checks] has no remedy for a URL that used to work. Editing a post moves nothing and is always safe.
+
+## Front Matter
+
+Five keys, in this order, and nothing else:
+
+```yaml
+---
+title: Moving This Blog From WordPress to Hugo
+date: '2026-08-01T12:00:00+00:00'
+url: /2026/08/01/moving-this-blog-from-wordpress-to-hugo/
+categories:
+- solution
+- cloud
+tags:
+- hugo
+- migration
+---
+```
+
+- **`title`** is title case, and it is what the theme renders as the page heading. The body carries no `#` of its own.
+- **`date`** is a quoted RFC3339 string. Hugo reads an unquoted one as a date object and formats it back differently.
+- **`url`** repeats the permalink the configuration would generate anyway. Every post carries it, so a post that omits it is the odd one out rather than the tidy one.
+- **`categories`** and **`tags`** are block sequences, with each item's hyphen at column zero.
+
+An optional `cover` is a nested map of `alt` and `image`. No post carries `draft`, `description`, `summary`, `series`, `weight`, or `aliases`. A `post_id` on an old post is a WordPress import artifact, and a new post never gets one.
+
+`archetypes/default.md` encodes this, so the path decides the rest:
+
+```sh
+hugo new content posts/2026/07/22/a-post-about-something.md
+```
+
+The `url` is derived from the directory, so the two cannot disagree. Fill in the taxonomy, which the archetype leaves as `uncategorized` and `replace-me` so an unfilled one is visible rather than silently shipped.
+
+## Taxonomy
+
+**Categories are a closed set.** The twelve in use are `backup`, `cloud`, `homeautomation`, `network`, `performance`, `power`, `problem`, `research`, `review`, `solution`, `storage`, and `uncategorized`. Pick from those. Adding a thirteenth is a decision about how the archive is organized rather than a detail of one post.
+
+**Tags are open, and each new one costs an address.** A tag builds its own archive page, so a tag used once creates a URL the site then serves forever. Reuse an existing tag where one fits. All tags are lowercase, and a multi-word tag is hyphenated.
+
+The parity gate reports both as `additional URLs built (not a failure)`, so nothing stops a new tag. The cost is that the address is permanent, not that the build complains.
+
+## Media
+
+Images go under `static/media/<YYYY>/<MM>/` and are referenced as `/media/<YYYY>/<MM>/<file>`. The year and month are the post's, and the filename is lowercase and hyphenated.
+
+`static/external/` is the tree of images the old site hotlinked from elsewhere, pulled local during the migration and named by content hash. It takes nothing new.
+
+Embed with the `figure` shortcode, and wrap a set in `gallery`:
+
+```text
+{{< figure src="/media/2026/07/frame-decode.png" alt="The decoded frame beside the app's own reading" >}}
+
+{{< gallery cols="2" >}}
+{{< figure src="/media/2026/07/one.png" alt="..." >}}
+{{< figure src="/media/2026/07/two.png" alt="..." >}}
+{{< /gallery >}}
+```
+
+**Alt text is required and describes the image**, since it is what a reader without the image gets.
+
+**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Redact a house number, a license plate, a face, a serial number, a rating plate, a barcode, and a hardware address. "What Identifies" below gives the full checklist and the narrower rule for an image already published. Cover each one with a flat opaque fill, never a blur or a mosaic. Both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
+
+**Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
+
+## What Identifies
+
+"Media" above says to strip the metadata and redact the obvious. This section is the part that is not obvious.
+
+**Two questions decide it. Does this locate the home, or does it identify a person?** Every rule below is one of those two applied.
+
+### Adding an Image to a Post
+
+**This is the checklist for the moment an image is added, and the default is broad.** Redaction costs almost nothing here, because a shot can be reframed, retaken, or cropped before anyone sees it. An author who wants a label in frame says so and keeps it. That freedom is what makes a wide default affordable.
+
+Check for each of these, redact on sight, and argue afterwards if the image needs it:
+
+- A face, including the author's own. A published name is not a published likeness.
+- Precise location. A house number, a street sign, a curbside plate, a shipping label, a neighbor's facade, or a civic landmark.
+- A serial number, a service tag, a hardware address, a barcode, or a QR code. A code still scans after its printed digits go soft, so legibility is not the test.
+- An account handle, an email address, or a hostname.
+- A BSSID, and the SSID beside it. Public databases map an access point's hardware address to the coordinates where it was seen.
+- A service identifier that still resolves, such as a sensor ID or a map link carrying coordinates. Link the service rather than the instance.
+- A child's name, and most of all where it labels a room beside an occupancy time.
+- Anything belonging to someone else. That consent was never the author's to give.
+- A private-range address, which Voice already requires replacing with a placeholder, in a screenshot as much as in prose.
+
+### Never In Scope
+
+These are settled, in new media and old alike, and reopening one wastes a reviewer's time.
+
+- **The author's own name.** It is on the About page and in the site config. In a nav bar or a window title it is interface chrome.
+- **Coarse location.** A city, a country, or a timezone. The street and the block are a different matter.
+- **Generic room and device labels.** A thermostat zone named for a room, or an automation entity named for an appliance.
+
+### Remediating an Image Already Published
+
+**A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else.
+
+The archive was reviewed image by image, and that review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. Private-range addresses went too, since reaching one needs presence on the network already. None of it was worth the damage.
+
+Treat that as a judgment about the archive, never as a precedent for a new post.
+
+### Judging One
+
+**Look at what the photograph is of.** A frame may hold a photograph, a printed advertisement, or a screen showing either. Faces in an advertisement belong to the advertiser.
+
+**Read the post first.** Redacting a value the post prints in its own code block protects nothing and costs the screenshot its worked example.
+
+**A fill over distant or defocused background is cost with no protection.** Where a locator is not readable, covering it only damages the image.
+
+**Some frames cannot be patched.** One frame can carry a street sign, a neighbor's facade, and a ridgeline at once. Crop to the subject, or drop it.
+
+**A partial redaction is worse than none, because it looks handled.** Cover the whole value rather than the part that named it.
+
+**A filename is published.** Hugo serves `static/` verbatim, so a name in a filename reaches the URL, where a fill cannot touch it.
+
+**A credential is rotated, not redacted.** Editing the image stops further exposure and revokes nothing.
+
+## Links
+
+**Posts use inline links.** This is the opposite of every other Markdown file in this repository, which uses reference-style definitions at the bottom, and the difference is deliberate. A post is read end to end by someone who cannot see its source, where a doc is read one section at a time by someone who can.
+
+- An external link is absolute: `[Hugo](https://gohugo.io/)`.
+- A link to another post is a root-relative permalink: `[From Blogger to WordPress](/2012/07/15/from-blogger-to-wordpress/)`.
+- A link to a file in this repository is an absolute GitHub URL, because the post is served from a different origin and a repo-relative path resolves to nothing there.
+- **A link goes on the first mention, and only there.** A later mention stays plain text, so a reader meets each link once, at the point the post introduces it. Link a tool, project, product, or person a reader would go and look up. A name they already know, such as Android or Wi-Fi, stays plain text.
+
+`refLinksErrorLevel: ERROR` fails the build on an unresolved `ref`, so a broken internal reference never ships. It says nothing about a root-relative path that points at a page which does not exist, which the parity gate catches instead.
+
+## Structure
+
+- **No `#` in the body.** The theme renders `title`.
+- **`##` carries the spine, `###` only for genuinely nested steps.** The migration post uses `###` for numbered procedure steps inside one section and nowhere else.
+- **A heading states a finding rather than labeling a topic.** "Your export is not a complete copy of your media" beats "Media". Sentence case, no trailing question mark.
+- **No hand-written table of contents.** The theme generates one from the headings.
+- **Three unheaded paragraphs open a post**: the concrete situation, what the post is really about, and one sentence on what it covers.
+- **Every fenced code block carries a language tag**, so highlighting picks the right lexer instead of guessing.
+
+## Voice
+
+The fleet's prose rules apply to a post, with the vocabulary unrestricted and the structure restricted. Read the `comment-and-doc-style` Skill for the full set. One of them does not carry over. The fleet caps a sentence at twenty-five words across agent-authored prose, taking the structural half of ASD-STE100 as its house style. That controlled language was written for maintenance and assembly instructions, where a reader follows one action at a time. A post is narrative, and it carries causality, asides, and rhythm. Rhythm needs sentences of differing length, so the rules below replace that cap for a post, and nowhere else. What the fleet's rules mean here:
+
+- **First person singular, past tense, for what was done.** Second person imperative for advice to the reader. Present tense for how a thing works.
+- **US English spelling.**
+- **Spell out an abbreviation on first use**, as the expansion followed by the abbreviation in parentheses, such as "Bluetooth Low Energy (BLE)". Later uses take the abbreviation alone. Units, and abbreviations every reader already knows, such as AC, HVAC, PSU, UV, USB, ASCII, and JSON, are exempt.
+- **Punctuation is ASCII.** No em dash or en dash, recast as a comma or two sentences rather than a spaced hyphen. No curly quotes, no ellipsis character, no arrows. Write a relational or arithmetic operator as `<=`, `>=`, `!=`, or `+/-` in flowing prose, and keep the symbol only next to a number.
+- **A unit or scientific symbol is the exception**, because its ASCII form would be a lie. Degree, micro, ohm, and pi stay as themselves rather than being approximated or spelled out. Any other non-ASCII character is a defect rather than a judgment call.
+- **No semicolon joining a sentence.**
+- **No spaced hyphen joining or interrupting a sentence.**
+- **Sentences stay under thirty-five words, and forty is the defect.** Between those two, recast rather than split where a split would leave a fragment or drop the link between a cause and its effect. Active voice.
+- **One idea per sentence, which is what length only approximates.** A third independent clause is a signal rather than a limit. Reread that sentence, and split it where it turned out to carry two ideas. A sentence that chains "and", then "which", then "because" is the shape to catch, whatever any count says.
+- **No comma splice.** Two independent clauses take a period or a conjunction, never a bare comma. A short parallel series is the exception, where clauses of the same shape are the point, such as "Pull the APK, automate it."
+- **A paragraph runs to about five sentences, or a hundred and twenty words.** A wall of text is what a reader leaves, and the word count is the half that matters most on a phone.
+- **Vary sentence length within a paragraph.** Sentences all of one length read mechanically however short they are, so a long one after two short ones is doing work.
+- **The post reads at a Flesch reading ease of fifty or better**, measured over the prose paragraphs alone. Front matter, fenced blocks, tables, and alt text are left out. One number over the whole post catches drift that no single-sentence rule sees. Syllable counting differs between tools, so a score near the floor is a prompt to reread rather than a verdict. Nothing computes it for you.
+- **Bold marks what a skimmer must not miss.** At most one span per paragraph, and at most one series of parallel lead-ins per section. It is emphasis, not decoration.
+- **A number is exact and is verified before it is written.** The post is the only place most of these numbers appear, so a wrong one is not caught anywhere else.
+
+**No data that identifies a machine.** A post never carries a real MAC address, hostname, serial number, device name, IP address, or absolute home path, and neither does a screenshot. Use a constructed placeholder that carries the same shape, and say it is one. "What Identifies" above carries the same rule for a photograph.
+
+## What Is and Is Not Gated
+
+This is the reason this file exists, so it is worth stating plainly.
+
+| Check | Reaches a post |
+| --- | --- |
+| `hugo --gc --minify --panicOnWarning` | yes, it must build |
+| [`checks/check-url-parity.py`][parity] | yes, for URLs, asset references, and the orphan count |
+| `checks/check-live-urls.sh` | yes, against a running server |
+| markdownlint | no, `content/.markdownlint-cli2.jsonc` ignores the tree |
+| CSpell | no, `cspell.json` ignores the tree |
+| `prose_lint.py` | no, it reads tracked prose outside `content/` |
+
+Nothing above reads the writing. A human does, before the post merges, and that read is the only gate this file has.
+
+## Corrections
+
+A fact in a published post that proves wrong is corrected in the post. It is not footnoted somewhere else and not left standing with a note elsewhere saying it is wrong.
+
+**A post may cite a README. A README never cites a post.** [`OPERATIONS.md`][operations] under "Configuration Layout" holds this rule and the reasoning: a doc that sends a reader to published prose for an operational fact has put that fact where it cannot be kept current.
+
+<!-- Repo -->
+
+[checks]: ./checks/
+[codestyle]: ./CODESTYLE.md
+[operations]: ./OPERATIONS.md
+[parity]: ./checks/check-url-parity.py
