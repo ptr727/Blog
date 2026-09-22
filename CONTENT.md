@@ -116,7 +116,7 @@ These are settled, in new media and old alike, and reopening one wastes a review
 
 The archive was reviewed image by image, and that review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. None of it was worth the damage.
 
-Treat that as a judgement about the archive, never as a precedent for a new post.
+Treat that as a judgment about the archive, never as a precedent for a new post.
 
 ### Judging One
 
