@@ -73,6 +73,7 @@ MEDIA_SUFFIXES = frozenset(
 SIZE_LIMIT = 256 * 1024 * 1024
 
 # JPEG markers that carry picture data or coding tables rather than description.
+# TEM and the restart markers stand alone, so they are skipped before a length is read.
 JPEG_STRUCTURAL = (
     {0xD8, 0xD9, 0xDA, 0xDB, 0xC4, 0xCC, 0xDD, 0x01}
     | set(range(0xD0, 0xD8))
@@ -225,7 +226,7 @@ def scan_jpeg(data: bytes) -> set[str]:
             out.add("JPEG segment structure not understood")
             break
         marker = data[i + 1]
-        if marker in (0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
+        if marker in (0x01, 0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
             i += 2
             continue
         length = struct.unpack_from(">H", data, i + 2)[0]

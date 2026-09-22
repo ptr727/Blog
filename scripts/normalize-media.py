@@ -73,7 +73,7 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         if data[i] != 0xFF:
             return None
         marker = data[i + 1]
-        if marker in (0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
+        if marker in (0x01, 0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
             i += 2
             continue
         length = struct.unpack_from(">H", data, i + 2)[0]
@@ -122,6 +122,8 @@ def normalize_gif(data: bytes) -> bytes | None:
         if marker == 0x3B:
             return bytes(out) + b"\x3b"
         if marker == 0x21:
+            if i + 2 > len(data) - 1:
+                return None
             label = data[i + 1]
             end = block_end(i + 2)
             netscape = label == 0xFF and data[i + 3 : i + 14] == b"NETSCAPE2.0"
@@ -129,6 +131,8 @@ def normalize_gif(data: bytes) -> bytes | None:
                 out += data[i:end]
             i = end
         elif marker == 0x2C:
+            if i + 10 > len(data):
+                return None
             flags = data[i + 9]
             j = i + 10
             if flags & 0x80:
@@ -284,6 +288,11 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
         zipfile.ZipFile(scratch, "w", zipfile.ZIP_DEFLATED) as target,
     ):
         for info in source.infolist():
+            if info.file_size > gate.SIZE_LIMIT:
+                # Copied across without being read whole, since nothing here will rewrite it.
+                with source.open(info) as fsrc, target.open(info, "w") as fdst:
+                    shutil.copyfileobj(fsrc, fdst)
+                continue
             try:
                 data = source.read(info)
             except (RuntimeError, zipfile.BadZipFile, zlib.error):
@@ -324,7 +333,7 @@ def pixel_payload(data: bytes) -> bytes | None:
             if data[i] != 0xFF:
                 break
             marker = data[i + 1]
-            if marker in (0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
+            if marker in (0x01, 0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
                 i += 2
                 continue
             if marker == 0xDA:
