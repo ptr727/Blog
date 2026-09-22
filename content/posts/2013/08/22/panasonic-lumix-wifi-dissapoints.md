@@ -25,7 +25,7 @@ First big frustration. Every time anything in the connection setup flow fails, y
 
 PC connectivity requires a SMB network share and a named host, i.e. no support for any protocol other than SMB, and no support for entering servers by IP address.
 
-I could not get the camera to connect to my server, looking at the security logs, I could see that the connection was using "WORKGROUP" as the domain, and using the DOMAIN portion of  \[DOMAIN\\UserName\] specification as part of the literal username. The camera has no provisioning for changing the workgroup or domain, and I had to resort to creating a machine local account in order to connect. Once I had my local account created, and again re-entered all information, I could finally connect.
+I could not get the camera to connect to my server, looking at the security logs, I could see that the connection was using "WORKGROUP" as the domain, and using the DOMAIN portion of \[DOMAIN\\UserName\] specification as part of the literal username. The camera has no provisioning for changing the workgroup or domain, and I had to resort to creating a machine local account in order to connect. Once I had my local account created, and again re-entered all information, I could finally connect.
 
 I took some pictures, pressed the WiFi button, navigated to the profiles, and uploaded the pictures, it took forever, around 90s per 5MB average picture, or around 400Kbps. Using my USB3 card reader the same pictures all transferred in a few seconds. Yes, USB3 is much faster than WiFi 802.11n, but 400 kilo bits per second is super slow, not near the capability of the WiFi network.
 

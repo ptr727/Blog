@@ -129,7 +129,7 @@ I ordered the bulbs from [1000bulbs](https://www.1000bulbs.com/product/116685/LE
 - [Soraa Outdoor 00107](https://www.1000bulbs.com/pdf/soraa-00107-specsheet.pdf): Dimmable, 12V 9.8W MR16 LED, 2700K  
 This is a 36W equivalent LED for outdoor use, I bought them for about $24 more than a year ago, the line has since been discontinued.
 - [Soraa Premium 2 00249](http://www.soraa.com/public/docs/Spec-Sheets-GU5.3-US/SS-Premium-2-12W-3000K.pdf): Dimmable, 12V 11.5W MR16 LED, 3000K  
-I bought these more than a year ago for about $34 each,  the line has since been discontinued.
+I bought these more than a year ago for about $34 each, the line has since been discontinued.
 - Architectural LED MR16-DIM-12V: 2700K 45deg  
 I received samples of these MR16 LED's from my electrician, I could not find any info on them.
 - [eBay Dimmable CREE LED COB MR16](http://www.ebay.com/itm/171813686721?_trksid=p2057872.m2749.l2649&var=470751037458&ssPageName=STRK%3AMEBIDX%3AIT): 6W MR16  
