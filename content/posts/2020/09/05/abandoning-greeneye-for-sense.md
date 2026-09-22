@@ -29,7 +29,7 @@ Although our power utility ([SCE](https://www.sce.com/)) had installed [smart me
 
 ![](/media/2018/08/sce_smartmeter.jpg)
 
-We started construction on our new house, circa 2012, and I made provision for power, water, and gas consumption monitoring. My research showed several potential candidates for whole house energy monitoring, and I narrowed it down to the following products; [Smart Energy Groups](https://smartenergygroups.com/) [SEGMeter](http://shop.smartenergygroups.com/store/show/segmeter_v25), [Open Energy Monitor](https://openenergymonitor.org/) [emonTx](https://openenergymonitor.com/emontx-v3-electricity-monitoring-transmitter/), and [Brultech](http://www.brultech.com/) [Green Eye Energy Monitor](http://www.brultech.com/greeneye/).
+We started construction on our new house, circa 2012, and I made provision for power, water, and gas consumption monitoring. My research showed several potential candidates for whole house energy monitoring, and I narrowed it down to the following products. [Smart Energy Groups](https://smartenergygroups.com/) [SEGMeter](http://shop.smartenergygroups.com/store/show/segmeter_v25), [Open Energy Monitor](https://openenergymonitor.org/) [emonTx](https://openenergymonitor.com/emontx-v3-electricity-monitoring-transmitter/), and [Brultech](http://www.brultech.com/) [Green Eye Energy Monitor](http://www.brultech.com/greeneye/).
 
 ![](/media/2018/08/fully_loaded_more_side.jpg)
 
@@ -37,15 +37,15 @@ We started construction on our new house, circa 2012, and I made provision for p
 
 ![](/media/2018/08/gem_nocover.png)
 
-I opted for the Green Eye Energy Monitor (GEM); it was a commercial product, with an active user community, that supported 4 pulse sensors (for gas and water) and 32 current sensors, and ethernet connectivity (or RS232 or ZigBee or WiFi).
+I opted for the Green Eye Energy Monitor (GEM). It was a commercial product, with an active user community, that supported 4 pulse sensors (for gas and water) and 32 current sensors, and ethernet connectivity (or RS232 or ZigBee or WiFi).
 
-Our house has 400A service, with two 200A subpanels, and each panel has 42 breakers. Since the GEM only supported 32 circuits, I installed two GEM units, in recessed utility cabinets, near each panel, and ran a conduit between the electrical panel and the utility cabinet. This is where the long delay started; the electrician was reluctant to install the current transformers, the city inspector had no idea if it was allowed by code, and I did not want to cause undue delays or wasted installation effort, so I simply left the GEM's disconnected, and closed the panels in order to pass inspection.
+Our house has 400A service, with two 200A subpanels, and each panel has 42 breakers. Since the GEM only supported 32 circuits, I installed two GEM units, in recessed utility cabinets, near each panel, and ran a conduit between the electrical panel and the utility cabinet. This is where the long delay started. The electrician was reluctant to install the current transformers, the city inspector had no idea if it was allowed by code, and I did not want to cause undue delays or wasted installation effort, so I simply left the GEM's disconnected, and closed the panels in order to pass inspection.
 
 ![](/media/2018/08/20180811_172657174_ios.jpg)![](/media/2018/08/20180811_172632361_ios.jpg)
 
 ![](/media/2018/08/20180811_172609507_ios.jpg)
 
-Another problem was the city utility water and gas meters, where I was not allowed to attach any type of device, not even an optical sensor, to the meters. The water meter was by the street, so even if I wanted to, I could not easily monitor it. I had to install my own dry contact pulse output gas and water meters inline with the utility meters, and to pass code, my meters had to be the same model as the utility installed meters, making it expensive. The water meter is a [Neptune T-10](https://www.neptunetg.com/products/watermeters/residential/t10/) 1½” Direct Read with a Tricon/S. The gas meter is an [Elster American Meter AC630](https://www.elster-americanmeter.com/en/product-details/88/en/AC-630) with a Digital Pulser.
+Another problem was the city utility water and gas meters, where I was not allowed to attach any type of device, not even an optical sensor, to the meters. The water meter was by the street, so even if I wanted to, I could not easily monitor it. I had to install my own dry contact pulse output gas and water meters inline with the utility meters, and to pass code, my meters had to be the same model as the utility installed meters, making it expensive. The water meter is a [Neptune T-10](https://www.neptunetg.com/products/watermeters/residential/t10/) 1-1/2" Direct Read with a Tricon/S. The gas meter is an [Elster American Meter AC630](https://www.elster-americanmeter.com/en/product-details/88/en/AC-630) with a Digital Pulser.
 
 ![](/media/2020/08/img_6638.jpg)
 
@@ -55,7 +55,7 @@ After we moved in, I endeavoured to install the current transformers, but I foun
 
 I eventually decided to run multi-pair CAT3 cables between the panels, connect the CAT3 and current sensor leads with terminal blocks, and safeguard the terminal blocks in plastic enclosures. I was concerned about the cable thickness, and if I'd be able to pull the cable through the connecting conduit, so I ordered various types of 12-, 25-, and 50-pair CAT3 cable samples. In retrospect, fitting all the leads in one 1" conduit may have been a problem even if the CT leads were long enough.
 
-While I waited for the CAT3 cable samples, I started setting up one of the GEM's with a pair of CT's for testing. The software configuration turned out to be frustratingly confusing, with the instructions and screenshots in the manuals not matching the current version of the tools, and documented configuration settings no longer being accurate. It took trial and error, and back and forth with support, to get the GEM updated and configured.
+While I waited for the CAT3 cable samples, I started setting up one of the GEM's with a pair of CT's for testing. The software configuration turned out to be frustratingly confusing, with the instructions and screenshots in the manuals not matching the current version of the tools, and documented configuration settings no longer being accurate. It took trial and error, and back and forth with support, to get the GEM updated and configured.
 
 The firmware updates were particularly frustrating, e.g. the baud rate needs to be lowered else the update fails, why does the tool not lower the baud rate by itself, or the update added support for a password, and instead of setting the password to a known value, I have to do a complex password reset by means of button pushes timed with flashing LED's.
 
@@ -65,9 +65,9 @@ The UX of the tools are indicative of engineers writing tools for themselves vs.
 
 ![](/media/2018/08/2018-08-19-1.png)
 
-Once I had the GEM updated, and it was producing measurement data, I wanted to configure it to directly post data to the [Open Energy Monitor](https://openenergymonitor.org/) [emonCMS](https://emoncms.org/) service. The [configuration](http://www.brultech.com/community/viewtopic.php?t=1577) steps did not work, and neither the GEM nor the cloud hosted emonCMS provided any means of debugging or troubleshooting help.
+Once I had the GEM updated, and it was producing measurement data, I wanted to configure it to directly post data to the [Open Energy Monitor](https://openenergymonitor.org/) [emonCMS](https://emoncms.org/) service. The [configuration](http://www.brultech.com/community/viewtopic.php?t=1577) steps did not work, and neither the GEM nor the cloud hosted emonCMS provided any means of debugging or troubleshooting help.
 
-I resorted to troubleshooting the HTTP traffic, comparing my observations with the emonCMS [API](https://emoncms.org/site/api#input) documentation. I use a [Ubiquity UniFi Security Gateway](https://www.ubnt.com/unifi-routing/unifi-security-gateway-pro-4/), and with a bit of [SSH](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) and [tcpdump](http://www.tcpdump.org/) magic, I could observe router traffic from [WireShark](https://www.wireshark.org/) running on my Windows 10 workstation.
+I resorted to troubleshooting the HTTP traffic, comparing my observations with the emonCMS [API](https://emoncms.org/site/api#input) documentation. I use a [Ubiquity UniFi Security Gateway](https://www.ubnt.com/unifi-routing/unifi-security-gateway-pro-4/), and with a bit of [SSH](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) and [tcpdump](http://www.tcpdump.org/) magic, I could observe router traffic from [WireShark](https://www.wireshark.org/) running on my Windows 10 workstation.
 
 ```
 plink.exe -ssh admin@192.168.1.1 -pw secret "sudo tcpdump -ni eth0 -s 0 -w - not port 22" | "C:\Program Files\Wireshark\Wireshark.exe" -k -i -
@@ -87,7 +87,7 @@ When I took the first captures I was confused by the many errors and partial tra
 
 I received my multi-pair CAT3 samples, and more so than ever it looked like a lot of effort to get all the current sensors hooked up, time passed, always easy to do nothing.
 
-I abandoned the idea of using emonCMS, and since I adopted [Home Assistant](https://www.home-assistant.io/) (HA) for my home automation needs, I wanted to connect my GEM's to HA. Fortunately there was a GEM [integration](https://www.home-assistant.io/integrations/greeneye_monitor/) for HA, but I could not get it to work reliably when using multiple GEM units. I did some troubleshooting by writing a GEM network [test tool](https://github.com/ptr727/GEM-Echo-Server), and it became clear that reliable operation requires both the GEM [firmware](https://www.brultech.com/software/files/checksn/3/1) and the [WIZ110SR](https://www.wiznet.io/product-item/wiz110sr/) TCP to Serial bridge [firmware](https://www.wiznet.io/product-item/wiz110sr/) to be up to date, and specifically configured. With a stable hardware platform, the author of the GEM HA integration assisted and rewrote the code to support multiple GEM units.
+I abandoned the idea of using emonCMS, and since I adopted [Home Assistant](https://www.home-assistant.io/) (HA) for my home automation needs, I wanted to connect my GEM's to HA. Fortunately there was a GEM [integration](https://www.home-assistant.io/integrations/greeneye_monitor/) for HA, but I could not get it to work reliably when using multiple GEM units. I did some troubleshooting by writing a GEM network [test tool](https://github.com/ptr727/GEM-Echo-Server), and it became clear that reliable operation requires both the GEM [firmware](https://www.brultech.com/software/files/checksn/3/1) and the [WIZ110SR](https://www.wiznet.io/product-item/wiz110sr/) TCP to Serial bridge [firmware](https://www.wiznet.io/product-item/wiz110sr/) to be up to date, and specifically configured. With a stable hardware platform, the author of the GEM HA integration assisted and rewrote the code to support multiple GEM units.
 
 ![](/media/2020/09/annotation-2020-09-05-133711.png)
 

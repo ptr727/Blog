@@ -21,11 +21,11 @@ The problem was that the symbols for Firefox or Chrome did not download as expec
 
 This worked:
 
-symchk.exe “chrome.exe” /v /s "srv\*c:\\symbols\*http://build.chromium.org/buildbot/symsrv"
+symchk.exe "chrome.exe" /v /s "srv\*c:\\symbols\*http://build.chromium.org/buildbot/symsrv"
 
 This failed:
 
-symchk.exe “chrome.exe” /v /s "srv\*c:\\symbols\*http://our.symbol.server/symbols"
+symchk.exe "chrome.exe" /v /s "srv\*c:\\symbols\*http://our.symbol.server/symbols"
 
 I captured network stack traces of the direct request and the proxy server request.
 
@@ -71,7 +71,7 @@ Pragma: no-cache
 
 The problem turns out to be that the symbol proxy uses an all lowercase URI to access the symbol servers. This works with the Microsoft symbol server because they run IIS, and IIS is case insensitive. But, Mozilla and Google run case sensitive Linux based web servers, and when the symbol proxy changes the case of the request, the symbols are not found
 
-We were running symproxy.dll version 6.8.4.0, and the latest release was 6.11.1.404. I upgraded the binaries to the latest version, hoping the problem would go away, instead the problem got worse. Now we were also unable to download symbols from the Microsoft’s own symbol server.
+We were running symproxy.dll version 6.8.4.0, and the latest release was 6.11.1.404. I upgraded the binaries to the latest version, hoping the problem would go away, instead the problem got worse. Now we were also unable to download symbols from the Microsoft's own symbol server.
 
 Reading the MSDN documentation for [SymSetOptions()](http://msdn.microsoft.com/en-us/library/ms681366(VS.85).aspx), I noticed two options that could affect the observed behavior; SYMOPT\_CASE\_INSENSITIVE, and SYMOPT\_FAVOR\_COMPRESSED.
 
@@ -81,7 +81,7 @@ Calling SymSetOptions() had no effect, and I quickly realized that I am on the w
 
 SymSetOptions() is implemented by dbghelp.dll, while symproxy.dll does not load dbghelp.dll.
 
-A bit of investigation revealed that symproxy.dll loads symsrv.dll using LoadLibrary(), and uses only two exports; SymbolServerSetOptions() and SymbolServerByIndex().
+A bit of investigation revealed that symproxy.dll loads symsrv.dll using LoadLibrary(), and uses only two exports. SymbolServerSetOptions() and SymbolServerByIndex().
 
 I found documentation for [SymbolServerSetOptions()](http://msdn.microsoft.com/en-us/library/ms680676(VS.85).aspx), but nothing for SymbolServerByIndex(). But dbghelp.h did include the function prototypes for both functions.
 
@@ -89,7 +89,7 @@ I changed my strategy, and decided to write a shim to sit between IIS and sympro
 
 I modified my ISAPI filter to also export SymbolServerSetOptions() and SymbolServerByIndex(). My DLL now effectively contained exports similar to symproxy.dll and symsrv.dll. The implementation of the exported functions called through to the real symproxy.dll and the real symsrv.dll.
 
-Since symproxy.dll loaded symsrv.dll using LoadLibrary(“symsrv.dll”) I had to name my DLL SymSrv.dll. To avoid DLL name confusion I renamed the original symproxy.dll to symproxy.orig.dll, and symsrv.dll to symsrv.orig.dll. My shim DLL was named SymSrv.dll, and implemented the symproxy.dll and symsrv.dll exports.
+Since symproxy.dll loaded symsrv.dll using LoadLibrary("symsrv.dll") I had to name my DLL SymSrv.dll. To avoid DLL name confusion I renamed the original symproxy.dll to symproxy.orig.dll, and symsrv.dll to symsrv.orig.dll. My shim DLL was named SymSrv.dll, and implemented the symproxy.dll and symsrv.dll exports.
 
 IIS -> SymSrv.dll -> symproxy.orig.dll
 
@@ -125,19 +125,19 @@ I observed that the parameters being passed in to SymbolServerByIndex() are the 
 
 The requested URL would look something like:
 
-“/symbols/ch/chrome\_exe.pdb/A931F873616F40A4972373FAD37D562D1/chrome\_exe.pdb”
+"/symbols/ch/chrome\_exe.pdb/A931F873616F40A4972373FAD37D562D1/chrome\_exe.pdb"
 
 The physical path would look something like:
 
-“C:\\inetpub\\Symbols\\chrome\_exe.pdb\\A931F873616F40A4972373FAD37D562D1\\chrome\_exe.pdb”
+"C:\\inetpub\\Symbols\\chrome\_exe.pdb\\A931F873616F40A4972373FAD37D562D1\\chrome\_exe.pdb"
 
 The parameters passed to SymbolServerByIndex() would look something like:
 
-“c:\\inetpub\\symbols\*http://build.chromium.org/buildbot/symsrv”
+"c:\\inetpub\\symbols\*http://build.chromium.org/buildbot/symsrv"
 
-“chrome\_exe.pdb”
+"chrome\_exe.pdb"
 
-“a931f873616f40a4972373fad37d562d1”
+"a931f873616f40a4972373fad37d562d1"
 
 Since I had access to the original path request, and I could intercept the call to SymbolServerByIndex(), I wrote code to replace the file name and identifier with the original cased versions.
 
@@ -149,11 +149,11 @@ This did not however solve the problem with the Microsoft symbol servers.
 
 This worked:
 
-symchk.exe “notepad.exe” /v /s "srv\*c:\\symbols\* http://msdl.microsoft.com/download/symbols"
+symchk.exe "notepad.exe" /v /s "srv\*c:\\symbols\* http://msdl.microsoft.com/download/symbols"
 
 This failed:
 
-symchk.exe “notepad.exe” /v /s "srv\*c:\\symbols\*http://our.symbol.server/symbols"
+symchk.exe "notepad.exe" /v /s "srv\*c:\\symbols\*http://our.symbol.server/symbols"
 
 I captured network stack traces of the direct request and the proxy server request.
 
@@ -243,7 +243,7 @@ Testing the code:
 
 \- To run IIS in debug mode you must run VC elevated
 
-\- Set the debug target to “C:\\Windows\\System32\\inetsrv\\w3wp.exe /debug”
+\- Set the debug target to "C:\\Windows\\System32\\inetsrv\\w3wp.exe /debug"
 
 \- Change the ISAPI registration to point to your build output SymSrv.dll
 

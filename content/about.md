@@ -11,4 +11,4 @@ Hi, my name is Pieter Viljoen, this is my personal blog I use to document my dis
 
 I am an electronic engineer by training and work as a software engineer in the security and privacy industries.
 
-The content reflects my personal opinions and are not reflective or representative of my employer or their customers.
+The content reflects my personal opinions and are not reflective or representative of my employer or their customers.

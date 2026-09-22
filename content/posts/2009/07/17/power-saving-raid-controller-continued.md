@@ -29,7 +29,7 @@ It turns out the Adaptec 5 series controller are not that workstation friendly.
 
 
 
-I was testing with Western Digital drives; 1TB Caviar Black WD1001FALS, 2TB Caviar Green WD20EADS, and 1TB RE3 WD1002FBYS.
+I was testing with Western Digital drives: 1TB Caviar Black WD1001FALS, 2TB Caviar Green WD20EADS, and 1TB RE3 WD1002FBYS.
 
 I also wanted to test with the new 2TB RE4-GP WD2002FYPS drives, but they are on backorder.
 

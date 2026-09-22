@@ -70,7 +70,7 @@ I pressed F1 to enter setup, and I made the following changes:
 \[Advanced\] \[PCIPnP\] \[Plug & Play OS\] = Yes
 
 The two BIOS changes are visible under these sections:   
-\[Chipset\] \[North Bridge Configuration\] “PCI MMIO Allocation: 4GB to 3072MB”   
+\[Chipset\] \[North Bridge Configuration\] "PCI MMIO Allocation: 4GB to 3072MB"   
 \[Chipset\] \[South Bridge Configuration\] \[LOGO LED indicator:\]
 
 I rebooted, and everything worked fine.

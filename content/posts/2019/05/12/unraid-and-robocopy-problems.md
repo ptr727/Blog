@@ -21,7 +21,7 @@ I found a large number of files that would copy over and over with no changes to
 
 After some troubleshooting, I discovered that files with old timestamps, and folder names that end in a dot, do not copy correctly to Unraid.
 
-I looked at the files that would not copy, and I discovered that the file modified timestamps were all set to "1 Jan 1970 00:00". I experimented by changing the modified timestamp to today's date, and the files copied correctly. It seems that if the modified timestamp on the source file is older than 1 Jan 1980, the modified timestamp on Unraid for the same newly created file will always be set as 1 Jan 1980. When then running robocopy again, the source files will always be reported as older, and the file copied again.
+I looked at the files that would not copy, and I discovered that the file modified timestamps were all set to "1 Jan 1970 00:00". I experimented by changing the modified timestamp to today's date, and the files copied correctly. It seems that if the modified timestamp on the source file is older than 1 Jan 1980, the modified timestamp on Unraid for the same newly created file will always be set as 1 Jan 1980. When then running robocopy again, the source files will always be reported as older, and the file copied again.
 
 Below is an example of a folder of test files with a created date of 1 Jan 1970 UTC, I copy the files using robocopy, and copy them again. The second run of robocopy again copies all the files, instead of reporting them as similar. One can see that the destination timestamp is set to 1 Jan 1980, not 1 Jan 1970 as expected.
 
@@ -57,7 +57,7 @@ Below is an example of a folder that contains two directories, one named "LocalS
 
 The same robocopy operations to the W2K16 server over SMB works as expected.
 
-From what I researched, the timestamp ranges for [NTFS](https://devblogs.microsoft.com/oldnewthing/20090306-00/?p=18913) is 1 January 1601 to 14 September 30828, [FAT](https://en.wikipedia.org/wiki/File_Allocation_Table) is 1 January 1980 to 31 December 2107, and [EXT4](https://en.wikipedia.org/wiki/Ext4) is 1 January 1970 to 19 January 2106 (2038 + 408). I could not create files with a date earlier than 1 Jan 1980, but I could set file modified timestamps to dates greater than 2106, so I do not know what the Unraid timestamp range is.
+From what I researched, the timestamp ranges for [NTFS](https://devblogs.microsoft.com/oldnewthing/20090306-00/?p=18913) is 1 January 1601 to 14 September 30828, [FAT](https://en.wikipedia.org/wiki/File_Allocation_Table) is 1 January 1980 to 31 December 2107, and [EXT4](https://en.wikipedia.org/wiki/Ext4) is 1 January 1970 to 19 January 2106 (2038 + 408). I could not create files with a date earlier than 1 Jan 1980, but I could set file modified timestamps to dates greater than 2106, so I do not know what the Unraid timestamp range is.
 
 Creating and accessing directories with trailing dots requires special care on Windows using the [NT style notation](https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file), e.g. "[CreateDirectoryW](https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-createdirectorya)(L"\\\\\\?\\\C:\\\Users\\\piete\\\Unraid.Badfiles\\\TestDot..", NULL), but robocopy does handle that correctly on W2K16 SMB.
 

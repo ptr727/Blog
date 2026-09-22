@@ -276,7 +276,7 @@ Firmware Region Version: 66.16.11.00
 
 Everything looked good, except the SAS address defaulted to 50030480:0000007F.
 
-The firmware "ReleaseNote.txt" file states that the v6.00 CLIXTL tool can change the SAS address, but the only version on the Supermicro site is the  v6.10.C version, that does not support changing the SAS address.
+The firmware "ReleaseNote.txt" file states that the v6.00 CLIXTL tool can change the SAS address, but the only version on the Supermicro site is the v6.10.C version, that does not support changing the SAS address.
 
 ```
 How to modify SAS address

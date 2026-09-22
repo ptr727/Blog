@@ -14,7 +14,7 @@ cover:
   alt: RW.2
   image: /media/2019/06/rw.2.png
 ---
-In my [last](/2019/05/05/moving-from-w2k16-to-unraid/) [two](/2019/05/12/unraid-and-robocopy-problems/) posts I described how I migrated from W2K16 and hardware RAID6 to Unraid. Now that I've had two Unraid servers in production for a while, I'll describe some of the good and not so good I experienced.
+In my [last](/2019/05/05/moving-from-w2k16-to-unraid/) [two](/2019/05/12/unraid-and-robocopy-problems/) posts I described how I migrated from W2K16 and hardware RAID6 to Unraid. Now that I've had two Unraid servers in production for a while, I'll describe some of the good and not so good I experienced.
 
 Running Docker on Unraid is magnitudes easier compared to getting Docker to work on Windows. Docker allowed me to move all but one of my workloads from VM's to containers, simplifying updates, reducing the memory footprint, and improving performance.
 
@@ -34,7 +34,7 @@ I am quite familiar with VM snapshot management using Hyper-V and VMWare, it is 
 
 ![2019-06-05 (2)](/media/2019/06/2019-06-05-2.png)
 
-As I started using the SMB file shares, now hosted on Unraid, in my regular day to day activities, I noticed that under some conditions the write speed becomes extremely slow, often dropping to around 2MB/s. This seems to happen when there are other file read operations in progress, and even a few KB/s of reads can drastically reduce the array SMB write performance. Interestingly the issue does not appear to affect my use of rsync between Unraid servers, but only SMB. I did find at least one other recent [report](https://forums.unraid.net/topic/80256-670-slow-smb-download-throughput/) of similar slowdowns, where only SMB is affected.
+As I started using the SMB file shares, now hosted on Unraid, in my regular day to day activities, I noticed that under some conditions the write speed becomes extremely slow, often dropping to around 2MB/s. This seems to happen when there are other file read operations in progress, and even a few KB/s of reads can drastically reduce the array SMB write performance. Interestingly the issue does not appear to affect my use of rsync between Unraid servers, but only SMB. I did find at least one other recent [report](https://forums.unraid.net/topic/80256-670-slow-smb-download-throughput/) of similar slowdowns, where only SMB is affected.
 
 Since the problem appeared to be specific to Unraid SMB, and not general network performance, I compared the Unraid SMB performance with Windows SMB in a W2K19 VM running on the same Unraid system. By running W2K19 as a VM on the same Unraid system, the difference in performance will be mostly the SMB stack, not hardware or network.
 
@@ -67,11 +67,11 @@ I ran several tests similar to the following commandlines:
 >diskspd -w50 -b512K -F2 -r -o8 -W60 -d120 -Srw -Rtext \\WIN-EKJ8HU9E5QC\TestW2K19\testfile64g.dat > d:\diskspd_w2k19.txt
 ```
 
-For a full explanation of the commandline arguments see [here](https://github.com/microsoft/diskspd/wiki/Command-line-and-parameters). The test will do 50% read and 50% write, block sizes varied from 4KB to 2048KB, 2 threads, 8 outstanding IO operations, random aligned IO, warm up for 60s, run for 120s, disable local caching for remote filesystems.
+For a full explanation of the commandline arguments see [here](https://github.com/microsoft/diskspd/wiki/Command-line-and-parameters). The test will do 50% read and 50% write, block sizes varied from 4KB to 2048KB, 2 threads, 8 outstanding IO operations, random aligned IO, warm up for 60s, run for 120s, disable local caching for remote filesystems.
 
 ![W2K19.1](/media/2019/06/w2k19.1.png)![W2K19.3](/media/2019/06/w2k19.3.png)![Cache.1](/media/2019/06/cache.1.png)![Cache.3](/media/2019/06/cache.3.png)![Mount.1](/media/2019/06/mount.1.png)![Mount.3](/media/2019/06/mount.3.png)
 
-From the results we can see that the Unraid SMB performance for this test is pretty poor. I redid the tests, this time doing independent read and write tests, and instead of various block sizes, I just did a 512KB block size test (I got lazy).
+From the results we can see that the Unraid SMB performance for this test is pretty poor. I redid the tests, this time doing independent read and write tests, and instead of various block sizes, I just did a 512KB block size test (I got lazy).
 
 ![RW.1](/media/2019/06/rw.1.png)![RW.2](/media/2019/06/rw.2.png)
 

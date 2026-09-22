@@ -26,7 +26,7 @@ The drive hardware identifiers are correct, but the friendly name is not:
 
 [![Intel.SSD.Hardware](/media/2012/09/intel-ssd_-hardware_thumb.png)](/media/2012/09/intel-ssd_-hardware.png)[![Intel.SSD.Friendly](/media/2012/09/intel-ssd_-friendly_thumb.png)](/media/2012/09/intel-ssd_-friendly.png)
 
-It appears that the text BYTE’s are WORD swapped, i.e. ABCD becomes BADC.
+It appears that the text BYTE's are WORD swapped, i.e. ABCD becomes BADC.
 
 The driver is also not functional, attempting to create a storage spaces pool using the Hitachi drives hangs forever, with no drive activity, requiring a hard power cycle:
 

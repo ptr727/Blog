@@ -49,7 +49,7 @@ Below are graphs showing CPU, GPU, and fan speed over time during the stability 
 ![](/external/a2797158972334b6.png)  
 ![](/external/f08ea9ffcce2345a.png)
 
-I expected the fan to go back to the initial very low speed, but it didn’t. I was not sure if I should let the system idle for longer, so I repeated the test.
+I expected the fan to go back to the initial very low speed, but it didn't. I was not sure if I should let the system idle for longer, so I repeated the test.
 
 But, instead of using EVEREST, I used [XBMC 9.11](http://xbmc.org/download/) using all default options.   
 I chose to play a 39GB DTS H264 MKV file, this file is a very high bit rate Blu-Ray rip, and I know that my netbook stutters when playing this file, while my workstation has no problems playing it.
