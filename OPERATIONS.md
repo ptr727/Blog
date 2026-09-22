@@ -80,6 +80,10 @@ The deploy root and the base URL are the only host-specific values. A local run 
 
 **Always set `SITE_BASE_URL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` internally, and the effective value is printed on every build for that reason.
 
+**The deploy workflow reaches only the VPS `staging` and `production` sites.** Dispatching it with `environment=staging` deploys `blog.vps.insanegenius.net`, never a local mirror. The two local mirrors are deployed from the maintainer's own machine with `make-release.sh` and nothing else. So "deploy staging" names two different targets depending on who says it. A run reporting that staging deployed says nothing about what a local mirror serves, so check the mirror itself.
+
+**`make-release.sh` builds the working tree, not the commit.** Hugo reads the checkout as it stands, so an uncommitted file ships. The release carries whatever version you pass, which both CI and the documented local procedure set to a commit SHA. It defaults to a timestamp when you pass nothing. A SHA then names a commit that does not describe what is served. `EXPECT_RELEASE` still matches, because it compares the stamp against itself rather than against the tree. Commit before deploying, or read the release id as a label rather than a description.
+
 | Variable | Effect |
 | --- | --- |
 | `ENV_FILE` | Which environment file to source. Defaults to `~/.secrets/Blog.local.production.env`. |
