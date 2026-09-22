@@ -14,8 +14,9 @@ to every scan run before this one.
 
 Values rather than key names. A metadata tool can unlink a value from its index and leave
 the bytes in the file, reporting the file clean while the coordinate is still there. So a
-QuickTime file is searched for a coordinate that parses, never for the name of the atom that
-used to hold one.
+file is searched for a coordinate that parses, never for the name of the atom that used to
+hold one, and a container this cannot name is searched rather than skipped, since an
+unrecognized container is exactly where one would survive.
 
 Compressed text blocks. A PNG can carry a whole EXIF segment hex-encoded inside a zlib
 compressed text chunk, where a scan of the ordinary chunks never looks. Those are decoded and
@@ -217,9 +218,9 @@ def scan_png(data: bytes) -> set[str]:
     return found
 
 
-def scan_quicktime(data: bytes) -> set[str]:
+def scan_coordinate(data: bytes) -> set[str]:
     # The value, not the atom name, because a tool can remove one and leave the other.
-    return {"QuickTime location"} if COORDINATE.search(data) else set()
+    return {"ISO6709 coordinate"} if COORDINATE.search(data) else set()
 
 
 def scan(data: bytes) -> set[str]:
@@ -227,9 +228,9 @@ def scan(data: bytes) -> set[str]:
         return scan_jpeg(data)
     if data[:8] == b"\x89PNG\r\n\x1a\n":
         return scan_png(data)
-    if data[4:8] == b"ftyp" or b"moov" in data[:4096]:
-        return scan_quicktime(data)
-    return set()
+    # Anything not JPEG or PNG is searched for a coordinate rather than identified first.
+    # A container this cannot name is exactly where one would survive.
+    return scan_coordinate(data)
 
 
 def findings() -> list[tuple[str, set[str]]]:
