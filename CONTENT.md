@@ -76,7 +76,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
-**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Redact a house number, a license plate, and a face. A serial, a rating plate, a barcode, or a hardware address is in scope only when the device is still in service. Cover each one with a flat opaque fill, never a blur or a mosaic. Both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
+**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Redact a house number, a license plate, a face, a serial, a rating plate, a barcode, and a hardware address. "What Identifies" below gives the full checklist and the narrower rule for an image already published. Cover each one with a flat opaque fill, never a blur or a mosaic. Both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
 
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
 
@@ -93,7 +93,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 Check for each of these, redact on sight, and argue afterwards if the image needs it:
 
 - A face, including the author's own. A published name is not a published likeness.
-- Precise location. A house number, a street sign, a kerbside plate, a shipping label, a neighbor's facade, or a civic landmark.
+- Precise location. A house number, a street sign, a curbside plate, a shipping label, a neighbor's facade, or a civic landmark.
 - A serial number, a service tag, a hardware address, a barcode, or a QR code. A code still scans after its printed digits go soft, so legibility is not the test.
 - An account handle, an email address, or a hostname.
 - A BSSID, and the SSID beside it. Public databases map an access point's hardware address to the coordinates where it was seen.
