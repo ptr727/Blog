@@ -74,6 +74,10 @@ def tiff_tags(raw: bytes) -> set[str]:
         return found
     fmt = "<" if raw[:2] == b"II" else ">"
     try:
+        # A TIFF header carries 42 after the byte order.
+        # Without that check, any data opening II or MM sends the walk chasing random offsets.
+        if struct.unpack_from(fmt + "H", raw, 2)[0] != 42:
+            return found
         pending = [struct.unpack_from(fmt + "I", raw, 4)[0]]
     except struct.error:
         return found
