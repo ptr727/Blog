@@ -100,6 +100,7 @@ Check for each of these, redact on sight, and argue afterwards if the image need
 - A service identifier that still resolves, such as a sensor ID or a map link carrying coordinates. Link the service rather than the instance.
 - A child's name, and most of all where it labels a room beside an occupancy time.
 - Anything belonging to someone else. That consent was never the author's to give.
+- A private-range address, which Voice already requires be replaced with a placeholder, in a screenshot as much as in prose.
 
 ### Never In Scope
 
@@ -107,14 +108,13 @@ These are settled, in new media and old alike, and reopening one wastes a review
 
 - **The author's own name.** It is on the About page and in the site config. In a nav bar or a window title it is interface chrome.
 - **Coarse location.** A city, a country, or a timezone. The street and the block are a different matter.
-- **Private-range addresses.** Reaching one needs presence on the network already.
 - **Generic room and device labels.** A thermostat zone named for a room, or an automation entity named for an appliance.
 
 ### Remediating an Image Already Published
 
 **A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else.
 
-The archive was reviewed image by image, and that review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. None of it was worth the damage.
+The archive was reviewed image by image, and that review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. Private-range addresses went too, since reaching one needs presence on the network already. None of it was worth the damage.
 
 Treat that as a judgment about the archive, never as a precedent for a new post.
 
