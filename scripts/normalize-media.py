@@ -215,9 +215,11 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
     """Normalize the media inside an archive, repacking it under the same entry names.
 
     Each member is read, decided on, and released before the next one, so peak memory is
-    one member rather than the whole archive twice over.
+    one member rather than the whole archive twice over. A member that needs normalizing
+    and cannot be normalized is named rather than passed over in silence.
     """
-    removed = []
+    removed: list[str] = []
+    stuck: list[str] = []
     with zipfile.ZipFile(path) as archive:
         for info in archive.infolist():
             if info.is_dir() or info.file_size > gate.SIZE_LIMIT:
@@ -230,9 +232,15 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
                 continue
             holds = gate.scan(data)
             unvouched = holds and holds != {"unrecognized container"}
-            if unvouched and normalize_member(data, path.parent) is not None:
-                removed.append(f"{info.filename}: {', '.join(sorted(holds))}")
+            if unvouched:
+                if normalize_member(data, path.parent) is not None:
+                    removed.append(f"{info.filename}: {', '.join(sorted(holds))}")
+                else:
+                    # Named rather than skipped, since the member stays as it is.
+                    stuck.append(f"{info.filename}: {', '.join(sorted(holds))}")
             del data
+    for line in stuck:
+        print(f"{path}!{line} -> needs a re-encode, which this does not do for you")
     if not (apply and removed):
         return removed
     scratch = path.with_name(f".normalize-{path.name}")
