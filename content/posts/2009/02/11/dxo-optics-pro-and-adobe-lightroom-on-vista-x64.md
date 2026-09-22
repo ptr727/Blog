@@ -10,7 +10,7 @@ tags:
 - x64
 post_id: '83'
 ---
-I bought my first SLR camera, a Canon EOS 20D, and my first wide angle lens, a Canon EF-S 10-22, several years ago. Amongst the many articles and reviews I read, online and in magazines, I came across a product called [DxO Optics Pro](http://www.dxo.com/us/photo/dxo_optics_pro), a product that would supposedly correct, amongst other things, lens distortion. This seemed like the perfect tool to help me with my wide angle pictures that looked very “fishy eyed”. And since DxO, then version 4, was receiving good reviews, I decided to trial the product. In those days the DxO licensing model was to pay per camera body and per lens module, not a cheap investment, but I really liked the results and so I purchased the product.
+I bought my first SLR camera, a Canon EOS 20D, and my first wide angle lens, a Canon EF-S 10-22, several years ago. Amongst the many articles and reviews I read, online and in magazines, I came across a product called [DxO Optics Pro](http://www.dxo.com/us/photo/dxo_optics_pro), a product that would supposedly correct, amongst other things, lens distortion. This seemed like the perfect tool to help me with my wide angle pictures that looked very "fishy eyed". And since DxO, then version 4, was receiving good reviews, I decided to trial the product. In those days the DxO licensing model was to pay per camera body and per lens module, not a cheap investment, but I really liked the results and so I purchased the product.
 
 
 
@@ -26,7 +26,7 @@ I switched from taking mostly JPG images to mostly RAW images, and manual correc
 
 
 
-In standalone mode DxO 5.3.2 worked great, but the integration with LR was not so great. The problem is that [DxO does not support integration with the x64 edition of LR](http://forum.dxo.com/showthread.php?t=2265), when calling DxO from x64 LR nothing happens. The DxO installer is also not fully x64 compatible, it creates a start menu shortcut to the “DxO Download Manager v5”, but it sets the path to “C:\\Program Files\\DxO Labs\\DxO Download Manager v5\\DxODownloadManager.exe” instead of “C:\\Program Files (x86)\\DxO Labs\\DxO Download Manager v5\\DxODownloadManager.exe”, obviously a hardcoded path instead of dynamically discovered path.
+In standalone mode DxO 5.3.2 worked great, but the integration with LR was not so great. The problem is that [DxO does not support integration with the x64 edition of LR](http://forum.dxo.com/showthread.php?t=2265), when calling DxO from x64 LR nothing happens. The DxO installer is also not fully x64 compatible, it creates a start menu shortcut to the "DxO Download Manager v5", but it sets the path to "C:\\Program Files\\DxO Labs\\DxO Download Manager v5\\DxODownloadManager.exe" instead of "C:\\Program Files (x86)\\DxO Labs\\DxO Download Manager v5\\DxODownloadManager.exe", obviously a hardcoded path instead of dynamically discovered path.
 
 
 
@@ -34,7 +34,7 @@ Before I get to DxO, I think Adobe should have supported in-process DLL based pl
 
 
 
-So how does DxO integrate with LR in light of the lacking plugin model? When you edit an image using an external editor, LR launches the editor with the image path specified on the commandline. LR provides three options for what file is passed to the external editor; the original file, a copy of the original file, or a copy of the LR processed version of the file. The problem is that when the file is a RAW file, LR only allows a copy of the LR processed version of the file to be passed, and this processed file is useless to a RAW editor.
+So how does DxO integrate with LR in light of the lacking plugin model? When you edit an image using an external editor, LR launches the editor with the image path specified on the commandline. LR provides three options for what file is passed to the external editor. The original file, a copy of the original file, or a copy of the LR processed version of the file. The problem is that when the file is a RAW file, LR only allows a copy of the LR processed version of the file to be passed, and this processed file is useless to a RAW editor.
 
 
 
@@ -42,7 +42,7 @@ DxO, being a RAW file processor, obviously needs access to the original RAW file
 
 
 
-DxO can run in one of two modes; “plugin-in” mode (their spelling, not mine) or normal mode. When launched by LR, DxO runs in plugin mode. In plugin mode DxO only allows processing of the images passed in on the commandline, and the output processing automatically replaces those same input files.
+DxO can run in one of two modes: "plugin-in" mode (their spelling, not mine) or normal mode. When launched by LR, DxO runs in plugin mode. In plugin mode DxO only allows processing of the images passed in on the commandline, and the output processing automatically replaces those same input files.
 
 
 
@@ -50,7 +50,7 @@ Since DxO does not have a way of explicitly launching in plugin mode, they infer
 
 
 
-So why does DxO not work when launched from the x64 edition of LR? When launching DxO from x64 LR the DxO process starts and immediately terminates without showing any UI. It appears that DxO fails to determine information about the parent process when the parent process is a x64 process. I am speculating, but this is probably related to the technique that DxO is using to determine information about the parent process. Typically one would use the PS API or ToolHelp API’s, along with NtQueryInformationProcess(), but when mixing x86 and x64 process types, they do not provide consistent information, and extra handling is required by using IsWow64Process(). A more portable, but less reliable, alternative is to use WMI. DxO is not a native application, it is written in .NET, presumable C#, but it apparently still suffers from some x64 related problem.
+So why does DxO not work when launched from the x64 edition of LR? When launching DxO from x64 LR the DxO process starts and immediately terminates without showing any UI. It appears that DxO fails to determine information about the parent process when the parent process is a x64 process. I am speculating, but this is probably related to the technique that DxO is using to determine information about the parent process. Typically one would use the PS API or ToolHelp API's, along with NtQueryInformationProcess(), but when mixing x86 and x64 process types, they do not provide consistent information, and extra handling is required by using IsWow64Process(). A more portable, but less reliable, alternative is to use WMI. DxO is not a native application, it is written in .NET, presumable C#, but it apparently still suffers from some x64 related problem.
 
 
 
@@ -58,7 +58,7 @@ So how do we solve the problem? You can install both the x64 and the x86 edition
 
 
 
-Instead of inferring the mode of operation by looking at attributes of the parent process, it would have been much simpler, and it would have avoided the x64 problem, if DxO had a stub executable that always launched in plugin mode. And, it would have been even better if LR supported DLL based plugins with programmatic access to image information instead of inferring it. But, DxO would then have had to write a native x64 DLL, and if they can’t even write WoW64 compatible x86 code, I don’t know if that would have been a solution.
+Instead of inferring the mode of operation by looking at attributes of the parent process, it would have been much simpler, and it would have avoided the x64 problem, if DxO had a stub executable that always launched in plugin mode. And, it would have been even better if LR supported DLL based plugins with programmatic access to image information instead of inferring it. But, DxO would then have had to write a native x64 DLL, and if they can't even write WoW64 compatible x86 code, I don't know if that would have been a solution.
 
 
 
@@ -74,7 +74,7 @@ I compared the behavior of DxO on a x86 system with the behavior on a x64 system
 
 
 
-I created a C++ project in Visual Studio 2008, and wrote code to take the input commandline parameters and call the DxO executable with the same parameters as passed in by LR. I built a x86 binary, renamed the output file Lightroom.exe, and when I run “Lightroom.exe c:\\test\\test-edit.tif”, DxO would open in plugin mode, but would not load the original test.cr2 file. I added version information to the proxy project, and matched the version information contents to that of the real LR binary. Repeating the test, DxO now believes that it was called by LR and it opens in plugin mode and it finds the correct RAW file.
+I created a C++ project in Visual Studio 2008, and wrote code to take the input commandline parameters and call the DxO executable with the same parameters as passed in by LR. I built a x86 binary, renamed the output file Lightroom.exe, and when I run "Lightroom.exe c:\\test\\test-edit.tif", DxO would open in plugin mode, but would not load the original test.cr2 file. I added version information to the proxy project, and matched the version information contents to that of the real LR binary. Repeating the test, DxO now believes that it was called by LR and it opens in plugin mode and it finds the correct RAW file.
 
 
 
@@ -88,6 +88,6 @@ To install simply extract, rename DxOProxy.exe to Lightroom.exe, and change the 
 
 
 
-In closing, and in light of my previous post related to my trouble with the [Google Email Uploader on x64](/2009/01/google-email-uploader-on-vista-x64.html); with all the available programming documentation, and free compilers, and free virtualization testing environments, why is it so difficult for some ISV’s to produce quality and compatible software?
+In closing, and in light of my previous post related to my trouble with the [Google Email Uploader on x64](/2009/01/google-email-uploader-on-vista-x64.html). With all the available programming documentation, and free compilers, and free virtualization testing environments, why is it so difficult for some ISV's to produce quality and compatible software?
 
 

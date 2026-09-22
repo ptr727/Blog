@@ -25,7 +25,7 @@ Below are screenshots of the configuration process, starting with online account
 
 [![Create.Account](/media/2012/09/create-account_thumb.png)](/media/2012/09/create-account.png)[![Setup.1](/media/2012/09/setup-1_thumb.png)](/media/2012/09/setup-1.png)[![Setup.2](/media/2012/09/setup-2_thumb.png)](/media/2012/09/setup-2.png)[![Setup.3](/media/2012/09/setup-3_thumb.png)](/media/2012/09/setup-3.png)[![Setup.4](/media/2012/09/setup-4_thumb.png)](/media/2012/09/setup-4.png)[![Setup.5](/media/2012/09/setup-5_thumb.png)](/media/2012/09/setup-5.png)[![Setup.6](/media/2012/09/setup-6_thumb.png)](/media/2012/09/setup-6.png)[![Setup.7](/media/2012/09/setup-7_thumb.png)](/media/2012/09/setup-7.png)[![Setup.8](/media/2012/09/setup-8_thumb.png)](/media/2012/09/setup-8.png)[![Setup.9](/media/2012/09/setup-9_thumb.png)](/media/2012/09/setup-9.png)[![Setup.10](/media/2012/09/setup-10_thumb.png)](/media/2012/09/setup-10.png)[![Setup.11](/media/2012/09/setup-11_thumb.png)](/media/2012/09/setup-11.png)[![Setup.12](/media/2012/09/setup-12_thumb.png)](/media/2012/09/setup-12.png)
 
-At this point everything appeared to be setup and working, except the “To my plants” button was not working. On clicking the “Plants” link, I got to a screen where I can add my first plant, but nothing happened when I clicked on or dragged the pot icon. I tried using Chrome and Internet Explorer, same thing.
+At this point everything appeared to be setup and working, except the "To my plants" button was not working. On clicking the "Plants" link, I got to a screen where I can add my first plant, but nothing happened when I clicked on or dragged the pot icon. I tried using Chrome and Internet Explorer, same thing.
 
 The following day I logged in from the office, and now the plants link worked and dragging the pot to the canvas let me create my first plant. Maybe the sensor had to check in with the backend before the backend allowed me to add a plant?
 
@@ -35,15 +35,15 @@ Below are screenshots of the plant selection process:
 
 [![Plants.8](/media/2012/09/plants-8_thumb.png)](/media/2012/09/plants-8.png)[![Plants.2](/media/2012/09/plants-2_thumb.png)](/media/2012/09/plants-2.png)[![Plants.3](/media/2012/09/plants-3_thumb.png)](/media/2012/09/plants-3.png)[![Plants.4](/media/2012/09/plants-4_thumb.png)](/media/2012/09/plants-4.png)[![Plants.5](/media/2012/09/plants-5_thumb.png)](/media/2012/09/plants-5.png)[![Plants.6](/media/2012/09/plants-6_thumb.png)](/media/2012/09/plants-6.png)[![Plants.7](/media/2012/09/plants-7_thumb.png)](/media/2012/09/plants-7.png)
 
-After adding the plant, you have to associate the sensor with the plant.  But, that required that I press the button on the sensor, and since I was in the office, I had to wait until the next day at home to continue the setup.
+After adding the plant, you have to associate the sensor with the plant.  But, that required that I press the button on the sensor, and since I was in the office, I had to wait until the next day at home to continue the setup.
 
 Once configured, the sensor enters a calibration period that will take about a week. In the mean time it is displaying semi-interesting information:
 
 [![Info.1](/media/2012/09/info-1_thumb.png)](/media/2012/09/info-1.png)[![Info.2](/media/2012/09/info-2_thumb.png)](/media/2012/09/info-2.png)[![Info.3](/media/2012/09/info-3_thumb.png)](/media/2012/09/info-3.png)[![Info.4](/media/2012/09/info-4_thumb.png)](/media/2012/09/info-4.png)
 
-The [iPhone app](http://www.koubachi.com/itunes?locale=en) shows similar information to the website, and includes push notifications of events. So far nothing exciting has happened, no email notifications, no push notification, I guess I’ll have to wait until the sensor completes the calibration procedure, or until I sacrifice a plant for the sake of curiosity.
+The [iPhone app](http://www.koubachi.com/itunes?locale=en) shows similar information to the website, and includes push notifications of events. So far nothing exciting has happened, no email notifications, no push notification, I guess I'll have to wait until the sensor completes the calibration procedure, or until I sacrifice a plant for the sake of curiosity.
 
-In the mean time I’ll install some more sensors in the other house plants. I was planning on installing sensors in the patio plants, but this sensor is apparently not quite rain proof, and an outdoor sensor has been [announced](http://www.koubachi.com/news?locale=en), to be released in October.
+In the mean time I'll install some more sensors in the other house plants. I was planning on installing sensors in the patio plants, but this sensor is apparently not quite rain proof, and an outdoor sensor has been [announced](http://www.koubachi.com/news?locale=en), to be released in October.
 
 Oh, and in case you were concerned about effect of the Wi-Fi radiation on your plants, there is a [FAQ](http://www.koubachi.com/support/categories/12?locale=en) entry for that ![Smile](/media/2012/09/wlemoticon-smile.png)
 

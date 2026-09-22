@@ -30,7 +30,7 @@ Summary:
 - Playback of MKV H.264 in [Windows Media Player](http://www.microsoft.com/windows/windowsmedia/player/default.aspx), [Windows Media Center](http://www.microsoft.com/windows/windows-media-center/), [MediaPortal](http://www.team-mediaportal.com/), or [XBMC](http://xbmc.org/) requires the installation of [Haali Media Splitter](http://haali.su/mkv/), and [ffdshow](http://ffdshow-tryout.sourceforge.net/) audio and video decoders.
 - For [AC-3](http://en.wikipedia.org/wiki/Dolby_Digital) / [DTS](http://en.wikipedia.org/wiki/DTS_(sound_system)) pass-through playback via [S/PDIF](http://en.wikipedia.org/wiki/S/PDIF) / [HDMI](http://en.wikipedia.org/wiki/Hdmi), the ffdshow audio decoder is required.
 
-I am not an expert in how these things work, but I have a basic understanding of video playback on Windows platforms, so let’s start with the file format; an MKV file is a [Matroska Media Container](http://www.matroska.org/) file. A MKV file can contain multiple audio-, video-, subtitle-, and other, streams. A MKV file is not a video or audio compression format, it is just a container.
+I am not an expert in how these things work, but I have a basic understanding of video playback on Windows platforms, so let's start with the file format. An MKV file is a [Matroska Media Container](http://www.matroska.org/) file. A MKV file can contain multiple audio-, video-, subtitle-, and other, streams. A MKV file is not a video or audio compression format, it is just a container.
 
 To play the contents of a MKV file, you need a de-multiplexer or splitter, the splitter understands the container format, and produces separate output streams.
 
@@ -80,9 +80,9 @@ Below are the MPC-HC graphs for CPU and GPU utilization:
 
 In order for WMP to open MKV files, a splitter is required, I used [Haali Media Splitter](http://haali.su/mkv/).
 
-I tested playback with three different video decoders; the [Microsoft DTV-DVD Video Decoder](http://msdn.microsoft.com/en-us/library/dd390679(VS.85).aspx), [CoreCodec CoreAVC](http://corecodec.com/products/coreavc), and [ffdshow tryouts](http://ffdshow-tryout.sourceforge.net/).
+I tested playback with three different video decoders. The [Microsoft DTV-DVD Video Decoder](http://msdn.microsoft.com/en-us/library/dd390679(VS.85).aspx), [CoreCodec CoreAVC](http://corecodec.com/products/coreavc), and [ffdshow tryouts](http://ffdshow-tryout.sourceforge.net/).
 
-I have read that it is possible to get subtitles working with WMP, but even with enabling subtitles in ffdshow, I could not get subtitles to show in WMP. I am sure it is possible, I just didn’t spend the effort to make it work.
+I have read that it is possible to get subtitles working with WMP, but even with enabling subtitles in ffdshow, I could not get subtitles to show in WMP. I am sure it is possible, I just didn't spend the effort to make it work.
 
 When multiple codecs are installed, WMP player uses the preferred codec for playback. The preferred codec can be set using the [Preferred Filter Tweaker for Windows 7](http://www.codecguide.com/windows7_preferred_filter_tweaker.htm), or it may be easier to just install one codec at a time:
 
@@ -96,7 +96,7 @@ In order to use hardware acceleration in ffdshow, the ffdshow DXVA codec needs t
 
 [![ffdshow.Hardware.Acceleration](/external/49b5adea92320e7c.png)](/external/18b9b5d4b9954005.png)
 
-You may also need to change the DirectShow control options in ffdshow to allow the filter to be used in your player’s process space:
+You may also need to change the DirectShow control options in ffdshow to allow the filter to be used in your player's process space:
 
 [![ffdshow.DirectShow.Control](/external/62f61a44ff65e933.png)](/external/496ff9c113b56264.png)
 
@@ -154,9 +154,9 @@ Below are the WMP with ffdshow DXVA graphs for CPU and GPU utilization:
 
 As with WMP, MCE also requires the [Haali Media Splitter](http://haali.su/mkv/) to open MKV files. And to use ffdshow instead of the default WMF decoders, set the HMS \[Use custom media type for H.264\] option to \[Yes\].
 
-I tested playback with two different video decoders; the [Microsoft DTV-DVD Video Decoder](http://msdn.microsoft.com/en-us/library/dd390679(VS.85).aspx), and [ffdshow tryouts](http://ffdshow-tryout.sourceforge.net/).
+I tested playback with two different video decoders. The [Microsoft DTV-DVD Video Decoder](http://msdn.microsoft.com/en-us/library/dd390679(VS.85).aspx), and [ffdshow tryouts](http://ffdshow-tryout.sourceforge.net/).
 
-I have read that it is possible to get subtitles working with MCE, but even with enabling subtitles in ffdshow, I could not get subtitles to show in WMP. I also tried the [Media Control](http://damienbt.free.fr/) plugin that is supposed to enable remote control support for ffdshow subtitles, but I could not get it to work. As with WMP, I am sure it is possible, I just didn’t spend the effort to make it work.
+I have read that it is possible to get subtitles working with MCE, but even with enabling subtitles in ffdshow, I could not get subtitles to show in WMP. I also tried the [Media Control](http://damienbt.free.fr/) plugin that is supposed to enable remote control support for ffdshow subtitles, but I could not get it to work. As with WMP, I am sure it is possible, I just didn't spend the effort to make it work.
 
 I could not find a way to loop playback in MCE, or in MediaPortal, or in XBMC, so instead I manually played the video three times in a row. The resulting fan speed, CPU and GPU temperature graphs are not very interesting, so I am only including the CPU and GPU utilization graphs.
 
@@ -176,7 +176,7 @@ Below are the MCE with ffdshow DXVA graphs for CPU and GPU utilization:
 
 [![MediaPortal.Codec](/external/4cf0a8a95c3a9e49.png)](/external/c41341554aa94759.png)
 
-I tested playback with two different video decoders; the [Microsoft DTV-DVD Video Decoder](http://msdn.microsoft.com/en-us/library/dd390679(VS.85).aspx), and [ffdshow tryouts](http://ffdshow-tryout.sourceforge.net/).
+I tested playback with two different video decoders. The [Microsoft DTV-DVD Video Decoder](http://msdn.microsoft.com/en-us/library/dd390679(VS.85).aspx), and [ffdshow tryouts](http://ffdshow-tryout.sourceforge.net/).
 
 Below are the MP with Microsoft DTV-DVD Video Decoder graphs for CPU and GPU utilization:
 
@@ -196,7 +196,7 @@ In order to switch between codecs used in XBMC DSPlayer, you have to edit a conf
 
 I read that DXVA2 support will be natively supported in future XBMC builds. The DSPlayer build of XBMC is much newer than the latest released XBMC. This build of XBMC included native support for DXVA2 without the need to use DSPlayer. The DXVA2 option is in the system menu. I did notice that the first few seconds of playback produced screen artifacts, hopefully this will be corrected when this functionality is released.
 
-I tested playback with three different video decoders; built in DXVA2, DSPlayer MPC codec, and DSPlayer [ffdshow tryouts](http://ffdshow-tryout.sourceforge.net/).
+I tested playback with three different video decoders: built in DXVA2, DSPlayer MPC codec, and DSPlayer [ffdshow tryouts](http://ffdshow-tryout.sourceforge.net/).
 
 Below are the XBMC with DXVA2 graphs for CPU and GPU utilization:
 
@@ -234,7 +234,7 @@ MPC-HC2700RPM62C84CLowHighWMP, DTV-DVD2400RPM59C78CVery LowLowWMP, CoreAVC1800RP
 
 Conclusion:
 
-If all you need is video playback, you can’t go wrong with [Media Player Classic Home Cinema](http://mpc-hc.sourceforge.net/).
+If all you need is video playback, you can't go wrong with [Media Player Classic Home Cinema](http://mpc-hc.sourceforge.net/).
 
 All other configurations require [Haali Media Splitter](http://haali.su/mkv/) and [ffdshow](http://ffdshow-tryout.sourceforge.net/).
 
@@ -242,7 +242,7 @@ If you want to use Windows Media Center or Windows Media Player with subtitles, 
 
 If you run Windows and want a MCE alternative that is easily configurable, use [MediaPortal](http://www.team-mediaportal.com/).
 
-If you need Mac or Linux support use [XBMC](http://xbmc.org/), or if don’t mind configuration files and bleeding-edge code on Windows, use [DSPlayer](http://forum.xbmc.org/showthread.php?t=61355).
+If you need Mac or Linux support use [XBMC](http://xbmc.org/), or if don't mind configuration files and bleeding-edge code on Windows, use [DSPlayer](http://forum.xbmc.org/showthread.php?t=61355).
 
 As long as your player of choice supports DXVA, the ID11 has no problem playing 1080p MKV H.264 content.
 

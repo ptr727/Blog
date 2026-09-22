@@ -96,7 +96,7 @@ I am not particular to any one brand of motherboard, but I normally use either [
 
 I chose the [Intel DP45SG](http://www.intel.com/products/desktop/motherboards/DP45SG/DP45SG-overview.htm "Intel DP45SG") because it has already undergone several revisions to iron out the kinks, and it provided the basic functionality I needed without any additional bells and whistles I don't need.
 
-With the release of the i5 and i7 processors, and P55 chipsets, I chose to stay with the P45 chipset because the Core processors and dual-channel DDR3 memory is is reasonably cheap.
+With the release of the i5 and i7 processors, and P55 chipsets, I chose to stay with the P45 chipset because the Core processors and dual-channel DDR3 memory is reasonably cheap.
 
 I went with an [Intel Core 2 Quad Q9650 3GHz](http://processorfinder.intel.com/details.aspx?sSpec=SLB8W "Intel Core 2 Quad Q9650 3GHz") processor, and [Kingston KHX1333C7D3K2](http://www.ec.kingston.com/ecom/configurator_new/PartsInfo.asp?ktcpartno=KHX1333C7D3K2/4G "Kingston KHX1333C7D3K2") memory.
 
@@ -154,7 +154,7 @@ I have the 405 revision board, but without access to an older board, I really do
 
 I used [Lavalys EVEREST](http://www.lavalys.com/ "Lavalys EVEREST") to monitor the fan speeds from within Windows, at idle the 80mm fans run around 410rpm, and the 140mm fan at around 1100rpm.
 
-EVEREST does however report the wrong fan labels; System should be AUX, Chassis should be Front, and Power Supply should be Rear.
+EVEREST does however report the wrong fan labels: System should be AUX, Chassis should be Front, and Power Supply should be Rear.
 
 I [posted the mismatch](http://www.lavalys.com/forum/index.php?showtopic=4712 "posted the mismatch") on the EVEREST forum, I hope they fix it at some point.
 

@@ -17,7 +17,7 @@ If I ignore the warning, the install proceeds but then fails to install .NET 3.5
 
 After a little searching and experimentation I found a way to install without any problems:  
 1\. Create a slipstreamed SQL Server 2008 SP1 install, follow the instructions [here](http://blogs.msdn.com/petersad/archive/2009/02/25/sql-server-2008-creating-a-merged-slisptream-drop.aspx).  
-I set my my PCUSOURCE=".\\PCU" and that worked fine.  
+I set my PCUSOURCE=".\\PCU" and that worked fine.  
 2\. Add .NET 3.5 by going to server manager and adding the .NET 3.5.1 feature.  
 3\. Install by running SETUP.EXE.
 

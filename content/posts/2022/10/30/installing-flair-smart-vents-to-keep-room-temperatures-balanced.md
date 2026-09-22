@@ -39,7 +39,7 @@ In talking to vendors, I'm told a big drive in California is the energy efficien
 
 This year I actually scheduled home visits from two [Mitsubishi Diamond Contractors](https://www.mitsubishicomfort.com/articles/the-diamond-contractor-a-homeowners-best-friend). Both were very professional, knowledgeable, and very detailed in their quotes. Both vendors suggested reusing some of the existing ducting to service common areas, and only installing dedicated units for the bedrooms, office, game room, etc.
 
-I anticipated the cost being "not cheap"; all new equipment, Covid premiums, new line sets (inverter needs supply and return lines insulated), new electrical (I have 30A per compressor they need 50A), ceiling recessed units (no wall warts), drywall opened, ceilings opened, ducting, venting, condensate drainage, labor, labor, and labor. But, I was not quite prepared for just how $$$ expensive, and I decided to evaluate some of the less optimal but cheaper alternatives.
+I anticipated the cost being "not cheap": all new equipment, Covid premiums, new line sets (inverter needs supply and return lines insulated), new electrical (I have 30A per compressor they need 50A), ceiling recessed units (no wall warts), drywall opened, ceilings opened, ducting, venting, condensate drainage, labor, labor, and labor. But, I was not quite prepared for just how $$$ expensive, and I decided to evaluate some of the less optimal but cheaper alternatives.
 
 I am not completely foregoing the idea of a complete retrofit, but maybe not by itself, but as part of a larger renovation that justifies the cost of the finishing work (finish carpentry, drywall, and painting not included in quotes). And to be clear, if I were to build a new house today, I would not hesitate to install a multi-zone split unit variable speed inverter system. The immediate comfort and long term energy savings would absolutely be worth it, and installing it as part of a new construction shares much of the cost that has to be double paid when retrofitting.
 
@@ -47,7 +47,7 @@ I am not completely foregoing the idea of a complete retrofit, but maybe not by 
 
 I was back to dealing with my existing system and how to add zoning. I eliminated the option of a damper system as it would require construction to install a bypass, dampers, and variable speed blower, quickly getting to multi-zone effort if not pricing. So I took another look at individually controlled vents, something I've seen in the startup space, but mostly ignored due to not wanting to invest in unproven technology.
 
-I looked at three vendors; [FLAIR](https://flair.co/), [Keen](https://keenhome.io/), and [Ecovent](https://keenhome.io/pages/ecovent-get-started). From what I can tell Keen acquired Ecovent, so that leaves two vendors and three products. Ecovent does not publish any pricing, and it seems they cater to contractors only. Neither Keen nor Ecovent had good reviews, that left Flair, and since Flair is now available at Home Depot and Lowes, and they got Series-A [funding](https://www.crunchbase.com/organization/flair-3) in September, I considered the risk of them disappearing overnight low.
+I looked at three vendors: [FLAIR](https://flair.co/), [Keen](https://keenhome.io/), and [Ecovent](https://keenhome.io/pages/ecovent-get-started). From what I can tell Keen acquired Ecovent, so that leaves two vendors and three products. Ecovent does not publish any pricing, and it seems they cater to contractors only. Neither Keen nor Ecovent had good reviews, that left Flair, and since Flair is now available at Home Depot and Lowes, and they got Series-A [funding](https://www.crunchbase.com/organization/flair-3) in September, I considered the risk of them disappearing overnight low.
 
 #### Installation
 
@@ -87,7 +87,7 @@ I either didn't pay attention during the iOS onboarding steps, or I wasn't asked
 
 Next up was replacing a few of my vents with Flair vents, and I started in my office where I could keep an eye on the vent. I thought the install would be easy, remove old vent, install new vent, done, but it turns out it is much more effort than anticipated.
 
-The Flair vents are longer but narrower than my current vents, and that was a big problem; I had different color paint or unpainted drywall exposed, rough ridges from previously painted vents, wall scratches, and the most troublesome was drywall openings larger than the Flair vents.
+The Flair vents are longer but narrower than my current vents, and that was a big problem. I had different color paint or unpainted drywall exposed, rough ridges from previously painted vents, wall scratches, and the most troublesome was drywall openings larger than the Flair vents.
 
 I ended up removing the old vents, and visited my paint store several times to color match various wall or ceiling colors, I sanded, caulked, and patched drywall spaces around ducts. It took several weekends of my time, I am not a great at drywalling or painting, the result is not very pretty, but the vents are up.
 
@@ -121,7 +121,7 @@ With all the trouble caused by the too narrow vents, I wondered if there was a s
 {{< figure src="/media/2022/10/screenshot-2022-10-13-210127.png?w=751" alt="" caption="" >}}  
 {{< /gallery >}}  
 
-In my opinion making the vents smaller than common sizes is a major design flaw, and I do wonder if Flair designers and engineers ever actually field tested the vents on real ceilings or walls, or if they only focused on drop in replacement floor vents? So unless you are are doing new construction, or have perfect paint and drywall, get ready for patching and painting.
+In my opinion making the vents smaller than common sizes is a major design flaw, and I do wonder if Flair designers and engineers ever actually field tested the vents on real ceilings or walls, or if they only focused on drop in replacement floor vents? So unless you are doing new construction, or have perfect paint and drywall, get ready for patching and painting.
 
 #### Noise
 
@@ -244,7 +244,7 @@ I'll summarize my experience and opinions as follows:
 - The Flair support forum is not very active, and forum posts or direct support requests take, in my experience, about 3 days to get an answer, a tad long.
 - System offline email notifications do not contain a fault reason, and are not followed by a return to normal online operation notification, so one has to manually check if and why the system is offline. Flair support confirmed they do not send recovery alerts, while my expectation is to be alerted of faults and of recovery, as is pretty standard in other systems.
 - Puck seems expensive for what you get, no color, no touch, clunky tactile feel, on the plus side it is small and has a battery backup. For the price I would expect at least a color touchscreen.
-- Limited vent size selection, e.g. we use 10"x10" vents that are not available. The support postings say more sizes are coming, but based on article and forum post dates, they have have been saying that for years.
+- Limited vent size selection, e.g. we use 10"x10" vents that are not available. The support postings say more sizes are coming, but based on article and forum post dates, they have been saying that for years.
 - Flair as setpoint controller only offers temperature averaging, nothing more advanced. I was disappointed that more advanced capabilities, at least room prioritization was not offered, I feel this is a missed opportunity.
 - Multiple independent (heat/cool/auto/off) HVAC systems are configurable, but not functional in the same house when using different operating modes. The Flair UI gets confused when mixing modes, and Flair requires all HVAC units to be in the same operating mode at the same time, but does not warn of such a misconfiguration. I feel this is a major oversight, imagine using split units and needing to create a logical home for each unit, weird.
 - Controlling the Ecobee as setpoint controller from the Flair app results in weird states, e.g. changing Ecobee from Auto to Heat results in a heat mode and hold at whatever the current temperature was, requiring a mode reset from the Ecobee app in order to resume expected operation. I'd suggest not to make any changes from the Flair app unless Flair is the setpoint controller.

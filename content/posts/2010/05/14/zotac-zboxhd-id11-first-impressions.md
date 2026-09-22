@@ -62,7 +62,7 @@ This did not seem safe to me, I contacted Zotac support, and they said they will
 
 
 
- \[Update: 18 May 2010\]    
+ \[Update: 18 May 2010\]    
  Zotac support sent me the correct replacement cables free of charge:   
 [![](/media/2010/05/power-plug-new2.jpg?w=300)](/media/2010/05/power-plug-new5.jpg)
 
@@ -94,7 +94,7 @@ On booting there is just a Zotac logo, no BIOS instructions or POST messages.
 
 The instruction manual included in the box makes no mention of how to enter the BIOS.
 
-I tried a variety of keys that normally lets you enter the BIOS; ESC, DEL, F2, F10, F12, and eventually I was able to enter the BIOS.
+I tried a variety of keys that normally lets you enter the BIOS. ESC, DEL, F2, F10, F12, and eventually I was able to enter the BIOS.
 
 I changed the BIOS configuration to not show the logo, and on the next boot I could see that F11 lets me choose a boot device, and DEL enters the BIOS setup.
 
@@ -232,7 +232,7 @@ Below is a picture of the GPU and CPU temperatures in EVEREST Ultimate Edition:
 
 Two worked fine, but the third one had a video corruption problem on the BIOS and boot screens.
 
-I tried various outputs; DVI-D, DVI-I, VGA, and various monitors, same problem.
+I tried various outputs. DVI-D, DVI-I, VGA, and various monitors, same problem.
 
 I filed a RMA with NewEgg, and returned the on ID11 for an exchange.
 
@@ -242,7 +242,7 @@ Below is picture of the screen corruption:
 
 [![](http://docs.google.com/File?id=dcmzmbww_119gwqzfxcn_b)](http://docs.google.com/File?id=dcmzmbww_119gwqzfxcn_b)
 
-So far I have mixed feelings; the weird power plug, the fan noise, the heat, the screen corruption, are all negatives, but the device still shows promise.
+So far I have mixed feelings. The weird power plug, the fan noise, the heat, the screen corruption, are all negatives, but the device still shows promise.
 
 In the coming days I will connect the device to my home theater, and compare the behavior while running [Windows Media Center](http://www.microsoft.com/windows/windows-media-center/get-started/default.aspx "Windows Media Center"), [XBMC](http://xbmc.org/ "XBMC"), and [Media-Portal](http://www.team-mediaportal.com/ "Media-Portal").
 

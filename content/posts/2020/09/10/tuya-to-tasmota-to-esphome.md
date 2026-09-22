@@ -58,7 +58,7 @@ Here are the steps I took to convert the plugs from Tuya to Tasmota to ESPHome:
 1. After a few seconds the device will connect to the AP hosted by the Tuya Convert app, and you will be asked what firmware to use for programming. I used the default Tasmota firmware included with the package, and selected option 2 for `tasmota.bin`. The plug rebooted after a successful firmware update.
 1. Use your phone to connect to the `tasmota-xxxx` WiFi network, your phone will display the captive portal page, and allow you to configure the plug to connect to your WiFi network. Make a note of the device name, same as the SSID, you can use this later instead of looking up the DHCP address.
 1. After the device reboots, it will connect to your WiFi network using DHCP. Open the device web page in your browser by using the device name, e.g. `http://tasmota-xxxx/`, or look at your router and the DHCP page to find the device IP address. My device showed it was running Tasmota v8.1.0.2.
-1. Per the [migration](https://esphome.io/guides/migrate_sonoff_tasmota.html) guide, a configuration change has to be made before flashing Tasmota v8.x to ESPHome v1.14.x firmware. Open the Tasmota console and enter `SetOption78 1`, then return to the main menu to complete the firmware update. If you do not set this option, the ESPHome firmware update will fail.
+1. Per the [migration](https://esphome.io/guides/migrate_sonoff_tasmota.html) guide, a configuration change has to be made before flashing Tasmota v8.x to ESPHome v1.14.x firmware. Open the Tasmota console and enter `SetOption78 1`, then return to the main menu to complete the firmware update. If you do not set this option, the ESPHome firmware update will fail.
 1. Create a new ESPHome device in the ESPHome console, select Generic ESP8266 as device type, and enter the WiFi details. The detailed device configuration should be done later. Converting from Tasmota to ESPHome should be done with a minimal firmware configuration. Compile and download the firmware file to disk.
 1. Open the Tasmota web page, and upgrade the firmware using the ESPHome firmware file previously saved to disk.
 1. On a successful upgrade the device will reboot, and web page will change from Tasmota to ESPHome, and the device will show up alive in the ESPHome console.
@@ -169,7 +169,7 @@ The "calibrated" results are much better than raw values, but still not accurate
 
 Like I said, I'm no ESPHome expert, but maybe this helps somebody that is also getting started.
 
-I created templates for the X5P and SH331 plugs, and then created instance YAML files for each plug instance. The upcoming ESPHome 1.15 introduces a native concept of [packages](https://next.esphome.io/guides/configuration-types.html#packages), that should make it easier to avoid code duplication, e.g. note the large large code duplication between X5P and SH331 templates.
+I created templates for the X5P and SH331 plugs, and then created instance YAML files for each plug instance. The upcoming ESPHome 1.15 introduces a native concept of [packages](https://next.esphome.io/guides/configuration-types.html#packages), that should make it easier to avoid code duplication, e.g. note the large code duplication between X5P and SH331 templates.
 
 aoycocr\_x5p\_1.yaml:
 

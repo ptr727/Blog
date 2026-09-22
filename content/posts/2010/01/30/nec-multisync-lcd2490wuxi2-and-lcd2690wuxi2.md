@@ -20,15 +20,15 @@ The alternative would have been [EIZO ColorEdge](http://www.eizo.com/global/ "EI
 
 
 
-Since I had a [hard time calibrating](/2009/06/dell-2408wfp-and-spyder-3-elite.html "hard time calibrating") the wide color gamut DELL monitors in the past, so it was very important that the NEC monitors be correctly calibrated.
+Since I had a [hard time calibrating](/2009/06/dell-2408wfp-and-spyder-3-elite.html "hard time calibrating") the wide color gamut DELL monitors in the past, so it was very important that the NEC monitors be correctly calibrated.
 
-As such, I also purchased the monitors with the [NEC SpectraView II](http://www.necdisplay.com/SupportCenter/Monitors/spectraview2/ "NEC SpectraView II") calibration kits.
+As such, I also purchased the monitors with the [NEC SpectraView II](http://www.necdisplay.com/SupportCenter/Monitors/spectraview2/ "NEC SpectraView II") calibration kits.
 
 
 
-At my office I use [NEC MultiSync LCD2490WUXi2](http://www.necdisplay.com/Products/Product/?product=29d41c3a-c07c-4dda-a199-13b8823de971 "NEC MultiSync LCD2490WUXi2") monitors, they have very good sRGB color reproduction, ideal for office and web graphics.
+At my office I use [NEC MultiSync LCD2490WUXi2](http://www.necdisplay.com/Products/Product/?product=29d41c3a-c07c-4dda-a199-13b8823de971 "NEC MultiSync LCD2490WUXi2") monitors, they have very good sRGB color reproduction, ideal for office and web graphics.
 
-At my home office I use [NEC MultiSync LCD2690WUXi2](http://www.necdisplay.com/Products/Product/?product=8899a96d-28dc-484f-a4de-14309a636738 "NEC MultiSync LCD2690WUXi2") monitors, they have very good AdobeRGB color reproduction, ideal for photo graphics.
+At my home office I use [NEC MultiSync LCD2690WUXi2](http://www.necdisplay.com/Products/Product/?product=8899a96d-28dc-484f-a4de-14309a636738 "NEC MultiSync LCD2690WUXi2") monitors, they have very good AdobeRGB color reproduction, ideal for photo graphics.
 
 
 
@@ -44,11 +44,11 @@ As I replaced one of the DELL monitors that was connected via a KVM with the NEC
 
 
 
-I was using a [DELL UltraSharp 2405FPW](http://support.dell.com/support/edocs/monitors/2405fpw/en/index.htm "DELL UltraSharp 2405FPW") monitor with a [StarTech StarView SV431DVIUAHR](http://www.startech.com/item/SV431DVIUAHR-4-Port-High-Resolution-USB-DVI-Dual-Link-KVM-Switch-with-Audio.aspx "StarTech StarView SV431DVIUAHR") 4-Port Dual-Link DVI KVM switch.
+I was using a [DELL UltraSharp 2405FPW](http://support.dell.com/support/edocs/monitors/2405fpw/en/index.htm "DELL UltraSharp 2405FPW") monitor with a [StarTech StarView SV431DVIUAHR](http://www.startech.com/item/SV431DVIUAHR-4-Port-High-Resolution-USB-DVI-Dual-Link-KVM-Switch-with-Audio.aspx "StarTech StarView SV431DVIUAHR") 4-Port Dual-Link DVI KVM switch.
 
-Although the 2405PFW does not require dual-link, I occasionally used this switch with a [DELL UltraSharp 3007WFP-HC](http://support.dell.com/support/edocs/monitors/3007wfp/en/index.htm "DELL UltraSharp 3007WFP") monitor that does require dual-link.
+Although the 2405PFW does not require dual-link, I occasionally used this switch with a [DELL UltraSharp 3007WFP-HC](http://support.dell.com/support/edocs/monitors/3007wfp/en/index.htm "DELL UltraSharp 3007WFP") monitor that does require dual-link.
 
-I have also used this model KVM switch with [DELL UltraSharp 2408WFP](http://www.dell.com/us/en/dfo/peripherals/monitor_2408wfp/pd.aspx?refid=monitor_2408wfp&s=dfo "DELL UltraSharp 2408WFP") monitors wihtout any issues.
+I have also used this model KVM switch with [DELL UltraSharp 2408WFP](http://www.dell.com/us/en/dfo/peripherals/monitor_2408wfp/pd.aspx?refid=monitor_2408wfp&s=dfo "DELL UltraSharp 2408WFP") monitors wihtout any issues.
 
 
 
@@ -138,9 +138,9 @@ Although the IOGEAR KVM works and the StarTech does not, I still feel the key is
 
 In total I have five NEC monitors, one LCD2490WUXi2 connected to the KVM in my office, two LCD2490WUXi2's connected as dual monitor to my office workstation, two LCD2690WUXi2's connected as dual monitor to my home office workstation.
 
-I purchased two of the monitors, model [LCD2690W2-BK-SV](http://www.necdisplay.com/Products/Product/?product=e46df7f2-40d7-4b16-b6ed-9c444e398f11 "LCD2690W2-BK-SV"), with the SpectraView II calibration kits included.
+I purchased two of the monitors, model [LCD2690W2-BK-SV](http://www.necdisplay.com/Products/Product/?product=e46df7f2-40d7-4b16-b6ed-9c444e398f11 "LCD2690W2-BK-SV"), with the SpectraView II calibration kits included.
 
-The "-BK" designation means the monitor is black, and the "-SW" designation means the "SVII-PRO-KIT" is included in the box, but the monitor is a [LCD2690WUXi2](http://www.necdisplay.com/Products/Product/?product=8899a96d-28dc-484f-a4de-14309a636738 "LCD2690WUXi2-BK").
+The "-BK" designation means the monitor is black, and the "-SW" designation means the "SVII-PRO-KIT" is included in the box, but the monitor is a [LCD2690WUXi2](http://www.necdisplay.com/Products/Product/?product=8899a96d-28dc-484f-a4de-14309a636738 "LCD2690WUXi2-BK").
 
 I happen to own an [X-Rite i1Display2](http://www.xrite.com/product_overview.aspx?ID=788 "X-Rite i1Display2") sensor, so it was obvious that the NEC sensor is a custom i1Display2 sensor.
 
@@ -180,7 +180,7 @@ Also, if I just rerun the gamma loader in the startup group, it works fine.
 
 
 
-I left a comment on the [SpectraView Feedback page](http://www.necdisplay.com/supportcenter/monitors/spectraview2/feedback/ "SpectraView Feedback page") describing the problem, and within a few hours I received an email from a support person asking for more details.
+I left a comment on the [SpectraView Feedback page](http://www.necdisplay.com/supportcenter/monitors/spectraview2/feedback/ "SpectraView Feedback page") describing the problem, and within a few hours I received an email from a support person asking for more details.
 
 The person suggested the problem is timing related, and that I use a startup manager to delay the loader.
 
@@ -220,7 +220,7 @@ I really enjoy these monitors, especially the consistent color reproduction of t
 
 The only comments I receive every time somebody visits my desk is how thick these monitors are.
 
-But, as as soon as they see the color reproduction and consistency, they forgive the fat 90's look.
+But, as soon as they see the color reproduction and consistency, they forgive the fat 90's look.
 
 
 

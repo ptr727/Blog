@@ -37,7 +37,7 @@ You can read more about "gamut" on [Wikipedia](http://en.wikipedia.org/wiki/Gamu
 
 
 
-With these displays the problem is basically that there is a big difference in appearance between an application that is color managed, such as Photoshop, and an application that is not color managed, such as the Windows desktop. The problem is is more noticeable when it comes to web browsers since none of the major browsers support color management.
+With these displays the problem is basically that there is a big difference in appearance between an application that is color managed, such as Photoshop, and an application that is not color managed, such as the Windows desktop. The problem is more noticeable when it comes to web browsers since none of the major browsers support color management.
 
 Here is a [page](http://www.gballard.net/psd/go_live_page_profile/embeddedJPEGprofiles.html "page") to test your browser's color manangement behavior.
 
