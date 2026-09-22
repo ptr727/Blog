@@ -65,6 +65,36 @@ def normalize_png(data: bytes) -> bytes | None:
     return None
 
 
+def exif_orientation(segment: bytes) -> int:
+    """The Orientation value in an Exif segment, or 1 where it says nothing."""
+    raw = segment[segment.find(b"Exif\x00\x00") + 6 :]
+    if raw[:2] not in (b"II", b"MM"):
+        return 1
+    fmt = "<" if raw[:2] == b"II" else ">"
+    try:
+        if struct.unpack_from(fmt + "H", raw, 2)[0] != 42:
+            return 1
+        offset = struct.unpack_from(fmt + "I", raw, 4)[0]
+        count = struct.unpack_from(fmt + "H", raw, offset)[0]
+        for index in range(count):
+            entry = offset + 2 + index * 12
+            if entry + 12 > len(raw):
+                break
+            if struct.unpack_from(fmt + "H", raw, entry)[0] == 0x0112:
+                return struct.unpack_from(fmt + "H", raw, entry + 8)[0]
+    except struct.error:
+        return 1
+    return 1
+
+
+def orientation_segment(value: int) -> bytes:
+    """A minimal Exif segment carrying nothing but Orientation."""
+    entry = struct.pack("<HHI", 0x0112, 3, 1) + struct.pack("<HH", value, 0)
+    tiff = b"II" + struct.pack("<HI", 42, 8) + struct.pack("<H", 1) + entry
+    body = b"Exif\x00\x00" + tiff + struct.pack("<I", 0)
+    return b"\xff\xe1" + struct.pack(">H", len(body) + 2) + body
+
+
 def normalize_jpeg(data: bytes) -> bytes | None:
     """Drop every APP and comment segment that is not on the allowlist."""
     out = bytearray(data[:2])
@@ -84,9 +114,15 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         if any(marker == m and segment.startswith(p) for m, p in gate.JPEG_APP_ALLOWED):
             keep = True
         elif marker == 0xE1 and segment.startswith(b"Exif\x00\x00"):
-            # An Exif segment with an unrecognized tag goes whole.
-            # Rewriting an IFD in place means re-computing every offset in it.
+            # An Exif segment with an unrecognized tag goes whole, since rewriting an IFD
+            # in place means re-computing every offset in it.
+            # Orientation decides which way the picture displays, so it is re-emitted on
+            # its own rather than going down with the segment that carried it.
             keep = not gate.exif_unrecognized(segment)
+            if not keep:
+                turned = exif_orientation(segment)
+                if turned not in (0, 1):
+                    out += orientation_segment(turned)
         elif 0xE0 <= marker <= 0xEF or marker == 0xFE:
             keep = False
         if marker == 0xDA:
@@ -358,9 +394,15 @@ def main() -> int:
     roots = [pathlib.Path(p) for p in args.paths] or [REPO / t for t in gate.TREES]
     targets: list[pathlib.Path] = []
     for root in roots:
-        targets.extend(
-            sorted(p for p in root.rglob("*") if p.is_file())
-        ) if root.is_dir() else targets.append(root)
+        if root.is_dir():
+            # A symlink is never followed, since an apply would rewrite its target.
+            targets.extend(
+                sorted(p for p in root.rglob("*") if p.is_file() and not p.is_symlink())
+            )
+        elif root.is_symlink():
+            print(f"{root}: symlink, not followed")
+        else:
+            targets.append(root)
 
     changed, reencode, saved = [], [], 0
     for path in targets:
