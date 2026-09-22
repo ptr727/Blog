@@ -48,8 +48,12 @@ XMP_GPS = b"exif:GPS"
 UNREADABLE = (
     "file too large to read",
     "member too large to read",
-    "unreadable archive",
+    "unreadable",
 )
+
+# A PNG text chunk expanding past this is reported rather than read.
+# A few compressed bytes can otherwise expand without bound.
+TEXT_LIMIT = 8 * 1024 * 1024
 
 # A TIFF tag whose presence in a carried file is a finding on its own.
 TAGS = {
@@ -149,10 +153,18 @@ def scan_jpeg(data: bytes) -> set[str]:
     return found
 
 
+def inflate(payload: bytes) -> bytes:
+    """Decompress a PNG text payload, refusing one that expands past the bound."""
+    out = zlib.decompressobj().decompress(payload, TEXT_LIMIT + 1)
+    if len(out) > TEXT_LIMIT:
+        raise ValueError("text chunk expands past the bound")
+    return out
+
+
 def png_text(chunk_type: bytes, body: bytes) -> bytes:
     """Return the payload of a PNG text chunk, decompressing zTXt."""
     if chunk_type == b"zTXt":
-        return zlib.decompress(body.split(b"\x00", 1)[1][1:])
+        return inflate(body.split(b"\x00", 1)[1][1:])
     if chunk_type == b"iTXt":
         # The layout is keyword NUL, compression flag, method, language NUL, translated NUL, text.
         key_end = body.index(b"\x00")
@@ -160,7 +172,7 @@ def png_text(chunk_type: bytes, body: bytes) -> bytes:
         lang_end = body.index(b"\x00", key_end + 3)
         text_start = body.index(b"\x00", lang_end + 1) + 1
         payload = body[text_start:]
-        return zlib.decompress(payload) if compressed else payload
+        return inflate(payload) if compressed else payload
     return body.split(b"\x00", 1)[1]
 
 
@@ -180,6 +192,8 @@ def scan_png(data: bytes) -> set[str]:
             try:
                 text = png_text(chunk_type, body)
             except (zlib.error, IndexError, ValueError):
+                # A chunk that cannot be read cannot be cleared, so it is reported.
+                found.add("unreadable PNG text chunk")
                 i += 12 + length
                 continue
             if body.startswith(b"Raw profile type"):
@@ -258,7 +272,9 @@ def main() -> int:
         unreadable = sum(
             1 for _, tags in found if any(t.startswith(UNREADABLE) for t in tags)
         )
-        carrying = len(found) - unreadable
+        carrying = sum(
+            1 for _, tags in found if any(not t.startswith(UNREADABLE) for t in tags)
+        )
         print()
         if carrying:
             print(
