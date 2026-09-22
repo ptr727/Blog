@@ -318,7 +318,9 @@ ln -sfn "releases/$VERSION" "$ROOT/.current.tmp"
 mv -Tf "$ROOT/.current.tmp" "$ROOT/current"
 
 echo "==> pruning to the newest $KEEP_RELEASES releases"
-mapfile -t all < <(find "$ROOT/releases" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+# Order by install time, never by name.
+# The release id is a caller-supplied argument, and a short SHA sorts unrelated to age.
+mapfile -t all < <(find "$ROOT/releases" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %f\n' | sort -n | cut -d' ' -f2-)
 target="$(basename "$(readlink "$ROOT/current")")"
 removed=0
 if [ "${#all[@]}" -gt "$KEEP_RELEASES" ]; then
