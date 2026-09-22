@@ -100,7 +100,7 @@ Check for each of these, redact on sight, and argue afterwards if the image need
 - A service identifier that still resolves, such as a sensor ID or a map link carrying coordinates. Link the service rather than the instance.
 - A child's name, and most of all where it labels a room beside an occupancy time.
 - Anything belonging to someone else. That consent was never the author's to give.
-- A private-range address, which Voice already requires be replaced with a placeholder, in a screenshot as much as in prose.
+- A private-range address, which Voice already requires replacing with a placeholder, in a screenshot as much as in prose.
 
 ### Never In Scope
 
