@@ -3,7 +3,8 @@
 
 The manifest records the hash each redaction produces, so this needs no image
 decoder. A file replaced by its original, re-exported, or edited by hand fails here,
-and `scripts/redact-media.py` is what brings it back.
+and so does an entry whose fills or crop changed after its result was recorded.
+`scripts/redact-media.py` is what brings either back.
 """
 
 import hashlib
@@ -15,6 +16,12 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "checks" / "media-redactions.json"
 
 
+def declared(entry: dict) -> str:
+    """A digest of what an entry asks for, so an edit made without a rerun is caught."""
+    spec = {"fill": entry.get("fill", []), "crop": entry.get("crop")}
+    return hashlib.sha256(json.dumps(spec, sort_keys=True).encode()).hexdigest()
+
+
 def main() -> int:
     files = json.loads(MANIFEST.read_text())["files"]
     failures = []
@@ -24,6 +31,10 @@ def main() -> int:
             failures.append(f"{name}: missing")
         elif hashlib.sha256(path.read_bytes()).hexdigest() != entry.get("result"):
             failures.append(f"{name}: not its redacted result")
+        elif declared(entry) != entry.get("declared"):
+            failures.append(
+                f"{name}: fills or crop changed since the result was recorded"
+            )
     for line in failures:
         print(line)
     if failures:

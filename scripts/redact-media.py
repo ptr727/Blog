@@ -15,8 +15,10 @@ reproduced by running this rather than placed by hand. Nothing here looks for an
 **Deterministic and idempotent.** An entry records the hash of the file it expects,
 the normalized original, and the hash of the file it produces. A file already at its
 result is left alone, a file at its source is redacted and must land on its result,
-and a file at neither is an error rather than a guess. The pinned Pillow version is
-what makes the output reproducible byte for byte.
+and a file at neither is an error rather than a guess. An entry also records a digest
+of its fills and crop, so an edit to them that was never rerun fails the gate. The
+pinned Pillow version, with the codecs its wheel bundles for the platform, is what
+makes the output reproducible byte for byte.
 
 **A redacted file no longer holds its source, so changing one starts from history.**
 Restore the file's original with `git checkout <revision> -- <file>`, normalize it
@@ -24,11 +26,12 @@ with `scripts/normalize-media.py --apply`, edit its entry, and run with `--recor
 The same restore, run without `--record`, is how a Pillow upgrade is checked, since a
 changed output is then reported against the recorded result.
 
-A JPEG is written with its own quantization tables and chroma subsampling, so the
-blocks outside a fill do not lose generation quality. Its color profile is carried
-across and its Exif is not, since an Exif block can hold a thumbnail of the frame
-before the fill. A PNG keeps its gamma, chromaticity, and sRGB chunks. The output then
-goes through the same lossless drop as `scripts/normalize-media.py`.
+A JPEG is written with its own quantization tables and chroma subsampling, which keeps
+the generation loss outside a fill to a level or two, and a crop off the block grid
+costs more. Its color profile is carried across and its Exif is not, since an Exif
+block can hold a thumbnail of the frame before the fill. A PNG is written at 8 bits and
+keeps its gamma, chromaticity, and sRGB chunks, and one with transparency is refused.
+The output then goes through the same lossless drop as `scripts/normalize-media.py`.
 """
 
 import argparse
@@ -36,6 +39,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 import pathlib
 import struct
 import sys
@@ -45,7 +49,7 @@ from PIL import Image, ImageDraw, JpegImagePlugin
 REPO = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "checks" / "media-redactions.json"
 FILL = (0, 0, 0)
-PNG_COLOR_CHUNKS = (b"gAMA", b"cHRM", b"sRGB", b"sBIT")
+PNG_COLOR_CHUNKS = (b"gAMA", b"cHRM", b"sRGB")
 
 # The normalizer's filename carries a hyphen, so it loads by path rather than by import.
 _spec = importlib.util.spec_from_file_location(
@@ -53,6 +57,11 @@ _spec = importlib.util.spec_from_file_location(
 )
 normalize = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(normalize)
+_spec = importlib.util.spec_from_file_location(
+    "check", REPO / "checks" / "check-media-redactions.py"
+)
+check = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(check)
 
 
 def sha256(data: bytes) -> str:
@@ -88,6 +97,13 @@ def redact(data: bytes, entry: dict) -> bytes:
         raise ValueError(f"unsupported {source.format} {source.mode}")
     if source.getexif().get(0x0112, 1) != 1:
         raise ValueError("rotated by Exif, so the manifest's coordinates are ambiguous")
+    if "transparency" in source.info:
+        raise ValueError("carries transparency, which this does not write back")
+    boxes = entry.get("fill", []) + ([entry["crop"]] if "crop" in entry else [])
+    width, height = source.size
+    for x0, y0, x1, y1 in boxes:
+        if not (0 <= x0 < x1 <= width and 0 <= y0 < y1 <= height):
+            raise ValueError(f"box {[x0, y0, x1, y1]} is outside {width}x{height}")
     image = source.copy()
     draw = ImageDraw.Draw(image)
     for x0, y0, x1, y1 in entry.get("fill", []):
@@ -127,7 +143,7 @@ def main() -> int:
     parser.add_argument(
         "--record",
         action="store_true",
-        help="take each file not at its result as its source, and record what it becomes",
+        help="for each entry whose fills or crop changed, take the file as its source and record the result",
     )
     args = parser.parse_args()
     apply = args.apply or args.record
@@ -139,12 +155,20 @@ def main() -> int:
         path = REPO / name
         data = path.read_bytes()
         current = sha256(data)
-        if args.record and current != entry.get("result"):
-            entry["source"] = current
+        spec = check.declared(entry)
+        changed = spec != entry.get("declared")
+        if changed and current == entry.get("result"):
+            errors.append(f"{name}: fills or crop changed, restore its original first")
+            continue
+        if changed and not args.record:
+            errors.append(f"{name}: fills or crop changed, rerun with --record")
+            continue
         if current == entry.get("result"):
             done += 1
             continue
-        if current != entry.get("source"):
+        if changed:
+            entry["source"], entry["declared"] = current, spec
+        elif current != entry.get("source"):
             errors.append(f"{name}: matches neither its source nor its result hash")
             continue
         try:
@@ -160,12 +184,14 @@ def main() -> int:
         writes.append((path, new))
         print(f"{name}: {'redacted' if apply else 'would redact'}")
 
-    # The manifest goes first, so a failed file write leaves a file at its recorded source.
+    # The manifest goes first, and each file is replaced whole, so an interrupted run leaves a file at its source.
     if args.record:
         MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
     if apply:
         for path, new in writes:
-            path.write_bytes(new)
+            scratch = path.with_name(f".redact-{path.name}")
+            scratch.write_bytes(new)
+            os.replace(scratch, path)
     for line in errors:
         print(line)
     print()

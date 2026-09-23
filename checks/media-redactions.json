@@ -17,7 +17,8 @@
         ]
       ],
       "source": "0acd5a9461581309737b6a857b118709cc5dbe35eafef8876b19530b6b253ec5",
-      "result": "529406d1720f35387668cc40155f452bad05f72d1b79746e0c94180b13f171dd"
+      "result": "529406d1720f35387668cc40155f452bad05f72d1b79746e0c94180b13f171dd",
+      "declared": "8173af616b641723e69cda7619b675dc1d45d16d49126602ee75ffcc154af2bc"
     },
     "static/media/2015/06/elco-2.jpg": {
       "why": "A shipping label",
@@ -30,7 +31,8 @@
         ]
       ],
       "source": "a8b3a9e554e7a286f4e90f69b546de0a1ff7a6e751517045a78ebbf27fab47e5",
-      "result": "e9623ca4efd981edec13c35db6416abee2f2f37f1f5c64d143a909ce9418e9c1"
+      "result": "e9623ca4efd981edec13c35db6416abee2f2f37f1f5c64d143a909ce9418e9c1",
+      "declared": "6b2ef2961c7e05285863231c55f86663a6528a1dbecf99eef4d744c8bb5dc97e"
     },
     "static/media/2015/09/group-config.png": {
       "why": "A group name derived from the street address",
@@ -49,7 +51,8 @@
         ]
       ],
       "source": "e0196d219e331025ce53e5029963967d7c16d040c32b86548bc660a22e093b86",
-      "result": "43170a4093d17bda212a96246d1030a477a1df6db65ca95c51bdb7f0dfd5751f"
+      "result": "43170a4093d17bda212a96246d1030a477a1df6db65ca95c51bdb7f0dfd5751f",
+      "declared": "78d5f3759b8e978ef7c847b9945faf91117f85d9514f7206ad81837eaeb44b2e"
     },
     "static/media/2015/09/groups.png": {
       "why": "A group name derived from the street address",
@@ -62,7 +65,8 @@
         ]
       ],
       "source": "8e81e9d00db070699e7ea5398041924636c6ca26d9d776441d4be04a61e1f0fa",
-      "result": "0aefe7e4cfffd4b37f07f9a48629887fc32cb370aba1ec0027fc7ad3823ad167"
+      "result": "0aefe7e4cfffd4b37f07f9a48629887fc32cb370aba1ec0027fc7ad3823ad167",
+      "declared": "b7d23396a34bca1107c0bf33271a89a92b015a52a3b6daf5de9702c0501aafec"
     },
     "static/media/2017/03/synapse-1.png": {
       "why": "An email address",
@@ -75,7 +79,8 @@
         ]
       ],
       "source": "8ba390204c36fe8963f0ca57f24fb87132a974a1a081937e099e64bafd3c2f6a",
-      "result": "bd8a458e6f5d8972a94cc778b83bae829049be327612fb71eeb5e938e8692cc3"
+      "result": "bd8a458e6f5d8972a94cc778b83bae829049be327612fb71eeb5e938e8692cc3",
+      "declared": "d0e20122556f3aadaf75c357b81223231e8db63819c7c55c6e93973c51d78e2f"
     },
     "static/media/2018/06/dns.png": {
       "why": "An email address",
@@ -88,7 +93,8 @@
         ]
       ],
       "source": "85aab1a0b3a91b87bb01bb212f5a85d98942f52ff0b73d362cd97f42a30751b9",
-      "result": "d56837efd97fbbcc74844cef080183ee800c6ed67f5b989e38ac6f1b6d1e552b"
+      "result": "d56837efd97fbbcc74844cef080183ee800c6ed67f5b989e38ac6f1b6d1e552b",
+      "declared": "fdc33ed1e206e392dcd9dde9f74245b4334cd1e8011fdace98dd30c7ecead73f"
     },
     "static/media/2018/11/annotation-2018-11-18-160901.png": {
       "why": "The sensor's neighborhood and a street name on its map",
@@ -107,7 +113,8 @@
         ]
       ],
       "source": "951b75facb3c0cfd8e57789c6e7e4c63a39dddd9a33ba8e8a1b3e822a5cd33b2",
-      "result": "03d00da324611118823ada753a5a37603820ecfaf11a861c565d8d6b8cf7a130"
+      "result": "03d00da324611118823ada753a5a37603820ecfaf11a861c565d8d6b8cf7a130",
+      "declared": "1ed6f2adf66b5a527a4f699ebfa1d44b2aff52af57a2fbc31b8af0b0bff72431"
     },
     "static/media/2019/01/20190105_025724484_ios.jpg": {
       "why": "An account email address",
@@ -120,7 +127,8 @@
         ]
       ],
       "source": "3bf15eec3e2596e359dc89222245216e4a18c63387d3be63f04a22636f14f275",
-      "result": "3ce67f3da1f23bf52cb71d0a939c3017d133b732ca1574607e9be9f53ebf7b34"
+      "result": "3ce67f3da1f23bf52cb71d0a939c3017d133b732ca1574607e9be9f53ebf7b34",
+      "declared": "74f38b0eea6a83fbd6a6c2f7021e4e0315ca75064c543e68984bef913922c00c"
     },
     "static/media/2019/01/annotation-2019-01-05-094902.png": {
       "why": "The author's avatar",
@@ -133,7 +141,8 @@
         ]
       ],
       "source": "bfb98e5ac6c6e151912ce702315486790845e749cd034a0fe19e080af2199b3c",
-      "result": "2e9736506ae319e0c9ad9864c560092b06cf1fd5785bf3f8330c78b0f33c65f6"
+      "result": "2e9736506ae319e0c9ad9864c560092b06cf1fd5785bf3f8330c78b0f33c65f6",
+      "declared": "98448e02e5a9f6d5180141f0f327d04ccc0d34e20b33650b82e8c34db0264f1b"
     },
     "static/media/2019/01/annotation-2019-01-05-094932.png": {
       "why": "The author's avatar",
@@ -146,7 +155,8 @@
         ]
       ],
       "source": "9e4ee92ba4cddeb320ba31ebf9501a3236022f86939beda4452a79270bc51893",
-      "result": "4e7df1f1def524a6a8dce488699ba1b0037a5e93460f3760666191413ffefbae"
+      "result": "4e7df1f1def524a6a8dce488699ba1b0037a5e93460f3760666191413ffefbae",
+      "declared": "f3deac44bd686cf29c50374ee753ea6681a9ae14ee1c015ea38a8f7327e96278"
     },
     "static/media/2019/01/annotation-2019-01-05-100630.png": {
       "why": "The author's avatars and email address",
@@ -171,7 +181,8 @@
         ]
       ],
       "source": "61f073ca6e218133a32ef7a413545635a8fe477fad643b48daeb2c4cbd658c9e",
-      "result": "215e49f943ab6d3facd81e644a3e198e3ebb09e0136f4482606b08670711887b"
+      "result": "215e49f943ab6d3facd81e644a3e198e3ebb09e0136f4482606b08670711887b",
+      "declared": "b0a16387e8862d9ce05a1766d9d875d1ec7f3b07785dc002d804ea2b5af5c518"
     },
     "static/media/2020/01/img_5899.jpg": {
       "why": "A shipping label",
@@ -184,7 +195,8 @@
         ]
       ],
       "source": "26ae5a1a060b05055d9354f9d9b1fb049549bf4256e2a8803d75136ed55a9f34",
-      "result": "baac0e05a85ef967d3132cfd690667721e5d41e440edd537b5a0b1ec1f5e5c23"
+      "result": "baac0e05a85ef967d3132cfd690667721e5d41e440edd537b5a0b1ec1f5e5c23",
+      "declared": "5b3c84fa18a8847d094bfe52a8a2c4b67975eac27c717c89ef8ec7e1b54d9e07"
     },
     "static/media/2020/09/2020-09-04-15.png": {
       "why": "An SSID and BSSID",
@@ -203,7 +215,8 @@
         ]
       ],
       "source": "86ba8d7e79c43f8d88879f53a401549d5232c6ce8f2c9cf227ed7e425d4c5a3a",
-      "result": "ff52071b39cf882e4ac4efc2b9f89d4eaf44c2a32a793c5bccfba055ffe0b93b"
+      "result": "ff52071b39cf882e4ac4efc2b9f89d4eaf44c2a32a793c5bccfba055ffe0b93b",
+      "declared": "e7e3a2797e71439ddb174048e4c357b97f87274ad8807576c1f9934a19491a1b"
     },
     "static/media/2020/09/img_6682.png": {
       "why": "SSIDs",
@@ -228,7 +241,8 @@
         ]
       ],
       "source": "9ac2e8a283b5b0371cafa472f64006b67497d1070dafd15a955700f49fb69cbe",
-      "result": "6d2c562108e3a2439f84b38c76f74678bc80ab232ab4b200e1c6fd4a72c61650"
+      "result": "6d2c562108e3a2439f84b38c76f74678bc80ab232ab4b200e1c6fd4a72c61650",
+      "declared": "3ec38b95f7d0a5c15c0a411eb9cdb6291e69c0f10d0e1be02812773ff9f629f0"
     },
     "static/media/2020/09/img_6684.png": {
       "why": "An SSID",
@@ -241,7 +255,8 @@
         ]
       ],
       "source": "41c9cc248190464b257676c8b6c394a1677e1ca32b15d790bffb59baf99d837c",
-      "result": "92866261d809c5c2d3d0a84e3f86546a3c542cdef20a51923114dcec25c2854d"
+      "result": "92866261d809c5c2d3d0a84e3f86546a3c542cdef20a51923114dcec25c2854d",
+      "declared": "7c86d62eea11f956b0c67c846aa84e49bf447b6ddc926dd29e1182ef840f6ae0"
     },
     "static/media/2020/10/img_6876.png": {
       "why": "An SSID",
@@ -254,7 +269,8 @@
         ]
       ],
       "source": "68ae2af857f9db4627dbf49acb964f44571994fc394950c33b70d039a6734244",
-      "result": "9962a17da58b3a23d73b840220f9d6290fd9cad6ffd88f4316a900abf85f07a3"
+      "result": "9962a17da58b3a23d73b840220f9d6290fd9cad6ffd88f4316a900abf85f07a3",
+      "declared": "22072339f8ce820f75515ad333326864bd76b5e6fb93540541c370ce69a1c59b"
     },
     "static/media/2020/10/img_6877.png": {
       "why": "An SSID",
@@ -267,7 +283,8 @@
         ]
       ],
       "source": "b8546d9d6ada0b42b8134c35e55458c97ad2f7a0ee9107bfa844cec933d71e33",
-      "result": "6a37546e3a2226aae41a6e5c467e6824f683a361c73fa4a5df3620d09a98d245"
+      "result": "6a37546e3a2226aae41a6e5c467e6824f683a361c73fa4a5df3620d09a98d245",
+      "declared": "63003057ae76e576a7ea40d4ddc26215951435448a36b544c6a8644b41be2789"
     },
     "static/media/2021/08/fireshot-pro-webpage-screenshot-033-overview-home-assistant-home-assistant.home_.insanegenius.net_.png": {
       "why": "SSIDs and BSSIDs",
@@ -298,7 +315,8 @@
         ]
       ],
       "source": "179aa5de0a8db02466c0dfc699dad17573f6c260e368049a7c9e99d3f31482fe",
-      "result": "cb6dd430d5894386274e351d614740bb560718f36387d5b616c9d7e5b7bc1f0a"
+      "result": "cb6dd430d5894386274e351d614740bb560718f36387d5b616c9d7e5b7bc1f0a",
+      "declared": "f508d75120cc50ff7bca9de7d731ad8bb66584f12baa346308373743b92407df"
     },
     "static/media/2021/08/ha.png": {
       "why": "An SSID and BSSID",
@@ -317,7 +335,8 @@
         ]
       ],
       "source": "e5fd40bbeb86129ddf2016b4622e16eeed11c398d30bdd632bb988a7e7f32ad4",
-      "result": "0d729fb6589f92648a4d5f5ffbe9171ef4d401f1206072bb04b911d2896b83fd"
+      "result": "0d729fb6589f92648a4d5f5ffbe9171ef4d401f1206072bb04b911d2896b83fd",
+      "declared": "53e00f6227fbe8aebc56e36ae8c4d7a8f258508b4c845131f0a107dc6f4a19fb"
     },
     "static/media/2021/08/img_8175.jpg": {
       "why": "Shirt text naming local businesses, people, a club and a phone number",
@@ -330,7 +349,8 @@
         ]
       ],
       "source": "fadf85946cb33094f97b22671ae9bd20f85aa10971874e121f534c24234c4b6e",
-      "result": "2d1d7f337d1164d667472de2405718c0934525992ffad8b0700bd16e0c2e0768"
+      "result": "2d1d7f337d1164d667472de2405718c0934525992ffad8b0700bd16e0c2e0768",
+      "declared": "18138398a63deb298b06610a622ffa60525f21af50013f8444b0e3a731dfa8a4"
     },
     "static/media/2021/12/img_9361.jpg": {
       "why": "A neighbor's property",
@@ -343,7 +363,8 @@
         ]
       ],
       "source": "efad3190c811ffc33b1ebb1ffc98e288f226b3497a8ab888af8c50c2f8f7ec5c",
-      "result": "24c0994e8d14984735c17d60b0cb7b81698b07d44fb407cbf598481301a93bdf"
+      "result": "24c0994e8d14984735c17d60b0cb7b81698b07d44fb407cbf598481301a93bdf",
+      "declared": "80afd6f8de9fbf31ec3ddb27a4c4a20396ecfc1bdbf7c773ef0ea4eb696078ba"
     },
     "static/media/2021/12/img_9364.jpg": {
       "why": "A rooftop panorama cropped to its subject, since its locators span the frame",
@@ -354,7 +375,8 @@
         4032
       ],
       "source": "3235a1b2a75714dd42f95db9444a06e7ad5756d7b0087b249792ea940e02c572",
-      "result": "7e1d71586a39c9cb300502608822a2c14d1febdfe9f9397d6bba11cc9f96c44c"
+      "result": "7e1d71586a39c9cb300502608822a2c14d1febdfe9f9397d6bba11cc9f96c44c",
+      "declared": "e7ed0595a57b1f1e41be87ce7ef1a11dd4fa7b317655c5823c52aada3183ec06"
     },
     "static/media/2021/12/img_9377.jpg": {
       "why": "The house number",
@@ -367,7 +389,8 @@
         ]
       ],
       "source": "4b7bbd79ead486f5ac1b3f7afdbfcdb2f18a8c81d4cdb5e1134d4bb42b238bc5",
-      "result": "f7b02146a1b115a50f6ed3a08d4af2b2f0c8997221835eba2fe950c2f2b82521"
+      "result": "f7b02146a1b115a50f6ed3a08d4af2b2f0c8997221835eba2fe950c2f2b82521",
+      "declared": "367f379fa8f4a8edd5a3bab29f618e447d24fdb4eed126f6d8c36a693ab21d1b"
     },
     "static/media/2022/01/2022-01-17-2.png": {
       "why": "The author's avatar",
@@ -386,7 +409,8 @@
         ]
       ],
       "source": "ad7230be2ffccbd5470a910d73927dfe732628f2bd15d4d2b2280ba0ef352354",
-      "result": "c99e65d5202d2f0d955faa25f2f078662006f9765210d7ff7c0e633cab913dfd"
+      "result": "c99e65d5202d2f0d955faa25f2f078662006f9765210d7ff7c0e633cab913dfd",
+      "declared": "1d8086f449c49bc2ac9f4b61d35ebd6d4a95035c490a2f2a85983908bb7a74af"
     },
     "static/media/2022/10/screen-shot-2022-10-24-at-10.26.47-am.png": {
       "why": "Children's names used as room labels beside occupancy times",
@@ -405,7 +429,8 @@
         ]
       ],
       "source": "b09587bb52a7a435813b028009febd2cf43174a4e54c3e41fe5327f3cebcbe9e",
-      "result": "1c91fe9003d59a83ec139e962e80444cc2fd6d64ecc942429ae5ab74ce5e462f"
+      "result": "1c91fe9003d59a83ec139e962e80444cc2fd6d64ecc942429ae5ab74ce5e462f",
+      "declared": "348199ab64b0acad4042353c27a26166242164cdc49f90805643c8092aab2dc0"
     },
     "static/media/2022/10/screen-shot-2022-10-24-at-11.42.47-am.png": {
       "why": "Children's names used as room labels beside occupancy times",
@@ -424,7 +449,8 @@
         ]
       ],
       "source": "8e2239eb97eddb4952b6907ed7c556c9d6b2752ae71263f9c0b9f381687f54ed",
-      "result": "0ea9e2e2ccb01d823819abb2b7e872e8bbf82d8dafbd248a625308c887a7a90c"
+      "result": "0ea9e2e2ccb01d823819abb2b7e872e8bbf82d8dafbd248a625308c887a7a90c",
+      "declared": "c5de8cc0510f60e112cbf6e4d2d625c4a16a93cd340e2cbbf4607fba56aba558"
     },
     "static/media/2022/10/screenshot-2022-10-27-184203.png": {
       "why": "Children's names used as room labels beside occupancy times",
@@ -443,7 +469,8 @@
         ]
       ],
       "source": "86d6e2088f5cdafdf5655cc68b135bef2e903b1e2067e09a397351837f4443b6",
-      "result": "cee71f79a731a73102b0a3b5b1d7739df261c4860e449e8459d6e0168b7bed14"
+      "result": "cee71f79a731a73102b0a3b5b1d7739df261c4860e449e8459d6e0168b7bed14",
+      "declared": "2dfc7d84b4020d317b013ec7deb63bc2972e4f80b4a1493d34630aaf925a0080"
     },
     "static/media/2023/03/img_2261.jpg": {
       "why": "A civic landmark",
@@ -456,7 +483,8 @@
         ]
       ],
       "source": "340241fa28a4eb301be7e68062e25d392e412a88f71ad904c045fb4a30b70e29",
-      "result": "9215e9a234009e5b87cf78182ccb7309e7501bf7e3132e451e3cc9e84418d2b7"
+      "result": "9215e9a234009e5b87cf78182ccb7309e7501bf7e3132e451e3cc9e84418d2b7",
+      "declared": "e744eb7e32a4a03e195e2f025c443c27811d020a2886b88efc6099abc2040281"
     },
     "static/media/2023/03/img_2263.jpg": {
       "why": "A contractor's face, the house number and a neighbor's property",
@@ -481,7 +509,8 @@
         ]
       ],
       "source": "d631ad1fdd75f9431f3dbd3d8bc5afc3d7b1128de705b1dfe937804cbcb9a73d",
-      "result": "79ca7f4ff9de8b58c90bab47f8cb0d5de292bb8b0d10a904ba4a7568247baa16"
+      "result": "79ca7f4ff9de8b58c90bab47f8cb0d5de292bb8b0d10a904ba4a7568247baa16",
+      "declared": "b87470ce8f76758f5b1c14f681944c66d316169db882e75219e7f0f219eaafb4"
     },
     "static/media/2023/03/untitled.png": {
       "why": "The house number, a kerbside plate, license plates, a local club's sign and a neighbor's property",
@@ -524,7 +553,8 @@
         ]
       ],
       "source": "7734dd317739ff1a4e96c37fa42c4dc0a1f9656ad1fda39798f2d886bb6307fb",
-      "result": "0085c70a3bc3408bbe5db991e299b6bf8ef09e31126fb38917e6de61a5bd6c91"
+      "result": "0085c70a3bc3408bbe5db991e299b6bf8ef09e31126fb38917e6de61a5bd6c91",
+      "declared": "537658cb66913ad9bea6dce751cda6fb3335bf9f6376109a65ab5c5c33f4a3f1"
     }
   }
 }

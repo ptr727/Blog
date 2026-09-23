@@ -50,12 +50,13 @@ SUBSTITUTIONS = {
 
 def substitute(text: str, protected: list[str]) -> str:
     lines = text.split("\n")
-    front_matter = lines[0] == "---"
+    first = next((i for i, line in enumerate(lines) if line.strip()), 0)
+    front_matter = lines[first].rstrip("\r") == "---"
     fence = None
     for index, line in enumerate(lines):
         stripped = line.lstrip()
         if front_matter:
-            if index > 0 and line == "---":
+            if index > first and line.rstrip("\r") == "---":
                 front_matter = False
             continue
         opener = FENCE.match(stripped)
