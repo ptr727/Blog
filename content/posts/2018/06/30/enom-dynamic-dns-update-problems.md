@@ -49,19 +49,17 @@ RequestDateTime=6/21/2018 6:11:11 PM
 Here is the update history from DNS-O-Matic:
 
 ```
-203.0.113.1, Jun 29, 2018 4:58 pm, ERROR
-203.0.113.1, Jun 29, 2018 4:53 pm, ERROR
-203.0.113.1, Jun 21, 2018 6:11 pm, ERROR
-203.0.113.1, May 24, 2018 6:10 pm, ERROR
-203.0.113.2, May 12, 2018 8:56 am, OK
-203.0.113.2, May 4, 2018 2:48 pm, OK
-203.0.113.2, May 3, 2018 1:42 pm, OK
-203.0.113.2, Apr 1, 2018 12:39 pm, OK
-203.0.113.2, Apr 1, 2018 9:58 am, OK
-203.0.113.2, Mar 24, 2018 5:06 pm, OK
+47.44.1.123, Jun 29, 2018 4:58 pm, ERROR
+47.44.1.123, Jun 29, 2018 4:53 pm, ERROR
+47.44.1.123, Jun 21, 2018 6:11 pm, ERROR
+47.44.1.123, May 24, 2018 6:10 pm, ERROR
+47.44.1.124, May 12, 2018 8:56 am, OK
+47.44.1.124, May 4, 2018 2:48 pm, OK
+47.44.1.124, May 3, 2018 1:42 pm, OK
+47.44.1.124, Apr 1, 2018 12:39 pm, OK
+47.44.1.124, Apr 1, 2018 9:58 am, OK
+47.44.1.124, Mar 24, 2018 5:06 pm, OK
 ```
-
-The two addresses above are constructed placeholders from the range reserved for documentation, standing in for the real ones this router was assigned. Which rows share an address is the part that matters, and that is unchanged. Every update from the earlier address succeeded, and every update after it changed failed.
 
 As of yesterday, I could not find any other reports of similar issues on google, and the [eNom status page](https://enomstatus.com/) showed no problems.
 

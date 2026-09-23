@@ -15,7 +15,7 @@ I wanted a clean Vista install, and that is exactly why I made sure to order the
 
 I called Lenovo support asking how to obtain a Vista DVD that will accept the OEM key, and was told that Vista install DVDs are not available, and that I should use the recovery CDs or the recovery partition.
 
-I decided to give the recovery partition a try: boot, press F11, select restore, do a custom restore, unselect all the 3rd party software, start the install process.
+I decided to give the recovery partition a try; boot, press F11, select restore, do a custom restore, unselect all the 3rd party software, start the install process.
 
 The machine rebooted several times, eventually returning to the same state as when I first booted. There was no 3rd party software on the system, only the Lenovo ThinkPad software was installed.
 

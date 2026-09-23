@@ -1,0 +1,229 @@
+{
+  "protect": [
+    "bi\u2022fury"
+  ],
+  "corrections": [
+    {
+      "file": "content/posts/2008/03/30/printing-from-network.md",
+      "why": "Doubled word",
+      "from": "access the the driver media,",
+      "to": "access the driver media,"
+    },
+    {
+      "file": "content/posts/2009/05/14/how-to-install-sql-server-2008-on-windows-server-2008-r2-rc.md",
+      "why": "Doubled word",
+      "from": "set my my PCUSOURCE=\".\\\\PCU\" and",
+      "to": "set my PCUSOURCE=\".\\\\PCU\" and"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Doubled word",
+      "from": "The problem is is more",
+      "to": "The problem is more"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Doubled word",
+      "from": "been aware of of the",
+      "to": "been aware of the"
+    },
+    {
+      "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
+      "why": "Doubled word",
+      "from": "memory is is reasonably cheap.",
+      "to": "memory is reasonably cheap."
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Doubled word",
+      "from": "But, as as soon as",
+      "to": "But, as soon as"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Doubled word",
+      "from": "to read the the same",
+      "to": "to read the same"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Doubled word",
+      "from": "not how how I will",
+      "to": "not how I will"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Doubled word",
+      "from": "only solution was to reboot the device. Upgrading the the latest 3.1-1748 DSM firmware solved this problem.\n- During",
+      "to": "only solution was to reboot the device. Upgrading the latest 3.1-1748 DSM firmware solved this problem.\n- During"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Doubled word",
+      "from": "time. The only solution was to reboot the device. Upgrading the the latest 3.1-1748 DSM firmware solved this problem.\n- I",
+      "to": "time. The only solution was to reboot the device. Upgrading the latest 3.1-1748 DSM firmware solved this problem.\n- I"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Doubled word",
+      "from": "on LAN-1 and and LAN-2,",
+      "to": "on LAN-1 and LAN-2,"
+    },
+    {
+      "file": "content/posts/2011/12/13/rotation-confuses-face-recognition.md",
+      "why": "Doubled word",
+      "from": "email from from [Ardfry Imaging](http://www.ardfry.com/),",
+      "to": "email from [Ardfry Imaging](http://www.ardfry.com/),"
+    },
+    {
+      "file": "content/posts/2011/12/13/rotation-confuses-face-recognition.md",
+      "why": "Doubled word",
+      "from": "and they they are still",
+      "to": "and they are still"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Grammar",
+      "from": "domain the the",
+      "to": "domain to the"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Doubled word",
+      "from": "The the iSCSI",
+      "to": "The iSCSI"
+    },
+    {
+      "file": "content/posts/2015/01/20/nest-protect-false-alarms.md",
+      "why": "Doubled word",
+      "from": "failed alarm the the other",
+      "to": "failed alarm the other"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Doubled word",
+      "from": "I bought the the following",
+      "to": "I bought the following"
+    },
+    {
+      "file": "content/posts/2018/11/18/purpleair-sensor-installation.md",
+      "why": "Grammar",
+      "from": "had a [Ambient",
+      "to": "had an [Ambient"
+    },
+    {
+      "file": "content/posts/2018/11/18/purpleair-sensor-installation.md",
+      "why": "A live geolocator, the link now names the service rather than the instance",
+      "to": "[Weather Underground](https://www.wunderground.com/)",
+      "pattern": "\\[Weather Underground\\]\\(https://www\\.wunderground\\.com/personal-weather-station/[^)]*\\)"
+    },
+    {
+      "file": "content/posts/2018/11/18/purpleair-sensor-installation.md",
+      "why": "Grammar",
+      "from": "money it on",
+      "to": "money on"
+    },
+    {
+      "file": "content/posts/2018/11/18/purpleair-sensor-installation.md",
+      "why": "Grammar",
+      "from": "use a",
+      "to": "use of a"
+    },
+    {
+      "file": "content/posts/2018/11/18/purpleair-sensor-installation.md",
+      "why": "Grammar",
+      "from": "to it's WiFi",
+      "to": "to its WiFi"
+    },
+    {
+      "file": "content/posts/2018/11/18/purpleair-sensor-installation.md",
+      "why": "A live geolocator, the link now names the service rather than the instance",
+      "to": "[map](https://map.purpleair.com/)",
+      "pattern": "\\[map\\]\\(https://www\\.purpleair\\.com/map\\?[^)]*\\)"
+    },
+    {
+      "file": "content/posts/2019/05/05/moving-from-w2k16-to-unraid.md",
+      "why": "Doubled word",
+      "from": "the data during during every",
+      "to": "the data during every"
+    },
+    {
+      "file": "content/posts/2019/05/05/moving-from-w2k16-to-unraid.md",
+      "why": "Doubled word",
+      "from": "around 44TB of of usable",
+      "to": "around 44TB of usable"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Doubled word",
+      "from": "especially when the the Unraid",
+      "to": "especially when the Unraid"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Doubled word",
+      "from": "and moved from from [Unraid](https://unraid.net/)",
+      "to": "and moved from [Unraid](https://unraid.net/)"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Doubled word",
+      "from": "can go from from fresh",
+      "to": "can go from fresh"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Doubled word",
+      "from": "blank, and the the installer",
+      "to": "blank, and the installer"
+    },
+    {
+      "file": "content/posts/2020/09/10/tuya-to-tasmota-to-esphome.md",
+      "why": "Doubled word",
+      "from": "the large large code duplication",
+      "to": "the large code duplication"
+    },
+    {
+      "file": "content/posts/2020/10/11/hot-water-recirculation-pump-controller.md",
+      "why": "Doubled word",
+      "from": "the summer the the garage",
+      "to": "the summer the garage"
+    },
+    {
+      "file": "content/posts/2020/10/11/hot-water-recirculation-pump-controller.md",
+      "why": "Doubled word",
+      "from": "to the the 2.5mm [TRRS",
+      "to": "to the 2.5mm [TRRS"
+    },
+    {
+      "file": "content/posts/2020/10/11/hot-water-recirculation-pump-controller.md",
+      "why": "Doubled word",
+      "from": "still using the the FTDI",
+      "to": "still using the FTDI"
+    },
+    {
+      "file": "content/posts/2021/12/21/getting-carried-away-with-rgb-holiday-lights.md",
+      "why": "Doubled word",
+      "from": "have a a few days",
+      "to": "have a few days"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Doubled word",
+      "from": "unless you are are doing",
+      "to": "unless you are doing"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Doubled word",
+      "from": "they have have been saying",
+      "to": "they have been saying"
+    },
+    {
+      "file": "content/posts/2012/12/26/xbmc-on-nucs-and-pis.md",
+      "why": "An HTML entity in a title",
+      "from": "title: XBMC on NUC&rsquo;s and Pi&rsquo;s",
+      "to": "title: XBMC on NUC's and Pi's"
+    }
+  ]
+}

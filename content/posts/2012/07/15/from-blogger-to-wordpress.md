@@ -14,9 +14,9 @@ post_id: '153'
 ---
 I outlined my concerns with Blogger in [my last post](/2012/06/19/looks-can-be-deceiving/), and after much deliberation, I decided to move my blog from [Blogger](http://www.blogger.com/) to [WordPress](http://www.wordpress.com/).
 
-There are two main choices. Use [WordPress.com](http://www.wordpress.com/) for full service blog hosting, or use [WordPress.org](http://www.wordpress.org/) and host the WordPress application at a hosting provider. Here is a summary [describing the differences](http://en.support.wordpress.com/com-vs-org/).
+There are two main choices; use [WordPress.com](http://www.wordpress.com/) for full service blog hosting, or use [WordPress.org](http://www.wordpress.org/) and host the WordPress application at a hosting provider. Here is a summary [describing the differences](http://en.support.wordpress.com/com-vs-org/).
 
-I decided to try both options. I created a blog a WordPress.com, and I created a self-hosted blog using WordPress.org.
+I decided to try both options; I created a blog a WordPress.com, and I created a self-hosted blog using WordPress.org.
 
 Creating the blog at WordPress.com was very quick and easy.
 
@@ -31,7 +31,7 @@ Here is the screenshot of the various import options offered:
 
 There are certain restrictions in using WordPress.com vs. WordPress.org, and to a lesser degree Blogger, most notably [no advertising of your own](http://en.support.wordpress.com/advertising/). WordPress.com will show their own ads, as that is their revenue model, similar to Blogger showing Google ads. But Blogger, as far as I know, does not restrict the use of other ads such as Amazon, nor do they restrict the use of affiliate links. WordPress.com specifically calls out that [Amazon affiliate links are ok](http://en.support.wordpress.com/affiliate-links/), as long as it is not the primary purpose of the site. WordPress.com offers a $30 option to [remove all of their ads](http://en.support.wordpress.com/no-ads/) from your blog.
 
-For self-hosted WordPress I needed a hosting provider, and WordPress.org [offers some suggestions](http://wordpress.org/hosting/), probably with a revenue partnership. The world of low cost hosting is like the wild west. Many brands owned by the same company, review sites owned by the hosting companies, referral programs leading to biased third party reviews, low cost signup high cost renewal, etc. I decided to try [BlueHost](http://www.bluehost.com/) and [DreamHost](http://www.dreamhost.com/), and I will give a brief review and overview of my signup and WordPress setup experience.
+For self-hosted WordPress I needed a hosting provider, and WordPress.org [offers some suggestions](http://wordpress.org/hosting/), probably with a revenue partnership. The world of low cost hosting is like the wild west; many brands owned by the same company, review sites owned by the hosting companies, referral programs leading to biased third party reviews, low cost signup high cost renewal, etc. I decided to try [BlueHost](http://www.bluehost.com/) and [DreamHost](http://www.dreamhost.com/), and I will give a brief review and overview of my signup and WordPress setup experience.
 
 If you enter the BlueHost using [http://www.bluehost.com/wordpress\_hosting](http://www.bluehost.com/wordpress_hosting "http://www.bluehost.com/wordpress_hosting"), the link from the WordPress.org [hosting provider site](http://wordpress.org/hosting/), you are offered hosting at $3.95 a month, if you enter BlueHost using [http://www.bluehost.com/](http://www.bluehost.com/) you are offered the same hosting at $4.95 a month.
 
@@ -82,7 +82,7 @@ WordPress.com: [/2012/06/19/looks-can-be-deceiving/](/2012/06/19/looks-can-be-de
 
 Blogger and WordPress.com uses different permalink formats. Blogger uses a yyyy/mm/title.html format, where WordPress.com uses a yyyy/mm/dd/title format. WordPress.org allows the [permalink format to be changed](http://codex.wordpress.org/Using_Permalinks), and also allows [plugins](http://wordpress.org/extend/plugins/tags/permalink) to be used to convert between incoming and hosted formats.
 
-I found many articles explaining the process of migrating from Blogger to hosted WordPress.org, but I could not find anything on similar functionality at WordPress.com. I asked about this on the WordPress user forum, and a forum user claimed that Blogger style permalinks are supported, yet I could find no information about it on WordPress site. I tested it, and it did indeed work. I contacted WordPress support to get an official answer, and they claimed it is not supported, and recommended that I use WordPress.org. The forum users' comment was very insightful. "Most of the staff have less experience at WP.com than I do, but you can ask them."
+I found many articles explaining the process of migrating from Blogger to hosted WordPress.org, but I could not find anything on similar functionality at WordPress.com. I asked about this on the WordPress user forum, and a forum user claimed that Blogger style permalinks are supported, yet I could find no information about it on WordPress site. I tested it, and it did indeed work. I contacted WordPress support to get an official answer, and they claimed it is not supported, and recommended that I use WordPress.org. The forum users' comment was very insightful; "Most of the staff have less experience at WP.com than I do, but you can ask them."
 
 Another difference between Blogger and WordPress is the use of labels vs. [tags and categories](http://en.support.wordpress.com/posts/categories-vs-tags/). On Importing the site from Blogger, all the labels were converted to categories. Most of the labels really needed to be tags, and fortunately WordPress offers a bulk tag to category, and [category to tag converter](http://en.support.wordpress.com/posts/categories/).
 

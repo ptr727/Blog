@@ -30,7 +30,7 @@ I do not know why I was suddenly out of compliance, I made no changes to either 
 {{< figure src="/media/2016/08/amazon-stats.png" title="Amazon.Stats" alt="Amazon.Stats" >}}  
 {{< /gallery >}}  
 
-I sent an email to Amazon support to clarify the violation, and to request my account be reinstated, but based on similar reports from other low traffic users, I do not expect a resolution.
+I sent an email to Amazon support to clarify the violation, and to request my account be reinstated, but based on similar reports from other low traffic users,  I do not expect a resolution.
 
 Instead, I opted-in to use WordPress's own WordAds advertising platform, I still need to adjust the blog theme and settings to not interfere with reading, and I have no idea what the monetization would be, but at least I no longer have to bother with making special Amazon links.
 

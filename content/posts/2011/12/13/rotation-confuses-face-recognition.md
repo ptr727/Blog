@@ -37,7 +37,7 @@ See the following pictures as an example, note how the thumbnails in the portrai
 
 I reported the problem in the [WLPG support forum](http://windowslivehelp.com/thread.aspx?threadid=505fa6b0-5b41-45cf-9d7d-5613409a0604), and after some back and forth, I provided sample pictures where I could reproduce the problem, but I was told that they were unable to reproduce the problem using the same pictures. As I was not crazy, and I had seen this behavior on two different machines, I wanted to create steps to reproduce the problem.
 
-The sample images were taken of a magazine page taped to a door, using a Canon 5D Mark II, a Panasonic DMC-LX5, a Panasonic DMC-ZS7, and an iPhone 4. I took 5 pictures with each camera in each mode: face centered, face top-left, face top-right, face bottom-left, and face bottom-right. I did this in landscape mode, portrait mode, JPG mode, and RAW mode.
+The sample images were taken of a magazine page taped to a door, using a Canon 5D Mark II, a Panasonic DMC-LX5, a Panasonic DMC-ZS7, and an iPhone 4. I took 5 pictures with each camera in each mode; face centered, face top-left, face top-right, face bottom-left, and face bottom-right. I did this in landscape mode, portrait mode, JPG mode, and RAW mode.
 
 I fired up a clean Windows 7 Ultimate x64 SP1 VM, installed WLPG v15.4.3538.513, and Picasa v3.9, and I dropped my collection of sample images on the machine.
 

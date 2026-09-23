@@ -34,7 +34,7 @@ Jan 1 04:42:39 Server-2 kernel: md: recovery thread: P corrected, sector=1962934
 
 I initially suspected that a dirty shutdown caused the corruption, but my entire rack is on a large UPS, and the servers are configured, and tested, to cleanly shutdown in case of a low battery condition. Unfortunately Unraid does not persist logs across reboots, so it was impossible to verify the shutdown behavior via logs. Unraid logs to memory and not to the USB flash drive to prevent flash wear, but I think this needs to be at least configurable, as no logs means troubleshooting after an unexpected reboot is near impossible. Yes, I know I can enable the Unraid syslog server, and I can redirect syslog to write to the flash drive, but syslog is not as reliable or complete as native logging, especially during a shutdown scenario, but more importantly, syslog was not enabled, so no shutdown logs.
 
-I could not entirely rule out a dirty shutdown, but I could test a clean reboot scenario. I restarted from within Unraid, ran a parity check, same exact 5 parity errors were back, ran a parity check again, and clean. It takes more than a day to run a single parity check, so this is a cumbersome and time consuming exercise. It is very suspicious that it is exactly the same 5 sectors, every time.
+I could not entirely rule out a dirty shutdown, but I could test a clean reboot scenario. I restarted from within Unraid, ran a parity check, same exact 5 parity errors were back, ran a parity check again, and clean. It takes more than a day to run a single parity check, so this is a cumbersome and time consuming exercise. It is  very suspicious that it is exactly the same 5 sectors, every time.
 
 ```
 Jan  3 10:03:07 Server-2 kernel: md: recovery thread: P corrected, sector=1962934168
@@ -188,6 +188,6 @@ Total running time: 01:30:23
 
 I did lose my [DW-Spectrum](https://digital-watchdog.com/productdetail/DW-Spectrum-IPVMS/) IPVMS running on an Ubuntu Server VM. I've known that I don't have a VM backup solution, but the video footage is on the storage server not in the VM, video backups go to B2, and it is reasonably easy to recreate the VM. I am still [working](https://hub.docker.com/r/ptr727/dwspectrum-lsio) on a DW-Spectrum docker solution for Unraid, but as of today the VMS does [not](https://support.networkoptix.com/hc/en-us/requests/19037) recognize Unraid mapped storage volumes.
 
-After all this trouble, I could finally test a parity check after reboot with the LSI HBA. With the system up I ran a parity check, all clear, rebooted, ran the parity check again, and ... no errors. I performed this operation on both servers, no problems.
+After all this trouble, I could finally test a parity check after reboot with the LSI HBA.  With the system up I ran a parity check, all clear, rebooted, ran the parity check again, and ... no errors. I performed this operation on both servers, no problems.
 
 I was really sceptical that the LSI would work where the Adaptec failed, and this does not rule out Unraid as the cause, but it does show that Unraid with the LSI HBA does not have the dirty parity on reboot problem.

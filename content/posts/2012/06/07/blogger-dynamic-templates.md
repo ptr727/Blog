@@ -16,7 +16,7 @@ You can read about what if offers readers [here](http://support.google.com/blogg
 
 I am still on the fence about keeping it, or switching back to my old custom template, or adopting one of the standard templates.
 
-It is much easier using standard Blogger templates vs. using custom templates. The template designer keeps up with new Blogger features, or Blogger changes. With custom templates there is always manual CSS and HTML editing involved.
+It is much easier using standard Blogger templates vs. using custom templates; the template designer keeps up with new Blogger features, or Blogger changes. With custom templates there is always manual CSS and HTML editing involved.
 
 My previous template was a hand made template in order to get a wider reading area, where the default templates are very narrow and wastes tons of space on larger displays. It is also wasteful in space since the main reading area is restricted in width by the presence of the side-bar sections, that leaves lots of open space.
 

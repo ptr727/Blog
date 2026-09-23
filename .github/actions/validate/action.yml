@@ -30,6 +30,11 @@ runs:
       shell: bash
       run: python3 checks/check-media-metadata.py
 
+    # A redacted image replaced by its original passes every other check, so this compares hashes.
+    - name: Check media redactions step
+      shell: bash
+      run: python3 checks/check-media-redactions.py
+
     # The hub's validate job checkout is shallow.
     # The mtime restore below needs full history to date each file from its last commit.
     # This hook deepens the checkout before the build.

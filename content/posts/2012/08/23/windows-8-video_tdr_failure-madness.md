@@ -24,7 +24,7 @@ I got [VIDEO\_TDR\_ERROR BSOD](/2012/08/06/windows-8-install-crash-with-nvidia-q
 
 SuperMicro released v1.0a [BIOS updates](http://www.supermicro.com/support/bios/) for the [X9DAi](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DAi.cfm) and [X9DA7](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DA7.cfm) motherboards used in the [7470A-T](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-T.cfm) and [7470A-73](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-73.cfm) SuperWorkstations. I was hoping this will resolve the [VIDEO\_TDR\_FAILURE](http://msdn.microsoft.com/en-us/library/windows/hardware/ff557263(v=VS.85).aspx) BSOD's, but no.
 
-The X9DA7 BIOS updated without issue, but the X9DAi update reported an error at the end of the update process. "Error when sending Enable Message to ME".
+The X9DA7 BIOS updated without issue, but the X9DAi update reported an error at the end of the update process; "Error when sending Enable Message to ME".
 
 I contacted SuperMicro support, and they asked me to make sure that there is no jumper on JPME1. There is no mention of JPME1 in the motherboard [manual](http://www.supermicro.com/manuals/motherboard/C606_602/MNL-1275.pdf), but it is located next to JIPMB1, next to PCIe slot #1. The header had a jumper on pins 2 and 3, where the same header on the X9DA7 motherboard had a jumper between 1 and 2. I removed the jumper, and the BIOS update succeeded.
 
@@ -110,7 +110,7 @@ fffff880`12c76a00 fffff880`04a16fe5 : ffffffff`ff676980 00000000`00000001 fffff8
 fffff880`12c76aa0 fffff880`04a4b646 : 00000000`00000000 00000000`0000000f fffffa80`1f54e400 fffffa80`1f54e400 : dxgmms1!VidSchiScheduleCommandToRun+0x289
 fffff880`12c76bd0 fffff801`66e9b521 : fffffa80`1f5abb00 fffffa80`1f54e400 fffff880`03b01140 00000000`06a21e1e : dxgmms1!VidSchiWorkerThread+0xca
 fffff880`12c76c10 fffff801`66ed9dd6 : fffff880`03af5180 fffffa80`1f5abb00 fffff880`03b01140 fffffa80`19aac040 : nt!PspSystemThreadStartup+0x59
-fffff880`12c76c60 00000000`00000000 : fffff880`12c77000 fffff880`12c71000 00000000`00000000 00000000`00000000 : nt!KiStartSystemThread+0x16STACK_COMMAND: .bugcheck . KbFOLLOWUP_IP:
+fffff880`12c76c60 00000000`00000000 : fffff880`12c77000 fffff880`12c71000 00000000`00000000 00000000`00000000 : nt!KiStartSystemThread+0x16STACK_COMMAND: .bugcheck ; kbFOLLOWUP_IP:
 nvlddmkm+1ae0d8
 fffff880`0782d0d8 4055 push rbpSYMBOL_NAME: nvlddmkm+1ae0d8FOLLOWUP_NAME: MachineOwnerMODULE_NAME: nvlddmkmIMAGE_NAME: nvlddmkm.sysDEBUG_FLR_IMAGE_TIMESTAMP: 4fdf93d7FAILURE_BUCKET_ID: 0x116_IMAGE_nvlddmkm.sysBUCKET_ID: 0x116_IMAGE_nvlddmkm.sys ``
 
@@ -140,7 +140,7 @@ fffff880`06faaa00 fffff880`04c09fe5 : ffffffff`ff676980 00000000`00000001 fffff8
 fffff880`06faaaa0 fffff880`04c3e646 : 00000000`00000000 fffffa80`1d585660 fffffa80`1d44d7f0 fffffa80`1d31f010 : dxgmms1!VidSchiScheduleCommandToRun+0x289
 fffff880`06faabd0 fffff803`e6e9e521 : fffffa80`1d6b9b00 fffffa80`1d31f010 fffff880`03932140 00000000`04d91ecb : dxgmms1!VidSchiWorkerThread+0xca
 fffff880`06faac10 fffff803`e6edcdd6 : fffff880`03926180 fffffa80`1d6b9b00 fffff880`03932140 fffffa80`19ac7500 : nt!PspSystemThreadStartup+0x59
-fffff880`06faac60 00000000`00000000 : fffff880`06fab000 fffff880`06fa5000 00000000`00000000 00000000`00000000 : nt!KiStartSystemThread+0x16STACK_COMMAND: .bugcheck . KbFOLLOWUP_IP:
+fffff880`06faac60 00000000`00000000 : fffff880`06fab000 fffff880`06fa5000 00000000`00000000 00000000`00000000 : nt!KiStartSystemThread+0x16STACK_COMMAND: .bugcheck ; kbFOLLOWUP_IP:
 atikmpag+8efc
 fffff880`0725cefc 4055 push rbpSYMBOL_NAME: atikmpag+8efcFOLLOWUP_NAME: MachineOwnerMODULE_NAME: atikmpagIMAGE_NAME: atikmpag.sysDEBUG_FLR_IMAGE_TIMESTAMP: 4fdf9279FAILURE_BUCKET_ID: 0x116_IMAGE_atikmpag.sysBUCKET_ID: 0x116_IMAGE_atikmpag.sys ``
 

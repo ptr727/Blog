@@ -15,7 +15,7 @@ cover:
   alt: voxel
   image: /media/2019/01/voxel.png
 ---
-_\[Update\]_ _After using the printer for about two weeks, I returned it to Monoprice for a refund. I would suggest you stay away and look elsewhere, or wait until Monoprice addresses the serious issues: Polar Cloud disconnects while printing, IO timeout error breaks camera function, and the deal breaker is hangs during printing, with the touch screen unresponsive and the extruder and print bed heater still on._
+_\[Update\]_ _After using the printer for about two weeks, I returned it to Monoprice for a refund. I would suggest you stay away and look elsewhere, or wait until Monoprice addresses the serious issues; Polar Cloud disconnects while printing, IO timeout error breaks camera function, and the deal breaker is hangs during printing, with the touch screen unresponsive and the extruder and print bed heater still on._
 
 I've been looking for a new 3D printer to use at home, and I just installed and configured my new [Monoprice Voxel 3D Printer](https://www.monoprice.com/product?p_id=33820).
 

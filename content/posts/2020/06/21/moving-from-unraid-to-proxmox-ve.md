@@ -47,7 +47,7 @@ With the need to install Docker, I need to consider if I will install on the bas
 
 I decided to go with Proxmox VE, with ZFS, with Docker and Samba installed directly on the Debian host OS. PVE gives me confidence and reliability in getting the OS installed, updated, and configured. PVE gives me a good web UI for KVM configuration and host monitoring. I will still use NetData for monitoring, Portainer for container configuration and monitoring, and Watchtower to keep the containers updated. The rest is done via CLI, Docker-Compose, and Ansible.
 
-As I had to do when I moved from [Windows Server 2016 to Unraid](/2019/05/05/moving-from-w2k16-to-unraid/), the critical parts are data migration, and I had quite a lot of data to move from Unraid to PVE. I had two basic choices for data migration. Copy the Unraid XFS disks to ZFS disks on the same server, or copy the data to the secondary server and then copy it back.
+As I had to do when I moved from [Windows Server 2016 to Unraid](/2019/05/05/moving-from-w2k16-to-unraid/), the critical parts are data migration, and I had quite a lot of data to move from Unraid to PVE. I had two basic choices for data migration; copy the Unraid XFS disks to ZFS disks on the same server, or copy the data to the secondary server and then copy it back.
 
 To copy the data in-place would require extra disks to create the initial ZFS pool, then copy data from the Unraid XFS disks to ZFS, as the XFS disks are freed up, add them as mirror vdev's to the pool, and repeat. For every 1 drive freed, I will need 2 drives for the ZFS mirror, this would mean I need more drives than I currently have.
 
@@ -215,7 +215,7 @@ Now that the data was copied to the secondary server, I need to install PVE on t
 
 My test PVE setup installed on a 32GB USB stick, and the default partitioning only allocated 7GB to the root partition, and the rest to data, and I am constantly running out of space on root. Per the Proxmox [install wiki](https://pve.proxmox.com/wiki/Installation#advanced_lvm_options) the maximum root size is 1/4 the total disk size, I don't understand why this restriction exists.
 
-Installing on the 64GB mSATA disk, I modified the install options. Disk size reported as 59GB, changed the filesystem from EXT4 to XFS, swapsize to 8, minfree to 0, maxvz to 0, I left maxroot blank, and the installer only created a 14.8GB root partition. I tried again, this time specifying 48 for maxroot. Made no difference, root is still 14.8GB, so it seems the wiki that says maximum root size of 1/4 of the disk is enforced. At least the data volume was not created, and there is enough space left to extend the LVM if ever needed.
+Installing on the 64GB mSATA disk, I modified the install options; disk size reported as 59GB, changed the filesystem from EXT4 to XFS, swapsize to 8, minfree to 0, maxvz to 0, I left maxroot blank, and the installer only created a 14.8GB root partition. I tried again, this time specifying 48 for maxroot. Made no difference, root is still 14.8GB, so it seems the wiki that says maximum root size of 1/4 of the disk is enforced. At least the data volume was not created, and there is enough space left to extend the LVM if ever needed.
 
 ```
 root@server-1:~# lsblk

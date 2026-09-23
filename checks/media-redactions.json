@@ -1,0 +1,530 @@
+{
+  "files": {
+    "static/external/4a88622a5ab2c089.jpg": {
+      "why": "A vehicle VIN",
+      "fill": [
+        [
+          0,
+          274,
+          318,
+          312
+        ],
+        [
+          439,
+          0,
+          512,
+          246
+        ]
+      ],
+      "source": "0acd5a9461581309737b6a857b118709cc5dbe35eafef8876b19530b6b253ec5",
+      "result": "529406d1720f35387668cc40155f452bad05f72d1b79746e0c94180b13f171dd"
+    },
+    "static/media/2015/06/elco-2.jpg": {
+      "why": "A shipping label",
+      "fill": [
+        [
+          860,
+          2325,
+          2501,
+          3000
+        ]
+      ],
+      "source": "a72c85147de8d5abc24ef1874a097ad34210ee10f716d218a216581271bc1a79",
+      "result": "a913d20c7e5a554c74258e33012ecf1b41de29592829e8fd2625f717270b676b"
+    },
+    "static/media/2015/09/group-config.png": {
+      "why": "A group name derived from the street address",
+      "fill": [
+        [
+          25,
+          105,
+          210,
+          141
+        ],
+        [
+          76,
+          193,
+          199,
+          222
+        ]
+      ],
+      "source": "e0196d219e331025ce53e5029963967d7c16d040c32b86548bc660a22e093b86",
+      "result": "27f8654f093ba30f7ca797e82e879c78c6ad7c3c5114e69879c92942fb242a37"
+    },
+    "static/media/2015/09/groups.png": {
+      "why": "A group name derived from the street address",
+      "fill": [
+        [
+          21,
+          88,
+          252,
+          170
+        ]
+      ],
+      "source": "8e81e9d00db070699e7ea5398041924636c6ca26d9d776441d4be04a61e1f0fa",
+      "result": "6ae3d0cf2ea6d001cf96c988948fb012e28676b853c996dfd7a932f03c22b6c9"
+    },
+    "static/media/2017/03/synapse-1.png": {
+      "why": "An email address",
+      "fill": [
+        [
+          910,
+          0,
+          1153,
+          30
+        ]
+      ],
+      "source": "8ba390204c36fe8963f0ca57f24fb87132a974a1a081937e099e64bafd3c2f6a",
+      "result": "ed29be56ba51b0f4891abadd779853042bb667977fe02f919c238319736247af"
+    },
+    "static/media/2018/06/dns.png": {
+      "why": "An email address",
+      "fill": [
+        [
+          239,
+          168,
+          374,
+          194
+        ]
+      ],
+      "source": "85aab1a0b3a91b87bb01bb212f5a85d98942f52ff0b73d362cd97f42a30751b9",
+      "result": "c15eb49d39539a40540a6687231b9fee4f9bfb2653d1e4b1c10a80e2a226b25a"
+    },
+    "static/media/2018/11/annotation-2018-11-18-160901.png": {
+      "why": "The sensor's neighborhood and a street name on its map",
+      "fill": [
+        [
+          15,
+          215,
+          259,
+          267
+        ],
+        [
+          34,
+          339,
+          127,
+          366
+        ]
+      ],
+      "source": "951b75facb3c0cfd8e57789c6e7e4c63a39dddd9a33ba8e8a1b3e822a5cd33b2",
+      "result": "f7a06d7ab62e4a38189a90889e18f6d98d37caa05e97db4c76c0fb2cb506453a"
+    },
+    "static/media/2019/01/20190105_025724484_ios.jpg": {
+      "why": "An account email address",
+      "fill": [
+        [
+          438,
+          1814,
+          772,
+          2258
+        ]
+      ],
+      "source": "3bf15eec3e2596e359dc89222245216e4a18c63387d3be63f04a22636f14f275",
+      "result": "3ce67f3da1f23bf52cb71d0a939c3017d133b732ca1574607e9be9f53ebf7b34"
+    },
+    "static/media/2019/01/annotation-2019-01-05-094902.png": {
+      "why": "The author's avatar",
+      "fill": [
+        [
+          1055,
+          4,
+          1094,
+          45
+        ]
+      ],
+      "source": "bfb98e5ac6c6e151912ce702315486790845e749cd034a0fe19e080af2199b3c",
+      "result": "3de0fe5510d62e64f1a49f4c670e3e2c0210b7e92ff36bbf1329deadcb876872"
+    },
+    "static/media/2019/01/annotation-2019-01-05-094932.png": {
+      "why": "The author's avatar",
+      "fill": [
+        [
+          1047,
+          3,
+          1080,
+          42
+        ]
+      ],
+      "source": "9e4ee92ba4cddeb320ba31ebf9501a3236022f86939beda4452a79270bc51893",
+      "result": "bbd2daea0ff390f69fd48cf6da1436a4002eea42b3e98215d90ebcbeeec063ae"
+    },
+    "static/media/2019/01/annotation-2019-01-05-100630.png": {
+      "why": "The author's avatars and email address",
+      "fill": [
+        [
+          179,
+          683,
+          354,
+          746
+        ],
+        [
+          547,
+          683,
+          722,
+          746
+        ],
+        [
+          1041,
+          4,
+          1083,
+          44
+        ]
+      ],
+      "source": "61f073ca6e218133a32ef7a413545635a8fe477fad643b48daeb2c4cbd658c9e",
+      "result": "8bb49debc284e1622b83af85abe8111931b092134bdc97daedb433e629b0e876"
+    },
+    "static/media/2020/01/img_5899.jpg": {
+      "why": "A shipping label",
+      "fill": [
+        [
+          2757,
+          2975,
+          3024,
+          3250
+        ]
+      ],
+      "source": "26ae5a1a060b05055d9354f9d9b1fb049549bf4256e2a8803d75136ed55a9f34",
+      "result": "baac0e05a85ef967d3132cfd690667721e5d41e440edd537b5a0b1ec1f5e5c23"
+    },
+    "static/media/2020/09/2020-09-04-15.png": {
+      "why": "An SSID and BSSID",
+      "fill": [
+        [
+          245,
+          164,
+          333,
+          183
+        ],
+        [
+          1424,
+          253,
+          1742,
+          294
+        ]
+      ],
+      "source": "86ba8d7e79c43f8d88879f53a401549d5232c6ce8f2c9cf227ed7e425d4c5a3a",
+      "result": "60f11dcba4f24b43983eef63f6bc89dcfdd0ff7a1420b8f81077d8200364fa74"
+    },
+    "static/media/2020/09/img_6682.png": {
+      "why": "SSIDs",
+      "fill": [
+        [
+          95,
+          572,
+          445,
+          653
+        ],
+        [
+          95,
+          959,
+          467,
+          1041
+        ],
+        [
+          95,
+          1144,
+          636,
+          1226
+        ]
+      ],
+      "source": "9ac2e8a283b5b0371cafa472f64006b67497d1070dafd15a955700f49fb69cbe",
+      "result": "6d2c562108e3a2439f84b38c76f74678bc80ab232ab4b200e1c6fd4a72c61650"
+    },
+    "static/media/2020/09/img_6684.png": {
+      "why": "An SSID",
+      "fill": [
+        [
+          81,
+          599,
+          374,
+          683
+        ]
+      ],
+      "source": "41c9cc248190464b257676c8b6c394a1677e1ca32b15d790bffb59baf99d837c",
+      "result": "92866261d809c5c2d3d0a84e3f86546a3c542cdef20a51923114dcec25c2854d"
+    },
+    "static/media/2020/10/img_6876.png": {
+      "why": "An SSID",
+      "fill": [
+        [
+          241,
+          1003,
+          541,
+          1089
+        ]
+      ],
+      "source": "68ae2af857f9db4627dbf49acb964f44571994fc394950c33b70d039a6734244",
+      "result": "9962a17da58b3a23d73b840220f9d6290fd9cad6ffd88f4316a900abf85f07a3"
+    },
+    "static/media/2020/10/img_6877.png": {
+      "why": "An SSID",
+      "fill": [
+        [
+          547,
+          1417,
+          813,
+          1496
+        ]
+      ],
+      "source": "b8546d9d6ada0b42b8134c35e55458c97ad2f7a0ee9107bfa844cec933d71e33",
+      "result": "6a37546e3a2226aae41a6e5c467e6824f683a361c73fa4a5df3620d09a98d245"
+    },
+    "static/media/2021/08/fireshot-pro-webpage-screenshot-033-overview-home-assistant-home-assistant.home_.insanegenius.net_.png": {
+      "why": "SSIDs and BSSIDs",
+      "fill": [
+        [
+          1429,
+          1778,
+          1699,
+          1818
+        ],
+        [
+          1529,
+          2028,
+          1714,
+          2068
+        ],
+        [
+          2309,
+          1817,
+          2578,
+          1857
+        ],
+        [
+          2412,
+          2069,
+          2598,
+          2109
+        ]
+      ],
+      "source": "179aa5de0a8db02466c0dfc699dad17573f6c260e368049a7c9e99d3f31482fe",
+      "result": "cb6dd430d5894386274e351d614740bb560718f36387d5b616c9d7e5b7bc1f0a"
+    },
+    "static/media/2021/08/ha.png": {
+      "why": "An SSID and BSSID",
+      "fill": [
+        [
+          1352,
+          973,
+          1718,
+          1054
+        ],
+        [
+          1498,
+          1242,
+          1729,
+          1323
+        ]
+      ],
+      "source": "e5fd40bbeb86129ddf2016b4622e16eeed11c398d30bdd632bb988a7e7f32ad4",
+      "result": "0d729fb6589f92648a4d5f5ffbe9171ef4d401f1206072bb04b911d2896b83fd"
+    },
+    "static/media/2021/08/img_8175.jpg": {
+      "why": "Shirt text naming local businesses, people, a club and a phone number",
+      "fill": [
+        [
+          1874,
+          1270,
+          2495,
+          1916
+        ]
+      ],
+      "source": "fadf85946cb33094f97b22671ae9bd20f85aa10971874e121f534c24234c4b6e",
+      "result": "2d1d7f337d1164d667472de2405718c0934525992ffad8b0700bd16e0c2e0768"
+    },
+    "static/media/2021/12/img_9361.jpg": {
+      "why": "A neighbor's property",
+      "fill": [
+        [
+          1890,
+          2862,
+          3024,
+          4032
+        ]
+      ],
+      "source": "efad3190c811ffc33b1ebb1ffc98e288f226b3497a8ab888af8c50c2f8f7ec5c",
+      "result": "24c0994e8d14984735c17d60b0cb7b81698b07d44fb407cbf598481301a93bdf"
+    },
+    "static/media/2021/12/img_9364.jpg": {
+      "why": "A rooftop panorama cropped to its subject, since its locators span the frame",
+      "crop": [
+        0,
+        2338,
+        3024,
+        4032
+      ],
+      "source": "3235a1b2a75714dd42f95db9444a06e7ad5756d7b0087b249792ea940e02c572",
+      "result": "7e1d71586a39c9cb300502608822a2c14d1febdfe9f9397d6bba11cc9f96c44c"
+    },
+    "static/media/2021/12/img_9377.jpg": {
+      "why": "The house number",
+      "fill": [
+        [
+          3124,
+          1203,
+          3563,
+          1379
+        ]
+      ],
+      "source": "4b7bbd79ead486f5ac1b3f7afdbfcdb2f18a8c81d4cdb5e1134d4bb42b238bc5",
+      "result": "f7b02146a1b115a50f6ed3a08d4af2b2f0c8997221835eba2fe950c2f2b82521"
+    },
+    "static/media/2022/01/2022-01-17-2.png": {
+      "why": "The author's avatar",
+      "fill": [
+        [
+          26,
+          18,
+          343,
+          106
+        ],
+        [
+          38,
+          441,
+          106,
+          502
+        ]
+      ],
+      "source": "ad7230be2ffccbd5470a910d73927dfe732628f2bd15d4d2b2280ba0ef352354",
+      "result": "9c4b46c8883f8452786693b1e554087914ab8fd9680c9eb4ab668684f39f3492"
+    },
+    "static/media/2022/10/screen-shot-2022-10-24-at-10.26.47-am.png": {
+      "why": "Children's names used as room labels beside occupancy times",
+      "fill": [
+        [
+          175,
+          1145,
+          546,
+          1249
+        ],
+        [
+          825,
+          1145,
+          1174,
+          1249
+        ]
+      ],
+      "source": "b09587bb52a7a435813b028009febd2cf43174a4e54c3e41fe5327f3cebcbe9e",
+      "result": "1c91fe9003d59a83ec139e962e80444cc2fd6d64ecc942429ae5ab74ce5e462f"
+    },
+    "static/media/2022/10/screen-shot-2022-10-24-at-11.42.47-am.png": {
+      "why": "Children's names used as room labels beside occupancy times",
+      "fill": [
+        [
+          175,
+          1146,
+          546,
+          1251
+        ],
+        [
+          826,
+          1146,
+          1175,
+          1251
+        ]
+      ],
+      "source": "8e2239eb97eddb4952b6907ed7c556c9d6b2752ae71263f9c0b9f381687f54ed",
+      "result": "0ea9e2e2ccb01d823819abb2b7e872e8bbf82d8dafbd248a625308c887a7a90c"
+    },
+    "static/media/2022/10/screenshot-2022-10-27-184203.png": {
+      "why": "Children's names used as room labels beside occupancy times",
+      "fill": [
+        [
+          130,
+          846,
+          398,
+          926
+        ],
+        [
+          604,
+          846,
+          864,
+          926
+        ]
+      ],
+      "source": "86d6e2088f5cdafdf5655cc68b135bef2e903b1e2067e09a397351837f4443b6",
+      "result": "35804fd740c8b45562ef738c29ece2d0075eb6e4d18eb7aa567b2f83fc2df3d5"
+    },
+    "static/media/2023/03/img_2261.jpg": {
+      "why": "A civic landmark",
+      "fill": [
+        [
+          0,
+          3165,
+          1694,
+          4032
+        ]
+      ],
+      "source": "340241fa28a4eb301be7e68062e25d392e412a88f71ad904c045fb4a30b70e29",
+      "result": "9215e9a234009e5b87cf78182ccb7309e7501bf7e3132e451e3cc9e84418d2b7"
+    },
+    "static/media/2023/03/img_2263.jpg": {
+      "why": "A contractor's face, the house number and a neighbor's property",
+      "fill": [
+        [
+          1713,
+          2515,
+          2178,
+          2752
+        ],
+        [
+          1753,
+          683,
+          1988,
+          902
+        ],
+        [
+          2854,
+          1164,
+          4032,
+          3024
+        ]
+      ],
+      "source": "d631ad1fdd75f9431f3dbd3d8bc5afc3d7b1128de705b1dfe937804cbcb9a73d",
+      "result": "79ca7f4ff9de8b58c90bab47f8cb0d5de292bb8b0d10a904ba4a7568247baa16"
+    },
+    "static/media/2023/03/untitled.png": {
+      "why": "The house number, a kerbside plate, license plates, a local club's sign and a neighbor's property",
+      "fill": [
+        [
+          532,
+          1970,
+          847,
+          2089
+        ],
+        [
+          714,
+          1477,
+          888,
+          1642
+        ],
+        [
+          1595,
+          1641,
+          1753,
+          1708
+        ],
+        [
+          2348,
+          1618,
+          2449,
+          1677
+        ],
+        [
+          2439,
+          1147,
+          2733,
+          1266
+        ],
+        [
+          2877,
+          594,
+          3135,
+          1706
+        ]
+      ],
+      "source": "7734dd317739ff1a4e96c37fa42c4dc0a1f9656ad1fda39798f2d886bb6307fb",
+      "result": "7f575c2028fc1678ebaca866c473af0095af5ac141d96c9edd021a9353c34d3a"
+    }
+  }
+}

@@ -15,7 +15,7 @@ post_id: '130'
 ---
 It has been almost two weeks since I [switched to using Blogger's new dynamic template](/2012/06/blogger-dynamic-templates.html).
 
-Browsing the site with the new template works really well. It uses most of the available browser real estate, it looks good on an iPad, it feels nice and fluid, but it also has problems.
+Browsing the site with the new template works really well; it uses most of the available browser real estate, it looks good on an iPad, it feels nice and fluid, but it also has problems.
 
 For some reason my AdSense integration stopped working, and the AdSense site said my account needs to be verified. AdSense was working fine in the old template, so something in the new template, or switching to the new template, must have triggered this. I've had AdSense for almost a year, and in that time I've not even made enough for Google to trigger a payment. In order to verify my account, I had to enter a PIN they mailed me on a postcard, entered the amount of a test transfer in my bank account, and entered a PIN read to me on my phone. Two days after the verification steps were completed ads started showing up again.
 
@@ -27,7 +27,7 @@ In the old Blogger management interface it was easy and obvious how to add and r
 
 Since I changed some of the labels, and I know that links to labels are case sensitive, this is another silly thing I never understood as label creation and editing is case insensitive, I wanted to test a label link. When clicking a label in the cloud widget on the main blog page, the link works fine, but when you directly navigate to a label link, you get a blank page. Not good.
 
-Since I was so disappointed in only making a few dollars in a year of serving AdSense ads, I decided to create an Amazon Associates account, tag my links to Amazon products, and show some Amazon ads, hoping I can at least recover the cost of the domain registration fees. It turns out that Blogger no longer natively supports Amazon ads, seems a bit anti-competitive to me, but that's the nature of their business. Ok, you can host Amazon ads by using HTML in your template, but, the dynamic template does not support any customization, and it does not support any HTML widgets.
+Since I was so disappointed in only making a few dollars in a year of serving AdSense ads, I decided to create an Amazon Associates account, tag my links to Amazon products, and  show some Amazon ads, hoping I can at least recover the cost of the domain registration fees. It turns out that Blogger no longer natively supports Amazon ads, seems a bit anti-competitive to me, but that's the nature of their business. Ok, you can host Amazon ads by using HTML in your template, but, the dynamic template does not support any customization, and it does not support any HTML widgets.
 
 That leaves me to using just tagged links to Amazon pages, that is easy enough, just a bit of re-editing old pages. A friend suggested I use [Bitly](http://bitly.com/) to shorten my Amazon tagged links, that way I can do link tracking, and since adding Bitly I've had ... 3 clicks, seems I'll have to keep paying those domain fees after all.
 
@@ -45,7 +45,7 @@ There are some rumblings that WLW may be discontinued, based on its absence from
 
 A blog subscriber notified me that he was getting some "temporary post" titled posts in his feed. I've seen these before in Google Reader, even from Microsoft's own MSDN and TechNet blogs. It seems that [FeedBurner](http://feedburner.google.com/) is so hasty that it streams the temporary post created by WLW before WLW had a chance to delete it. No harm, it just looks odd in the stream.
 
-By now I was pretty fed up with Blogger and the dynamic template, and I started looking for alternative and free blog hosting. There really seems to be only one free and feature rich alternative, and that is [WordPress.com](http://wordpress.com/). WordPress has an easy to use Blogger importer, that imports posts, comments, and settings. Check out [my blog in WordPress format](/). There is one catch, the free .com version of WordPress does not allow direct advertising, they do the advertising for their own revenue. Not that it really matters as the few dollars I stand to loose is well worth it if I don't need to deal with Blogger.
+By now I was  pretty fed up with Blogger and the dynamic template, and I started looking for alternative and free blog hosting. There really seems to be only one free and feature rich alternative, and that is [WordPress.com](http://wordpress.com/). WordPress has an easy to use Blogger importer, that imports posts, comments, and settings. Check out [my blog in WordPress format](/). There is one catch, the free .com version of WordPress does not allow direct advertising, they do the advertising for their own revenue. Not that it really matters as the few dollars I stand to loose is well worth it if I don't need to deal with Blogger.
 
 I am still hopeful that Google will step up to the plate and fix Blogger and dynamic templates, but at least I know there is an easy migration path to WordPress.
 

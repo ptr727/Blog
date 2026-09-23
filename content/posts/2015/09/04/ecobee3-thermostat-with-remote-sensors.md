@@ -16,7 +16,7 @@ We've had a particularly warm summer, for our very moderate area, and between my
 
 I was an early adopter of the Nest Generation 1 thermostat, and when we moved to our new house, [Nest](https://nest.com/) was still the best available, and I installed two Nest Generation 2 thermostats, one upstairs, and one downstairs.
 
-Nest used to be an innovator and leader in the home thermostat space, and then two things happened. They were acquired by Google, and competitors like [Ecobee](https://www.ecobee.com/) and [Honeywell](http://lyric.honeywell.com/) released very competitive products. The just released [Nest Generation 3](http://amzn.to/1UpjbSD) thermostat has no new notable features, it is simply thinner, not unlike its competitors.
+Nest used to be an innovator and leader in the home thermostat space, and then two things happened; they were acquired by Google, and competitors like [Ecobee](https://www.ecobee.com/) and [Honeywell](http://lyric.honeywell.com/) released very competitive products. The just released [Nest Generation 3](http://amzn.to/1UpjbSD) thermostat has no new notable features, it is simply thinner, not unlike its competitors.
 
 The one feature I, and many [other users](https://community.nest.com/ideas/1296), asked for was remote temperature sensors. In many homes, like ours, where there are two HVAC units, one for upstairs and one for downstairs, with no room specific dampers or temperature control, the upstairs and downstairs air mixes and causes large temperature differentials between closed rooms and open spaces. Adding to that warm air rises and cold air falls, so in the summer the upstairs pumps cold air downstairs, and in the winter the downstairs pumps warm air upstairs, this again leaves bedrooms too hot or too cold.
 
@@ -36,7 +36,7 @@ The remote sensors come with stands, wall screw mounts, and wall sticky tape mou
 
 [![Sensor Size](/media/2015/09/sensor-size.jpg?w=300)](/media/2015/09/sensor-size.jpg)
 
-The WiFi setup was really easy, and the first time I've seen this particular scheme in action, I believe it is called Wireless Accessory Configuration (WAC), not sure, Apple documentation is as always in short supply. Basically it worked like this. Install the EB3 app on my iPhone, EB3 told me to connect my phone to the EB3 SSID, my phone asked me if I want to connect the device to WiFi, select yes, and the EB3 was automatically connected to my home WiFi, no passwords, no hassles, easy.
+The WiFi setup was really easy, and the first time I've seen this particular scheme in action, I believe it is called Wireless Accessory Configuration (WAC), not sure, Apple documentation is as always in short supply. Basically it worked like this; install the EB3 app on my iPhone, EB3 told me to connect my phone to the EB3 SSID, my phone asked me if I want to connect the device to WiFi, select yes, and the EB3 was automatically connected to my home WiFi, no passwords, no hassles, easy.
 
 For each thermostat install the EB3 app asked me details about my house, address, size, construction, etc. This was annoying, one house, one set of details, multiple thermostats, why do I need to configure this for every thermostat. The Nest config was always very easy, one set of options per house, multiple thermostats. A call to EB support told me I need to create a group, then add the thermostats to the same group, then select what options I want to share between thermostats in the same group, and this can only be done from the web portal. This was a setup and first experience usability fail.
 
@@ -92,7 +92,7 @@ While I was looking at the System Monitor feature, very neat, I noticed gaps in 
 {{< figure src="/media/2015/09/availability.png" title="Availability" alt="Availability" >}}  
 {{< /gallery >}}  
 
-I called Ecobee support, and they explained what was going on with the schedule. The thermostat has a feature called [Smart Recovery Mode](https://www.ecobee.com/faq/what-is-the-smart-recovery-heat-cool-function-should-i-leave-these-set-to-the-default-on-setting/), in this mode the AC starts running before a schedule change in an attempt to reach the desired temperature when the schedule starts. And that this prediction takes a week or so to become more accurate, and that it can be impacted by fluctuations in the weather. Ok, makes sense, but usability fail by not making this behavior clear in the status UI.
+I called Ecobee support, and they explained what was going on with the schedule; the thermostat has a feature called [Smart Recovery Mode](https://www.ecobee.com/faq/what-is-the-smart-recovery-heat-cool-function-should-i-leave-these-set-to-the-default-on-setting/), in this mode the AC starts running before a schedule change in an attempt to reach the desired temperature when the schedule starts. And that this prediction takes a week or so to become more accurate, and that it can be impacted by fluctuations in the weather. Ok, makes sense, but usability fail by not making this behavior clear in the status UI.
 
 [![Smart Recovery](/media/2015/09/smart-recovery.png?w=300)](/media/2015/09/smart-recovery.png)
 

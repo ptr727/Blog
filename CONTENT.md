@@ -2,7 +2,7 @@
 
 How a post on this site is written and filed. [`OPERATIONS.md`][operations] holds the procedures that publish it and [`CODESTYLE.md`][codestyle] the rules for the code around it. This file is the content half, and it exists because no gate has an opinion about the writing.
 
-Everything here applies to `content/`. The imported archive under it predates these rules and is not swept to match them, so read this as the contract for a new post rather than as a description of all 109 old ones.
+Everything here applies to `content/`. The imported archive under it predates these rules and keeps its own voice, so read this as the contract for a new post rather than as a description of all 109 old ones.
 
 ## Where a Post Lives
 
@@ -114,9 +114,13 @@ These are settled, in new media and old alike, and reopening one wastes a review
 
 **A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else.
 
-The archive was reviewed image by image, and that review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. Private-range addresses went too, since reaching one needs presence on the network already. None of it was worth the damage.
+**The archive's bar is narrow because its images have been public for years.** A fill there covers a street address or house number, an email address, a clearly visible face, a landmark or a neighbor's property that places the home, an SSID or BSSID, a VIN or license plate, and a child's name beside an occupancy time. The author's name and handle, private-range and long-reassigned public addresses, machine names, serials and barcodes on retired equipment, and public credits all stay. So does a face too faint to recognize.
 
 Treat that as a judgment about the archive, never as a precedent for a new post.
+
+**Every archive redaction is data, never a hand edit.** [`checks/media-redactions.json`][redactions] names each file, its fills or crop, and why. [`scripts/redact-media.py`][redact] applies it after the metadata normalizer, and records the hash each file starts from and lands on. So a run is deterministic, and a second run changes nothing. [`checks/check-media-redactions.py`][redactions-check] fails the build on a declared file that is not at its redacted result. A change to the archive's redactions is a change to that manifest, rerun with `uv run scripts/redact-media.py --record`.
+
+**The archive's text follows the same model.** [`scripts/normalize-text.py`][normalize-text] replaces typographic characters with ASCII outside code, blockquotes, and front matter. It then applies the doubled-word and grammar corrections listed one by one in [`scripts/text-corrections.json`][text-corrections]. Nothing else in an old post is restyled, its punctuation included.
 
 ### Judging One
 
@@ -187,9 +191,9 @@ This is the reason this file exists, so it is worth stating plainly.
 | `checks/check-live-urls.sh` | yes, against a running server |
 | markdownlint | no, `content/.markdownlint-cli2.jsonc` ignores the tree |
 | CSpell | no, `cspell.json` ignores the tree |
-| `prose_lint.py` | no, it reads tracked prose outside `content/` |
+| `prose_lint.py` | yes, for characters and punctuation on changed lines. `.github/prose-gate-excludes` leaves out the imported archive's years |
 
-Nothing above reads the writing. A human does, before the post merges, and that read is the only gate this file has.
+Nothing above judges the writing itself. A human does, before the post merges, and that read is the only gate for it.
 
 ## Corrections
 
@@ -204,4 +208,9 @@ A fact in a published post that proves wrong is corrected in the post. It is not
 [operations]: ./OPERATIONS.md
 [metadata]: ./checks/check-media-metadata.py
 [normalize]: ./scripts/normalize-media.py
+[normalize-text]: ./scripts/normalize-text.py
 [parity]: ./checks/check-url-parity.py
+[redact]: ./scripts/redact-media.py
+[redactions]: ./checks/media-redactions.json
+[redactions-check]: ./checks/check-media-redactions.py
+[text-corrections]: ./scripts/text-corrections.json

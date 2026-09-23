@@ -35,7 +35,7 @@ Below are screenshots of the plant selection process:
 
 [![Plants.8](/media/2012/09/plants-8_thumb.png)](/media/2012/09/plants-8.png)[![Plants.2](/media/2012/09/plants-2_thumb.png)](/media/2012/09/plants-2.png)[![Plants.3](/media/2012/09/plants-3_thumb.png)](/media/2012/09/plants-3.png)[![Plants.4](/media/2012/09/plants-4_thumb.png)](/media/2012/09/plants-4.png)[![Plants.5](/media/2012/09/plants-5_thumb.png)](/media/2012/09/plants-5.png)[![Plants.6](/media/2012/09/plants-6_thumb.png)](/media/2012/09/plants-6.png)[![Plants.7](/media/2012/09/plants-7_thumb.png)](/media/2012/09/plants-7.png)
 
-After adding the plant, you have to associate the sensor with the plant. But, that required that I press the button on the sensor, and since I was in the office, I had to wait until the next day at home to continue the setup.
+After adding the plant, you have to associate the sensor with the plant.  But, that required that I press the button on the sensor, and since I was in the office, I had to wait until the next day at home to continue the setup.
 
 Once configured, the sensor enters a calibration period that will take about a week. In the mean time it is displaying semi-interesting information:
 

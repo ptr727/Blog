@@ -19,7 +19,7 @@ The XIOS DS is really small, here is a picture showing the size of a [Roku 2 XS]
 
 [![Size.Compare](/media/2012/07/size-compare_thumb.jpg)](/media/2012/07/size-compare.jpg)
 
-"Piovs" vs. "Pivos". While unpacking the box I found this little gem printed on the box, one would think that spelling your company name correctly on the packaging is important:
+"Piovs" vs. "Pivos"; while unpacking the box I found this little gem printed on the box, one would think that spelling your company name correctly on the packaging is important:
 
 [![Pivos.Box.Back](/media/2012/07/pivos-box_-back_thumb.jpg)](/media/2012/07/pivos-box_-back_.jpg)
 
@@ -33,7 +33,7 @@ Navigation using the included IR remote is a bit clunky, the UI has no indicatio
 
 By default LAN and WiFi are both disable, if you click the down button, the settings icon will be active, and you can press the Ok button, once or a few times, and then enable the LAN card.
 
-The box comes installed with [Android Gingerbread 2.3.4](http://developer.android.com/about/versions/android-2.3.4.html). The auto update functionality reports everything is up-to-date, but you can get the firmware and app updates from the [Pivos forum](http://www.pivosforums.com/viewtopic.php?f=11&t=669). I updated the firmware and apps, instructions are on the forum, here is a summary. Download the firmware and apps RAR files, extract the contents to a microSD card, insert the microSD card in the box, navigate to \[Privacy\]\[Update System\] and select update:
+The box comes installed with [Android Gingerbread 2.3.4](http://developer.android.com/about/versions/android-2.3.4.html). The auto update functionality reports everything is up-to-date, but you can get the firmware and app updates from the [Pivos forum](http://www.pivosforums.com/viewtopic.php?f=11&t=669). I updated the firmware and apps, instructions are on the forum, here is a summary; download the firmware and apps RAR files, extract the contents to a microSD card, insert the microSD card in the box, navigate to \[Privacy\]\[Update System\] and select update:
 
 [![Firmware.Update](/media/2012/07/firmware-update_thumb.jpg)](/media/2012/07/firmware-update.jpg)
 

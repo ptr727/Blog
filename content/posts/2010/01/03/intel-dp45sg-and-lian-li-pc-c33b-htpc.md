@@ -154,7 +154,7 @@ I have the 405 revision board, but without access to an older board, I really do
 
 I used [Lavalys EVEREST](http://www.lavalys.com/ "Lavalys EVEREST") to monitor the fan speeds from within Windows, at idle the 80mm fans run around 410rpm, and the 140mm fan at around 1100rpm.
 
-EVEREST does however report the wrong fan labels: System should be AUX, Chassis should be Front, and Power Supply should be Rear.
+EVEREST does however report the wrong fan labels; System should be AUX, Chassis should be Front, and Power Supply should be Rear.
 
 I [posted the mismatch](http://www.lavalys.com/forum/index.php?showtopic=4712 "posted the mismatch") on the EVEREST forum, I hope they fix it at some point.
 

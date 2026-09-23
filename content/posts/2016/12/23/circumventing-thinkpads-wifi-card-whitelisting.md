@@ -27,7 +27,7 @@ I ran the update again, and this time I got error 99, complaining that BitLocker
 
 Hmm, maybe the updater does not like the FreeDOS boot image used by Rufus. Ok, let me create a MS-DOS USB key, uhh, on Win10, that turned out to be near impossible. Win10 does not include MS-DOS files, Rufus does not support custom locations for MS-DOS files, nor does it support getting them from floppy or CD images (readily available for [download](http://www.allbootdisks.com/)), the HP USB Disk utility complains my USB drive is locked, and writing raw images to USB result in a FAT12 disk structure that is too small to use. I say near impossible because I gave up, and instead went looking for an existing MS-DOS USB key I had made a long time ago. I am sure with a bit more persistence I could have found a way to create MS-DOS bootable USB keys on Win10, but that is an exercise of another day.
 
-Trying again with a MS-DOS USB key, and voilà, BIOS flashed, and WiFi working.
+Trying again with a MS-DOS USB key, and voilà, BIOS flashed, and WiFi working.
 
 I am annoyed that I had to go to this much trouble to get the new WiFi card working, but the best part of the exercise turns out to be the SATA-2 speed increase. This machine had a SSD drive, that I always found to be slow, but with the SATA-2 speed bump in Middleton's BIOS, the machine is noticeably snappier.
 

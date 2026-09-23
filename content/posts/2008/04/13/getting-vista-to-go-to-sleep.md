@@ -21,7 +21,7 @@ I am currently using an ATI HD 26000 XT card in my HTPC, and this is a great car
 
 I installed the ATI card, installed the drivers, and put the machine to sleep. This is where the GMA drivers would normally crash. This time there was no crash, but the machine also immediately woke up again, I could not get it to stay in sleep mode.
 
-At this point I had had enough of the DG33TL board. It had given me more trouble than I was willing to put up with and I wanted a replacement board. Since I already had the machine open, while replacing the VGA card, I wanted a new board now, which meant instead of ordering online and waiting a few days I had to take a trip to my local Fry's.
+At this point I had had enough of the DG33TL board; it had given me more trouble than I was willing to put up with and I wanted a replacement board. Since I already had the machine open, while replacing the VGA card, I wanted a new board now, which meant instead of ordering online and waiting a few days I had to take a trip to my local Fry's.
 
 I knew my in store choices would be limited, so I did some research and selected a few models from Asus, Gigabyte, and Intel, with the primary requirement being ICH9 support so that I would not lose the RAID-0 configuration of my drives, and the motherboard swap would not require an OS reinstall. My first choice would have been a [Gigabyte GA-G33-DS3R](http://www.gigabyte.com.tw/Products/Motherboard/Products_Overview.aspx?ProductID=2535), unfortunately, as I suspected, it turns out that of all the options I was hoping for the only board that came close was an [Intel DQ35JO](http://www.intel.com/products/motherboard/DQ35JO/index.htm).
 
@@ -35,7 +35,7 @@ I booted into Vista Ultimate x64, waited a few minutes for the new drivers to lo
 
 Now for the ultimate test, can the machine go to sleep? I press the sleep button and the machine sleeps, I touch the keyboard and the machine wakes up. I leave the machine idle for an hour, it goes to sleep, I touch the keyboard and the machine wakes up. Success!
 
-There is one thing that is still not 100%, and this seems to be a problem on both the DG33TL and the DQ35JO. The case power light is not always on. E.g. after removing mains power and powering on the case power light will be on and stay on until the first sleep, and then the power light will turn off, and even resuming from sleep or rebooting will not turn the light back on.
+There is one thing that is still not 100%, and this seems to be a problem on both the DG33TL and the DQ35JO; the case power light is not always on. E.g. after removing mains power and powering on the case power light will be on and stay on until the first sleep, and then the power light will turn off, and even resuming from sleep or rebooting will not turn the light back on.
 
 Maybe I should have been more patient and ordered the Gigabyte GA-G33-DS3R instead, but for now I am happy.
 
