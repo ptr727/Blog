@@ -215,6 +215,12 @@ def exif_unrecognized(raw: bytes) -> set[str]:
                     pending.append(struct.unpack_from(fmt + "I", raw, entry + 8)[0])
                 except struct.error:
                     pass
+        # A chained IFD is a second image, usually a thumbnail of the frame before any edit.
+        try:
+            if struct.unpack_from(fmt + "I", raw, offset + 2 + count * 12)[0]:
+                out.add("Exif chained IFD")
+        except struct.error:
+            pass
     return out
 
 

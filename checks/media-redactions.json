@@ -29,8 +29,8 @@
           3000
         ]
       ],
-      "source": "a72c85147de8d5abc24ef1874a097ad34210ee10f716d218a216581271bc1a79",
-      "result": "a913d20c7e5a554c74258e33012ecf1b41de29592829e8fd2625f717270b676b"
+      "source": "a8b3a9e554e7a286f4e90f69b546de0a1ff7a6e751517045a78ebbf27fab47e5",
+      "result": "e9623ca4efd981edec13c35db6416abee2f2f37f1f5c64d143a909ce9418e9c1"
     },
     "static/media/2015/09/group-config.png": {
       "why": "A group name derived from the street address",
@@ -49,7 +49,7 @@
         ]
       ],
       "source": "e0196d219e331025ce53e5029963967d7c16d040c32b86548bc660a22e093b86",
-      "result": "27f8654f093ba30f7ca797e82e879c78c6ad7c3c5114e69879c92942fb242a37"
+      "result": "43170a4093d17bda212a96246d1030a477a1df6db65ca95c51bdb7f0dfd5751f"
     },
     "static/media/2015/09/groups.png": {
       "why": "A group name derived from the street address",
@@ -62,7 +62,7 @@
         ]
       ],
       "source": "8e81e9d00db070699e7ea5398041924636c6ca26d9d776441d4be04a61e1f0fa",
-      "result": "6ae3d0cf2ea6d001cf96c988948fb012e28676b853c996dfd7a932f03c22b6c9"
+      "result": "0aefe7e4cfffd4b37f07f9a48629887fc32cb370aba1ec0027fc7ad3823ad167"
     },
     "static/media/2017/03/synapse-1.png": {
       "why": "An email address",
@@ -75,7 +75,7 @@
         ]
       ],
       "source": "8ba390204c36fe8963f0ca57f24fb87132a974a1a081937e099e64bafd3c2f6a",
-      "result": "ed29be56ba51b0f4891abadd779853042bb667977fe02f919c238319736247af"
+      "result": "bd8a458e6f5d8972a94cc778b83bae829049be327612fb71eeb5e938e8692cc3"
     },
     "static/media/2018/06/dns.png": {
       "why": "An email address",
@@ -88,7 +88,7 @@
         ]
       ],
       "source": "85aab1a0b3a91b87bb01bb212f5a85d98942f52ff0b73d362cd97f42a30751b9",
-      "result": "c15eb49d39539a40540a6687231b9fee4f9bfb2653d1e4b1c10a80e2a226b25a"
+      "result": "d56837efd97fbbcc74844cef080183ee800c6ed67f5b989e38ac6f1b6d1e552b"
     },
     "static/media/2018/11/annotation-2018-11-18-160901.png": {
       "why": "The sensor's neighborhood and a street name on its map",
@@ -107,7 +107,7 @@
         ]
       ],
       "source": "951b75facb3c0cfd8e57789c6e7e4c63a39dddd9a33ba8e8a1b3e822a5cd33b2",
-      "result": "f7a06d7ab62e4a38189a90889e18f6d98d37caa05e97db4c76c0fb2cb506453a"
+      "result": "03d00da324611118823ada753a5a37603820ecfaf11a861c565d8d6b8cf7a130"
     },
     "static/media/2019/01/20190105_025724484_ios.jpg": {
       "why": "An account email address",
@@ -133,7 +133,7 @@
         ]
       ],
       "source": "bfb98e5ac6c6e151912ce702315486790845e749cd034a0fe19e080af2199b3c",
-      "result": "3de0fe5510d62e64f1a49f4c670e3e2c0210b7e92ff36bbf1329deadcb876872"
+      "result": "2e9736506ae319e0c9ad9864c560092b06cf1fd5785bf3f8330c78b0f33c65f6"
     },
     "static/media/2019/01/annotation-2019-01-05-094932.png": {
       "why": "The author's avatar",
@@ -146,7 +146,7 @@
         ]
       ],
       "source": "9e4ee92ba4cddeb320ba31ebf9501a3236022f86939beda4452a79270bc51893",
-      "result": "bbd2daea0ff390f69fd48cf6da1436a4002eea42b3e98215d90ebcbeeec063ae"
+      "result": "4e7df1f1def524a6a8dce488699ba1b0037a5e93460f3760666191413ffefbae"
     },
     "static/media/2019/01/annotation-2019-01-05-100630.png": {
       "why": "The author's avatars and email address",
@@ -171,7 +171,7 @@
         ]
       ],
       "source": "61f073ca6e218133a32ef7a413545635a8fe477fad643b48daeb2c4cbd658c9e",
-      "result": "8bb49debc284e1622b83af85abe8111931b092134bdc97daedb433e629b0e876"
+      "result": "215e49f943ab6d3facd81e644a3e198e3ebb09e0136f4482606b08670711887b"
     },
     "static/media/2020/01/img_5899.jpg": {
       "why": "A shipping label",
@@ -203,7 +203,7 @@
         ]
       ],
       "source": "86ba8d7e79c43f8d88879f53a401549d5232c6ce8f2c9cf227ed7e425d4c5a3a",
-      "result": "60f11dcba4f24b43983eef63f6bc89dcfdd0ff7a1420b8f81077d8200364fa74"
+      "result": "ff52071b39cf882e4ac4efc2b9f89d4eaf44c2a32a793c5bccfba055ffe0b93b"
     },
     "static/media/2020/09/img_6682.png": {
       "why": "SSIDs",
@@ -386,7 +386,7 @@
         ]
       ],
       "source": "ad7230be2ffccbd5470a910d73927dfe732628f2bd15d4d2b2280ba0ef352354",
-      "result": "9c4b46c8883f8452786693b1e554087914ab8fd9680c9eb4ab668684f39f3492"
+      "result": "c99e65d5202d2f0d955faa25f2f078662006f9765210d7ff7c0e633cab913dfd"
     },
     "static/media/2022/10/screen-shot-2022-10-24-at-10.26.47-am.png": {
       "why": "Children's names used as room labels beside occupancy times",
@@ -443,7 +443,7 @@
         ]
       ],
       "source": "86d6e2088f5cdafdf5655cc68b135bef2e903b1e2067e09a397351837f4443b6",
-      "result": "35804fd740c8b45562ef738c29ece2d0075eb6e4d18eb7aa567b2f83fc2df3d5"
+      "result": "cee71f79a731a73102b0a3b5b1d7739df261c4860e449e8459d6e0168b7bed14"
     },
     "static/media/2023/03/img_2261.jpg": {
       "why": "A civic landmark",
@@ -524,7 +524,7 @@
         ]
       ],
       "source": "7734dd317739ff1a4e96c37fa42c4dc0a1f9656ad1fda39798f2d886bb6307fb",
-      "result": "7f575c2028fc1678ebaca866c473af0095af5ac141d96c9edd021a9353c34d3a"
+      "result": "0085c70a3bc3408bbe5db991e299b6bf8ef09e31126fb38917e6de61a5bd6c91"
     }
   }
 }

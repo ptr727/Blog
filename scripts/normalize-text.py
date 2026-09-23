@@ -13,7 +13,8 @@ Nothing here decides what a defect is.
 **Some text keeps its characters.** Front matter, a fenced code block, a blockquote,
 and a line holding one of the manifest's protected tokens are left byte for byte, since
 tool output, somebody else's words, and a product name each mean what they are written
-as.
+as. Inline code is substituted, because a curly quote or a dash inside a command is the
+old platform's typography and breaks the command when pasted.
 
 Both passes are idempotent. A substituted character is gone, and a correction whose
 text is already in place is skipped, so a second run reports nothing. A correction
@@ -30,6 +31,7 @@ import sys
 REPO = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "scripts" / "text-corrections.json"
 TREE = REPO / "content"
+FENCE = re.compile(r"(`{3,}|~{3,})")
 
 SUBSTITUTIONS = {
     "\u00a0": " ",
@@ -56,12 +58,17 @@ def substitute(text: str, protected: list[str]) -> str:
             if index > 0 and line == "---":
                 front_matter = False
             continue
+        opener = FENCE.match(stripped)
         if fence:
-            if stripped.startswith(fence):
+            if (
+                opener
+                and opener.group(1)[0] == fence[0]
+                and len(opener.group(1)) >= len(fence)
+            ):
                 fence = None
             continue
-        if stripped.startswith(("```", "~~~")):
-            fence = stripped[:3]
+        if opener:
+            fence = opener.group(1)
             continue
         if stripped.startswith(">") or any(token in line for token in protected):
             continue
@@ -83,13 +90,13 @@ def main() -> int:
     for item in manifest["corrections"]:
         corrections.setdefault(item["file"], []).append(item)
     missing = sorted(
-        set(corrections) - {str(p.relative_to(REPO)) for p in TREE.rglob("*.md")}
+        set(corrections) - {p.relative_to(REPO).as_posix() for p in TREE.rglob("*.md")}
     )
 
     changed, errors = [], [f"{name}: no such file" for name in missing]
     for path in sorted(TREE.rglob("*.md")):
-        name = str(path.relative_to(REPO))
-        original = path.read_text(encoding="utf-8")
+        name = path.relative_to(REPO).as_posix()
+        original = path.read_bytes().decode("utf-8")
         text = substitute(original, manifest["protect"])
         applied = 0
         for item in corrections.get(name, []):
@@ -106,7 +113,7 @@ def main() -> int:
         if text != original:
             changed.append(f"{name}: {applied} correction(s)")
             if args.apply:
-                path.write_text(text, encoding="utf-8")
+                path.write_bytes(text.encode("utf-8"))
 
     verb = "normalized" if args.apply else "to normalize"
     for line in changed + errors:

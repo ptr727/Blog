@@ -120,7 +120,7 @@ Treat that as a judgment about the archive, never as a precedent for a new post.
 
 **Every archive redaction is data, never a hand edit.** [`checks/media-redactions.json`][redactions] names each file, its fills or crop, and why. [`scripts/redact-media.py`][redact] applies it after the metadata normalizer, and records the hash each file starts from and lands on. So a run is deterministic, and a second run changes nothing. [`checks/check-media-redactions.py`][redactions-check] fails the build on a declared file that is not at its redacted result. A change to the archive's redactions is a change to that manifest, rerun with `uv run scripts/redact-media.py --record`.
 
-**The archive's text follows the same model.** [`scripts/normalize-text.py`][normalize-text] replaces typographic characters with ASCII outside code, blockquotes, and front matter. It then applies the doubled-word and grammar corrections listed one by one in [`scripts/text-corrections.json`][text-corrections]. Nothing else in an old post is restyled, its punctuation included.
+**The archive's text follows the same model.** [`scripts/normalize-text.py`][normalize-text] replaces typographic characters with ASCII outside fenced code, blockquotes, and front matter. It then applies the corrections listed one by one in [`scripts/text-corrections.json`][text-corrections]: doubled words, grammar slips, a title's HTML entity, and two links that located the home. Nothing else in an old post is restyled, its punctuation included.
 
 ### Judging One
 
@@ -191,7 +191,7 @@ This is the reason this file exists, so it is worth stating plainly.
 | `checks/check-live-urls.sh` | yes, against a running server |
 | markdownlint | no, `content/.markdownlint-cli2.jsonc` ignores the tree |
 | CSpell | no, `cspell.json` ignores the tree |
-| `prose_lint.py` | yes, for characters and punctuation on changed lines. `.github/prose-gate-excludes` leaves out the imported archive's years |
+| `prose_lint.py` | yes, for characters and punctuation on changed lines. `.github/prose-gate-excludes` leaves out the imported posts' years |
 
 Nothing above judges the writing itself. A human does, before the post merges, and that read is the only gate for it.
 
