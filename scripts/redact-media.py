@@ -31,7 +31,8 @@ the generation loss outside a fill to a level or two, and a crop off the block g
 costs more. Its color profile is carried across and its Exif is not, since an Exif
 block can hold a thumbnail of the frame before the fill. A PNG is written at 8 bits and
 keeps its gamma, chromaticity, and sRGB chunks and its alpha channel, the fills opaque.
-One whose transparency is a tRNS color key is refused, since Pillow does not write it back.
+One whose transparency is a tRNS color key is refused, since the key carries across and
+a fill in the key's color would come out transparent.
 The output then goes through the same lossless drop as `scripts/normalize-media.py`.
 """
 
@@ -99,7 +100,7 @@ def redact(data: bytes, entry: dict) -> bytes:
     if source.getexif().get(0x0112, 1) != 1:
         raise ValueError("rotated by Exif, so the manifest's coordinates are ambiguous")
     if "transparency" in source.info:
-        raise ValueError("carries a tRNS color key, which this does not write back")
+        raise ValueError("carries a tRNS color key, which a fill could match")
     boxes = entry.get("fill", []) + ([entry["crop"]] if "crop" in entry else [])
     width, height = source.size
     for x0, y0, x1, y1 in boxes:

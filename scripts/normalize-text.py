@@ -95,6 +95,7 @@ def main() -> int:
     )
 
     changed, errors = [], [f"{name}: no such file" for name in missing]
+    writes: list[tuple[pathlib.Path, str]] = []
     for path in sorted(TREE.rglob("*.md")):
         name = path.relative_to(REPO).as_posix()
         original = path.read_bytes().decode("utf-8")
@@ -103,20 +104,30 @@ def main() -> int:
         for item in corrections.get(name, []):
             # A pattern stands in where the text being replaced must not be kept here.
             pattern = re.compile(item.get("pattern") or re.escape(item["from"]))
-            before, after = len(pattern.findall(text)), text.count(item["to"])
-            if before == 1 and after == 0:
-                text = pattern.sub(item["to"].replace("\\", "\\\\"), text)
-                applied += 1
-            elif before or after != 1:
-                errors.append(
-                    f"{name}: correction {pattern.pattern!r} matches {before} time(s)"
-                )
+            label = f"{name}: correction {pattern.pattern!r}"
+            done = len(pattern.findall(text)) == 0 and text.count(item["to"]) == 1
+            if done:
+                continue
+            if len(pattern.findall(text)) != 1:
+                errors.append(f"{label} matches {len(pattern.findall(text))} time(s)")
+                continue
+            result = pattern.sub(item["to"].replace("\\", "\\\\"), text)
+            # A later run skips only a result with no match left and exactly one replacement.
+            if pattern.findall(result) or result.count(item["to"]) != 1:
+                errors.append(f"{label} would not read as applied on the next run")
+                continue
+            text = result
+            applied += 1
         if text != original:
             changed.append(f"{name}: {applied} correction(s)")
-            if args.apply:
-                path.write_bytes(text.encode("utf-8"))
+            writes.append((path, text))
 
-    verb = "normalized" if args.apply else "to normalize"
+    # Nothing is written when any correction fails, so a failed run leaves the tree as it was.
+    if args.apply and not errors:
+        for path, text in writes:
+            path.write_bytes(text.encode("utf-8"))
+
+    verb = "normalized" if args.apply and not errors else "to normalize"
     for line in changed + errors:
         print(line)
     print()
