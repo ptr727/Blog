@@ -38,6 +38,6 @@ Here is an example snippet of the status emails I receive from CrashPlan:
 Source -> TargetSelectedFilesBacked  
 Up %Last  
 ConnectedLast  
-BackupVM-STORAGE -> CrashPlan Central2.1TB up 1KB423k 0100.0%2.5 hrs4.3 hrs  
+BackupVM-STORAGE -> CrashPlan Central2.1TB ↑1KB423k 0100.0%2.5 hrs4.3 hrs  
 
 

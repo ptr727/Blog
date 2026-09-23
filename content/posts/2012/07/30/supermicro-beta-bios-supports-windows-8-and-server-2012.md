@@ -44,7 +44,7 @@ I updated my Windows 8 USB key to the latest build (I have access to), booted fr
 
 I had swapped the [NVidia Quadro 4000](http://amzn.to/Q6lGGc) for a faster [ATI FirePro V7900](http://amzn.to/LZehYW). The v1.0 BIOS worked fine with the Quadro 4000, but after installing the V7900, the screen powered on and Windows 7 started booting before I had a chance to see the BIOS screen. After installing the new Beta BIOS, the V7900 works as expected and I can see the BIOS screen during POST.
 
-This is a note for ATI. Please make sure your VGA driver install UI fits on a 640x480 display. When I swapped the Quadro 4000 for the V7900, and rebooted into Windows 7, I booted into a 640x480 16 color screen. Imagine my frustration trying to guess which button has focus when you can only see the top half of the ATI driver installer.
+This is a note for ATI; please make sure your VGA driver install UI fits on a 640x480 display. When I swapped the Quadro 4000 for the V7900, and rebooted into Windows 7, I booted into a 640x480 16 color screen. Imagine my frustration trying to guess which button has focus when you can only see the top half of the ATI driver installer.
 
 Windows 8 automatically installed drivers for the V7900.
 

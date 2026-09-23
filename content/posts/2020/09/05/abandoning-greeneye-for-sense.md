@@ -29,7 +29,7 @@ Although our power utility ([SCE](https://www.sce.com/)) had installed [smart me
 
 ![](/media/2018/08/sce_smartmeter.jpg)
 
-We started construction on our new house, circa 2012, and I made provision for power, water, and gas consumption monitoring. My research showed several potential candidates for whole house energy monitoring, and I narrowed it down to the following products. [Smart Energy Groups](https://smartenergygroups.com/) [SEGMeter](http://shop.smartenergygroups.com/store/show/segmeter_v25), [Open Energy Monitor](https://openenergymonitor.org/) [emonTx](https://openenergymonitor.com/emontx-v3-electricity-monitoring-transmitter/), and [Brultech](http://www.brultech.com/) [Green Eye Energy Monitor](http://www.brultech.com/greeneye/).
+We started construction on our new house, circa 2012, and I made provision for power, water, and gas consumption monitoring. My research showed several potential candidates for whole house energy monitoring, and I narrowed it down to the following products; [Smart Energy Groups](https://smartenergygroups.com/) [SEGMeter](http://shop.smartenergygroups.com/store/show/segmeter_v25), [Open Energy Monitor](https://openenergymonitor.org/) [emonTx](https://openenergymonitor.com/emontx-v3-electricity-monitoring-transmitter/), and [Brultech](http://www.brultech.com/) [Green Eye Energy Monitor](http://www.brultech.com/greeneye/).
 
 ![](/media/2018/08/fully_loaded_more_side.jpg)
 
@@ -37,15 +37,15 @@ We started construction on our new house, circa 2012, and I made provision for p
 
 ![](/media/2018/08/gem_nocover.png)
 
-I opted for the Green Eye Energy Monitor (GEM). It was a commercial product, with an active user community, that supported 4 pulse sensors (for gas and water) and 32 current sensors, and ethernet connectivity (or RS232 or ZigBee or WiFi).
+I opted for the Green Eye Energy Monitor (GEM); it was a commercial product, with an active user community, that supported 4 pulse sensors (for gas and water) and 32 current sensors, and ethernet connectivity (or RS232 or ZigBee or WiFi).
 
-Our house has 400A service, with two 200A subpanels, and each panel has 42 breakers. Since the GEM only supported 32 circuits, I installed two GEM units, in recessed utility cabinets, near each panel, and ran a conduit between the electrical panel and the utility cabinet. This is where the long delay started. The electrician was reluctant to install the current transformers, the city inspector had no idea if it was allowed by code, and I did not want to cause undue delays or wasted installation effort, so I simply left the GEM's disconnected, and closed the panels in order to pass inspection.
+Our house has 400A service, with two 200A subpanels, and each panel has 42 breakers. Since the GEM only supported 32 circuits, I installed two GEM units, in recessed utility cabinets, near each panel, and ran a conduit between the electrical panel and the utility cabinet. This is where the long delay started; the electrician was reluctant to install the current transformers, the city inspector had no idea if it was allowed by code, and I did not want to cause undue delays or wasted installation effort, so I simply left the GEM's disconnected, and closed the panels in order to pass inspection.
 
 ![](/media/2018/08/20180811_172657174_ios.jpg)![](/media/2018/08/20180811_172632361_ios.jpg)
 
 ![](/media/2018/08/20180811_172609507_ios.jpg)
 
-Another problem was the city utility water and gas meters, where I was not allowed to attach any type of device, not even an optical sensor, to the meters. The water meter was by the street, so even if I wanted to, I could not easily monitor it. I had to install my own dry contact pulse output gas and water meters inline with the utility meters, and to pass code, my meters had to be the same model as the utility installed meters, making it expensive. The water meter is a [Neptune T-10](https://www.neptunetg.com/products/watermeters/residential/t10/) 1-1/2" Direct Read with a Tricon/S. The gas meter is an [Elster American Meter AC630](https://www.elster-americanmeter.com/en/product-details/88/en/AC-630) with a Digital Pulser.
+Another problem was the city utility water and gas meters, where I was not allowed to attach any type of device, not even an optical sensor, to the meters. The water meter was by the street, so even if I wanted to, I could not easily monitor it. I had to install my own dry contact pulse output gas and water meters inline with the utility meters, and to pass code, my meters had to be the same model as the utility installed meters, making it expensive. The water meter is a [Neptune T-10](https://www.neptunetg.com/products/watermeters/residential/t10/) 1½" Direct Read with a Tricon/S. The gas meter is an [Elster American Meter AC630](https://www.elster-americanmeter.com/en/product-details/88/en/AC-630) with a Digital Pulser.
 
 ![](/media/2020/08/img_6638.jpg)
 

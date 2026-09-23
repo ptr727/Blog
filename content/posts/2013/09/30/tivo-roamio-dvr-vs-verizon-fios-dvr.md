@@ -49,7 +49,7 @@ I installed the Roamio Pro first, hardware setup was easy, the out of box experi
 
 The cablecard activation required a call to Verizon. New cablecards can be activated online or over the automated phone system, but previously activated cablecards that are moved between devices needs to be re-activated by Verizon tech support. This was the only device with a previously activated cablecard, the other three boxes had new cablecards, and I activated them using the automated phone system.
 
-I immediately ran into network connectivity problems. The box would randomly report C130, C133, C501, and UI-113 errors.
+I immediately ran into network connectivity problems; the box would randomly report C130, C133, C501, and UI-113 errors.
 
 [![TiVo.C130](/media/2013/09/tivo-c130.jpg?w=300)](/media/2013/09/tivo-c130.jpg)[![TiVo.C133](/media/2013/09/tivo-c133.jpg?w=300)](/media/2013/09/tivo-c133.jpg)[![TiVo.C501](/media/2013/09/tivo-c501.jpg?w=300)](/media/2013/09/tivo-c501.jpg)[![TiVo.UI113](/media/2013/09/tivo-ui113.jpg?w=300)](/media/2013/09/tivo-ui113.jpg)
 

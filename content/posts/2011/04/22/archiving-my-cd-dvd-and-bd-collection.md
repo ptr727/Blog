@@ -93,7 +93,7 @@ Below are screenshots of [MakeMKV](http://www.makemkv.com/) with the stream sele
 
 [![MakeMKV.WrathOfKhan](/external/68a47663adbc26d0.png)](/external/3a1e2925928d1198.png)[![MakeMKV.IronMan2](/external/bc77e2b364e198b2.png)](/external/283103146e1f3861.png)
 
-When I started ripping my collection I had no idea it would take this long. If I were to dedicate my time to ripping and ripping only, I would have been done a long time ago, but I typically rip only a few discs per week, in between regular work activities. Get to the office, insert disc, start working, swap disc, continue working, swap disc, go to meeting, rip a few discs while having lunch at my desk, rip a few discs during the weekend, repeat. The time it takes to rip a disc is important when you stare at the screen, but less so when you have other things to do.
+When I started ripping my collection I had no idea it would take this long. If I were to dedicate my time to ripping and ripping only, I would have been done a long time ago, but I typically rip only a few discs per week, in between regular work activities; get to the office, insert disc, start working, swap disc, continue working, swap disc, go to meeting, rip a few discs while having lunch at my desk, rip a few discs during the weekend, repeat. The time it takes to rip a disc is important when you stare at the screen, but less so when you have other things to do.
 
 Over the months I've used a variety of BD readers, some worked well for BD's, but were really bad for CD's, some were fast and some were slow. To illustrate the performance, I selected a BD, a DVD, and a CD, and I ripped them all using the same settings, on the same machine, but using a variety of drive models.
 
@@ -118,6 +118,6 @@ Test results:
 [![Chart](/external/220a2ef4d0038a80.png)](/external/76be9b90de79cff2.png)  
 From the results we can see that the Sony BD-5300S (a rebranded Lite-On iHBS112) and the Lite-On iHBS212 drives are the fastest overall ripping drives, the fastest BD ripping drives, the fastest DVD dripping drives, but second slowest CD ripping drives. It is further interesting to note that the stock Lite-On drives were still faster than the riplock removed LG drives. The Lite-On drives also have the smallest [AccurateRip](http://www.accuraterip.com/) [drive correction offsets](http://www.accuraterip.com/driveoffsets.htm) of all the drives.
 
-I still have quite a way to go before all my discs are ripped, but at least I have the process down: rip, swap, repeat.
+I still have quite a way to go before all my discs are ripped, but at least I have the process down; rip, swap, repeat.
 
 

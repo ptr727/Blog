@@ -203,7 +203,7 @@ I was now ready to switch to iSCSI.
 
 The PDF included on the CD was not much help, but the [KB articles](http://support.datarobotics.com/app/answers/detail/a_id/240/kw/iscsi/r_id/100004 "KB articles") on the Drobo support site was helpful.
 
-The steps calls for: power up with USB only, configure using dashboard, power down using dashboard, disconnect USB, connect Ethernet, power up, dashboard will reconnect after a few minutes.
+The steps calls for; power up with USB only, configure using dashboard, power down using dashboard, disconnect USB, connect Ethernet, power up, dashboard will reconnect after a few minutes.
 
 
 

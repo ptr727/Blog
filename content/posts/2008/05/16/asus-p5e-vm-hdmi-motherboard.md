@@ -14,7 +14,7 @@ As previously posted I've tried an [Intel DG33TL](/2008/04/intel-dg33tl-motherbo
 
 I was happy with the Intel DQ35JO, but this did not last very long. A few days after posting I found my machine with garbage characters on the screen, requiring a cold boot. Intel support was of little help, but a few days later I updated the firmware on my ThinkPad T61, and I read that one of the fixes in the firmware was to fix garbage characters on the screen when sleeping on resuming from sleep caused by the AMT feature. The DQ35JO board also has AMT, so maybe that was the same problem.
 
-Not wanting to have more trouble I returned the Intel DQ35JO board to Fry's, and I ordered an Asus P5E-VM HDMI board from Amazon. There are three variants of the P5E-VM board. The SE, DO, and HDMI, but only the HDMI variant was immediately available on Amazon. I would not be using the HDMI output since I was going to use the ATI HD 2600 XT card, but it does not hurt to have onboard HDMI available.
+Not wanting to have more trouble I returned the Intel DQ35JO board to Fry's, and I ordered an Asus P5E-VM HDMI board from Amazon. There are three variants of the P5E-VM board; the SE, DO, and HDMI, but only the HDMI variant was immediately available on Amazon. I would not be using the HDMI output since I was going to use the ATI HD 2600 XT card, but it does not hurt to have onboard HDMI available.
 
 Installing the board was simple, the RAID still worked, and Vista Ultimate x64 booted without issues. The only missing driver was for the Realtek audio. I tried the driver from the Asus site but that failed to install, rather disappointing. Asus support told me to use the driver from the Realtek site, and that worked fine.
 

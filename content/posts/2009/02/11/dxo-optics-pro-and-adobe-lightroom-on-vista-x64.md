@@ -34,7 +34,7 @@ Before I get to DxO, I think Adobe should have supported in-process DLL based pl
 
 
 
-So how does DxO integrate with LR in light of the lacking plugin model? When you edit an image using an external editor, LR launches the editor with the image path specified on the commandline. LR provides three options for what file is passed to the external editor. The original file, a copy of the original file, or a copy of the LR processed version of the file. The problem is that when the file is a RAW file, LR only allows a copy of the LR processed version of the file to be passed, and this processed file is useless to a RAW editor.
+So how does DxO integrate with LR in light of the lacking plugin model? When you edit an image using an external editor, LR launches the editor with the image path specified on the commandline. LR provides three options for what file is passed to the external editor; the original file, a copy of the original file, or a copy of the LR processed version of the file. The problem is that when the file is a RAW file, LR only allows a copy of the LR processed version of the file to be passed, and this processed file is useless to a RAW editor.
 
 
 
@@ -42,7 +42,7 @@ DxO, being a RAW file processor, obviously needs access to the original RAW file
 
 
 
-DxO can run in one of two modes: "plugin-in" mode (their spelling, not mine) or normal mode. When launched by LR, DxO runs in plugin mode. In plugin mode DxO only allows processing of the images passed in on the commandline, and the output processing automatically replaces those same input files.
+DxO can run in one of two modes; "plugin-in" mode (their spelling, not mine) or normal mode. When launched by LR, DxO runs in plugin mode. In plugin mode DxO only allows processing of the images passed in on the commandline, and the output processing automatically replaces those same input files.
 
 
 
@@ -88,6 +88,6 @@ To install simply extract, rename DxOProxy.exe to Lightroom.exe, and change the 
 
 
 
-In closing, and in light of my previous post related to my trouble with the [Google Email Uploader on x64](/2009/01/google-email-uploader-on-vista-x64.html). With all the available programming documentation, and free compilers, and free virtualization testing environments, why is it so difficult for some ISV's to produce quality and compatible software?
+In closing, and in light of my previous post related to my trouble with the [Google Email Uploader on x64](/2009/01/google-email-uploader-on-vista-x64.html); with all the available programming documentation, and free compilers, and free virtualization testing environments, why is it so difficult for some ISV's to produce quality and compatible software?
 
 

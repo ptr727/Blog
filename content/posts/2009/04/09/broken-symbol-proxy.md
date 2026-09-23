@@ -81,7 +81,7 @@ Calling SymSetOptions() had no effect, and I quickly realized that I am on the w
 
 SymSetOptions() is implemented by dbghelp.dll, while symproxy.dll does not load dbghelp.dll.
 
-A bit of investigation revealed that symproxy.dll loads symsrv.dll using LoadLibrary(), and uses only two exports. SymbolServerSetOptions() and SymbolServerByIndex().
+A bit of investigation revealed that symproxy.dll loads symsrv.dll using LoadLibrary(), and uses only two exports; SymbolServerSetOptions() and SymbolServerByIndex().
 
 I found documentation for [SymbolServerSetOptions()](http://msdn.microsoft.com/en-us/library/ms680676(VS.85).aspx), but nothing for SymbolServerByIndex(). But dbghelp.h did include the function prototypes for both functions.
 

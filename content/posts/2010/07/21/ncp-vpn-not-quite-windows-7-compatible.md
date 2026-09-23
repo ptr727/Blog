@@ -26,7 +26,7 @@ Where to start?
 
 The NCP software is intrusive, every time you login it shows a splashscreen, and the splashscreen remains topmost, blocking anything behind it, until it closes, by itself. I contacted NCP support, complaining about the intrusion, and they told me that it is necessary to run their software at login so that they can validate the license. I replied that validating the license need not happen at every login, and certainly should not interfere with my system. They said I could search the internet and find out how other people disabled their software.
 
-This means a few things to me. They do not value usability, they acknowledge there is a problem, yet they do not offer a solution.
+This means a few things to me; they do not value usability, they acknowledge there is a problem, yet they do not offer a solution.
 
 Imagine if every application you install on your system decides it is a good idea to show a splashscreen when you login.
 
@@ -40,7 +40,7 @@ While we're on the topic of usability, this application's UI was probably not de
 In the main UI, shown below, how do you connect, where is the connect button, do you click the red button, no you need to click the gray area next to the red button. They probably though it looks cool.   
 [![NCP.UI.1](/external/5e5e7b08ae4854e1.png)](/external/14e292fa67e9fe73.png)
 
-Every time you login the application starts and shows its UI. How would you normally look for options in a windows app, probably \[Options\], or \[Tools\]\[Options\], or \[File\]\[Options\]. No, you need to click on \[View\]\[Autostart\]\[No Autostart\], what does the \[View\] menu have to do with \[Autostart\]?   
+Every time you login the application starts and shows its UI. How would you normally look for options in a windows app; probably \[Options\], or \[Tools\]\[Options\], or \[File\]\[Options\]. No, you need to click on \[View\]\[Autostart\]\[No Autostart\], what does the \[View\] menu have to do with \[Autostart\]?   
 [![NCP.UI.7](/external/922ac06d6897bfdf.png)](/external/73f5e53a275bccec.png)
 
 And in case you were wondering, no, disabling autostart does not disable the splashcreen.

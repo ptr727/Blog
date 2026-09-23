@@ -6,14 +6,14 @@ categories:
 - solution
 post_id: '72'
 ---
-I have made various attempts at sharing my printer over my home network. The criteria for sharing are simple. The printer must be available over the network and I must be able to print from Windows and Mac machines.
+I have made various attempts at sharing my printer over my home network. The criteria for sharing are simple; the printer must be available over the network and I must be able to print from Windows and Mac machines.
 In practice this turned out to be a little more difficult.
 
 The simplest solution would have been a network enabled printer, but I had no luck in finding an affordable consumer grade home printer that can directly connect to the network.
 
-My first implementation was to connect a Canon i960 to my Windows XP machine using USB, and then sharing the printer. This had a few problems. My machine had to be on all the time, the Windows XP x64 Canon i960 driver crashed when connected to a network shared printer, and the Canon i960 Mac driver could not print to a network shared printer.
+My first implementation was to connect a Canon i960 to my Windows XP machine using USB, and then sharing the printer. This had a few problems; my machine had to be on all the time, the Windows XP x64 Canon i960 driver crashed when connected to a network shared printer, and the Canon i960 Mac driver could not print to a network shared printer.
 
-The Canon i960 had given me good service, but I was now looking for a better photo printer. I decided to upgrade a few systems at the same time. I upgraded to Vista, I bought a HP D7360 Photosmart printer, and I bought a Belkin [F5L009](http://www.belkin.com/support/product/?lid=en&pid=F5L009&scid=1) network USB hub.
+The Canon i960 had given me good service, but I was now looking for a better photo printer. I decided to upgrade a few systems at the same time; I upgraded to Vista, I bought a HP D7360 Photosmart printer, and I bought a Belkin [F5L009](http://www.belkin.com/support/product/?lid=en&pid=F5L009&scid=1) network USB hub.
 
 The F5L009 is a USB hub that you connect to your network, and then by installing a USB driver on any computer on the network, the USB devices connected to the hub appear to be directly connected to your machine.
 

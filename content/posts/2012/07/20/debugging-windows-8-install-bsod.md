@@ -12,7 +12,7 @@ tags:
 - windows
 post_id: '183'
 ---
-In my [last post](/2012/07/19/windows-8-and-server-2012-on-supermicro-results-in-acpi_bios_error-bsod/) I described how to prevent Windows from automatically restarting when encountering a BSOD during the OS install process. This allowed me to see the [ACPI\_BIOS\_ERROR](http://msdn.microsoft.com/en-us/library/windows/hardware/ff560114(v=vs.85).aspx) fault code while installing Windows 8 on my new SuperMicro workstation. The new [Windows 8 BSOD page](http://blogs.msdn.com/b/b8/archive/2011/09/20/reengineering-the-windows-boot-experience.aspx) looks friendly, but no longer displays any error parameters other than the main fault code.
+In my [last post](/2012/07/19/windows-8-and-server-2012-on-supermicro-results-in-acpi_bios_error-bsod/) I described how to prevent Windows from automatically restarting when encountering a BSOD during the OS install process. This allowed me to see the  [ACPI\_BIOS\_ERROR](http://msdn.microsoft.com/en-us/library/windows/hardware/ff560114(v=vs.85).aspx) fault code while installing Windows 8 on my new SuperMicro workstation. The new [Windows 8 BSOD page](http://blogs.msdn.com/b/b8/archive/2011/09/20/reengineering-the-windows-boot-experience.aspx) looks friendly, but no longer displays any error parameters other than the main fault code.
 
 In order to get additional details of the crash, I had to hook up a kernel debugger to the machine. Windows 8 adds [USB3 and TCPIP](http://channel9.msdn.com/Events/BUILD/BUILD2011/HW-98P) kernel debug support, and I will describe how I used the TCPIP network option to capture details of the crash.
 
@@ -55,8 +55,8 @@ And then the ACPI\_BIOS\_ERROR crash:
 *******************************************************************************ACPI_BIOS_ERROR (a5)
 The ACPI Bios in the system is not fully compliant with the ACPI specification.
 The first value indicates where the incompatibility lies:
-This bug check covers a great variety of ACPI problems. If a kernel debugger
-is attached, use "!analyze -v". This command will analyze the precise problem,
+This bug check covers a great variety of ACPI problems.  If a kernel debugger
+is attached, use "!analyze -v".  This command will analyze the precise problem,
 and display whatever information is most useful for debugging the specific
 error.
 Arguments:

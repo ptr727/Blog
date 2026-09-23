@@ -19,13 +19,13 @@ SafeSync is another online backup and sync and share application. Actually, they
 
 I have used almost all online backup and sync and share type applications out there, my favorite remains [DropBox](http://www.dropbox.com/). SafeSync used to be [Humyo](http://en.wikipedia.org/wiki/Humyo), before being acquired by Trend. I have used Humyo when they were in Beta, it was just ok, but between then and now their product seem to have come a long way.
 
-Of all the online backup and sync and share applications, a few things remain constant:   
+Of all the online backup and sync and share applications, a few things remain constant;   
 Free is unsustainable, somebody has to pay for the staff, the bandwidth, the disks, and the infrastructure. These vendors are running on venture capital, waiting for acquisition, for paid customers, for indirect monetization, or failure.   
 Unlimited storage is unfeasible, the increased home bandwidth capacity makes it easy to upload Terabytes of data, and we are back at the cost factor.   
 Usability and coolness is critical, especially usability on mobile devices, and coolness on web frontends.   
 Reliability is critical, and this brings me back to SafeSync.
 
-SafeSync offers many things common to many other backup or sync and share providers, but three things stood out. They offer unlimited storage, they offer data access using WebDAV, and the web frontend allows convenient access to pictures and music.
+SafeSync offers many things common to many other backup or sync and share providers, but three things stood out; they offer unlimited storage, they offer data access using WebDAV, and the web frontend allows convenient access to pictures and music.
 
 The product is offered as a yearly service, listed as $59.99 on the Trend eStore, or $35.95 on the Trend US product page, weird. Regardless, when you add the product to the cart, the cost is $35.95.
 

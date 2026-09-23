@@ -15,7 +15,7 @@ In a previous [post](/2015/09/04/ecobee3-thermostat-with-remote-sensors/) I wrot
 
 After several months of use, winter and summer, I find the remote sensors really do work very well, and our bedrooms remain at the desired temperature, while the areas around the thermostats can be warmer or colder.
 
-But, the E3 is not perfect, there are two recurring problems. The remote sensors would report offline, and the units would lose network connectivity.
+But, the E3 is not perfect, there are two recurring problems; the remote sensors would report offline, and the units would lose network connectivity.
 
 I've received sensor offline alerts a couple of times, typically happens early mornings, maybe interference, don't know, the sensors never move from where they are placed.
 

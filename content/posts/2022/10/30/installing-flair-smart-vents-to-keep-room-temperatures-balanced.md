@@ -39,7 +39,7 @@ In talking to vendors, I'm told a big drive in California is the energy efficien
 
 This year I actually scheduled home visits from two [Mitsubishi Diamond Contractors](https://www.mitsubishicomfort.com/articles/the-diamond-contractor-a-homeowners-best-friend). Both were very professional, knowledgeable, and very detailed in their quotes. Both vendors suggested reusing some of the existing ducting to service common areas, and only installing dedicated units for the bedrooms, office, game room, etc.
 
-I anticipated the cost being "not cheap": all new equipment, Covid premiums, new line sets (inverter needs supply and return lines insulated), new electrical (I have 30A per compressor they need 50A), ceiling recessed units (no wall warts), drywall opened, ceilings opened, ducting, venting, condensate drainage, labor, labor, and labor. But, I was not quite prepared for just how $$$ expensive, and I decided to evaluate some of the less optimal but cheaper alternatives.
+I anticipated the cost being "not cheap"; all new equipment, Covid premiums, new line sets (inverter needs supply and return lines insulated), new electrical (I have 30A per compressor they need 50A), ceiling recessed units (no wall warts), drywall opened, ceilings opened, ducting, venting, condensate drainage, labor, labor, and labor. But, I was not quite prepared for just how $$$ expensive, and I decided to evaluate some of the less optimal but cheaper alternatives.
 
 I am not completely foregoing the idea of a complete retrofit, but maybe not by itself, but as part of a larger renovation that justifies the cost of the finishing work (finish carpentry, drywall, and painting not included in quotes). And to be clear, if I were to build a new house today, I would not hesitate to install a multi-zone split unit variable speed inverter system. The immediate comfort and long term energy savings would absolutely be worth it, and installing it as part of a new construction shares much of the cost that has to be double paid when retrofitting.
 
@@ -47,7 +47,7 @@ I am not completely foregoing the idea of a complete retrofit, but maybe not by 
 
 I was back to dealing with my existing system and how to add zoning. I eliminated the option of a damper system as it would require construction to install a bypass, dampers, and variable speed blower, quickly getting to multi-zone effort if not pricing. So I took another look at individually controlled vents, something I've seen in the startup space, but mostly ignored due to not wanting to invest in unproven technology.
 
-I looked at three vendors: [FLAIR](https://flair.co/), [Keen](https://keenhome.io/), and [Ecovent](https://keenhome.io/pages/ecovent-get-started). From what I can tell Keen acquired Ecovent, so that leaves two vendors and three products. Ecovent does not publish any pricing, and it seems they cater to contractors only. Neither Keen nor Ecovent had good reviews, that left Flair, and since Flair is now available at Home Depot and Lowes, and they got Series-A [funding](https://www.crunchbase.com/organization/flair-3) in September, I considered the risk of them disappearing overnight low.
+I looked at three vendors; [FLAIR](https://flair.co/), [Keen](https://keenhome.io/), and [Ecovent](https://keenhome.io/pages/ecovent-get-started). From what I can tell Keen acquired Ecovent, so that leaves two vendors and three products. Ecovent does not publish any pricing, and it seems they cater to contractors only. Neither Keen nor Ecovent had good reviews, that left Flair, and since Flair is now available at Home Depot and Lowes, and they got Series-A [funding](https://www.crunchbase.com/organization/flair-3) in September, I considered the risk of them disappearing overnight low.
 
 #### Installation
 
@@ -87,7 +87,7 @@ I either didn't pay attention during the iOS onboarding steps, or I wasn't asked
 
 Next up was replacing a few of my vents with Flair vents, and I started in my office where I could keep an eye on the vent. I thought the install would be easy, remove old vent, install new vent, done, but it turns out it is much more effort than anticipated.
 
-The Flair vents are longer but narrower than my current vents, and that was a big problem. I had different color paint or unpainted drywall exposed, rough ridges from previously painted vents, wall scratches, and the most troublesome was drywall openings larger than the Flair vents.
+The Flair vents are longer but narrower than my current vents, and that was a big problem; I had different color paint or unpainted drywall exposed, rough ridges from previously painted vents, wall scratches, and the most troublesome was drywall openings larger than the Flair vents.
 
 I ended up removing the old vents, and visited my paint store several times to color match various wall or ceiling colors, I sanded, caulked, and patched drywall spaces around ducts. It took several weekends of my time, I am not a great at drywalling or painting, the result is not very pretty, but the vents are up.
 

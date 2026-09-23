@@ -9,7 +9,7 @@ post_id: '114'
 I just had one of those moments where the blood drains from your head as you contemplate what you did.
 
 I was in Disk Management Console, messing around with new drives I was testing, and I wanted to delete the volumes. Right Click, Delete, Are you sure, your data will be lost, and without thinking twice, I clicked yes.   
-Then the blood drained from my head as I realized what I just did. Instead of deleting the test volume, I just deleted my main 5TB data volume!
+Then the blood drained from my head as I realized what I just did; instead of deleting the test volume, I just deleted my main 5TB data volume!
 
 This is 5TB GPT partition backed by RAID5 on 4 x 2TB drives. The RAID thing makes it even worse, what is the point of RAID if I manually delete the partition and destroy the data myself?
 
