@@ -104,10 +104,10 @@ def main() -> int:
             # A pattern stands in where the text being replaced must not be kept here.
             pattern = re.compile(item.get("pattern") or re.escape(item["from"]))
             before, after = len(pattern.findall(text)), text.count(item["to"])
-            if before == 1:
+            if before == 1 and after == 0:
                 text = pattern.sub(item["to"].replace("\\", "\\\\"), text)
                 applied += 1
-            elif before > 1 or after != 1:
+            elif before or after != 1:
                 errors.append(
                     f"{name}: correction {pattern.pattern!r} matches {before} time(s)"
                 )

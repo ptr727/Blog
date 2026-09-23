@@ -30,7 +30,8 @@ A JPEG is written with its own quantization tables and chroma subsampling, which
 the generation loss outside a fill to a level or two, and a crop off the block grid
 costs more. Its color profile is carried across and its Exif is not, since an Exif
 block can hold a thumbnail of the frame before the fill. A PNG is written at 8 bits and
-keeps its gamma, chromaticity, and sRGB chunks, and one with transparency is refused.
+keeps its gamma, chromaticity, and sRGB chunks and its alpha channel, the fills opaque.
+One whose transparency is a tRNS color key is refused, since Pillow does not write it back.
 The output then goes through the same lossless drop as `scripts/normalize-media.py`.
 """
 
@@ -98,7 +99,7 @@ def redact(data: bytes, entry: dict) -> bytes:
     if source.getexif().get(0x0112, 1) != 1:
         raise ValueError("rotated by Exif, so the manifest's coordinates are ambiguous")
     if "transparency" in source.info:
-        raise ValueError("carries transparency, which this does not write back")
+        raise ValueError("carries a tRNS color key, which this does not write back")
     boxes = entry.get("fill", []) + ([entry["crop"]] if "crop" in entry else [])
     width, height = source.size
     for x0, y0, x1, y1 in boxes:
