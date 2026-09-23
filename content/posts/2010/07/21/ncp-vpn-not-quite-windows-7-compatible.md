@@ -35,7 +35,7 @@ Here is the splashscreen that pops up on every login:
 
 In case you are wondering how to disable NCP from running at startup, they install three user session startup entries under \[HKEY\_LOCAL\_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\], delete or rename them
 
-While we’re on the topic of usability, this application’s UI was probably not designed by Windows developers, or certainly not somebody that knows anything about standard Windows user interface design and principles.
+While we're on the topic of usability, this application's UI was probably not designed by Windows developers, or certainly not somebody that knows anything about standard Windows user interface design and principles.
 
 In the main UI, shown below, how do you connect, where is the connect button, do you click the red button, no you need to click the gray area next to the red button. They probably though it looks cool.   
 [![NCP.UI.1](/external/5e5e7b08ae4854e1.png)](/external/14e292fa67e9fe73.png)
@@ -53,7 +53,7 @@ I received an email that a new version was released, and the software offers a b
 How big is that update? 23.792 kByte, really, 24 kilobyte, or what is a lowercase k in kByte? Or is that really 23,729 KB as in 24 megabyte?   
 [![NCP.KB.vs.MB.1](/external/f9d13408b361c5b1.png)](/external/12dcaf1eb7863dc4.png)
 
-Downloaded the update, now let’s apply it:   
+Downloaded the update, now let's apply it:   
 [![NCP.Reboot](/external/1dd571cbff8a1287.png)](/external/2be5908edc1e78da.png)
 
 And then the Windows Program Compatibility Assistant pops up:   
@@ -61,7 +61,7 @@ And then the Windows Program Compatibility Assistant pops up:
 
 I contacted support, got an email that said no other users had reported this problem, and they asked if I am an admin on the system, but before I could respond, I got another email that said they reproduced the problem, and that I should download and install the update from the website.
 
-Let’s download the update directly, and install it:   
+Let's download the update directly, and install it:   
 [![NCP.Update](/external/bfa457b0ac1dd8e7.png)](/external/b4574a68c19eeb16.png)
 
 And then the Windows Program Compatibility Assistant pops up:   
@@ -79,17 +79,17 @@ Two drivers: ncpfilt, ncplelhp
 The NCP UI process is called NCPMON.exe, and is launched by explorer, runs non-elevated, at medium IL. It is the NCPMON.exe process that downloads and executes the update.
 
 From the procmon log I can see that NCPMON.exe called CreateProcess() to launch the installer:   
-Date & Time:    7/21/2010 10:01:12 AM   
-Event Class:    Process   
-Operation:    Process Create   
-Result:    SUCCESS   
-Path:    C:\\Users\\Pieter Viljoen\\AppData\\Local\\Temp\\NCP\_EntryCl\_Win32\_923\_17.exe   
-TID:    6952   
-Duration:    0.0000000   
-PID:    6856   
-Command line:    "C:\\Users\\Pieter Viljoen\\AppData\\Local\\Temp\\NCP\_EntryCl\_Win32\_923\_17.exe"
+Date & Time:    7/21/2010 10:01:12 AM   
+Event Class:    Process   
+Operation:    Process Create   
+Result:    SUCCESS   
+Path:    C:\\Users\\Pieter Viljoen\\AppData\\Local\\Temp\\NCP\_EntryCl\_Win32\_923\_17.exe   
+TID:    6952   
+Duration:    0.0000000   
+PID:    6856   
+Command line:    "C:\\Users\\Pieter Viljoen\\AppData\\Local\\Temp\\NCP\_EntryCl\_Win32\_923\_17.exe"
 
-This will not work, the NCP\_EntryCl\_Win32\_923\_17.exe is an installer it has to “Run As Admin” (this is an InstallShield installer, and although it does not contain a [Run As Admin manifest entry](http://msdn.microsoft.com/en-us/library/bb756929.aspx), the Windows Application Compatibility subsystem recognizes InstallShield installers, and automatically runs them with elevation required), this means that when you launch this EXE using ShellExecute(), or using Explorer, you will get a UAC elevation prompt, and if approved, the installer will run elevated, and the install succeed.
+This will not work, the NCP\_EntryCl\_Win32\_923\_17.exe is an installer it has to "Run As Admin" (this is an InstallShield installer, and although it does not contain a [Run As Admin manifest entry](http://msdn.microsoft.com/en-us/library/bb756929.aspx), the Windows Application Compatibility subsystem recognizes InstallShield installers, and automatically runs them with elevation required), this means that when you launch this EXE using ShellExecute(), or using Explorer, you will get a UAC elevation prompt, and if approved, the installer will run elevated, and the install succeed.
 
 There is only one explanation of how NCP could ever have shipped this, their developers and QA test with UAC disabled on their test systems.
 

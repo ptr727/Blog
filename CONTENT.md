@@ -2,7 +2,7 @@
 
 How a post on this site is written and filed. [`OPERATIONS.md`][operations] holds the procedures that publish it and [`CODESTYLE.md`][codestyle] the rules for the code around it. This file is the content half, and it exists because no gate has an opinion about the writing.
 
-Everything here applies to `content/`. The imported archive under it predates these rules and is not swept to match them, so read this as the contract for a new post rather than as a description of all 109 old ones.
+Everything here applies to `content/`. The imported archive under it predates these rules and keeps its own voice, so read this as the contract for a new post rather than as a description of all 109 old ones.
 
 ## Where a Post Lives
 
@@ -76,7 +76,7 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Alt text is required and describes the image**, since it is what a reader without the image gets.
 
-**Every image is stripped of identifying data before it is committed.** Remove the capture metadata, since a phone photo carries GPS location, capture time, and the camera model. An embedded color profile stays, because dropping it shifts the colors a browser renders. It names the capture platform, which is the one identifier this rule accepts. Then inspect the image at full resolution. Redact a house number, a license plate, a face, a serial number, a rating plate, a barcode, and a hardware address. "What Identifies" below gives the full checklist and the narrower rule for an image already published. Cover each one with a flat opaque fill, never a blur or a mosaic. Both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `exiftool -a -G1 -s <file>` reports no EXIF, GPS, XMP, IPTC, or PNG text tags, and a full-resolution crop of each redacted area is unreadable.
+**Every image is normalized before it is committed.** Run [`scripts/normalize-media.py`][normalize]. It keeps only what a picture needs in order to render, the dimensions, the color profile, and the orientation, plus the capture timestamp on the formats whose tags carry one. Everything else goes, and it never asks what the removed thing was. Location, device, and authorship are not on the list, so they go without anyone thinking of them. That is the point. A rule that enumerates hiding places is only as good as its last revision. The removal is lossless on every format carried here, so an original is not degraded in order to clean it. [`checks/check-media-metadata.py`][metadata] fails the build on anything left over, and it reads inside a `.zip`. Then inspect the image at full resolution. Redact a house number, a license plate, a face, a serial number, a rating plate, a barcode, and a hardware address. "What Identifies" below gives the full checklist and the narrower rule for an image already published. Cover each one with a flat opaque fill, never a blur or a mosaic. Both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `python3 checks/check-media-metadata.py` passes, and a full-resolution crop of each redacted area is unreadable.
 
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
 
@@ -114,9 +114,13 @@ These are settled, in new media and old alike, and reopening one wastes a review
 
 **A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else.
 
-The archive was reviewed image by image, and that review excluded more than the settled list above. Serials, barcodes and hardware addresses on long-retired equipment went, as did machine names on a network that has moved on, and keys to closed accounts. Private-range addresses went too, since reaching one needs presence on the network already. None of it was worth the damage.
+**The archive's bar is narrow because its images have been public for years.** A fill there covers a street address or house number, an email address, a clearly visible face, a landmark or a neighbor's property that places the home, an SSID or BSSID, a VIN or license plate, and a child's name beside an occupancy time. The author's name and handle, private-range and long-reassigned public addresses, machine names, serials and barcodes on retired equipment, and public credits all stay. So does a face too faint to recognize.
 
 Treat that as a judgment about the archive, never as a precedent for a new post.
+
+**Every archive redaction is data, never a hand edit.** [`checks/media-redactions.json`][redactions] names each file, its fills or crop, and why. [`scripts/redact-media.py`][redact] applies it after the metadata normalizer, and records the hash each file starts from and lands on. So a run is deterministic, and a second run changes nothing. [`checks/check-media-redactions.py`][redactions-check] fails the build on a declared file that is not at its redacted result. To change an entry, restore the file's original from history, run the metadata normalizer on it, edit the entry, and run `uv run scripts/redact-media.py --record`.
+
+**The archive's text follows the same model.** [`scripts/normalize-text.py`][normalize-text] replaces typographic characters with ASCII outside fenced code, blockquotes, front matter, and lines holding a protected product name. It then applies the corrections listed one by one in [`scripts/text-corrections.json`][text-corrections]: doubled words, grammar slips, a title's HTML entity, and two links that located the home. Nothing else in an old post is restyled, its punctuation included.
 
 ### Judging One
 
@@ -187,9 +191,9 @@ This is the reason this file exists, so it is worth stating plainly.
 | `checks/check-live-urls.sh` | yes, against a running server |
 | markdownlint | no, `content/.markdownlint-cli2.jsonc` ignores the tree |
 | CSpell | no, `cspell.json` ignores the tree |
-| `prose_lint.py` | no, it reads tracked prose outside `content/` |
+| `prose_lint.py` | yes, for characters and punctuation on changed lines. `.github/prose-gate-excludes` leaves out the imported posts' years |
 
-Nothing above reads the writing. A human does, before the post merges, and that read is the only gate this file has.
+Nothing above judges the writing itself. A human does, before the post merges, and that read is the only gate for it.
 
 ## Corrections
 
@@ -202,4 +206,11 @@ A fact in a published post that proves wrong is corrected in the post. It is not
 [checks]: ./checks/
 [codestyle]: ./CODESTYLE.md
 [operations]: ./OPERATIONS.md
+[metadata]: ./checks/check-media-metadata.py
+[normalize]: ./scripts/normalize-media.py
+[normalize-text]: ./scripts/normalize-text.py
 [parity]: ./checks/check-url-parity.py
+[redact]: ./scripts/redact-media.py
+[redactions]: ./checks/media-redactions.json
+[redactions-check]: ./checks/check-media-redactions.py
+[text-corrections]: ./scripts/text-corrections.json

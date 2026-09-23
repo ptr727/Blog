@@ -121,7 +121,7 @@ With all the trouble caused by the too narrow vents, I wondered if there was a s
 {{< figure src="/media/2022/10/screenshot-2022-10-13-210127.png?w=751" alt="" caption="" >}}  
 {{< /gallery >}}  
 
-In my opinion making the vents smaller than common sizes is a major design flaw, and I do wonder if Flair designers and engineers ever actually field tested the vents on real ceilings or walls, or if they only focused on drop in replacement floor vents? So unless you are are doing new construction, or have perfect paint and drywall, get ready for patching and painting.
+In my opinion making the vents smaller than common sizes is a major design flaw, and I do wonder if Flair designers and engineers ever actually field tested the vents on real ceilings or walls, or if they only focused on drop in replacement floor vents? So unless you are doing new construction, or have perfect paint and drywall, get ready for patching and painting.
 
 #### Noise
 
@@ -244,7 +244,7 @@ I'll summarize my experience and opinions as follows:
 - The Flair support forum is not very active, and forum posts or direct support requests take, in my experience, about 3 days to get an answer, a tad long.
 - System offline email notifications do not contain a fault reason, and are not followed by a return to normal online operation notification, so one has to manually check if and why the system is offline. Flair support confirmed they do not send recovery alerts, while my expectation is to be alerted of faults and of recovery, as is pretty standard in other systems.
 - Puck seems expensive for what you get, no color, no touch, clunky tactile feel, on the plus side it is small and has a battery backup. For the price I would expect at least a color touchscreen.
-- Limited vent size selection, e.g. we use 10"x10" vents that are not available. The support postings say more sizes are coming, but based on article and forum post dates, they have have been saying that for years.
+- Limited vent size selection, e.g. we use 10"x10" vents that are not available. The support postings say more sizes are coming, but based on article and forum post dates, they have been saying that for years.
 - Flair as setpoint controller only offers temperature averaging, nothing more advanced. I was disappointed that more advanced capabilities, at least room prioritization was not offered, I feel this is a missed opportunity.
 - Multiple independent (heat/cool/auto/off) HVAC systems are configurable, but not functional in the same house when using different operating modes. The Flair UI gets confused when mixing modes, and Flair requires all HVAC units to be in the same operating mode at the same time, but does not warn of such a misconfiguration. I feel this is a major oversight, imagine using split units and needing to create a logical home for each unit, weird.
 - Controlling the Ecobee as setpoint controller from the Flair app results in weird states, e.g. changing Ecobee from Auto to Heat results in a heat mode and hold at whatever the current temperature was, requiring a mode reset from the Ecobee app in order to resume expected operation. I'd suggest not to make any changes from the Flair app unless Flair is the setpoint controller.

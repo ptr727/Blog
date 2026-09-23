@@ -11,7 +11,7 @@ post_id: '78'
 ---
 I received my new Lenovo ThinkPad T61 notebook, pre-installed with Vista Ultimate, but also with 3rd party software I did not care for.
 
-I wanted a clean Vista install, and that is exactly why I made sure to order the recovery media with the notebook, thinking that this will include an OS install DVD. It turns out that the recovery media is six CDs, I don’t know why not a DVD, regardless, the recovery media does not include a Vista install DVD.
+I wanted a clean Vista install, and that is exactly why I made sure to order the recovery media with the notebook, thinking that this will include an OS install DVD. It turns out that the recovery media is six CDs, I don't know why not a DVD, regardless, the recovery media does not include a Vista install DVD.
 
 I called Lenovo support asking how to obtain a Vista DVD that will accept the OEM key, and was told that Vista install DVDs are not available, and that I should use the recovery CDs or the recovery partition.
 
@@ -19,7 +19,7 @@ I decided to give the recovery partition a try; boot, press F11, select restore,
 
 The machine rebooted several times, eventually returning to the same state as when I first booted. There was no 3rd party software on the system, only the Lenovo ThinkPad software was installed.
 
-This was much better than the out of the box version, but still not as clean as I’d like it to be.
+This was much better than the out of the box version, but still not as clean as I'd like it to be.
 
 I did some research and found several [articles](http://forum.notebookreview.com/showthread.php?t=144783) explaining elaborate procedures on how to install Vista using a normal Vista DVD and an OEM key.
 

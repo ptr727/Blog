@@ -12,7 +12,7 @@ post_id: '334'
 ---
 Pivos released a [XBMC build for Linux](http://www.pivosforums.com/viewtopic.php?f=11&t=941), and I tried it out.
 
-The [Pivos XIOS DS](http://www.pivosgroup.com/xios.html) is very small (less than 5” x 5” x 1”) HTPC supporting hardware accelerated 1080p video and HD audio playback. The XIOS DS supports [XBMC for Android](http://www.pivosforums.com/viewtopic.php?f=24&t=872), and [XBMC for Linux](http://www.pivosforums.com/viewtopic.php?f=11&t=941), with native hardware acceleration. I reviewed the [Android port of XBMC](/2012/07/22/xbmc-for-android-on-pivos-xios-ds/) in a previous post.
+The [Pivos XIOS DS](http://www.pivosgroup.com/xios.html) is very small (less than 5" x 5" x 1") HTPC supporting hardware accelerated 1080p video and HD audio playback. The XIOS DS supports [XBMC for Android](http://www.pivosforums.com/viewtopic.php?f=24&t=872), and [XBMC for Linux](http://www.pivosforums.com/viewtopic.php?f=11&t=941), with native hardware acceleration. I reviewed the [Android port of XBMC](/2012/07/22/xbmc-for-android-on-pivos-xios-ds/) in a previous post.
 
 The XIOS DS is available for [$115 at Amazon](http://amzn.to/M4zD8o), placing it, price wise, between the [$98 Roku 2 XS](http://amzn.to/MTVgCf) and the [$178 Boxee Box](http://amzn.to/ORnvBV).
 

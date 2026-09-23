@@ -1,5 +1,5 @@
 ---
-title: XBMC on NUC&rsquo;s and Pi&rsquo;s
+title: XBMC on NUC's and Pi's
 date: '2012-12-26T22:44:44+00:00'
 url: /2012/12/26/xbmc-on-nucs-and-pis/
 categories:
@@ -12,7 +12,7 @@ tags:
 - zotac
 post_id: '395'
 ---
-I’m still looking for the perfect [XBMC](http://xbmc.org/) hardware; must be small, silent, low power, low heat, 1080p, HD audio, and play anything I throw at it without a hiccup. The number of options are increasing, but no clear winner.
+I'm still looking for the perfect [XBMC](http://xbmc.org/) hardware; must be small, silent, low power, low heat, 1080p, HD audio, and play anything I throw at it without a hiccup. The number of options are increasing, but no clear winner.
 
 I previously tested a [XIOS DS](http://www.amazon.com/gp/product/B0088IGPM8/ref=as_li_ss_tl?ie=UTF8&tag=pievilsblo-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=B0088IGPM8) running [XBMC on Android](/2012/07/22/xbmc-for-android-on-pivos-xios-ds/), and [XBMC on Linux](/2012/09/08/xbmc-for-linux-on-pivos-xios-ds/). At that time the builds were pretty unstable. I retested the latest Linux builds, that also include XBMC 12 Frodo RC2.
 
@@ -38,7 +38,7 @@ XBMC on the DS supported HD audio passthrough, but Raspbmc did not include HD au
 
 I tested one of the new [Intel Next Unit of Computing](https://www-ssl.intel.com/content/www/us/en/motherboards/desktop-motherboards/next-unit-computing-introduction.html?) devices, specifically the [DC3217IYE](http://www.amazon.com/gp/product/B0093LINVK/ref=as_li_ss_tl?ie=UTF8&tag=pievilsblo-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=B0093LINVK). The device is barebones, and I used Kingston [KVR16S11K2/16](http://www.amazon.com/gp/product/B008TYIEVQ/ref=as_li_ss_tl?ie=UTF8&tag=pievilsblo-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=B008TYIEVQ) 16GB memory and a Kingston [SMS100S2/64G](http://www.amazon.com/gp/product/B0062CHMZG/ref=as_li_ss_tl?ie=UTF8&tag=pievilsblo-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=B0062CHMZG) 64GB mSATA card. Oh, and you need your own power cable, I happened to have a spare [Monoprice 7687](http://www.monoprice.com/products/product.asp?c_id=102&cp_id=10228&cs_id=1022806&p_id=7687&seq=1&format=2) 3-prong power cable lying around that fit the PSU.
 
-I don’t know what to make of it, but Intel included a gadget in the box, that plays the Intel jingle every time you open the box. I’m inclined to think that they could have included a power cable instead of the jingle gadget, but my kids do enjoy playing with the box, so it may have some marketing value.
+I don't know what to make of it, but Intel included a gadget in the box, that plays the Intel jingle every time you open the box. I'm inclined to think that they could have included a power cable instead of the jingle gadget, but my kids do enjoy playing with the box, so it may have some marketing value.
 
 Here are a few unboxing pictures:  
 [![IMG_1384_DxO](/media/2012/12/img_1384_dxo_thumb.jpg)](/media/2012/12/img_1384_dxo.jpg)[![IMG_1385_DxO](/media/2012/12/img_1385_dxo_thumb.jpg)](/media/2012/12/img_1385_dxo.jpg)[![IMG_1386_DxO](/media/2012/12/img_1386_dxo_thumb.jpg)](/media/2012/12/img_1386_dxo.jpg)[![IMG_1388_DxO](/media/2012/12/img_1388_dxo_thumb.jpg)](/media/2012/12/img_1388_dxo.jpg)[![IMG_1389_DxO](/media/2012/12/img_1389_dxo_thumb.jpg)](/media/2012/12/img_1389_dxo.jpg)[![IMG_1390_DxO](/media/2012/12/img_1390_dxo_thumb.jpg)](/media/2012/12/img_1390_dxo.jpg)[![IMG_1391_DxO](/media/2012/12/img_1391_dxo_thumb.jpg)](/media/2012/12/img_1391_dxo.jpg)[![IMG_1392_DxO](/media/2012/12/img_1392_dxo_thumb.jpg)](/media/2012/12/img_1392_dxo.jpg)[![IMG_1393_DxO](/media/2012/12/img_1393_dxo_thumb.jpg)](/media/2012/12/img_1393_dxo.jpg)[![IMG_1394_DxO](/media/2012/12/img_1394_dxo_thumb.jpg)](/media/2012/12/img_1394_dxo.jpg)[![IMG_1395_DxO](/media/2012/12/img_1395_dxo_thumb.jpg)](/media/2012/12/img_1395_dxo.jpg)[![IMG_1396_DxO](/media/2012/12/img_1396_dxo_thumb.jpg)](/media/2012/12/img_1396_dxo.jpg)[![IMG_1397_DxO](/media/2012/12/img_1397_dxo_thumb.jpg)](/media/2012/12/img_1397_dxo.jpg)[![IMG_1398_DxO](/media/2012/12/img_1398_dxo_thumb.jpg)](/media/2012/12/img_1398_dxo.jpg)[![IMG_1399_DxO](/media/2012/12/img_1399_dxo_thumb.jpg)](/media/2012/12/img_1399_dxo.jpg)

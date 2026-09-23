@@ -19,15 +19,15 @@ The XIOS DS is really small, here is a picture showing the size of a [Roku 2 XS]
 
 [![Size.Compare](/media/2012/07/size-compare_thumb.jpg)](/media/2012/07/size-compare.jpg)
 
-“Piovs” vs. “Pivos”; while unpacking the box I found this little gem printed on the box, one would think that spelling your company name correctly on the packaging is important:
+"Piovs" vs. "Pivos"; while unpacking the box I found this little gem printed on the box, one would think that spelling your company name correctly on the packaging is important:
 
 [![Pivos.Box.Back](/media/2012/07/pivos-box_-back_thumb.jpg)](/media/2012/07/pivos-box_-back_.jpg)
 
-If you’re interested in an a full unboxing, [look here](http://www.avsforum.com/t/1414297/pivos-xios-ds-media-play-the-semiofficial-thread).
+If you're interested in an a full unboxing, [look here](http://www.avsforum.com/t/1414297/pivos-xios-ds-media-play-the-semiofficial-thread).
 
 I installed the box, powered it up, and it takes about 90s to power up, much longer compared to the Roku, Boxee or [OpenElec](http://openelec.tv/).
 
-Navigation using the included IR remote is a bit clunky, the UI has no indication of where the current focus is, and the Ok button sometimes needs to be pressed twice. I can’t really fault Android for this as the UI is intended for tablet use, not for remote use, but it is something that needs work. Here is a screenshot of the opening page:
+Navigation using the included IR remote is a bit clunky, the UI has no indication of where the current focus is, and the Ok button sometimes needs to be pressed twice. I can't really fault Android for this as the UI is intended for tablet use, not for remote use, but it is something that needs work. Here is a screenshot of the opening page:
 
 [![Main.Screen](/media/2012/07/main-screen_thumb.jpg)](/media/2012/07/main-screen.jpg)
 
@@ -59,10 +59,10 @@ I downloaded the APK file to the microSD card, and I needed to get to the file b
 
 [![Pivos.XBMC](/media/2012/07/pivos-xbmc_thumb.jpg)](/media/2012/07/pivos-xbmc_.jpg)
 
-Once up and running, I wanted to add some network media, and this turned out to be a challenge, as NFS is not supported, yet SMB is. I normally allow anonymous/root NFS read-only access to my media files, all media players are happy with this. I do allow SMB access using a domain username and password, and most players are happy with this, just more typing. But, I was unable to enter any symbol characters, the standard XBMC remote control data entry box would not enable the symbol buttons. I tried a USB keyboard, but the “\_” character resulted in a “-“ character, and the UI would not close, unless you hit the Ok button on the remote several times. Next I tried setting up a XP VM image with the guest account enabled to allow anonymous SMB network access, and just browsing to the share, that also didn’t work, as I was prompted for a username and password. I created a test account on the XP image, using a simple username and password, and that allowed me to access to the folder. The remember credentials option did not work, every time I access the folder I have to re-enter the credentials. I’m sure NFS support will be added, and these issues resolved over time.
+Once up and running, I wanted to add some network media, and this turned out to be a challenge, as NFS is not supported, yet SMB is. I normally allow anonymous/root NFS read-only access to my media files, all media players are happy with this. I do allow SMB access using a domain username and password, and most players are happy with this, just more typing. But, I was unable to enter any symbol characters, the standard XBMC remote control data entry box would not enable the symbol buttons. I tried a USB keyboard, but the "\_" character resulted in a "-" character, and the UI would not close, unless you hit the Ok button on the remote several times. Next I tried setting up a XP VM image with the guest account enabled to allow anonymous SMB network access, and just browsing to the share, that also didn't work, as I was prompted for a username and password. I created a test account on the XP image, using a simple username and password, and that allowed me to access to the folder. The remember credentials option did not work, every time I access the folder I have to re-enter the credentials. I'm sure NFS support will be added, and these issues resolved over time.
 
-I used the series of [bird test videos](http://www.avsforum.com/t/1181902/official-codec-container-test-videos) to test network playback, I have MKV files ranging from 20mbps to 110mbps. I haven’t yet found a player that can play the 110mbps video without dropping frames. Unfortunately the OSD for XBMC on Android does not show frame statistics, but by visual observation stuttering started around the 38Mbps mark. Note that these MKV files only contains a video stream, no audio or other streams.
+I used the series of [bird test videos](http://www.avsforum.com/t/1181902/official-codec-container-test-videos) to test network playback, I have MKV files ranging from 20mbps to 110mbps. I haven't yet found a player that can play the 110mbps video without dropping frames. Unfortunately the OSD for XBMC on Android does not show frame statistics, but by visual observation stuttering started around the 38Mbps mark. Note that these MKV files only contains a video stream, no audio or other streams.
 
-I was disappointed as I couldn’t get any of my AVC/H264/DTS/AC3/AAC based movie files to play. Since the video only files played ok, I assume it is due to the audio stream types, or a configuration option, but I’m not sure.
+I was disappointed as I couldn't get any of my AVC/H264/DTS/AC3/AAC based movie files to play. Since the video only files played ok, I assume it is due to the audio stream types, or a configuration option, but I'm not sure.
 
 The platform is promising, but in its current Alpha state it still needs lots of work, both in terms of remote control based Android navigation, and XBMC on Android stability. I will definitely try again once a more stable version is released for direct deployment via the appstore.

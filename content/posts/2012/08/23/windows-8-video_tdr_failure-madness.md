@@ -15,16 +15,16 @@ tags:
 - windows
 post_id: '249'
 ---
-I finally figured out why I kept on getting VIDEO\_TDR\_FAILURE BSOD’s when installing Windows 8 on my SuperMicro workstations. It turns out that the problem goes away when I use a PCIe slot associated with CPU #1, instead of a slot associated with CPU #2.
+I finally figured out why I kept on getting VIDEO\_TDR\_FAILURE BSOD's when installing Windows 8 on my SuperMicro workstations. It turns out that the problem goes away when I use a PCIe slot associated with CPU #1, instead of a slot associated with CPU #2.
 
 Some history on my adventures with [Windows 8](http://windows.microsoft.com/en-US/windows/home) and [SuperMicro SuperWorkstations](http://www.supermicro.com/products/nfo/superworkstation.cfm):  
-I got [ACPI\_BIOS\_ERROR BSOD](/2012/07/19/windows-8-and-server-2012-on-supermicro-results-in-acpi_bios_error-bsod/)’s while installing Windows 8, SuperMicro [provided a Beta BIOS](/2012/07/30/supermicro-beta-bios-supports-windows-8-and-server-2012/) that resolved the problem.  
+I got [ACPI\_BIOS\_ERROR BSOD](/2012/07/19/windows-8-and-server-2012-on-supermicro-results-in-acpi_bios_error-bsod/)'s while installing Windows 8, SuperMicro [provided a Beta BIOS](/2012/07/30/supermicro-beta-bios-supports-windows-8-and-server-2012/) that resolved the problem.  
 The Windows 8 [install hangs](/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller/) if installing to a SSD drive on a [LSI 2308](http://www.lsi.com/products/storagecomponents/Pages/LSISAS2308.aspx) SAS controller, that issue is still unresolved, but can be worked around by connecting the SSD to the Intel SATA controller.  
-I got [VIDEO\_TDR\_ERROR BSOD](/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000/)’s while installing Windows 8 with a NVidia Quadro 5000 graphic card, same with an ATI FirePro V7900 or a NVidia GeForce GTX 680 or an ATI HD 7970. And this post is about resolving that problem.
+I got [VIDEO\_TDR\_ERROR BSOD](/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000/)'s while installing Windows 8 with a NVidia Quadro 5000 graphic card, same with an ATI FirePro V7900 or a NVidia GeForce GTX 680 or an ATI HD 7970. And this post is about resolving that problem.
 
-SuperMicro released v1.0a [BIOS updates](http://www.supermicro.com/support/bios/) for the [X9DAi](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DAi.cfm) and [X9DA7](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DA7.cfm) motherboards used in the [7470A-T](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-T.cfm) and [7470A-73](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-73.cfm) SuperWorkstations. I was hoping this will resolve the [VIDEO\_TDR\_FAILURE](http://msdn.microsoft.com/en-us/library/windows/hardware/ff557263(v=VS.85).aspx) BSOD’s, but no.
+SuperMicro released v1.0a [BIOS updates](http://www.supermicro.com/support/bios/) for the [X9DAi](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DAi.cfm) and [X9DA7](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DA7.cfm) motherboards used in the [7470A-T](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-T.cfm) and [7470A-73](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-73.cfm) SuperWorkstations. I was hoping this will resolve the [VIDEO\_TDR\_FAILURE](http://msdn.microsoft.com/en-us/library/windows/hardware/ff557263(v=VS.85).aspx) BSOD's, but no.
 
-The X9DA7 BIOS updated without issue, but the X9DAi update reported an error at the end of the update process; “Error when sending Enable Message to ME”.
+The X9DA7 BIOS updated without issue, but the X9DAi update reported an error at the end of the update process; "Error when sending Enable Message to ME".
 
 I contacted SuperMicro support, and they asked me to make sure that there is no jumper on JPME1. There is no mention of JPME1 in the motherboard [manual](http://www.supermicro.com/manuals/motherboard/C606_602/MNL-1275.pdf), but it is located next to JIPMB1, next to PCIe slot #1. The header had a jumper on pins 2 and 3, where the same header on the X9DA7 motherboard had a jumper between 1 and 2. I removed the jumper, and the BIOS update succeeded.
 
@@ -192,7 +192,7 @@ fffff880`009b5c60 00000000`00000000 : fffff880`009b6000 fffff880`009b0000 000000
 ACPI!PnpBiosGetDeviceResourceList+15e
 fffff880`012c3c2a cd2c int 2ChSYMBOL_STACK_INDEX: 0SYMBOL_NAME: ACPI!PnpBiosGetDeviceResourceList+15eFOLLOWUP_NAME: MachineOwnerMODULE_NAME: ACPIIMAGE_NAME: ACPI.sysDEBUG_FLR_IMAGE_TIMESTAMP: 50109dd0BUCKET_ID_FUNC_OFFSET: 15eFAILURE_BUCKET_ID: 0x0_ACPI!PnpBiosGetDeviceResourceListBUCKET_ID: 0x0_ACPI!PnpBiosGetDeviceResourceList ``
 
-This is interesting, the kernel ASSERT’s on a problem reported by the BIOS.
+This is interesting, the kernel ASSERT's on a problem reported by the BIOS.
 
 I contacted SuperMicro support, they said they will investigate the BIOS failure, and they suggested I try to use PCIe slot #3 instead of slot #5. The motherboard [manual](http://www.supermicro.com/manuals/motherboard/C606_602/MNL-1275.pdf) mentions that slots #1, #2, and #3 are to be used if CPU #1 is installed, and slots #4, #5, and #6 to be used only if CPU #2 is installed.
 
@@ -202,4 +202,4 @@ I have both processors installed, so not using the more conveniently located slo
 
 I repeated the checked build test with the graphic card in slot #3, and the same BIOS ASSERT error was reported, so the BIOS ASSERT seems to be unrelated to the ACPI\_TDR\_FAILURE error.
 
-This was a very frustrating problem, and I still don’t understand the root cause, but I am happy to be able to finally switch both workstations to Windows 8.
+This was a very frustrating problem, and I still don't understand the root cause, but I am happy to be able to finally switch both workstations to Windows 8.

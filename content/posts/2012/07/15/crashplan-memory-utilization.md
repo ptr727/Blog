@@ -13,9 +13,9 @@ tags:
 - memory
 post_id: '164'
 ---
-I’ve been using [CrashPlan](http://www.crashplan.com/) as an online backup solution for quite some time, and it works really well.
+I've been using [CrashPlan](http://www.crashplan.com/) as an online backup solution for quite some time, and it works really well.
 
-I like the fact that I can subscribe to the consumer plan, with almost 3.5TB of data backed up, and that the backup client installs on a server OS. Many of the other “unlimited” backup providers I tested have restrictions in place that makes such a setup impossible.
+I like the fact that I can subscribe to the consumer plan, with almost 3.5TB of data backed up, and that the backup client installs on a server OS. Many of the other "unlimited" backup providers I tested have restrictions in place that makes such a setup impossible.
 
 CrashPlan sends email notifications about backup status, and I noticed that something was wrong with the backup:
 [![CrashPlan.Email](/media/2012/07/crashplan-email_thumb.png)](/media/2012/07/crashplan-email_.png)
@@ -33,7 +33,7 @@ The CrashPlan Backup Service service entered the running state.
 The CrashPlan Backup Service service entered the stopped state.
 The CrashPlan Backup Service service entered the running state.`
 
-The service wasn’t crashing, it was externally being stopped and restarted. I looked in the CrashPlan directory, and I found several log files with a naming like restart\_1342296082496.log. The contents of these files looked like this:
+The service wasn't crashing, it was externally being stopped and restarted. I looked in the CrashPlan directory, and I found several log files with a naming like restart\_1342296082496.log. The contents of these files looked like this:
 
 `Sat 07/14/2012 13:01:22.53 : "C:\Program Files\CrashPlan\bin\restart.bat"
 ECHO is off.
@@ -57,7 +57,7 @@ Sat 07/14/2012 13:01:39.13 : Exiting...`
 
 I looked for a newer version, but 3.2.1 was the latest version. I logged a support ticket with CrashPlan, but I continued my investigation. I found a log file service.log.0, several MB in size, and inside it I found this:
 
-`[07.14.12 12:32:39.480 ERROR   QPub-BackupMgr       backup42.service.backup.BackupController] OutOfMemoryError occurred...RESTARTING! message=OutOfMemoryError in BackupQueue!`
+`[07.14.12 12:32:39.480 ERROR   QPub-BackupMgr       backup42.service.backup.BackupController] OutOfMemoryError occurred...RESTARTING! message=OutOfMemoryError in BackupQueue!`
 
 So it seems that the service is running out of memory. I now had a few good keywords to search on, and I found [this post](http://leftcall.com/2012/06/12/technology-the-crashplan-backup-service-entered-the-stopped-state/) of a user with the same problem. At about the same time I received a reply from CrashPlan support, not bad for weekend service, with the same solution.
 
@@ -65,7 +65,7 @@ The CrashPlan backup service and desktop applications are Java apps, and as such
 
 To fix the problem, shutdown the service, open the CrashPlanService.ini file in the program directory, and increase the maximum memory utilization parameter to 2GB, the default is 512MB, and restart the service:
 
-`Virtual Machine Parameters=-Xrs -Xms15M –Xmx2048M`
+`Virtual Machine Parameters=-Xrs -Xms15M -Xmx2048M`
 
 After upping the memory all seemed well, and the service has been running for more than a day. But, I wanted to know just how much memory is CrashPlan using, and it turns out to be insane.
 
@@ -73,6 +73,6 @@ Here are the current stats for the amount of data I backup, as well as the resou
 
 [![CrashPlan.Size](/media/2012/07/crashplan-size_thumb.png)](/media/2012/07/crashplan-size_.png)[![CrashPlan.Memory.Desktop](/media/2012/07/crashplan-memory-desktop_thumb.png)](/media/2012/07/crashplan-memory-desktop.png)[![CrashPlan.Memory.Service](/media/2012/07/crashplan-memory-service_thumb.png)](/media/2012/07/crashplan-memory-service.png)
 
-As you can see, the desktop app’s peak private bytes exceed 250MB, and the service exceeds 1.3GB, that’s right 1.3GB of memory!
+As you can see, the desktop app's peak private bytes exceed 250MB, and the service exceeds 1.3GB, that's right 1.3GB of memory!
 
 Those numbers are simply outrageous.

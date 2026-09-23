@@ -15,7 +15,7 @@ This is 5TB GPT partition backed by RAID5 on 4 x 2TB drives. The RAID thing make
 
 Luck was on my side though, just yesterday I ran a backup, so I could recover most of the data, but all my VM images will be gone, they are too big to backup.
 
-I know partition recovery is possible, I’ve done it in DOS a few times, but that was DOS and a long time ago. I also know it is possible using direct disk editing, I know an admin who had to recover a volume on a SAN he accidentally deleted, but that was done with the help of EMC support. I was looking for an easier solution.
+I know partition recovery is possible, I've done it in DOS a few times, but that was DOS and a long time ago. I also know it is possible using direct disk editing, I know an admin who had to recover a volume on a SAN he accidentally deleted, but that was done with the help of EMC support. I was looking for an easier solution.
 
 A Google search for partition recovery software showed a variety of options, some free, some paid. I found only one product that could recover GPT partitions, [Active@ Partition Recovery](http://www.partition-recovery.com/).
 

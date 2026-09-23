@@ -31,7 +31,7 @@ UPS Event Log:
 
 In order to quantify the problem, I used a [Fluke VR1710 Voltage Quality Recorder](http://www.amazon.com/gp/product/B002006LQA/ref=as_li_ss_tl?ie=UTF8&camp=1789&creative=390957&creativeASIN=B002006LQA&linkCode=as2&tag=pievilsblo-20). The device plugs into a mains outlet, and records events, and a USB port is used to configure the device, and download recorded data.
 
-As I am not a power quality expert, I referred to [Wikipedia](http://en.wikipedia.org/wiki/Power_quality) to and [Power Quality In Electrical Systems](http://www.powerqualityworld.com/) for information and reference material. To further simplify the analysis, I opted to compare my office power with my home power, this allowed me to easily visualize the quality differences, granted, I am assuming my office power is good.
+As I am not a power quality expert, I referred to [Wikipedia](http://en.wikipedia.org/wiki/Power_quality) to and [Power Quality In Electrical Systems](http://www.powerqualityworld.com/) for information and reference material. To further simplify the analysis, I opted to compare my office power with my home power, this allowed me to easily visualize the quality differences, granted, I am assuming my office power is good.
 
 I configured the VR1710 to take measurements every 10s, and to record exceptional events, about 10 days worth of data. I set the dip threshold to 106V, the swell threshold to 127V, and the transient sensitivity to 5V.
 
@@ -53,7 +53,7 @@ The office voltage is very stable.
 Home Flicker:
 [![Home - Flicker](/media/2013/11/home-flicker.png?w=584)](/media/2013/11/home-flicker.png)
 
-According to [Wikipedia](http://en.wikipedia.org/wiki/Power-line_flicker) and [PQW](http://www.powerqualityworld.com/2011/09/voltage-fluctuations-flicker.html) short term flicker (Pst) is noticeable at values exceeding 1.0, and long term flicker (Plt) is noticeable at values exceeding 0.65. These results would explain why we observe lights flickering.
+According to [Wikipedia](http://en.wikipedia.org/wiki/Power-line_flicker) and [PQW](http://www.powerqualityworld.com/2011/09/voltage-fluctuations-flicker.html) short term flicker (Pst) is noticeable at values exceeding 1.0, and long term flicker (Plt) is noticeable at values exceeding 0.65. These results would explain why we observe lights flickering.
 
 Office Flicker:
 [![Office - Flicker](/media/2013/11/office-flicker.png?w=584)](/media/2013/11/office-flicker.png)
@@ -73,7 +73,7 @@ The office voltage distribution is nicely clustered around 119V, with the 95% di
 Home Dips And Swells:
 [![Home - Dips Swells](/media/2013/11/home-dips-swells.png?w=584)](/media/2013/11/home-dips-swells.png)
 
-ITIC and CBEMA are standards for acceptable power quality, see [here](http://www.powerqualityworld.com/2011/04/itic-power-acceptability-curve.html) for a detailed description.
+ITIC and CBEMA are standards for acceptable power quality, see [here](http://www.powerqualityworld.com/2011/04/itic-power-acceptability-curve.html) for a detailed description.
 To describe the graph, I quote from the Fluke Power Log software manual:
 _Dips and swells are shown on a CBEMA (Computer Business Equipment Manufacturers Association) and ITIC (Information Technology Industry Council) plot classification table according to EN50160. On the CBEMA (blue) and ITIC (red), curve markers are plotted for each dip and swell. The height on the vertical axis shows the severity of the dip or swell relative to the nominal voltage. The horizontal position shows the duration of the dip or swell. These curves show an ac input voltage envelope which typically can be tolerated (no interruption in function) by most Information Technology Equipment (ITE)._
 

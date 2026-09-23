@@ -39,13 +39,13 @@ Here are some screenshots:
 The web frontend really reminds me of Streamload:   
 [![SafeSync.Online](/external/45991e594b4c6641.png)](/external/aa03c29848de548e.png)
 
-A very neat feature is WebDAV access to the storage. This means that you can access the data using any WebDAV client, and there is no need to install the SafeSync client software. Here is a [Trend KB](http://support.antivirus.co.uk/trendmicro/kbresolution.jsp?hmid=52790&serviceId=37&applicationId=265#_Is_it_possible) for details, basically you connect to “dav.trendmicro.safesync.com” using your SafeSync credentials.
+A very neat feature is WebDAV access to the storage. This means that you can access the data using any WebDAV client, and there is no need to install the SafeSync client software. Here is a [Trend KB](http://support.antivirus.co.uk/trendmicro/kbresolution.jsp?hmid=52790&serviceId=37&applicationId=265#_Is_it_possible) for details, basically you connect to "dav.trendmicro.safesync.com" using your SafeSync credentials.
 
 You can use the built in Windows WebDAV client to access the storage, but you have to make a registry change, else you will get a "the folder you entered does not appear to be be valid" error. After you make the change reboot, or just restart the WebClient service. See this [Microsoft KB](http://support.microsoft.com/kb/2123563) for details:   
 \[HKEY\_LOCAL\_MACHINE\\SYSTEM\\CurrentControlSet\\services\\WebClient\\Parameters\]   
 "BasicAuthLevel"=dword:00000002
 
-Open explorer and map a network drive to “\\\dav.trendmicro.safesync.com”:   
+Open explorer and map a network drive to "\\\dav.trendmicro.safesync.com":   
 [![WebDAV.Windows](/external/c6828d686298df8b.png)](/external/42f4db7bc0ee0460.png)
 
 Here are some explorer screenshots of a mapped drive using SafeSync, Windows, and [WebDrive](http://www.webdrive.com/products/webdrive/winindex.html):   
@@ -67,7 +67,7 @@ HrfsShellExtension!DllUnregisterServer+202ef
 
 If a sync is in progress, and the machine goes to sleep, then later wakes up, SafeSync does not reconnect, instead it reports that the server is unavailable. In order to resolve this you have to logout and log back in.
 
-I added a folder to sync, this folder was very large, the status window indicated it would take several days to complete, I wanted to remove the mapping. On clicking the remove button, I received this funny error message, “Unexpected and unknown error, it is possible a logical error”. The only way to stop the sync was to uninstall.   
+I added a folder to sync, this folder was very large, the status window indicated it would take several days to complete, I wanted to remove the mapping. On clicking the remove button, I received this funny error message, "Unexpected and unknown error, it is possible a logical error". The only way to stop the sync was to uninstall.   
 [![SafeSync.Logical.Error](/external/3a25fab79c71dfb2.png)](/external/98d84413bf424b21.png)
 
 SafeSync crashed while uninstalling.   

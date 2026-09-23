@@ -62,7 +62,7 @@ This did not seem safe to me, I contacted Zotac support, and they said they will
 
 
 
- \[Update: 18 May 2010\]    
+ \[Update: 18 May 2010\]    
  Zotac support sent me the correct replacement cables free of charge:   
 [![](/media/2010/05/power-plug-new2.jpg?w=300)](/media/2010/05/power-plug-new5.jpg)
 

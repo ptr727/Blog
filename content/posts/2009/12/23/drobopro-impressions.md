@@ -17,7 +17,7 @@ In this post I am describing, and partly reviewing, my experience using a DroboP
 
 
 
-I have been aware of of the [Drobo](http://www.drobo.com/ "Drobo") storage devices for some time now, but never used one or knew anybody that owned one.  
+I have been aware of the [Drobo](http://www.drobo.com/ "Drobo") storage devices for some time now, but never used one or knew anybody that owned one.  
 
 Recently a coworker's large home RAID system had a controller failure, and after recovering the data, he migrated to a [DroboPro](http://www.drobo.com/products/drobopro/index.php "DroboPro") using [iSCSI](http://en.wikipedia.org/wiki/ISCSI "iSCSI").
 

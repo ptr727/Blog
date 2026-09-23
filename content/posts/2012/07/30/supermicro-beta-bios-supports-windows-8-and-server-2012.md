@@ -24,17 +24,17 @@ I used a DOS bootable USB key, and installed the new BIOS.
 
 The 7047A-T has USB ports on the back and on the front of the case. The ports on the front are all USB3, and it is not possible to boot from these ports, at least I have not yet found a configuration that allows booting from USB3 ports. I tried using USB2 keys and, my newest [Kingston DataTraveler HyperX 3.0](http://amzn.to/MXjv4Y) super fast USB3 keys, the BIOS does not list any boot devices in these USB3 ports. To boot from USB you have to plug the USB key in one of the rear USB2 ports.
 
-The new BIOS version is “1.0 beta”, compilation date “7/23/2012”. The BIOS screen looks like the more modern AMI EFI BIOS’s I’ve seen in other devices, i.e. the thin font instead of the classic console font.
+The new BIOS version is "1.0 beta", compilation date "7/23/2012". The BIOS screen looks like the more modern AMI EFI BIOS's I've seen in other devices, i.e. the thin font instead of the classic console font.
 
 [![BIOS.Beta](/media/2012/07/bios-beta_thumb.jpg)](/media/2012/07/bios-beta_.jpg)
 
-I performed a “Restore Optimized Defaults”, and then went through the options to see what has changed and what is new.
+I performed a "Restore Optimized Defaults", and then went through the options to see what has changed and what is new.
 
 The \[Advanced\] \[Chipset Configuration\] \[North Bridge\] \[IOH Configuration\] now sets all PCIe busses to GEN3, the old BIOS defaulted to GEN2.
 
 The \[Advanced\] \[SATA Configuration\] now enabled hot plug on all ports, the old BIOS defaulted to hot plug disabled.
 
-The \[Advanced\] \[Boot Feature\] ads a new power configuration item called “EuP”. This seems to be related to [EU Directive 2005/32/EC](http://europa.eu/legislation_summaries/other/l32037_en.htm):
+The \[Advanced\] \[Boot Feature\] ads a new power configuration item called "EuP". This seems to be related to [EU Directive 2005/32/EC](http://europa.eu/legislation_summaries/other/l32037_en.htm):
 
 > EU Directive 2005/32/EC enacted by the European Union member countries dictates that after January 1, 2010, no computer or other energy using product (EuP) sold in the member countries may dissipate more than 1 Watt in the standby (S5) state.
 
@@ -54,8 +54,8 @@ While running Windows 7 on this machine, and running the Windows Experience Inde
 
 [![Win8.EI](/media/2012/07/win8-ei_thumb.png)](/media/2012/07/win8-ei_.png)
 
-I found the 2D and 3D results to be disappointing, and I tried to replace the “ATI FirePro V (FireGL V) Graphics Adapter (Microsoft Corporation - WDDM v1.20)” driver with the [ATI Windows 8 Consumer Preview](http://support.amd.com/us/kbarticles/Pages/Windows8ConsumerPreviewDrivers.aspx) driver. Although the release notes indicate that the V7900 is supported, the driver installation failed with an unsupported hardware error. I’ll have to wait for newer Windows 8 drivers from ATI to see if the test scores improve.
+I found the 2D and 3D results to be disappointing, and I tried to replace the "ATI FirePro V (FireGL V) Graphics Adapter (Microsoft Corporation - WDDM v1.20)" driver with the [ATI Windows 8 Consumer Preview](http://support.amd.com/us/kbarticles/Pages/Windows8ConsumerPreviewDrivers.aspx) driver. Although the release notes indicate that the V7900 is supported, the driver installation failed with an unsupported hardware error. I'll have to wait for newer Windows 8 drivers from ATI to see if the test scores improve.
 
-I’m quite happy that I can use my new machines with Windows 8.
+I'm quite happy that I can use my new machines with Windows 8.
 
 I just wish SuperMicro solved the BIOS incompatibility problems long ago, after all, it has been almost two years since the Windows 8 pre-release program started, and almost a year since the release of the public developer preview.

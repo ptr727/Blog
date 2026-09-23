@@ -1,236 +1,391 @@
 #!/usr/bin/env python3
-"""Fail if a carried media file holds location, device, or authorship metadata.
+"""Fail the build on carried media that is not in a form this can vouch for.
 
-Every image under static/ is copied byte for byte into the built site, so whatever a camera
-or an editor wrote into a file is served with it. An archive imported from another platform
-arrived carrying GPS coordinates that resolved one residential address to about a metre, and
-nothing in the pipeline noticed, because a build gate reads pages and a linter reads prose.
+This is an allowlist, and that is the whole design. An earlier version of this file
+enumerated the places metadata is known to hide and failed on those, and review found a
+new hole in it in eleven of twelve rounds: a sub-IFD never followed, a text chunk never
+decompressed, a container never recognized, a length never bounded. Each fix was correct
+and each widened a surface with no edge, because "where can metadata hide" has no closed
+answer and no version of that file was ever finished.
 
-Three decisions shape what this reads, and each one came from something that was missed.
+The question is inverted here. Every structural element a carried file may hold is named
+below, and anything outside those names is reported as something to convert rather than
+something to parse. Nobody needs to know what a vendor MakerNote contains to decide it
+should not ship. That turns an unbounded question into a short list that can be read in
+one sitting and argued with.
 
-Inside archives. A .zip in the media tree is opened and its members read. A loose-file walk
-cannot see them, and the imported archive held a photograph and a video that were invisible
-to every scan run before this one.
+What survives an allowlist is only what exists for display correctness: the dimensions,
+the color profile, and the orientation, plus the capture timestamp on the formats whose
+tags carry one, which is JPEG here and not PNG. Identity, location, device and authorship
+are not enumerated here at all, because they do not need to be. They are not on the list,
+so they fail.
 
-Values rather than key names. A metadata tool can unlink a value from its index and leave
-the bytes in the file, reporting the file clean while the coordinate is still there. So a
-file is searched for a coordinate that parses, never for the name of the atom that used to
-hold one, and a container this cannot name is searched rather than skipped, since an
-unrecognized container is exactly where one would survive.
-
-Compressed text blocks. A PNG can carry a whole EXIF segment hex-encoded inside a zlib
-compressed text chunk, where a scan of the ordinary chunks never looks. Those are decoded and
-read like any other segment, because a tag hidden two layers down is still served.
-
-Stdlib only, to match the rest of checks/. Read-only. Exit 1 on any finding.
+A file this reports is not accused of carrying anything. It is a file whose form cannot
+be vouched for, and `scripts/normalize-media.py` is what resolves that, by decoding to
+pixels and writing a fresh file that is clean by construction.
 """
 
-from __future__ import annotations
-
-import binascii
+import pathlib
 import re
 import struct
 import sys
 import zipfile
 import zlib
-from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = pathlib.Path(__file__).resolve().parent.parent
 TREES = ("static/media", "static/external")
 
-# A file or archive member larger than this is reported rather than read.
-# Clearing a file must not become a way to exhaust the runner.
-MEMBER_LIMIT = 256 * 1024 * 1024
-
-# The XMP spelling of a GPS tag, read the same way in a JPEG segment and a PNG text chunk.
-XMP_GPS = b"exif:GPS"
-
-# A finding raised because the bytes were never read, rather than because metadata was found in them.
-UNREADABLE = (
-    "file too large to read",
-    "member too large to read",
-    "unreadable",
+# Extensions that name a picture or a video, read only inside an archive.
+# A member is judged by its bytes wherever they are recognized.
+# An unrecognized container is a finding only where the name says the member is media.
+# An archive here also carries source files and binaries, which are not in scope.
+MEDIA_SUFFIXES = frozenset(
+    (
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp",
+        ".bmp",
+        ".tif",
+        ".tiff",
+        ".heic",
+        ".heif",
+        ".avif",
+        ".jxl",
+        ".mov",
+        ".mp4",
+        ".m4v",
+        ".avi",
+        ".mkv",
+        ".webm",
+        ".mpg",
+        ".mpeg",
+        ".3gp",
+        ".raw",
+        ".dng",
+        ".cr2",
+        ".nef",
+    )
 )
 
-# The only PNG chunks this reads.
-# A chunk outside the set is skipped by length, so an IDAT stream is never copied.
-READ_CHUNKS = frozenset((b"eXIf", b"tEXt", b"zTXt", b"iTXt"))
+# A file or archive member larger than this is reported rather than read.
+SIZE_LIMIT = 256 * 1024 * 1024
 
-# A PNG text chunk expanding past this is reported rather than read.
-# A few compressed bytes can otherwise expand without bound.
-TEXT_LIMIT = 8 * 1024 * 1024
+# JPEG markers that carry picture data or coding tables rather than description.
+# TEM and the restart markers stand alone, so they are skipped before a length is read.
+JPEG_STRUCTURAL = (
+    {0xD8, 0xD9, 0xDA, 0xDB, 0xC4, 0xCC, 0xDD, 0x01}
+    | set(range(0xD0, 0xD8))
+    | {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}
+)
 
-# A TIFF tag whose presence in a carried file is a finding on its own.
-TAGS = {
-    0x8825: "GPS",
-    0x010F: "Make",
-    0x0110: "Model",
-    0x013B: "Artist",
-    0x013C: "HostComputer",
-    0x8298: "Copyright",
-    0x9286: "UserComment",
-    0xA430: "CameraOwnerName",
-    0xA431: "BodySerialNumber",
-    0xA432: "LensSerialNumber",
-    0x0201: "EmbeddedThumbnail",
+# JPEG APP segments that carry rendering data rather than description.
+JPEG_APP_ALLOWED = ((0xE0, b"JFIF\x00"), (0xE2, b"ICC_PROFILE\x00"), (0xEE, b"Adobe"))
+
+# TIFF tags that exist so a decoder renders the picture correctly.
+# A tag outside this set is not judged, it is simply not vouched for.
+EXIF_ALLOWED = {
+    0x0001,  # InteropIndex
+    0x0002,  # InteropVersion
+    0x0100,  # ImageWidth
+    0x0101,  # ImageLength
+    0x0102,  # BitsPerSample
+    0x0103,  # Compression
+    0x0106,  # PhotometricInterpretation
+    0x0112,  # Orientation
+    0x0115,  # SamplesPerPixel
+    0x011A,  # XResolution
+    0x011B,  # YResolution
+    0x011C,  # PlanarConfiguration
+    0x0128,  # ResolutionUnit
+    0x0132,  # DateTime
+    0x0213,  # YCbCrPositioning
+    0x8769,  # ExifIFDPointer
+    0x9000,  # ExifVersion
+    0x9003,  # DateTimeOriginal
+    0x9101,  # ComponentsConfiguration
+    0xA000,  # FlashpixVersion
+    0xA001,  # ColorSpace
+    0xA002,  # PixelXDimension
+    0xA003,  # PixelYDimension
+    0xA005,  # InteropIFDPointer
 }
 
-# A pointer to a sub-IFD.
-# GPS, and most of the identity tags, live behind one rather than in IFD0.
-SUB_IFD = {0x8769, 0x8825, 0xA005}
+PNG_ALLOWED = {
+    b"IHDR",
+    b"PLTE",
+    b"IDAT",
+    b"IEND",
+    b"tRNS",
+    b"gAMA",
+    b"cHRM",
+    b"sRGB",
+    b"iCCP",
+    b"sBIT",
+    b"bKGD",
+    b"pHYs",
+    b"hIST",
+    b"acTL",
+    b"fcTL",
+    b"fdAT",
+}
 
-# An ISO6709 coordinate, which is what a QuickTime location actually looks like on disk.
+WEBP_ALLOWED = {b"VP8 ", b"VP8L", b"VP8X", b"ALPH", b"ANIM", b"ANMF", b"ICCP"}
+
+# ISO base media atoms that hold the picture, the timing, or nothing at all.
+ISO_ALLOWED = {
+    b"ftyp",
+    b"moov",
+    b"mdat",
+    b"free",
+    b"skip",
+    b"wide",
+    b"mvhd",
+    b"trak",
+    b"tkhd",
+    b"edts",
+    b"elst",
+    b"mdia",
+    b"mdhd",
+    b"hdlr",
+    b"minf",
+    b"vmhd",
+    b"smhd",
+    b"dinf",
+    b"dref",
+    b"stbl",
+    b"stsd",
+    b"stts",
+    b"stss",
+    b"stsc",
+    b"stsz",
+    b"stco",
+    b"co64",
+    b"ctts",
+    b"sdtp",
+    b"avcC",
+    b"pasp",
+    b"colr",
+    b"btrt",
+    b"sgpd",
+    b"sbgp",
+}
+ISO_CONTAINERS = {b"moov", b"trak", b"mdia", b"minf", b"stbl", b"edts", b"dinf"}
+
+# An ISO6709 coordinate, checked by value rather than by the name of the atom holding it.
+# A tool can unlink the value and leave the bytes, which is how a video here read clean while located.
 COORDINATE = re.compile(rb"[+-]\d{2}\.\d{2,}[+-]\d{3}\.\d{2,}")
 
 
-def tiff_tags(raw: bytes) -> set[str]:
-    """Walk the IFD chain of a TIFF or EXIF segment and name the tags that matter."""
-    found: set[str] = set()
+def exif_unrecognized(raw: bytes) -> set[str]:
+    """Name every TIFF tag in a segment that is not on the display-correctness list."""
+    out: set[str] = set()
     start = raw.find(b"Exif\x00\x00")
     if start >= 0:
         raw = raw[start + 6 :]
     if raw[:2] not in (b"II", b"MM"):
-        return found
+        return {"APP1/Exif with no TIFF header"}
     fmt = "<" if raw[:2] == b"II" else ">"
     try:
-        # A TIFF header carries 42 after the byte order.
-        # Without that check, any data opening II or MM sends the walk chasing random offsets.
         if struct.unpack_from(fmt + "H", raw, 2)[0] != 42:
-            return found
+            return {"APP1/Exif with a bad TIFF magic"}
         pending = [struct.unpack_from(fmt + "I", raw, 4)[0]]
     except struct.error:
-        return found
+        return {"APP1/Exif truncated"}
     seen: set[int] = set()
-    # Bounded and cycle-guarded, because a malformed chain can point at itself.
     while pending and len(seen) < 16:
         offset = pending.pop()
-        if not 0 < offset < len(raw) or offset in seen:
+        if offset in seen or offset <= 0 or offset + 2 > len(raw):
             continue
         seen.add(offset)
         try:
             count = struct.unpack_from(fmt + "H", raw, offset)[0]
         except struct.error:
             continue
-        for i in range(count):
-            entry = offset + 2 + i * 12
+        for index in range(count):
+            entry = offset + 2 + index * 12
             if entry + 12 > len(raw):
                 break
             tag = struct.unpack_from(fmt + "H", raw, entry)[0]
-            if tag in TAGS:
-                found.add(TAGS[tag])
-            if tag in SUB_IFD:
-                sub = struct.unpack_from(fmt + "I", raw, entry + 8)[0]
-                if 0 < sub < len(raw) and sub not in seen:
-                    pending.append(sub)
+            if tag not in EXIF_ALLOWED:
+                out.add(f"Exif tag 0x{tag:04X}")
+            if tag in (0x8769, 0x8825, 0xA005):
+                try:
+                    pending.append(struct.unpack_from(fmt + "I", raw, entry + 8)[0])
+                except struct.error:
+                    pass
+        # A chained IFD is a second image, usually a thumbnail of the frame before any edit.
         try:
-            nxt = struct.unpack_from(fmt + "I", raw, offset + 2 + count * 12)[0]
+            if struct.unpack_from(fmt + "I", raw, offset + 2 + count * 12)[0]:
+                out.add("Exif chained IFD")
         except struct.error:
-            nxt = 0
-        if 0 < nxt < len(raw) and nxt not in seen:
-            pending.append(nxt)
-    return found
-
-
-def scan_jpeg(data: bytes) -> set[str]:
-    found: set[str] = set()
-    i = 2
-    while i + 4 <= len(data):
-        if data[i] != 0xFF:
-            break
-        marker = data[i + 1]
-        if marker in (0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
-            i += 2
-            continue
-        if marker == 0xDA:  # start of scan, metadata is all behind us
-            break
-        try:
-            length = struct.unpack_from(">H", data, i + 2)[0]
-        except struct.error:
-            break
-        segment = data[i + 4 : i + 2 + length]
-        if marker == 0xE1:
-            found |= tiff_tags(segment)
-            if XMP_GPS in segment:
-                found.add("XMP GPS")
-        elif marker == 0xFE:
-            found.add("JPEG comment")
-        i += 2 + length
-    return found
-
-
-def inflate(payload: bytes) -> bytes:
-    """Decompress a PNG text payload, refusing one that expands past the bound."""
-    out = zlib.decompressobj().decompress(payload, TEXT_LIMIT + 1)
-    if len(out) > TEXT_LIMIT:
-        raise ValueError("text chunk expands past the bound")
+            pass
     return out
 
 
-def png_text(chunk_type: bytes, body: bytes) -> bytes:
-    """Return the payload of a PNG text chunk, decompressing zTXt."""
-    if chunk_type == b"zTXt":
-        return inflate(body.split(b"\x00", 1)[1][1:])
-    if chunk_type == b"iTXt":
-        # The layout is keyword NUL, compression flag, method, language NUL, translated NUL, text.
-        key_end = body.index(b"\x00")
-        compressed = body[key_end + 1] == 1
-        lang_end = body.index(b"\x00", key_end + 3)
-        text_start = body.index(b"\x00", lang_end + 1) + 1
-        payload = body[text_start:]
-        return inflate(payload) if compressed else payload
-    return body.split(b"\x00", 1)[1]
+def scan_jpeg(data: bytes) -> set[str]:
+    out: set[str] = set()
+    i = 2
+    while i + 4 <= len(data):
+        if data[i] != 0xFF:
+            out.add("JPEG segment structure not understood")
+            break
+        marker = data[i + 1]
+        if marker in (0x01, 0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
+            i += 2
+            continue
+        length = struct.unpack_from(">H", data, i + 2)[0]
+        if length < 2 or i + 2 + length > len(data):
+            out.add("JPEG segment runs past the end of the file")
+            break
+        segment = data[i + 4 : i + 2 + length]
+        if any(marker == m and segment.startswith(p) for m, p in JPEG_APP_ALLOWED):
+            pass
+        elif marker == 0xE1 and segment.startswith(b"Exif\x00\x00"):
+            out |= exif_unrecognized(segment)
+        elif 0xE0 <= marker <= 0xEF:
+            out.add(f"JPEG APP{marker - 0xE0} segment")
+        elif marker == 0xFE:
+            out.add("JPEG comment")
+        elif marker not in JPEG_STRUCTURAL:
+            out.add(f"JPEG marker 0x{marker:02X}")
+        if marker == 0xDA:
+            end = data.find(b"\xff\xd9", i)
+            if end < 0:
+                out.add("JPEG has no end marker")
+            elif end + 2 != len(data):
+                out.add("JPEG trailing bytes after the end marker")
+            return out
+        i += 2 + length
+    # The markers ran out before the picture began.
+    out.add("JPEG has no scan")
+    return out
 
 
 def scan_png(data: bytes) -> set[str]:
-    found: set[str] = set()
+    out: set[str] = set()
     i = 8
     while i + 8 <= len(data):
         try:
             length = struct.unpack_from(">I", data, i)[0]
         except struct.error:
+            out.add("PNG chunk structure not understood")
             break
-        chunk_type = data[i + 4 : i + 8]
-        if chunk_type not in READ_CHUNKS:
-            i += 12 + length
-            continue
-        body = data[i + 8 : i + 8 + length]
-        if chunk_type == b"eXIf":
-            found |= tiff_tags(body)
-        else:
-            try:
-                text = png_text(chunk_type, body)
-            except (zlib.error, IndexError, ValueError):
-                # A chunk that cannot be read cannot be cleared, so it is reported.
-                found.add("unreadable PNG text chunk")
-                i += 12 + length
-                continue
-            if body.startswith(b"Raw profile type"):
-                # A hex-encoded segment.
-                # Decode it and read the tags rather than the label.
-                hexed = b"".join(line.strip() for line in text.split(b"\n")[2:])
-                try:
-                    found |= tiff_tags(binascii.unhexlify(hexed))
-                except binascii.Error:
-                    pass
-            elif XMP_GPS in text:
-                found.add("XMP GPS")
+        chunk = data[i + 4 : i + 8]
+        if i + 12 + length > len(data):
+            out.add("PNG chunk runs past the end of the file")
+            break
+        if chunk not in PNG_ALLOWED:
+            out.add(f"PNG {chunk.decode('ascii', 'replace')} chunk")
         i += 12 + length
-    return found
+        if chunk == b"IEND":
+            if i != len(data):
+                out.add("PNG trailing bytes after IEND")
+            break
+    return out
 
 
-def scan_coordinate(data: bytes) -> set[str]:
-    # The value, not the atom name, because a tool can remove one and leave the other.
-    return {"ISO6709 coordinate"} if COORDINATE.search(data) else set()
+def scan_gif(data: bytes) -> set[str]:
+    out: set[str] = set()
+    i = 13
+    if len(data) > 10 and data[10] & 0x80:
+        i += 3 * (2 << (data[10] & 7))
+
+    def skip_blocks(j: int) -> int:
+        while j < len(data) and data[j]:
+            j += data[j] + 1
+        return j + 1
+
+    seen_trailer = False
+    while i < len(data):
+        marker = data[i]
+        if marker == 0x3B:
+            seen_trailer = True
+            if i + 1 != len(data):
+                out.add("GIF trailing bytes after the trailer")
+            break
+        if marker == 0x21:
+            if i + 2 > len(data) - 1:
+                out.add("GIF extension runs past the end of the file")
+                break
+            label = data[i + 1]
+            if label == 0xFF:
+                if data[i + 3 : i + 14] != b"NETSCAPE2.0":
+                    out.add("GIF application extension")
+            elif label != 0xF9:
+                out.add(f"GIF extension 0x{label:02X}")
+            i = skip_blocks(i + 2)
+        elif marker == 0x2C:
+            if i + 10 > len(data):
+                out.add("GIF image descriptor runs past the end of the file")
+                break
+            flags = data[i + 9]
+            i += 10
+            if flags & 0x80:
+                i += 3 * (2 << (flags & 7))
+            i = skip_blocks(i + 1)
+        else:
+            out.add("GIF block structure not understood")
+            break
+    if not seen_trailer:
+        out.add("GIF ends without a trailer")
+    return out
+
+
+def scan_webp(data: bytes) -> set[str]:
+    out: set[str] = set()
+    i = 12
+    while i + 8 <= len(data):
+        chunk = data[i : i + 4]
+        length = struct.unpack_from("<I", data, i + 4)[0]
+        span = 8 + length + (length & 1)
+        if i + span > len(data):
+            out.add("WebP chunk runs past the end of the file")
+            break
+        if chunk not in WEBP_ALLOWED:
+            out.add(f"WebP {chunk.decode('ascii', 'replace')} chunk")
+        i += span
+    return out
+
+
+def scan_iso(data: bytes, start: int = 0, end: int | None = None) -> set[str]:
+    out: set[str] = set()
+    i = start
+    end = len(data) if end is None else end
+    while i + 8 <= end:
+        length = struct.unpack_from(">I", data, i)[0]
+        atom = data[i + 4 : i + 8]
+        if length == 0:
+            length = end - i
+        if length < 8 or i + length > end:
+            out.add("ISO atom structure not understood")
+            break
+        if atom not in ISO_ALLOWED:
+            out.add(f"ISO {atom.decode('ascii', 'replace')} atom")
+        elif atom in ISO_CONTAINERS:
+            out |= scan_iso(data, i + 8, i + length)
+        i += length
+    if i != end:
+        out.add("ISO trailing bytes outside any atom")
+    if start == 0 and COORDINATE.search(data):
+        out.add("ISO6709 coordinate")
+    return out
 
 
 def scan(data: bytes) -> set[str]:
+    """Name what a file holds that this cannot vouch for."""
     if data[:2] == b"\xff\xd8":
         return scan_jpeg(data)
     if data[:8] == b"\x89PNG\r\n\x1a\n":
         return scan_png(data)
-    # Anything not JPEG or PNG is searched for a coordinate rather than identified first.
-    # A container this cannot name is exactly where one would survive.
-    return scan_coordinate(data)
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return scan_gif(data)
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return scan_webp(data)
+    if data[4:8] in (b"ftyp", b"moov", b"wide", b"mdat", b"free", b"skip"):
+        return scan_iso(data)
+    return {"unrecognized container"}
 
 
 def findings() -> list[tuple[str, set[str]]]:
@@ -241,37 +396,57 @@ def findings() -> list[tuple[str, set[str]]]:
             continue
         for path in sorted(root.rglob("*")):
             if path.is_symlink():
-                # Never followed, since a target can sit outside the tree or be a device that never ends.
-                out.append((str(path.relative_to(REPO)), {"unreadable symlink"}))
+                # Never followed, since a target can sit outside the tree.
+                out.append((str(path.relative_to(REPO)), {"symlink, not read"}))
                 continue
             if not path.is_file():
                 continue
             name = str(path.relative_to(REPO))
-            if path.suffix.lower() == ".zip":
-                try:
-                    with zipfile.ZipFile(path) as archive:
-                        for info in archive.infolist():
-                            if info.file_size > MEMBER_LIMIT:
-                                out.append(
-                                    (
-                                        f"{name}!{info.filename}",
-                                        {"member too large to read"},
-                                    )
-                                )
-                                continue
-                            hit = scan(archive.read(info))
-                            if hit:
-                                out.append((f"{name}!{info.filename}", hit))
-                except (zipfile.BadZipFile, RuntimeError, NotImplementedError) as exc:
-                    # An encrypted or corrupt archive cannot be read, so it cannot be cleared.
-                    out.append((name, {f"unreadable archive: {type(exc).__name__}"}))
+            if path.stat().st_size > SIZE_LIMIT:
+                out.append((name, {"too large to read"}))
                 continue
-            if path.stat().st_size > MEMBER_LIMIT:
-                out.append((name, {"file too large to read"}))
+            if path.suffix.lower() == ".zip":
+                out.extend(walk_archive(path, name))
                 continue
             hit = scan(path.read_bytes())
             if hit:
                 out.append((name, hit))
+    return out
+
+
+def walk_archive(path: pathlib.Path, name: str) -> list[tuple[str, set[str]]]:
+    """Check the media inside an archive, which a walk of loose files cannot see."""
+    out = []
+    try:
+        with zipfile.ZipFile(path) as archive:
+            for info in archive.infolist():
+                if info.is_dir():
+                    continue
+                if info.file_size > SIZE_LIMIT:
+                    out.append((f"{name}!{info.filename}", {"too large to read"}))
+                    continue
+                try:
+                    member = archive.read(info)
+                except (RuntimeError, zipfile.BadZipFile, zlib.error) as exc:
+                    out.append(
+                        (
+                            f"{name}!{info.filename}",
+                            {f"unreadable member: {type(exc).__name__}"},
+                        )
+                    )
+                    continue
+                # Only media is in scope, so a source file or a binary is left alone.
+                # A member named as media counts even where its bytes are unrecognized.
+                # Otherwise the same file fails loose and passes inside a zip.
+                hit = scan(member)
+                named_media = (
+                    pathlib.PurePosixPath(info.filename).suffix.lower()
+                    in MEDIA_SUFFIXES
+                )
+                if hit and (named_media or hit != {"unrecognized container"}):
+                    out.append((f"{name}!{info.filename}", hit))
+    except (zipfile.BadZipFile, RuntimeError, NotImplementedError) as exc:
+        out.append((name, {f"unreadable archive: {type(exc).__name__}"}))
     return out
 
 
@@ -286,23 +461,12 @@ def main() -> int:
     if found:
         for name, tags in found:
             print(f"{name}: {', '.join(sorted(tags))}")
-        unreadable = sum(
-            1 for _, tags in found if any(t.startswith(UNREADABLE) for t in tags)
+        print(
+            f"\n{len(found)} file(s) hold something this cannot vouch for."
+            " Run scripts/normalize-media.py, see CONTENT.md."
         )
-        carrying = sum(
-            1 for _, tags in found if any(not t.startswith(UNREADABLE) for t in tags)
-        )
-        print()
-        if carrying:
-            print(
-                f"{carrying} file(s) carry metadata. Strip before committing, see CONTENT.md."
-            )
-        if unreadable:
-            print(f"{unreadable} file(s) could not be read, so they cannot be cleared.")
         return 1
-    print(
-        f"media   : {scanned} carried file(s), none carry location, device, or authorship metadata"
-    )
+    print(f"media   : {scanned} carried file(s), every one in a form this recognizes")
     return 0
 
 

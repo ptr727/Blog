@@ -26,7 +26,7 @@ Microsoft released Vista SP1 to Windows Update, and the GMA driver problem was s
 
 Microsoft posted [KB948343](http://support.microsoft.com/Default.aspx?kbid=948343) stating that customers with specific versions of the GMA drivers would not get Vista SP1 via Windows Update until new GMA drivers are released.
 
-To prevent my machines from crashing I am using the “high performance” power profile, i.e. they would never go to sleep.
+To prevent my machines from crashing I am using the "high performance" power profile, i.e. they would never go to sleep.
 
 It has been several months and the Intel has yet to resolve the problem, unbelievable.
 
