@@ -536,8 +536,8 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
     return out
 
 
-def orientation(kind: str, data: bytes) -> int:
-    """The Orientation the first Exif in a file holds, or 1 where it holds none."""
+def orientation(kind: str, data: bytes) -> int | None:
+    """The Orientation the first Exif in a file holds, 1 where it holds none, or None where disputed."""
     held = []
     if kind == "jpeg":
         parts, _ = gate.jpeg_parts(data)
