@@ -51,7 +51,7 @@ MAC = re.compile(
     r"(?<![0-9A-Za-z])(?:[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}"
     r"|[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})(?![0-9A-Za-z])"
 )
-# A hyphen joins an address to its label, and joins the decimal groups of a date-stamped file name.
+# A hyphen joins an address to its label, and joins the groups of a date-stamped file name.
 MAC_LABEL = re.compile(
     r"(?<![0-9A-Za-z])(?:mac|hwaddr|ether|bssid|bd|bdaddr)-$", re.IGNORECASE
 )
@@ -137,6 +137,20 @@ def is_public(text: str) -> bool:
         return False
 
 
+def is_date_stamp(groups: list[str]) -> bool:
+    """Whether six groups read as a year, month, day, hour, minute, and second."""
+    if not all(g.isdigit() for g in groups):
+        return False
+    _, month, day, hour, minute, second = (int(g) for g in groups)
+    return (
+        1 <= month <= 12
+        and 1 <= day <= 31
+        and hour <= 23
+        and minute <= 59
+        and second <= 59
+    )
+
+
 def is_coordinate(
     first: str, first_hemi: str | None, sep: str, second: str, second_hemi: str | None
 ) -> bool:
@@ -176,7 +190,7 @@ def scan_line(text: str) -> Iterator[tuple[str, str]]:
             yield "email", m.group()
     for m in MAC.finditer(text):
         before = text[: m.start()]
-        stamp = m.group(1) == "-" and m.group().replace("-", "").isdigit()
+        stamp = m.group(1) == "-" and is_date_stamp(m.group().split("-"))
         if stamp and before.endswith("-") and not MAC_LABEL.search(before):
             continue
         yield "hardware address", m.group()

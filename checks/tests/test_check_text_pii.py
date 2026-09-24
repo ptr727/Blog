@@ -31,6 +31,7 @@ POSITIVE = {
         "HWaddr-02-00-00-ab-cd-ef",
         "host-02-00-00-ab-cd-ef",
         "MAC-00-11-22-33-44-55",
+        "host-00-11-22-33-44-55",
     ],
     "public ip": [
         "The resolver answers on 1.1.1.1 today.",
