@@ -26,6 +26,7 @@ import argparse
 import contextlib
 import importlib.util
 import io
+import itertools
 import pathlib
 import random
 import re
@@ -498,10 +499,13 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
     return out if len(out) <= 64 else out[:32] + out[-32:]
 
 
-def orientation_tiff(order: bytes, kind: int, first: int = 6, then: int = 0) -> bytes:
+def orientation_tiff(
+    order: bytes, kind: int, first: int = 6, then: int = 0, sub: bool = False
+) -> bytes:
     """A TIFF header and one IFD holding Orientation `first` as the given type.
 
-    A nonzero `then` adds a second Orientation SHORT holding that value.
+    A nonzero `then` adds a second Orientation SHORT holding that value,
+    in the Exif sub-IFD where `sub` is set and in the same IFD otherwise.
     """
     fmt = "<" if order == b"II" else ">"
     if kind == 3:
@@ -509,14 +513,20 @@ def orientation_tiff(order: bytes, kind: int, first: int = 6, then: int = 0) -> 
     else:
         value = struct.pack(fmt + "I", first)
     entry = struct.pack(fmt + "HHI", 0x0112, kind, 1) + value
-    if then:
-        entry += struct.pack(fmt + "HHIHH", 0x0112, 3, 1, then, 0)
+    second = struct.pack(fmt + "HHIHH", 0x0112, 3, 1, then, 0) if then else b""
+    if sub:
+        entry += struct.pack(fmt + "HHII", 0x8769, 4, 1, 8 + 2 + 24 + 4)
+        second = struct.pack(fmt + "H", 1) + second + struct.pack(fmt + "I", 0)
+        head = order + struct.pack(fmt + "HIH", 42, 8, 2)
+        return head + entry + struct.pack(fmt + "I", 0) + second
     head = order + struct.pack(fmt + "HIH", 42, 8, 2 if then else 1)
-    return head + entry + struct.pack(fmt + "I", 0)
+    return head + entry + second + struct.pack(fmt + "I", 0)
 
 
 # Each pair disagrees, and each order changed what a decoder taking the last entry reads.
 DISPUTED = ((6, 8), (1, 6))
+# Where the second value sits in the Exif sub-IFD, each order changed what a flattening decoder reads.
+PLACES = ((False, "then"), (True, "then in the sub-IFD"))
 
 
 def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
@@ -539,29 +549,37 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
                 0xE1, b"Exif\x00\x00" + orientation_tiff(order, size)
             )
             out.append((bare[:2] + segment + bare[2:], what, size == 4))
-        for first, then in DISPUTED:
-            tiff = orientation_tiff(b"II", 3, first, then)
+        for (first, then), (sub, place) in itertools.product(
+            (*DISPUTED, (6, 6)), PLACES
+        ):
+            tiff = orientation_tiff(b"II", 3, first, then, sub)
             segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
-            what = f"Orientation {first} then {then}"
-            out.append((bare[:2] + segment + bare[2:], what, True))
+            what = f"Orientation {first} {place} {then}"
+            out.append((bare[:2] + segment + bare[2:], what, first != then))
     elif kind == "png":
-        for first, then in ((6, 0), *DISPUTED):
-            chunk = png_chunk(b"eXIf", orientation_tiff(b"II", 3, first, then))
-            what = (
-                f"eXIf Orientation {first} then {then}"
-                if then
-                else "eXIf with Orientation"
+        out.append(
+            (
+                data[:33] + png_chunk(b"eXIf", orientation_tiff(b"II", 3)) + data[33:],
+                "eXIf with Orientation",
+                False,
             )
-            out.append((data[:33] + chunk + data[33:], what, bool(then)))
+        )
+        for (first, then), (sub, place) in itertools.product(DISPUTED, PLACES):
+            chunk = png_chunk(b"eXIf", orientation_tiff(b"II", 3, first, then, sub))
+            what = f"eXIf Orientation {first} {place} {then}"
+            out.append((data[:33] + chunk + data[33:], what, True))
     elif kind == "webp":
-        for first, then in ((6, 0), *DISPUTED):
-            chunk = riff_chunk(b"EXIF", orientation_tiff(b"II", 3, first, then))
-            what = (
-                f"EXIF Orientation {first} then {then}"
-                if then
-                else "EXIF with Orientation"
+        out.append(
+            (
+                with_riff_size(data + riff_chunk(b"EXIF", orientation_tiff(b"II", 3))),
+                "EXIF with Orientation",
+                False,
             )
-            out.append((with_riff_size(data + chunk), what, bool(then)))
+        )
+        for (first, then), (sub, place) in itertools.product(DISPUTED, PLACES):
+            chunk = riff_chunk(b"EXIF", orientation_tiff(b"II", 3, first, then, sub))
+            what = f"EXIF Orientation {first} {place} {then}"
+            out.append((with_riff_size(data + chunk), what, True))
     return out
 
 
@@ -656,6 +674,9 @@ def check_turn(
     if raised:
         report.fail("2 normalizer raised", kind, raised, where)
         return
+    if disputed and not gate.scan(data):
+        what = where.split(": ", 1)[-1]
+        report.fail("4 gate admitted a disputed orientation", kind, what, where)
     if disputed and isinstance(new, bytes) and new:
         what = where.split(": ", 1)[-1]
         report.fail("6 normalizer settled a disputed orientation", kind, what, where)
