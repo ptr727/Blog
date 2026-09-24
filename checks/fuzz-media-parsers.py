@@ -635,6 +635,26 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, int | None]]:
             where = "alone" if not first else "in IFD0 and"
             what = f"Orientation 6 {where} in a sub-IFD missing its next pointer"
             out.append((bare[:2] + segment + bare[2:], what, shown))
+        # A sub-IFD cut short that agrees with IFD0 reads the same whether a decoder reads it or not.
+        tiff = orientation_tiff(b"II", 3, 6, 6, sub=True)[:-4]
+        tiff = tiff[:-14] + struct.pack("<H", 3) + tiff[-12:]
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 in IFD0 and in a sub-IFD cut short"
+        out.append((bare[:2] + segment + bare[2:], what, 6))
+        # What a sub-IFD cut short leads to is walked apart from the 16 IFDs the gate reads.
+        ifd0 = struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        ifd0 += struct.pack("<HHII", 0x8825, 4, 1, 50)
+        ifd0 += struct.pack("<HHII", 0x8769, 4, 1, 68)
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 3) + ifd0 + struct.pack("<I", 0)
+        tiff += struct.pack("<H", 1) + struct.pack("<HHIHHI", 0x0112, 3, 1, 8, 0, 0)
+        empty = 68 + 2 + 14 * 12
+        tiff += struct.pack("<H", 40) + b"".join(
+            struct.pack("<HHII", 0x8769, 4, 1, empty + 6 * n) for n in range(14)
+        )
+        tiff += struct.pack("<HI", 0, 0) * 14
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 then in the GPS IFD 8 behind a sub-IFD cut short"
+        out.append((bare[:2] + segment + bare[2:], what, None))
     elif kind == "png":
         out.append(
             (
