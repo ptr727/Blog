@@ -46,7 +46,7 @@ EMAIL = re.compile(
 # A retina asset name such as icon@2x.png has the shape of an address.
 FILE_SUFFIXES = frozenset(("png", "jpg", "jpeg", "gif", "webp", "svg", "avif"))
 
-# A label such as MAC: may touch the address, and a longer hex run still carries one.
+# A label such as MAC: may touch the address, and a seventh separated group still reports the first six.
 MAC = re.compile(
     r"(?<![0-9A-Za-z])(?:[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}"
     r"|[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})(?![0-9A-Za-z])"

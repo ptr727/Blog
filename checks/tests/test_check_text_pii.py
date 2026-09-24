@@ -12,7 +12,8 @@ CHECKS = pathlib.Path(__file__).resolve().parent.parent
 SPEC = importlib.util.spec_from_file_location(
     "check_text_pii", CHECKS / "check-text-pii.py"
 )
-assert SPEC is not None and SPEC.loader is not None
+if SPEC is None or SPEC.loader is None:
+    raise ImportError("cannot load check-text-pii.py")
 gate = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(gate)
 
