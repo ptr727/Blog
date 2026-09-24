@@ -383,6 +383,18 @@ def png_fixture() -> bytes:
     )
 
 
+def palette_png_fixture() -> bytes:
+    ihdr = struct.pack(">IIBBBBB", 1, 1, 1, 3, 0, 0, 0)
+    idat = zlib.compress(b"\x00\x00")
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + png_chunk(b"IHDR", ihdr)
+        + png_chunk(b"PLTE", bytes(6))
+        + png_chunk(b"IDAT", idat)
+        + png_chunk(b"IEND", b"")
+    )
+
+
 def gif_fixture() -> bytes:
     head = b"GIF89a" + struct.pack("<HH", 1, 1) + b"\x80\x00\x00" + bytes(6)
     netscape = b"\x21\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00"
@@ -1052,6 +1064,7 @@ def main() -> int:
         ("fixture:jpeg-progressive", jpeg_fixture(True)),
         ("fixture:jpeg-dated", dated_jpeg_fixture()),
         ("fixture:png", png_fixture()),
+        ("fixture:png-palette", palette_png_fixture()),
         ("fixture:gif", gif_fixture()),
         ("fixture:webp", webp_fixture()),
         ("fixture:webp-animated", animated_webp_fixture()),

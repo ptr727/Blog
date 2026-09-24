@@ -758,8 +758,11 @@ def png_undrawn(chunk: bytes, header: tuple[int, int] | None) -> bool:
     return chunk in PNG_UNDRAWN or (chunk == b"PLTE" and color in PNG_TRUECOLOR)
 
 
-def png_misplaced(names: list[bytes]) -> set[int]:
-    """The positions of the palette and pinned ancillary chunks that sit where a decoder does not read them."""
+def png_misplaced(names: list[bytes], color: int) -> set[int]:
+    """The positions of the palette and pinned ancillary chunks that sit where a decoder does not read them.
+
+    Transparency and background place against the palette only in a palette image, since elsewhere it is a suggestion.
+    """
     idat = names.index(b"IDAT") if b"IDAT" in names else len(names)
     plte = names.index(b"PLTE") if b"PLTE" in names else -1
     return {
@@ -767,7 +770,7 @@ def png_misplaced(names: list[bytes]) -> set[int]:
         for at, name in enumerate(names)
         if (name in PNG_BEFORE_IDAT and at > idat)
         or (name in PNG_BEFORE_PLTE and 0 <= plte < at)
-        or (name in PNG_AFTER_PLTE and at < plte)
+        or (name in PNG_AFTER_PLTE and at < plte and color == 3)
     }
 
 
@@ -781,7 +784,7 @@ def scan_png(data: bytes) -> set[str]:
     }
     header = png_header(data, parts)
     palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
-    misplaced = png_misplaced(names)
+    misplaced = png_misplaced(names, header[1] if header else -1)
     for at, (chunk, start, end) in enumerate(parts):
         name = chunk.decode("ascii", "replace")
         body = data[start + 8 : end - 4]
