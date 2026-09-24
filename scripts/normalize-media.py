@@ -54,7 +54,7 @@ def normalize_png(data: bytes) -> bytes | None:
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
     An sBIT or bKGD out of its one value, out of place, or repeated, is dropped, since no browser draws by either.
     So is a single PLTE in a truecolor image, which only suggests a palette.
-    A file is refused where it holds an APNG frame, since dropping one would leave the default image alone, or where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
+    A file is refused where it holds two PLTE chunks, which libpng fails the picture on, or an APNG frame, since dropping one would leave the default image alone, or where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
