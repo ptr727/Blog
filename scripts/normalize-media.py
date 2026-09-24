@@ -52,26 +52,39 @@ def normalize_png(data: bytes) -> bytes | None:
     """Drop every ancillary chunk that is not on the allowlist.
 
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
+    An sBIT or bKGD out of its one value, or repeated, is dropped, since no browser draws by either.
     A file is refused where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
         return None
+    header = gate.png_header(data, parts)
+    palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
     out = bytearray(data[:8])
+    kept: set[bytes] = set()
     for chunk, start, end in parts:
         body = data[start + 8 : end - 4]
         if chunk == b"eXIf" and exif_orientation(body) != 1:
             return None
+        if chunk not in gate.PNG_ALLOWED:
+            if not chunk[0] & 0x20:
+                # A critical chunk cannot be dropped, so this file needs a re-encode.
+                return None
+            continue
+        repeated = chunk in gate.PNG_ONCE and chunk in kept
+        if repeated or not gate.png_field_known(chunk, body, header, palette):
+            # Which copy a decoder reads, and how it reads a value out of range, is its own choice.
+            if chunk in gate.PNG_UNDRAWN:
+                continue
+            return None
+        kept.add(chunk)
         if chunk == b"iCCP" and gate.png_icc_problems(body):
             profile = gate.png_icc_profile(body)
             if profile is None or not gate.icc_known(profile):
                 return None
             out += png_chunk(chunk, gate.png_icc_body(profile))
-        elif chunk in gate.PNG_ALLOWED:
+        else:
             out += data[start:end]
-        elif not chunk[0] & 0x20:
-            # A critical chunk cannot be dropped, so this file needs a re-encode.
-            return None
     return bytes(out)
 
 
@@ -243,19 +256,28 @@ def normalize_jpeg(data: bytes) -> bytes | None:
 
 
 def normalize_gif(data: bytes) -> bytes | None:
-    """Drop every extension block that is not on the allowlist."""
+    """Drop every extension block that is not on the allowlist.
+
+    A graphic control block's reserved bits and unused transparent index are written as zero.
+    """
     parts, problems = gate.gif_parts(data)
     if problems - gate.TRAILING:
         return None
     out = bytearray()
     for kind, start, end in parts:
         block = data[start:end]
-        if not str(kind).startswith("extension") or gate.gif_extension_allowed(block):
+        if kind == "extension 0xF9" and gate.gif_extension_allowed(block):
+            control = gate.gif_control(block)
+            if control is None:
+                return None
+            out += control
+        elif not str(kind).startswith("extension") or gate.gif_extension_allowed(block):
             out += block
         elif block[1] == 0xF9:
             # A graphic control extension sets transparency and timing, so it is not dropped.
             return None
-    return bytes(out)
+    # The screen and image descriptors are picture data, so a field out of its values is not a drop.
+    return None if gate.gif_fields(bytes(out)) else bytes(out)
 
 
 def riff_chunk(data: bytes, start: int) -> bytes:
@@ -267,7 +289,7 @@ def riff_chunk(data: bytes, start: int) -> bytes:
 def normalize_webp(data: bytes) -> bytes | None:
     """Drop every chunk that is not on the allowlist, and restate the RIFF size.
 
-    The VP8X reserved bits and each pad byte are written as zero.
+    The VP8X reserved bits, the ANIM background color and each pad byte are written as zero.
     A file is refused where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.webp_parts(data)
@@ -298,6 +320,10 @@ def normalize_webp(data: bytes) -> bytes | None:
                 + bytes(3)
             )
             body += data[start + 12 : start + 18]
+            continue
+        if chunk == b"ANIM":
+            # No browser draws the background color, so it is written as zero.
+            body += data[start : start + 8] + bytes(4) + data[start + 12 : start + 14]
             continue
         if chunk != b"ANMF":
             body += riff_chunk(data, start)
