@@ -574,6 +574,18 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
         out.append(
             (bare[:2] + segment + bare[2:], "Orientation 6 by a zeroed pointer", False)
         )
+        # The gate reads at most 16 IFDs, so pointers it skips must not use up the reader's 16 first.
+        bad = (*range(1, 8), *range(0xFFFF0000, 0xFFFF0008))
+        at = 8 + 2 + 12 * (2 + len(bad)) + 4
+        ifd0 = struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        ifd0 += struct.pack("<HHII", 0x8769, 4, 1, at)
+        ifd0 += b"".join(struct.pack("<HHII", 0x8769, 4, 1, off) for off in bad)
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 2 + len(bad)) + ifd0
+        tiff += struct.pack("<I", 0) + struct.pack("<H", 1)
+        tiff += struct.pack("<HHIHHI", 0x0112, 3, 1, 8, 0, 0)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 then in the sub-IFD 8 behind skipped pointers"
+        out.append((bare[:2] + segment + bare[2:], what, True))
     elif kind == "png":
         out.append(
             (
