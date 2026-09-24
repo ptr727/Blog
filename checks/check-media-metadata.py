@@ -299,7 +299,7 @@ def exif_unrecognized(raw: bytes) -> set[str]:
         if struct.unpack_from(fmt + "I", raw, end - 4)[0]:
             out.add("Exif chained IFD")
     if pending:
-        out.add("Exif IFD pointer outside the segment")
+        out.add("Exif holds more IFDs than this reads")
     # A value starts on a word boundary, so a single pad byte is the only gap a writer leaves.
     reach = 0
     for low, high in sorted(covered):

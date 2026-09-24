@@ -472,7 +472,15 @@ def main() -> int:
 
     report = Report()
     deadline = time.monotonic() + args.budget
-    stopped = False
+    archive = zip_fixture()
+    with tempfile.TemporaryDirectory() as scratch:
+        for _ in range(args.cases):
+            if time.monotonic() > deadline:
+                break
+            variant, what = rng.choice(MUTATORS)(rng, archive)
+            check_archive(
+                report, variant, f"fixture:zip: {what}", pathlib.Path(scratch)
+            )
     for label, data in seeds:
         kind = container(data)
         check_variant(report, kind, data, f"{label}: unmodified")
@@ -481,20 +489,12 @@ def main() -> int:
         for variant, what in plants(kind, data):
             check_plant(report, kind, variant, f"{label}: {what}")
         for _ in range(args.cases):
+            if time.monotonic() > deadline:
+                break
             mutate = rng.choice(MUTATORS)
             variant, what = mutate(rng, data)
             check_variant(report, kind, variant, f"{label}: {what}")
-        if time.monotonic() > deadline:
-            stopped = True
-            break
-
-    archive = zip_fixture()
-    with tempfile.TemporaryDirectory() as scratch:
-        for _ in range(args.cases):
-            variant, what = rng.choice(MUTATORS)(rng, archive)
-            check_archive(
-                report, variant, f"fixture:zip: {what}", pathlib.Path(scratch)
-            )
+    stopped = time.monotonic() > deadline
 
     for (prop, kind, detail), (count, first) in sorted(report.failures.items()):
         suffix = f" ({detail})" if detail else ""
