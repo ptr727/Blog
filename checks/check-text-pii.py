@@ -51,10 +51,12 @@ MAC = re.compile(
     r"(?<![0-9A-Za-z])(?:[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}"
     r"|[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})(?![0-9A-Za-z])"
 )
-# A hyphen joins an address to its label, and joins the groups of a date-stamped file name.
+# A hyphen or an underscore joins an address to its label, and joins a date stamp to a file name.
 MAC_LABEL = re.compile(
-    r"(?<![0-9A-Za-z])(?:mac|hwaddr|ether|bssid|bd|bdaddr)-$", re.IGNORECASE
+    r"(?<![0-9A-Za-z])(?:mac|hwaddr|ether|bssid|bd|bdaddr)[-_\s]$", re.IGNORECASE
 )
+# A space also ends a prose word, so only an extension marks a space-joined stamp as a file name.
+FILE_EXTENSION = re.compile(r"\.[0-9A-Za-z]{1,5}(?!\w)")
 
 IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w]|\.\d)")
 # A four-part version number has the shape of an address.
@@ -191,7 +193,10 @@ def scan_line(text: str) -> Iterator[tuple[str, str]]:
     for m in MAC.finditer(text):
         before = text[: m.start()]
         stamp = m.group(1) == "-" and is_date_stamp(m.group().split("-"))
-        if stamp and before.endswith("-") and not MAC_LABEL.search(before):
+        joined = before.endswith(("-", "_")) or (
+            before.endswith(" ") and FILE_EXTENSION.match(text, m.end())
+        )
+        if stamp and joined and not MAC_LABEL.search(before):
             continue
         yield "hardware address", m.group()
     for m in IPV4.finditer(text):
