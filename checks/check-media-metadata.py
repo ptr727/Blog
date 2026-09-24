@@ -746,7 +746,7 @@ def png_field_known(
 
 
 def png_misplaced(names: list[bytes]) -> set[int]:
-    """The positions of the ancillary chunks that sit where a decoder does not read them."""
+    """The positions of the pinned ancillary chunks that sit where a decoder does not read them."""
     idat = names.index(b"IDAT") if b"IDAT" in names else len(names)
     plte = names.index(b"PLTE") if b"PLTE" in names else -1
     return {
