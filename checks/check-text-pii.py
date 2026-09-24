@@ -53,10 +53,14 @@ MAC = re.compile(
 )
 # A hyphen or an underscore joins an address to its label, and joins a date stamp to a file name.
 MAC_LABEL = re.compile(
-    r"(?<![0-9A-Za-z])(?:mac|hwaddr|ether|bssid|bd|bdaddr)[-_\s]$", re.IGNORECASE
+    r"(?<![0-9A-Za-z])(?:mac|hwaddr|ether|bssid|bd|bdaddr)[-_]$", re.IGNORECASE
 )
 # A space also ends a prose word, so only an extension marks a space-joined stamp as a file name.
-FILE_EXTENSION = re.compile(r"\.[0-9A-Za-z]{1,5}(?!\w)")
+FILE_EXTENSION = re.compile(r"(?:\.[a-z][0-9a-z]{1,4})+(?!\w|\.\w)")
+MAC_WORD = re.compile(
+    r"(?<![0-9A-Za-z])(?:mac|hwaddr|ether|bssid|bd|bdaddr)(?![0-9A-Za-z])",
+    re.IGNORECASE,
+)
 
 IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w]|\.\d)")
 # A four-part version number has the shape of an address.
@@ -194,7 +198,9 @@ def scan_line(text: str) -> Iterator[tuple[str, str]]:
         before = text[: m.start()]
         stamp = m.group(1) == "-" and is_date_stamp(m.group().split("-"))
         joined = before.endswith(("-", "_")) or (
-            before.endswith(" ") and FILE_EXTENSION.match(text, m.end())
+            re.search(r"[0-9A-Za-z] $", before)
+            and FILE_EXTENSION.match(text, m.end())
+            and not MAC_WORD.search(before)
         )
         if stamp and joined and not MAC_LABEL.search(before):
             continue

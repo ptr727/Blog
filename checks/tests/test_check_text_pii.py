@@ -37,6 +37,11 @@ POSITIVE = {
         "MAC 26-08-01-12-30-45.bin",
         "The board reports 26-08-01-12-30-45 on boot.",
         "The board reports 26-08-01-12-30-45.",
+        "The board reports 26-08-01-12-30-45.Then it reboots.",
+        "The board reports 26-08-01-12-30-45.e.g. twice.",
+        "MAC  26-08-01-12-30-45.bin",
+        "MAC address 26-08-01-12-30-45.bin",
+        "| bssid | 26-08-01-12-30-45.x |",
     ],
     "public ip": [
         "The resolver answers on 1.1.1.1 today.",
@@ -95,6 +100,7 @@ NEGATIVE = [
     "backup_26-08-01-12-30-45.tar",
     "The job wrote backup_26-08-01-12-30-45 overnight.",
     "The job wrote backup 26-08-01-12-30-45.tar overnight.",
+    "The job wrote backup 26-08-01-12-30-45.tar.gz.",
     "The roof is flat 12.345 m across.",
     "FLAT 12.345",
 ]
