@@ -52,7 +52,7 @@ def normalize_png(data: bytes) -> bytes | None:
     """Drop every ancillary chunk that is not on the allowlist.
 
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
-    An sBIT or bKGD out of its one value, or repeated, is dropped, since no browser draws by either.
+    An sBIT or bKGD out of its one value, out of place, or repeated, is dropped, since no browser draws by either.
     A file is refused where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.png_parts(data)
@@ -62,7 +62,8 @@ def normalize_png(data: bytes) -> bytes | None:
     palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
     out = bytearray(data[:8])
     kept: set[bytes] = set()
-    for chunk, start, end in parts:
+    misplaced = gate.png_misplaced([bytes(c) for c, _, _ in parts])
+    for at, (chunk, start, end) in enumerate(parts):
         body = data[start + 8 : end - 4]
         if chunk == b"eXIf" and exif_orientation(body) != 1:
             return None
@@ -72,7 +73,8 @@ def normalize_png(data: bytes) -> bytes | None:
                 return None
             continue
         repeated = chunk in gate.PNG_ONCE and chunk in kept
-        if repeated or not gate.png_field_known(chunk, body, header, palette):
+        known = gate.png_field_known(chunk, body, header, palette)
+        if repeated or at in misplaced or not known:
             # Which copy a decoder reads, and how it reads a value out of range, is its own choice.
             if chunk in gate.PNG_UNDRAWN:
                 continue

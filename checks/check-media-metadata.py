@@ -239,6 +239,11 @@ PNG_SIGNIFICANT = {0: 1, 2: 3, 3: 3, 4: 2, 6: 4}
 PNG_BACKGROUND = {0: 2, 2: 6, 3: 1, 4: 2, 6: 6}
 PNG_UNDRAWN = frozenset((b"sBIT", b"bKGD"))
 
+# Where a decoder reads each ancillary chunk, since it passes over one out of its place.
+PNG_BEFORE_PLTE = frozenset((b"gAMA", b"cHRM", b"sRGB", b"iCCP", b"sBIT"))
+PNG_AFTER_PLTE = frozenset((b"tRNS", b"bKGD"))
+PNG_BEFORE_IDAT = PNG_BEFORE_PLTE | PNG_AFTER_PLTE | {b"pHYs"}
+
 WEBP_ALLOWED = {b"VP8 ", b"VP8L", b"VP8X", b"ALPH", b"ANIM", b"ANMF", b"ICCP"}
 WEBP_FRAME_ALLOWED = {b"VP8 ", b"VP8L", b"ALPH"}
 WEBP_FIXED = {b"VP8X": 10, b"ANIM": 6}
@@ -445,7 +450,7 @@ def jpeg_parts(data: bytes) -> tuple[list[Part], set[str]]:
     """Split a JPEG into its segments, and name what stopped the split.
 
     A scan segment runs through its entropy data, which ends at the first marker that is
-    neither a stuffed byte nor a restart. So a segment between two scans, or between the
+    neither a stuffed byte nor a restart, or at the fill bytes before it. So a segment between two scans, or between the
     last scan and the end marker, is a segment like any other rather than picture data.
     """
     parts: list[Part] = []
@@ -740,6 +745,19 @@ def png_field_known(
     return True
 
 
+def png_misplaced(names: list[bytes]) -> set[int]:
+    """The positions of the ancillary chunks that sit where a decoder does not read them."""
+    idat = names.index(b"IDAT") if b"IDAT" in names else len(names)
+    plte = names.index(b"PLTE") if b"PLTE" in names else -1
+    return {
+        at
+        for at, name in enumerate(names)
+        if (name in PNG_BEFORE_IDAT and at > idat)
+        or (name in PNG_BEFORE_PLTE and 0 <= plte < at)
+        or (name in PNG_AFTER_PLTE and at < plte)
+    }
+
+
 def scan_png(data: bytes) -> set[str]:
     parts, out = png_parts(data)
     names = [bytes(chunk) for chunk, _, _ in parts]
@@ -750,9 +768,12 @@ def scan_png(data: bytes) -> set[str]:
     }
     header = png_header(data, parts)
     palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
-    for chunk, start, end in parts:
+    misplaced = png_misplaced(names)
+    for at, (chunk, start, end) in enumerate(parts):
         name = chunk.decode("ascii", "replace")
         body = data[start + 8 : end - 4]
+        if at in misplaced:
+            out.add(f"PNG {name} chunk out of place")
         if chunk not in PNG_ALLOWED:
             out.add(f"PNG {name} chunk")
         elif chunk == b"iCCP":

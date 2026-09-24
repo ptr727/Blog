@@ -218,6 +218,15 @@ class FreeValues(unittest.TestCase):
                 png_with(fuzz.png_chunk(chunk, body)), fuzz.png_fixture()
             )
 
+    def test_png_misplaced_chunk_is_dropped_or_refused(self) -> None:
+        data = fuzz.png_fixture()
+        late = fuzz.png_chunk(b"sBIT", b"\x08")
+        self.assert_restated(data[:-12] + late + data[-12:], data)
+        late = fuzz.png_chunk(b"pHYs", fuzz.SQUARE)
+        data = data[:-12] + late + data[-12:]
+        self.assertIn("PNG pHYs chunk out of place", gate.scan(data))
+        self.assertIsNone(normalizer.normalize_bytes(data))
+
     def test_png_repeated_gamma_is_refused(self) -> None:
         data = png_with(fuzz.png_chunk(b"gAMA", struct.pack(">I", 45455)))
         self.assertIn("PNG repeated gAMA chunk", gate.scan(data))

@@ -205,6 +205,12 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
     ):
         twice = png_chunk(chunk, body) * 2
         out.append((bare[:33] + twice + bare[33:], f"repeated {chunk.decode()}"))
+    # A decoder passes over a chunk out of its place, so its bytes are free there.
+    late = png_chunk(b"gAMA", SRGB_GAMMA)
+    out.append((bare[:-12] + late + bare[-12:], "gAMA after IDAT"))
+    if palette:
+        early = png_chunk(b"tRNS", bytes(1))
+        out.append((bare[:33] + early + bare[33:], "tRNS before PLTE"))
     return out
 
 
