@@ -99,20 +99,19 @@ def normalize_jpeg(data: bytes) -> bytes | None:
     parts, problems = gate.jpeg_parts(data)
     if problems - gate.TRAILING:
         return None
+    names = [gate.jpeg_app_name(m, data[s + 4 : e]) for m, s, e in parts]
+    profile = [
+        data[s + 4 : e] for (_, s, e), n in zip(parts, names) if n == b"ICC_PROFILE\x00"
+    ]
+    # With a broken profile or a second Adobe transform, what draws is the decoder's choice.
+    if gate.icc_problems(profile) or names.count(b"Adobe") > 1:
+        return None
     out = bytearray(data[:2])
     kept: set[bytes] = set()
-    chunks: dict[int, int] = {}
-    for marker, start, end in parts:
+    for (marker, start, end), name in zip(parts, names):
         segment = data[start + 4 : end]
-        name = gate.jpeg_app_name(marker, segment)
         if name == b"ICC_PROFILE\x00":
-            numbering = gate.icc_numbering(segment)
-            if numbering is None or any(t != numbering[1] for t in chunks.values()):
-                # Dropping a chunk of a profile would change the colors, so this needs a person.
-                return None
-            if numbering[0] not in chunks:
-                chunks[numbering[0]] = numbering[1]
-                out += data[start:end]
+            out += data[start:end]
         elif name in gate.JPEG_APP_FIXED:
             fixed = gate.JPEG_APP_FIXED[name]
             # A decoder ignores one shorter than its fields, so dropping it changes nothing.
@@ -184,9 +183,9 @@ def normalize_webp(data: bytes) -> bytes | None:
             data[s:e] for c, s, e in inner if c in gate.WEBP_FRAME_ALLOWED
         )
         body += b"ANMF" + struct.pack("<I", len(frame)) + frame + bytes(len(frame) & 1)
-    if not body:
-        return None
-    return b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + body
+    result = b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + body
+    # Which of two images a decoder draws is its own choice, so that needs a person.
+    return None if not body or gate.webp_layout(result) else result
 
 
 def normalize_iso(path: pathlib.Path, destination: pathlib.Path) -> bool:

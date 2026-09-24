@@ -159,6 +159,9 @@ WEBP_ALLOWED = {b"VP8 ", b"VP8L", b"VP8X", b"ALPH", b"ANIM", b"ANMF", b"ICCP"}
 WEBP_FRAME_ALLOWED = {b"VP8 ", b"VP8L", b"ALPH"}
 WEBP_FIXED = {b"VP8X": 10, b"ANIM": 6}
 
+# The chunk runs one picture is drawn from, a lossy image with its alpha or a single image.
+WEBP_IMAGES = ([b"VP8 "], [b"VP8L"], [b"ALPH", b"VP8 "])
+
 # An animation frame's position, size, duration and flags, which precede its own chunks.
 WEBP_FRAME_HEADER = 16
 
@@ -422,10 +425,27 @@ def icc_numbering(segment: bytes) -> tuple[int, int] | None:
     return segment[12], segment[13]
 
 
+def icc_problems(segments: list[bytes]) -> set[str]:
+    """What keeps a JPEG's ICC chunks from being one complete profile holding each chunk once."""
+    numbers = [icc_numbering(segment) for segment in segments]
+    known = [n for n in numbers if n is not None]
+    out = {"JPEG ICC chunk not numbered"} if len(known) < len(numbers) else set()
+    sequence = [n[0] for n in known]
+    if len(set(sequence)) < len(sequence):
+        out.add("JPEG repeated ICC chunk")
+    totals = {n[1] for n in known}
+    if len(totals) > 1:
+        out.add("JPEG ICC chunks disagree on their count")
+    elif totals and set(sequence) != set(range(1, max(totals) + 1)):
+        # No decoder reads an incomplete profile, so its chunks are bytes nothing draws.
+        out.add("JPEG ICC profile incomplete")
+    return out
+
+
 def scan_jpeg(data: bytes) -> set[str]:
     parts, out = jpeg_parts(data)
     names: set[bytes] = set()
-    chunks: dict[int, int] = {}
+    profile: list[bytes] = []
     for marker, start, end in parts:
         segment = data[start + 4 : end]
         if marker in (0x01, 0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
@@ -434,15 +454,7 @@ def scan_jpeg(data: bytes) -> set[str]:
         label = name.rstrip(b"\x00").decode("ascii") if name else ""
         # A segment that passes alone still carries bytes once per repeat, so each admits one.
         if name == b"ICC_PROFILE\x00":
-            numbering = icc_numbering(segment)
-            if numbering is None:
-                out.add("JPEG ICC chunk not numbered")
-            elif numbering[0] in chunks:
-                out.add("JPEG repeated ICC chunk")
-            elif any(total != numbering[1] for total in chunks.values()):
-                out.add("JPEG ICC chunks disagree on their count")
-            else:
-                chunks[numbering[0]] = numbering[1]
+            profile.append(segment)
         elif name:
             if name in names:
                 out.add(f"JPEG repeated {label} segment")
@@ -459,7 +471,7 @@ def scan_jpeg(data: bytes) -> set[str]:
             out.add("JPEG comment")
         elif marker not in JPEG_STRUCTURAL:
             out.add(f"JPEG marker 0x{marker:02X}")
-    return out
+    return out | icc_problems(profile)
 
 
 def png_parts(data: bytes) -> tuple[list[Part], set[str]]:
@@ -619,6 +631,34 @@ def scan_webp(data: bytes) -> set[str]:
                 if held not in WEBP_FRAME_ALLOWED:
                     label = bytes(held).decode("ascii", "replace")
                     out.add(f"WebP {label} chunk inside a frame")
+    return out | webp_layout(data)
+
+
+def webp_layout(data: bytes) -> set[str]:
+    """Name where a WebP's allowlisted chunks hold other than one picture per frame.
+
+    A decoder draws one image and passes over any other, so a second one is bytes nothing draws.
+    """
+    parts, _ = webp_parts(data)
+    names = [bytes(chunk) for chunk, _, _ in parts if chunk in WEBP_ALLOWED]
+    out = {
+        f"WebP repeated {once.decode()} chunk"
+        for once in (b"VP8X", b"ICCP", b"ANIM")
+        if names.count(once) > 1
+    }
+    if b"VP8X" not in names and names not in WEBP_IMAGES[:2]:
+        out.add("WebP extended chunks with no VP8X")
+    drawn = [name for name in names if name in WEBP_FRAME_ALLOWED]
+    frames = [start for chunk, start, _ in parts if chunk == b"ANMF"]
+    if not frames and drawn not in WEBP_IMAGES:
+        out.add("WebP not one image")
+    if frames and drawn:
+        out.add("WebP image beside its frames")
+    for start in frames:
+        inner, _ = anmf_parts(data, start)
+        held = [bytes(c) for c, _, _ in inner if c in WEBP_FRAME_ALLOWED]
+        if held not in WEBP_IMAGES:
+            out.add("WebP frame not one image")
     return out
 
 
