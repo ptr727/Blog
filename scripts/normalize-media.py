@@ -129,7 +129,9 @@ def normalize_jpeg(data: bytes) -> bytes | None:
     trouble = gate.icc_problems(profile) - {
         "JPEG ICC profile not in its canonical chunks"
     }
-    if trouble or len(adobe) > 1 or names.count(b"Exif\x00\x00") > 1:
+    # Moving a chunk a decoder never read to where it reads one redraws the picture.
+    late = gate.jpeg_late_icc(data, parts)
+    if trouble or late or len(adobe) > 1 or names.count(b"Exif\x00\x00") > 1:
         return None
     out = bytearray(data[:2])
     kept: set[bytes] = set()

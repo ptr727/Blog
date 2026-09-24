@@ -535,6 +535,19 @@ def icc_profile(segments: list[bytes]) -> bytes:
     return b"".join(s[14:] for s in sorted(segments, key=lambda s: s[12]))
 
 
+def jpeg_late_icc(data: bytes, parts: list[Part]) -> bool:
+    """Whether an ICC chunk follows the first scan, where a decoder has already read its profile."""
+    scanned = False
+    for marker, start, end in parts:
+        scanned = scanned or marker == 0xDA
+        if (
+            scanned
+            and jpeg_app_name(marker, data[start + 4 : end]) == b"ICC_PROFILE\x00"
+        ):
+            return True
+    return False
+
+
 def icc_numbering(segment: bytes) -> tuple[int, int] | None:
     """An ICC chunk's sequence number and chunk count, or None where they do not make sense."""
     if len(segment) < 14 or not 1 <= segment[12] <= segment[13]:
@@ -597,6 +610,8 @@ def scan_jpeg(data: bytes) -> set[str]:
             out.add("JPEG comment")
         elif marker not in JPEG_STRUCTURAL:
             out.add(f"JPEG marker 0x{marker:02X}")
+    if jpeg_late_icc(data, parts):
+        out.add("JPEG ICC chunk after the first scan")
     return out | icc_problems(profile)
 
 

@@ -82,6 +82,16 @@ class Profiles(unittest.TestCase):
                 self.assertEqual(gate.scan(new), set())
                 self.assertIn(fuzz.ICC + PROFILE, new)
 
+    def test_jpeg_profile_after_the_scan_is_refused(self) -> None:
+        first, second = icc_chunks(PROFILE, (1, 2))
+        whole = fuzz.jpeg_segment(0xE2, fuzz.ICC + PROFILE)
+        with known():
+            for before, after in (([first], second), ([], whole)):
+                data = jpeg_with(*before)
+                data = data[:-2] + after + data[-2:]
+                self.assertIn("JPEG ICC chunk after the first scan", gate.scan(data))
+                self.assertIsNone(normalizer.normalize_bytes(data))
+
     def test_unknown_jpeg_profile_is_refused(self) -> None:
         data = jpeg_with(*icc_chunks(PROFILE, (1, 2)))
         self.assertIn("JPEG ICC profile not a known profile", gate.scan(data))
