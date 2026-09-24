@@ -655,6 +655,24 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, int | None]]:
         segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
         what = "Orientation 6 then in the GPS IFD 8 behind a sub-IFD cut short"
         out.append((bare[:2] + segment + bare[2:], what, None))
+        # An IFD a sub-IFD cut short reaches first is walked again when a clean path reaches it.
+        link = 50 + 18
+        empty = link + 18
+        cut = empty + 6 * 15
+        ifd0 = struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        ifd0 += struct.pack("<HHII", 0x8825, 4, 1, 50)
+        ifd0 += struct.pack("<HHII", 0x8769, 4, 1, cut)
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 3) + ifd0 + struct.pack("<I", 0)
+        tiff += struct.pack("<H", 1) + struct.pack("<HHIII", 0xA005, 4, 1, link, 0)
+        tiff += struct.pack("<H", 1) + struct.pack("<HHIHHI", 0x0112, 3, 1, 8, 0, 0)
+        tiff += struct.pack("<HI", 0, 0) * 15
+        tiff += struct.pack("<H", 60) + struct.pack("<HHII", 0x8769, 4, 1, 50)
+        tiff += b"".join(
+            struct.pack("<HHII", 0xA005, 4, 1, empty + 6 * n) for n in range(15)
+        )
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 then 8 behind an IFD a sub-IFD cut short reaches first"
+        out.append((bare[:2] + segment + bare[2:], what, None))
     elif kind == "png":
         out.append(
             (
