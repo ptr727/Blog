@@ -51,6 +51,10 @@ MAC = re.compile(
     r"(?<![0-9A-Za-z])(?:[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}"
     r"|[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})(?![0-9A-Za-z])"
 )
+# A hyphen joins an address to its label, and joins the groups of a date-stamped file name.
+MAC_LABEL = re.compile(
+    r"(?<![0-9A-Za-z])(?:mac|hwaddr|ether|bssid|bd|bdaddr)-$", re.IGNORECASE
+)
 
 IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w]|\.\d)")
 # A four-part version number has the shape of an address.
@@ -64,9 +68,10 @@ DECIMAL_PAIR = re.compile(
     r"(?<![\w.])([-+]?\d{1,3}\.\d{3,})\s*°?\s*([NSEW])?\s*([,/]|\s)\s*"
     r"([-+]?\d{1,3}\.\d{3,})\s*°?\s*([NSEW])?(?![\w.])"
 )
+# A camelCase key such as homeLatitude joins its name with a capital, which a prose word such as flat does not.
 COORDINATE_KEY = re.compile(
-    r"(?<![A-Za-z])(?:lat|latitude|lon|lng|longitude)[\"']?\s*[:=\s]\s*[\"']?[-+]?\d{1,3}\.\d{3,}",
-    re.IGNORECASE,
+    r"(?:(?<![A-Za-z])(?i:l)|(?<=[a-z])L)(?i:at|atitude|on|ng|ongitude)"
+    r"[\"']?\s*[:=\s]\s*[\"']?[-+]?\d{1,3}\.\d{3,}"
 )
 DMS = re.compile(
     r"\d{1,3}\s*°\s*\d{1,2}\s*['\u2032]\s*(?:\d{1,2}(?:\.\d+)?\s*[\"\u2033]\s*)?([NSEW])\b"
@@ -132,6 +137,20 @@ def is_public(text: str) -> bool:
         return False
 
 
+def is_date_stamp(groups: list[str]) -> bool:
+    """Whether six groups read as a year, month, day, hour, minute, and second."""
+    if not all(g.isdigit() for g in groups):
+        return False
+    _, month, day, hour, minute, second = (int(g) for g in groups)
+    return (
+        1 <= month <= 12
+        and 1 <= day <= 31
+        and hour <= 23
+        and minute <= 59
+        and second <= 59
+    )
+
+
 def is_coordinate(
     first: str, first_hemi: str | None, sep: str, second: str, second_hemi: str | None
 ) -> bool:
@@ -170,6 +189,10 @@ def scan_line(text: str) -> Iterator[tuple[str, str]]:
         if m.group().rsplit(".", 1)[-1].lower() not in FILE_SUFFIXES:
             yield "email", m.group()
     for m in MAC.finditer(text):
+        before = text[: m.start()]
+        stamp = m.group(1) == "-" and is_date_stamp(m.group().split("-"))
+        if stamp and before.endswith("-") and not MAC_LABEL.search(before):
+            continue
         yield "hardware address", m.group()
     for m in IPV4.finditer(text):
         if is_public(m.group()) and not VERSION_WORD.search(text[: m.start()]):
