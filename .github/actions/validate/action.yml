@@ -40,6 +40,16 @@ runs:
       shell: bash
       run: python3 checks/check-media-redactions.py
 
+    # The prose gate reads characters, so this is what reads a post's text for personal data.
+    - name: Check text personal data step
+      shell: bash
+      run: python3 checks/check-text-pii.py
+
+    # The hub's unit-test job needs a root pyproject.toml, which this repo does not keep.
+    - name: Test checks step
+      shell: bash
+      run: python3 -m unittest discover -s checks/tests
+
     # The hub's validate job checkout is shallow.
     # The mtime restore below needs full history to date each file from its last commit.
     # This hook deepens the checkout before the build.
