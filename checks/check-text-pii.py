@@ -51,7 +51,7 @@ MAC = re.compile(
     r"(?<![0-9A-Za-z])(?:[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}"
     r"|[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})(?![0-9A-Za-z])"
 )
-# A hyphen joins an address to its label, and joins the groups of a date-stamped file name.
+# A hyphen joins an address to its label, and joins the decimal groups of a date-stamped file name.
 MAC_LABEL = re.compile(
     r"(?<![0-9A-Za-z])(?:mac|hwaddr|ether|bssid|bd|bdaddr)-$", re.IGNORECASE
 )
@@ -176,7 +176,8 @@ def scan_line(text: str) -> Iterator[tuple[str, str]]:
             yield "email", m.group()
     for m in MAC.finditer(text):
         before = text[: m.start()]
-        if m.group(1) == "-" and before.endswith("-") and not MAC_LABEL.search(before):
+        stamp = m.group(1) == "-" and m.group().replace("-", "").isdigit()
+        if stamp and before.endswith("-") and not MAC_LABEL.search(before):
             continue
         yield "hardware address", m.group()
     for m in IPV4.finditer(text):
