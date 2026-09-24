@@ -80,7 +80,7 @@ def exif_orientation(segment: bytes) -> int | None:
 
     A browser reads it only as one SHORT, where other decoders read a LONG too.
     Any other shape is None, so the file is refused rather than guessed at.
-    Two entries that disagree are None too, in IFD0 or in an IFD it points to, since decoders take either one.
+    Two entries that disagree are None too, in IFD0 or in an IFD reached from it, since decoders take either one.
     An IFD0 holding none counts as 1 against a value held elsewhere, since a browser reads IFD0.
     """
     raw = segment.removeprefix(b"Exif\x00\x00")
@@ -97,15 +97,14 @@ def exif_orientation(segment: bytes) -> int | None:
     values, placed = set(), False
     while pending and len(seen) < 16:
         offset = pending.pop()
-        if offset in seen:
+        # Past IFD0, an IFD the gate cannot read whole is one it reports, so nothing here reads it either.
+        # An offset it skips costs it none of its 16 IFDs, so it costs none here.
+        outside = offset + 2 > len(raw) or (offset < 8 and offset != ifd0)
+        if offset in seen or outside:
             continue
         seen.add(offset)
-        try:
-            count = struct.unpack_from(fmt + "H", raw, offset)[0]
-        except struct.error:
-            continue
-        # Past IFD0, an IFD the gate cannot read whole is one it reports, so nothing here reads it either.
-        if offset != ifd0 and (offset < 8 or offset + 2 + count * 12 + 4 > len(raw)):
+        count = struct.unpack_from(fmt + "H", raw, offset)[0]
+        if offset != ifd0 and offset + 2 + count * 12 + 4 > len(raw):
             continue
         for index in range(count):
             entry = offset + 2 + index * 12

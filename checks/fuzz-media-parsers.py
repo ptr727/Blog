@@ -565,6 +565,15 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
         out.append(
             (bare[:2] + segment + bare[2:], "Orientation 6 in the sub-IFD alone", True)
         )
+        # A zeroed pointer points at the header, whose bytes read as an IFD of thousands of entries.
+        ifd0 = struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        ifd0 += struct.pack("<HHII", 0x8825, 4, 1, 0)
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 2) + ifd0 + struct.pack("<I", 0)
+        tiff += struct.pack("<H", 0x0112) + bytes(10)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        out.append(
+            (bare[:2] + segment + bare[2:], "Orientation 6 by a zeroed pointer", False)
+        )
     elif kind == "png":
         out.append(
             (
@@ -689,6 +698,10 @@ def check_turn(
     if disputed and isinstance(new, bytes) and new:
         what = where.split(": ", 1)[-1]
         report.fail("6 normalizer settled a disputed orientation", kind, what, where)
+    elif kind == "jpeg" and not disputed and not new:
+        # Only PNG and WebP refuse a turn, since a JPEG can carry one without its other Exif.
+        what = where.split(": ", 1)[-1]
+        report.fail("6 normalizer refused an undisputed orientation", kind, what, where)
     elif isinstance(new, bytes) and new:
         kept, raised = attempt(lambda: orientation(kind, new))
         if raised or kept != 6:
