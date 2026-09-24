@@ -94,7 +94,7 @@ def orientation_segment(value: int) -> bytes:
 def normalize_jpeg(data: bytes) -> bytes | None:
     """Drop every APP and comment segment that is not on the allowlist.
 
-    Each admitted segment is kept once, and a JFIF or Adobe segment is cut to its fixed fields.
+    A JFIF segment is kept once, and a JFIF or Adobe segment is cut to its fixed fields.
     """
     parts, problems = gate.jpeg_parts(data)
     if problems - gate.TRAILING:
@@ -103,8 +103,11 @@ def normalize_jpeg(data: bytes) -> bytes | None:
     profile = [
         data[s + 4 : e] for (_, s, e), n in zip(parts, names) if n == b"ICC_PROFILE\x00"
     ]
-    # With a broken profile or a second Adobe transform, what draws is the decoder's choice.
-    if gate.icc_problems(profile) or names.count(b"Adobe") > 1:
+    adobe = [
+        n for (_, s, e), n in zip(parts, names) if n == b"Adobe" and e - s - 4 >= 12
+    ]
+    # With a broken profile, or a second Adobe or Exif, what draws is the decoder's choice.
+    if gate.icc_problems(profile) or len(adobe) > 1 or names.count(b"Exif\x00\x00") > 1:
         return None
     out = bytearray(data[:2])
     kept: set[bytes] = set()
@@ -125,13 +128,9 @@ def normalize_jpeg(data: bytes) -> bytes | None:
             # An Exif segment with an unrecognized tag goes whole.
             # Rewriting an IFD in place means re-computing every offset in it.
             # Orientation decides which way the picture displays, so it is re-emitted alone.
-            if name in kept:
-                continue
             if not gate.exif_unrecognized(segment):
-                kept.add(name)
                 out += data[start:end]
             elif (turned := exif_orientation(segment)) != 1:
-                kept.add(name)
                 out += orientation_segment(turned)
         elif 0xE0 <= marker <= 0xEF or marker == 0xFE:
             continue
