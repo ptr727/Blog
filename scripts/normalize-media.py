@@ -169,9 +169,9 @@ def normalize_jpeg(data: bytes) -> bytes | None:
                 else:
                     return None
         elif name:
-            # An Exif segment with an unrecognized tag goes whole.
-            # Rewriting an IFD in place means re-computing every offset in it.
+            # An Exif segment with an unrecognized tag is dropped, since rewriting it re-computes every offset.
             # Orientation decides which way the picture displays, so it is re-emitted alone.
+            # A file whose Orientation decoders read differently is refused.
             if not gate.exif_unrecognized(segment):
                 out += data[start:end]
             elif (turned := exif_orientation(segment)) is None:
