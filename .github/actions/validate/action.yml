@@ -50,6 +50,18 @@ runs:
       shell: bash
       run: python3 -m unittest discover -s checks/tests
 
+    - name: Setup uv step
+      uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      with:
+        cache-dependency-glob: scripts/redact-media.py
+
+    # The script's inline metadata is the one Pillow pin, so the tests install from it rather than repeating it.
+    - name: Test scripts step
+      shell: bash
+      run: |
+        set -Eeuo pipefail
+        uv run --no-project --with-requirements scripts/redact-media.py python -m unittest discover -s scripts/tests
+
     # The hub's validate job checkout is shallow.
     # The mtime restore below needs full history to date each file from its last commit.
     # This hook deepens the checkout before the build.
