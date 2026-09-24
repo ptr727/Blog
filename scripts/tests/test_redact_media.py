@@ -81,23 +81,25 @@ class RedactMediaTests(unittest.TestCase):
         self.assertIn("1 already redacted", out)
 
     def test_failed_redaction_records_nothing(self) -> None:
-        path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 900, 24]]})
+        original = jpeg()
+        path = self.add("a.jpg", original, {"fill": [[8, 8, 900, 24]]})
         before = self.manifest_path.read_bytes()
         code, out = self.run_script("--record")
         self.assertEqual(code, 1)
         self.assertIn("outside", out)
         self.assertEqual(self.manifest_path.read_bytes(), before)
-        self.assertEqual(path.read_bytes(), jpeg())
+        self.assertEqual(path.read_bytes(), original)
 
     def test_one_failure_leaves_every_entry_unwritten(self) -> None:
-        good = self.add("good.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
+        original = jpeg()
+        good = self.add("good.jpg", original, {"fill": [[8, 8, 24, 24]]})
         self.add("bad.jpg", jpeg((1, 2, 3)), {"fill": [[8.0, 8, 24, 24]]})
         before = self.manifest_path.read_bytes()
         code, out = self.run_script("--record")
         self.assertEqual(code, 1)
         self.assertIn("not four integers", out)
         self.assertEqual(self.manifest_path.read_bytes(), before)
-        self.assertEqual(good.read_bytes(), jpeg())
+        self.assertEqual(good.read_bytes(), original)
 
     def test_unchanged_entry_is_compared_under_record(self) -> None:
         data = jpeg()
@@ -148,12 +150,13 @@ class RedactMediaTests(unittest.TestCase):
         self.assertEqual(sha256(good.read_bytes()), recorded["result"])
 
     def test_failed_replace_does_not_stop_later_files(self) -> None:
+        original = jpeg()
         for name in ("a.jpg", "b.jpg"):
-            self.add(name, jpeg(), {"fill": [[8, 8, 24, 24]]})
+            self.add(name, original, {"fill": [[8, 8, 24, 24]]})
         self.run_script("--record")
         entries = self.manifest()["files"]
         for name in ("a.jpg", "b.jpg"):
-            self.add(name, jpeg(), entries[f"static/{name}"])
+            self.add(name, original, entries[f"static/{name}"])
         first = self.repo / "static" / "a.jpg"
         real = redact.replace
 
@@ -169,7 +172,8 @@ class RedactMediaTests(unittest.TestCase):
         self.assertEqual(sha256(second), entries["static/b.jpg"]["result"])
 
     def test_failed_manifest_write_counts_held_files(self) -> None:
-        path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
+        original = jpeg()
+        path = self.add("a.jpg", original, {"fill": [[8, 8, 24, 24]]})
         real = redact.replace
 
         def fail_on_manifest(target: pathlib.Path, data: bytes) -> None:
@@ -181,10 +185,11 @@ class RedactMediaTests(unittest.TestCase):
             code, out = self.run_script("--record")
         self.assertEqual(code, 1)
         self.assertIn("1 not written", out)
-        self.assertEqual(path.read_bytes(), jpeg())
+        self.assertEqual(path.read_bytes(), original)
 
     def test_failed_replace_after_record_converges(self) -> None:
-        path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
+        original = jpeg()
+        path = self.add("a.jpg", original, {"fill": [[8, 8, 24, 24]]})
         real = redact.replace
 
         def fail_on_media(target: pathlib.Path, data: bytes) -> None:
@@ -195,7 +200,7 @@ class RedactMediaTests(unittest.TestCase):
         with mock.patch.object(redact, "replace", fail_on_media):
             code, out = self.run_script("--record")
         self.assertEqual(code, 1)
-        self.assertEqual(path.read_bytes(), jpeg())
+        self.assertEqual(path.read_bytes(), original)
         code, out = self.run_script("--apply")
         self.assertEqual(code, 0, out)
         entry = self.manifest()["files"]["static/a.jpg"]
