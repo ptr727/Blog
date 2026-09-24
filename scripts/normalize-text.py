@@ -32,6 +32,7 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "scripts" / "text-corrections.json"
 TREE = REPO / "content"
 FENCE = re.compile(r"(`{3,}|~{3,})")
+CLOSER = re.compile(r"(`{3,}|~{3,})[ \t]*\r?")
 
 SUBSTITUTIONS = {
     "\u00a0": " ",
@@ -52,26 +53,28 @@ def substitute(text: str, protected: list[str]) -> str:
     lines = text.split("\n")
     first = next((i for i, line in enumerate(lines) if line.strip()), 0)
     front_matter = lines[first].rstrip("\r") == "---"
-    fence = None
+    fence, quote = None, False
     for index, line in enumerate(lines):
         stripped = line.lstrip()
         if front_matter:
             if index > first and line.rstrip("\r") == "---":
                 front_matter = False
             continue
-        opener = FENCE.match(stripped)
         if fence:
+            closer = CLOSER.fullmatch(stripped)
             if (
-                opener
-                and opener.group(1)[0] == fence[0]
-                and len(opener.group(1)) >= len(fence)
+                closer
+                and closer.group(1)[0] == fence[0]
+                and len(closer.group(1)) >= len(fence)
             ):
                 fence = None
             continue
+        opener = FENCE.match(stripped)
         if opener:
-            fence = opener.group(1)
+            fence, quote = opener.group(1), False
             continue
-        if stripped.startswith(">") or any(token in line for token in protected):
+        quote = stripped.startswith(">") or (quote and bool(stripped.strip()))
+        if quote or any(token in line for token in protected):
             continue
         for old, new in SUBSTITUTIONS.items():
             line = line.replace(old, new)

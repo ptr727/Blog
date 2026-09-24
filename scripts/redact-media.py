@@ -32,7 +32,8 @@ costs more. Its color profile is carried across and its Exif is not, since an Ex
 block can hold a thumbnail of the frame before the fill. A PNG is written at 8 bits and
 keeps its gamma, chromaticity, and sRGB chunks and its alpha channel, the fills opaque.
 One whose transparency is a tRNS color key is refused, since the key carries across and
-a fill in the key's color would come out transparent.
+a fill in the key's color would come out transparent. An animated PNG is refused, since
+a fill would reach only its first frame.
 The output then goes through the same lossless drop as `scripts/normalize-media.py`.
 """
 
@@ -64,6 +65,11 @@ _spec = importlib.util.spec_from_file_location(
 )
 check = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(check)
+_spec = importlib.util.spec_from_file_location(
+    "gate", REPO / "checks" / "check-media-metadata.py"
+)
+gate = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(gate)
 
 
 def sha256(data: bytes) -> str:
@@ -92,6 +98,22 @@ def carry_png_color(source: bytes, result: bytes) -> bytes:
     return result[:ihdr_end] + extra + result[ihdr_end:]
 
 
+def boxes(entry: dict) -> list[list[int]]:
+    """The entry's fills, then its crop, each checked to be four integers."""
+    fill, crop = entry.get("fill", []), entry.get("crop")
+    if not isinstance(fill, list):
+        raise TypeError(f"fill {fill!r} is not a list of boxes")
+    out = fill + ([crop] if crop is not None else [])
+    for box in out:
+        if not (
+            isinstance(box, list)
+            and len(box) == 4
+            and all(type(value) is int for value in box)
+        ):
+            raise ValueError(f"box {box!r} is not four integers")
+    return out
+
+
 def redact(data: bytes, entry: dict) -> bytes:
     """Return the file's bytes with the entry's fills and crop applied."""
     source = Image.open(io.BytesIO(data))
@@ -101,9 +123,13 @@ def redact(data: bytes, entry: dict) -> bytes:
         raise ValueError("rotated by Exif, so the manifest's coordinates are ambiguous")
     if "transparency" in source.info:
         raise ValueError("carries a tRNS color key, which a fill could match")
-    boxes = entry.get("fill", []) + ([entry["crop"]] if "crop" in entry else [])
+    if getattr(source, "n_frames", 1) != 1:
+        raise ValueError("animated, and a fill would reach only its first frame")
+    sampling = JpegImagePlugin.get_sampling(source) if source.format == "JPEG" else 0
+    if sampling == -1:
+        raise ValueError("chroma subsampling the JPEG writer cannot reproduce")
     width, height = source.size
-    for x0, y0, x1, y1 in boxes:
+    for x0, y0, x1, y1 in boxes(entry):
         if not (0 <= x0 < x1 <= width and 0 <= y0 < y1 <= height):
             raise ValueError(f"box {[x0, y0, x1, y1]} is outside {width}x{height}")
     image = source.copy()
@@ -111,7 +137,7 @@ def redact(data: bytes, entry: dict) -> bytes:
     for x0, y0, x1, y1 in entry.get("fill", []):
         fill = FILL + (255,) if image.mode == "RGBA" else FILL
         draw.rectangle((x0, y0, x1 - 1, y1 - 1), fill=fill)
-    if "crop" in entry:
+    if entry.get("crop") is not None:
         image = image.crop(tuple(entry["crop"]))
 
     out = io.BytesIO()
@@ -123,7 +149,7 @@ def redact(data: bytes, entry: dict) -> bytes:
             out,
             "JPEG",
             qtables=source.quantization,
-            subsampling=JpegImagePlugin.get_sampling(source),
+            subsampling=sampling,
             progressive=bool(source.info.get("progressive")),
             **options,
         )
@@ -152,10 +178,14 @@ def main() -> int:
 
     manifest = json.loads(MANIFEST.read_text())
     done, errors = 0, []
-    writes: list[tuple[pathlib.Path, bytes]] = []
+    writes: list[tuple[pathlib.Path, str, bytes]] = []
     for name, entry in manifest["files"].items():
         path = REPO / name
-        data = path.read_bytes()
+        try:
+            data = path.read_bytes()
+        except OSError as error:
+            errors.append(f"{name}: {error.strerror or error}")
+            continue
         current = sha256(data)
         spec = check.declared(entry)
         changed = spec != entry.get("declared")
@@ -168,37 +198,53 @@ def main() -> int:
         if current == entry.get("result"):
             done += 1
             continue
-        if changed:
-            entry["source"], entry["declared"] = current, spec
-        elif current != entry.get("source"):
+        if changed and (unclean := gate.scan(data)):
+            errors.append(
+                f"{name}: not normalized ({', '.join(sorted(unclean))}), run scripts/normalize-media.py --apply"
+            )
+            continue
+        if not changed and current != entry.get("source"):
             errors.append(f"{name}: matches neither its source nor its result hash")
             continue
         try:
             new = redact(data, entry)
-        except (OSError, ValueError) as error:
+        except (OSError, TypeError, ValueError) as error:
             errors.append(f"{name}: {error}")
             continue
-        if args.record:
+        if changed:
+            entry["source"], entry["declared"] = current, spec
             entry["result"] = sha256(new)
         elif sha256(new) != entry.get("result"):
             errors.append(f"{name}: redacted output does not match its result hash")
             continue
-        writes.append((path, new))
-        print(f"{name}: {'redacted' if apply else 'would redact'}")
+        writes.append((path, current, new))
+        print(f"{name}: to redact")
 
-    # The manifest goes first, and each file is replaced whole, so an interrupted run leaves a file at its source.
-    if args.record:
-        MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
-    if apply:
-        for path, new in writes:
+    # Nothing is written when any entry fails, so the manifest never records a partial run.
+    written = 0
+    if apply and not errors:
+        # The manifest goes first, and each file is replaced whole, so an interrupted run leaves a file at its source.
+        if args.record:
+            MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
+        for path, current, new in writes:
+            name = path.relative_to(REPO).as_posix()
             scratch = path.with_name(f".redact-{path.name}")
-            scratch.write_bytes(new)
-            os.replace(scratch, path)
+            try:
+                if sha256(path.read_bytes()) != current:
+                    raise OSError("changed during the run")
+                scratch.write_bytes(new)
+                os.replace(scratch, path)
+            except OSError as error:
+                scratch.unlink(missing_ok=True)
+                errors.append(f"{name}: not replaced ({error})")
+                continue
+            written += 1
     for line in errors:
         print(line)
     print()
+    pending = len(writes) - written
     print(
-        f"{done} already redacted, {len(writes)} {'redacted' if apply else 'to redact'}, {len(errors)} error(s)"
+        f"{done} already redacted, {written} redacted, {pending} {'not written' if apply else 'to redact'}, {len(errors)} error(s)"
     )
     return 1 if errors else 0
 
