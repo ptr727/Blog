@@ -536,8 +536,8 @@ PLACES = ((False, "then"), (True, "then in the sub-IFD"))
 def turned(kind: str, data: bytes) -> list[tuple[bytes, str, int | None]]:
     """Variants whose Exif turns the picture a quarter turn, as Orientation 6 does.
 
-    Each carries the Orientation a browser shows, or None for a turn decoders disagree on,
-    which only a refusal keeps.
+    Each carries the Orientation the normalized file must hold, or None for a turn decoders
+    disagree on, which only a refusal keeps.
     """
     out: list[tuple[bytes, str, int | None]] = []
     if kind == "jpeg":
@@ -621,6 +621,20 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, int | None]]:
         segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
         what = "Orientation 6 in an IFD0 entry cut off"
         out.append((bare[:2] + segment + bare[2:], what, None))
+        # A sub-IFD cut short by the segment is read in part by some decoders and not at all by others.
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 1)
+        tiff += struct.pack("<HHII", 0x8769, 4, 1, 26) + struct.pack("<I", 0)
+        tiff += struct.pack("<H", 2) + struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 in a sub-IFD cut short"
+        out.append((bare[:2] + segment + bare[2:], what, None))
+        # A sub-IFD missing only its next-IFD pointer still holds every entry whole.
+        for first, shown in ((0, None), (6, 6)):
+            tiff = orientation_tiff(b"II", 3, first, 6, sub=True)[:-4]
+            segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+            where = "alone" if not first else "in IFD0 and"
+            what = f"Orientation 6 {where} in a sub-IFD missing its next pointer"
+            out.append((bare[:2] + segment + bare[2:], what, shown))
     elif kind == "png":
         out.append(
             (
