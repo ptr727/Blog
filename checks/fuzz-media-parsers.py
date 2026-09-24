@@ -74,12 +74,38 @@ def exif_gap_segment() -> bytes:
     return jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
 
 
-def exif_long_value_segment() -> bytes:
-    """An Exif APP1 whose allowed DateTime tag claims far more bytes than a date needs."""
-    value = b"2001:01:01 00:00:00\x00" + PLANT_TEXT
-    ifd0 = struct.pack("<H", 1) + struct.pack("<HHII", 0x0132, 2, len(value), 26)
-    tiff = b"II" + struct.pack("<HI", 42, 8) + ifd0 + struct.pack("<I", 0) + value
+def exif_ifd_segment(entries: list[tuple[int, int, int, bytes]]) -> bytes:
+    """An Exif APP1 with one IFD holding the given tag, type, count and value entries."""
+    table, values = b"", b""
+    start = 8 + 2 + 12 * len(entries) + 4
+    for tag, kind, count, value in entries:
+        if len(value) > 4:
+            field = struct.pack("<I", start + len(values))
+            values += value
+        else:
+            field = value.ljust(4, b"\x00")
+        table += struct.pack("<HHI", tag, kind, count) + field
+    ifd = struct.pack("<H", len(entries)) + table + struct.pack("<I", 0)
+    tiff = b"II" + struct.pack("<HI", 42, 8) + ifd + values
     return jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+
+
+DATE = b"2001:01:01 00:00:00\x00"
+ORIENTATION = (0x0112, 3, 1, struct.pack("<H", 6))
+
+# Allowed tags bent out of their one shape, each able to carry bytes a decoder never needs.
+EXIF_BENT = (
+    ([ORIENTATION, (0x0132, 2, len(DATE) + 7, DATE + PLANT_TEXT)], "long DateTime"),
+    ([ORIENTATION, (0x0132, 12, 20, DATE * 8)], "DateTime as doubles"),
+    ([ORIENTATION, (0x0102, 12, 4, PLANT_TEXT * 5)], "BitsPerSample as doubles"),
+    ([ORIENTATION, (0x0132, 2, 20, DATE), (0x0132, 2, 20, DATE)], "repeated DateTime"),
+    ([ORIENTATION, ORIENTATION], "repeated Orientation"),
+    (
+        [ORIENTATION, (0x0132, 2, 20, b"+37.7749-122.4194\x00\x00\x00")],
+        "DateTime not a date",
+    ),
+    ([ORIENTATION, (0x0132, 2, 4, b"abc\x00")], "short DateTime"),
+)
 
 
 def with_riff_size(data: bytes) -> bytes:
@@ -104,6 +130,21 @@ def jpeg_fixture(progressive: bool) -> bytes:
         out += jpeg_segment(0xDA, b"\x01\x01\x00\x01\x3f\x00")
         out += b"\xab\xff\x00\xcd\xff\xd1\xef"
     return out + b"\xff\xd9"
+
+
+def dated_jpeg_fixture() -> bytes:
+    """A JPEG whose Exif holds every out-of-line allowed tag in its one shape."""
+    rational = struct.pack("<II", 72, 1)
+    exif = exif_ifd_segment(
+        [
+            ORIENTATION,
+            (0x0102, 3, 3, struct.pack("<HHH", 8, 8, 8)),
+            (0x011A, 5, 1, rational),
+            (0x0132, 2, 20, DATE),
+        ]
+    )
+    plain = jpeg_fixture(False)
+    return plain[:2] + exif + plain[2:]
 
 
 def png_chunk(name: bytes, body: bytes) -> bytes:
@@ -254,10 +295,9 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
         out.append(
             (data[:2] + exif_gap_segment() + data[2:], "bytes between Exif IFDs")
         )
-        long_value = exif_long_value_segment()
-        out.append(
-            (data[:2] + long_value + data[2:], "bytes inside an allowed Exif tag")
-        )
+        for entries, what in EXIF_BENT:
+            bent = exif_ifd_segment(entries)
+            out.append((data[:2] + bent + data[2:], f"Exif {what}"))
         for marker, start, end in parts:
             if marker != 0xE1 or data[start + 4 : start + 10] != b"Exif\x00\x00":
                 continue
@@ -421,6 +461,7 @@ def main() -> int:
     seeds = [
         ("fixture:jpeg", jpeg_fixture(False)),
         ("fixture:jpeg-progressive", jpeg_fixture(True)),
+        ("fixture:jpeg-dated", dated_jpeg_fixture()),
         ("fixture:png", png_fixture()),
         ("fixture:gif", gif_fixture()),
         ("fixture:webp", webp_fixture()),
@@ -435,6 +476,8 @@ def main() -> int:
     for label, data in seeds:
         kind = container(data)
         check_variant(report, kind, data, f"{label}: unmodified")
+        if label.startswith("fixture:") and gate.scan(data):
+            report.fail("0 fixture not clean", kind, ", ".join(gate.scan(data)), label)
         for variant, what in plants(kind, data):
             check_plant(report, kind, variant, f"{label}: {what}")
         for _ in range(args.cases):

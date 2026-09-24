@@ -96,34 +96,37 @@ JPEG_STRUCTURAL = (
 # JPEG APP segments that carry rendering data rather than description.
 JPEG_APP_ALLOWED = ((0xE0, b"JFIF\x00"), (0xE2, b"ICC_PROFILE\x00"), (0xEE, b"Adobe"))
 
-# TIFF tags that exist so a decoder renders the picture correctly.
+# TIFF tags that exist so a decoder renders the picture correctly, each in its one shape.
+# A shape is the tag's field types and how many values it holds, so it has no room for more.
 # A tag outside this set is not judged, it is simply not vouched for.
-EXIF_ALLOWED = {
-    0x0001,  # InteropIndex
-    0x0002,  # InteropVersion
-    0x0100,  # ImageWidth
-    0x0101,  # ImageLength
-    0x0102,  # BitsPerSample
-    0x0103,  # Compression
-    0x0106,  # PhotometricInterpretation
-    0x0112,  # Orientation
-    0x0115,  # SamplesPerPixel
-    0x011A,  # XResolution
-    0x011B,  # YResolution
-    0x011C,  # PlanarConfiguration
-    0x0128,  # ResolutionUnit
-    0x0132,  # DateTime
-    0x0213,  # YCbCrPositioning
-    0x8769,  # ExifIFDPointer
-    0x9000,  # ExifVersion
-    0x9003,  # DateTimeOriginal
-    0x9101,  # ComponentsConfiguration
-    0xA000,  # FlashpixVersion
-    0xA001,  # ColorSpace
-    0xA002,  # PixelXDimension
-    0xA003,  # PixelYDimension
-    0xA005,  # InteropIFDPointer
+SHORT_OR_LONG = frozenset((3, 4))
+EXIF_SHAPE = {
+    0x0001: (frozenset((2,)), 4),  # InteropIndex
+    0x0002: (frozenset((7,)), 4),  # InteropVersion
+    0x0100: (SHORT_OR_LONG, 1),  # ImageWidth
+    0x0101: (SHORT_OR_LONG, 1),  # ImageLength
+    0x0102: (frozenset((3,)), 4),  # BitsPerSample
+    0x0103: (frozenset((3,)), 1),  # Compression
+    0x0106: (frozenset((3,)), 1),  # PhotometricInterpretation
+    0x0112: (frozenset((3,)), 1),  # Orientation
+    0x0115: (frozenset((3,)), 1),  # SamplesPerPixel
+    0x011A: (frozenset((5,)), 1),  # XResolution
+    0x011B: (frozenset((5,)), 1),  # YResolution
+    0x011C: (frozenset((3,)), 1),  # PlanarConfiguration
+    0x0128: (frozenset((3,)), 1),  # ResolutionUnit
+    0x0132: (frozenset((2,)), 20),  # DateTime
+    0x0213: (frozenset((3,)), 1),  # YCbCrPositioning
+    0x8769: (frozenset((4,)), 1),  # ExifIFDPointer
+    0x9000: (frozenset((7,)), 4),  # ExifVersion
+    0x9003: (frozenset((2,)), 20),  # DateTimeOriginal
+    0x9101: (frozenset((7,)), 4),  # ComponentsConfiguration
+    0xA000: (frozenset((7,)), 4),  # FlashpixVersion
+    0xA001: (frozenset((3,)), 1),  # ColorSpace
+    0xA002: (SHORT_OR_LONG, 1),  # PixelXDimension
+    0xA003: (SHORT_OR_LONG, 1),  # PixelYDimension
+    0xA005: (frozenset((4,)), 1),  # InteropIFDPointer
 }
+EXIF_ALLOWED = frozenset(EXIF_SHAPE)
 
 PNG_ALLOWED = {
     b"IHDR",
@@ -191,18 +194,10 @@ ISO_CONTAINERS = {b"moov", b"trak", b"mdia", b"minf", b"stbl", b"edts", b"dinf"}
 COORDINATE = re.compile(rb"[+-]\d{2}\.\d{2,}[+-]\d{3}\.\d{2,}")
 
 
-# The most values an allowed tag holds, so an allowed tag cannot carry arbitrary bytes.
-# A tag not named here holds one value.
-EXIF_MAX_COUNT = {
-    0x0001: 4,  # InteropIndex
-    0x0002: 4,  # InteropVersion
-    0x0102: 4,  # BitsPerSample
-    0x0132: 20,  # DateTime
-    0x9000: 4,  # ExifVersion
-    0x9003: 20,  # DateTimeOriginal
-    0x9101: 4,  # ComponentsConfiguration
-    0xA000: 4,  # FlashpixVersion
-}
+# A timestamp tag holds a date or the blanks that mean unknown, never free text.
+EXIF_DATES = (0x0132, 0x9003)
+EXIF_DATE = re.compile(rb"(\d{4}:\d\d:\d\d \d\d:\d\d:\d\d| {19})\x00")
+
 
 # Bytes per value for each TIFF field type, so a value's extent can be bounded.
 EXIF_TYPE_SIZE = {
@@ -273,13 +268,18 @@ def exif_unrecognized(raw: bytes) -> set[str]:
             out.add("Exif IFD runs past the segment")
             continue
         covered.append((offset, end))
+        tags: set[int] = set()
         for index in range(count):
             entry = offset + 2 + index * 12
             tag, kind, number = struct.unpack_from(fmt + "HHI", raw, entry)
+            types, most = EXIF_SHAPE.get(tag, (frozenset(), 0))
             if tag not in EXIF_ALLOWED:
                 out.add(f"Exif tag 0x{tag:04X}")
-            elif number > EXIF_MAX_COUNT.get(tag, 1):
-                out.add(f"Exif tag 0x{tag:04X} holds more values than it takes")
+            elif tag in tags or kind not in types or not 0 < number <= most:
+                out.add(f"Exif tag 0x{tag:04X} not in its one shape")
+            elif tag in EXIF_DATES and number != 20:
+                out.add(f"Exif tag 0x{tag:04X} is not a date")
+            tags.add(tag)
             if tag in (0x8769, 0x8825, 0xA005):
                 pending.append(struct.unpack_from(fmt + "I", raw, entry + 8)[0])
             if kind not in EXIF_TYPE_SIZE:
@@ -290,8 +290,11 @@ def exif_unrecognized(raw: bytes) -> set[str]:
                 value = struct.unpack_from(fmt + "I", raw, entry + 8)[0]
                 if value + size > len(raw):
                     out.add("Exif value runs past the segment")
-                else:
-                    covered.append((value, value + size))
+                    continue
+                covered.append((value, value + size))
+                date = raw[value : value + size]
+                if tag in EXIF_DATES and not EXIF_DATE.fullmatch(date):
+                    out.add(f"Exif tag 0x{tag:04X} is not a date")
         # A chained IFD is a second image, usually a thumbnail of the frame before any edit.
         if struct.unpack_from(fmt + "I", raw, end - 4)[0]:
             out.add("Exif chained IFD")
