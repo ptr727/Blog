@@ -79,7 +79,7 @@ def exif_orientation(segment: bytes) -> int | None:
     """The Orientation value in an Exif segment or chunk, or 1 where it says nothing.
 
     A browser reads it only as one SHORT, where other decoders read a LONG too.
-    Any other shape is None, since which way the picture displays depends on the decoder.
+    Any other shape is None, so the file is refused rather than guessed at.
     """
     raw = segment.removeprefix(b"Exif\x00\x00")
     if raw[:2] not in (b"II", b"MM"):
