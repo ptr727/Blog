@@ -388,11 +388,12 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
         out.append((data + frame, "frame past the RIFF size"))
         lossless = riff_chunk(b"VP8L", b"\x2f" + PLANT_TEXT)
         for name, start, end in parts:
+            payload = start + 8 + struct.unpack_from("<I", data, start + 4)[0]
             if name == b"ANMF":
                 header = data[start + 8 : start + 24]
                 for held, what in (
-                    (data[start + 24 : end] + chunk, "EXIF inside ANMF"),
-                    (data[start + 24 : end] + lossless, "second image inside ANMF"),
+                    (data[start + 24 : payload] + chunk, "EXIF inside ANMF"),
+                    (data[start + 24 : payload] + lossless, "second image inside ANMF"),
                     (b"", "ANMF with no image"),
                 ):
                     grown = riff_chunk(b"ANMF", header + held)
@@ -405,10 +406,12 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
                 variant = with_riff_size(data[:start] + alpha + data[start:])
                 out.append((variant, "ALPH not before a lossy image"))
             if name in (b"VP8X", b"ANIM"):
-                grown = riff_chunk(name, data[start + 8 : end] + PLANT_TEXT)
+                grown = riff_chunk(name, data[start + 8 : payload] + PLANT_TEXT)
                 variant = with_riff_size(data[:start] + grown + data[end:])
                 out.append((variant, f"{name.decode()} with bytes past its fields"))
-                again = riff_chunk(name, (PLANT_TEXT + bytes(10))[: end - start - 8])
+                again = riff_chunk(
+                    name, (PLANT_TEXT + bytes(10))[: payload - start - 8]
+                )
                 variant = with_riff_size(data[:end] + again + data[end:])
                 out.append((variant, f"repeated {name.decode()}"))
         if any(name == b"ANMF" for name, _, _ in parts):
