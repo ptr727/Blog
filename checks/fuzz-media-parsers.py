@@ -64,6 +64,16 @@ def exif_segment(tail: bytes = b"") -> bytes:
     return jpeg_segment(0xE1, b"Exif\x00\x00" + tiff + struct.pack("<I", 0) + tail)
 
 
+def exif_gap_segment() -> bytes:
+    """An Exif APP1 whose Exif IFD sits past bytes nothing references, as a thumbnail would."""
+    gap = b"\xff\xd8" + PLANT_TEXT + b"\xff\xd9"
+    ifd0 = struct.pack("<H", 1) + struct.pack("<HHII", 0x8769, 4, 1, 26 + len(gap))
+    exif_ifd = struct.pack("<H", 1) + struct.pack("<HHIHH", 0xA001, 3, 1, 1, 0)
+    tiff = b"II" + struct.pack("<HI", 42, 8) + ifd0 + struct.pack("<I", 0) + gap
+    tiff += exif_ifd + struct.pack("<I", 0)
+    return jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+
+
 def jpeg_fixture(progressive: bool) -> bytes:
     """A structurally complete JPEG, with stuffed bytes and a restart marker in its scans."""
     sof = 0xC2 if progressive else 0xC0
@@ -206,39 +216,52 @@ def duplicate(rng: random.Random, data: bytes) -> tuple[bytes, str]:
 MUTATORS: tuple[Mutator, ...] = (truncate, extend, bit_flip, smash, splice, duplicate)
 
 
+def at_boundaries(
+    data: bytes, parts: list, piece: bytes, what: str
+) -> list[tuple[bytes, str]]:
+    """Insert a piece before every parsed element, and once after the last."""
+    offsets = sorted({start for _, start, _ in parts} | {len(data)})
+    return [(data[:o] + piece + data[o:], f"{what} at {o}") for o in offsets]
+
+
 def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
-    """Variants holding metadata a decoder reads, which the scanner has to report."""
+    """Variants holding metadata a decoder reads, which the scanner has to report.
+
+    A seed's own elements are where a decoder looks for the next one, so a piece planted
+    before any of them, between two scans included, is one the decoder reads.
+    """
     out: list[tuple[bytes, str]] = []
     if kind == "jpeg":
+        parts, _ = gate.jpeg_parts(data)
         comment = jpeg_segment(0xFE, PLANT_TEXT)
-        out.append((data[:2] + comment + data[2:], "comment after SOI"))
-        if data.endswith(b"\xff\xd9"):
-            out.append((data[:-2] + comment + data[-2:], "comment before EOI"))
-        out.append((data + comment, "comment after EOI"))
-        start = data.find(b"\xff\xe1")
-        if start >= 0 and data[start + 4 : start + 10] == b"Exif\x00\x00":
+        out += at_boundaries(data, parts, comment, "comment")
+        out.append(
+            (data[:2] + exif_gap_segment() + data[2:], "bytes between Exif IFDs")
+        )
+        for marker, start, end in parts:
+            if marker != 0xE1 or data[start + 4 : start + 10] != b"Exif\x00\x00":
+                continue
             length = struct.unpack_from(">H", data, start + 2)[0]
             tail = b"\xff\xd8" + PLANT_TEXT + b"\xff\xd9"
             grown = struct.pack(">H", length + len(tail))
-            end = start + 2 + length
-            variant = (
-                data[: start + 2] + grown + data[start + 4 : end] + tail + data[end:]
-            )
-            out.append((variant, "bytes past the Exif IFDs"))
+            variant = data[: start + 2] + grown + data[start + 4 : end] + tail
+            out.append((variant + data[end:], "bytes past the Exif IFDs"))
     elif kind == "png":
+        parts, _ = gate.png_parts(data)
         text = png_chunk(b"tEXt", b"Comment\x00" + PLANT_TEXT)
-        out.append((data[:8] + text + data[8:], "tEXt after the signature"))
-        if data[-12:-8] == b"\x00\x00\x00\x00" and data[-8:-4] == b"IEND":
-            out.append((data[:-12] + text + data[-12:], "tEXt before IEND"))
-        out.append((data + text, "tEXt after IEND"))
+        out += at_boundaries(data, parts[1:], text, "tEXt")
     elif kind == "gif":
+        parts, _ = gate.gif_parts(data)
         comment = b"\x21\xfe" + bytes((len(PLANT_TEXT),)) + PLANT_TEXT + b"\x00"
-        if data.endswith(b"\x3b"):
-            out.append((data[:-1] + comment + data[-1:], "comment before the trailer"))
-        out.append((data + comment, "comment after the trailer"))
+        out += at_boundaries(data, parts[1:], comment, "comment")
+        block = bytes((len(PLANT_TEXT),)) + PLANT_TEXT
+        for name, _, end in parts:
+            if str(name).startswith("extension"):
+                variant = data[: end - 1] + block + data[end - 1 :]
+                out.append((variant, f"sub-block inside {name}"))
     elif kind == "webp":
-        chunk = riff_chunk(b"EXIF", PLANT_TEXT)
-        out.append((data + chunk, "EXIF chunk appended"))
+        parts, _ = gate.webp_parts(data)
+        out += at_boundaries(data, parts, riff_chunk(b"EXIF", PLANT_TEXT), "EXIF")
         out.append((data + PLANT_TEXT[:7], "bytes appended"))
     elif kind == "iso":
         out.append((data + atom(b"udta", PLANT_TEXT), "udta atom appended"))
@@ -246,7 +269,7 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
         for _ in range(3000):
             deep = atom(b"moov", deep)
         out.append((data + deep, "deeply nested moov"))
-    return out
+    return out if len(out) <= 64 else out[:32] + out[-32:]
 
 
 class Report:
@@ -299,7 +322,12 @@ def check_plant(report: Report, kind: str, data: bytes, where: str) -> None:
     if raised:
         report.fail("1 scanner raised", kind, raised, where)
     elif not found:
-        report.fail("4 planted metadata passed", kind, where.split(": ", 1)[-1], where)
+        report.fail(
+            "4 planted metadata passed",
+            kind,
+            re.sub(r" at \d+$", "", where.split(": ", 1)[-1]),
+            where,
+        )
 
 
 def check_archive(
