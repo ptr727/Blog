@@ -51,7 +51,7 @@ def png_chunk(name: bytes, body: bytes) -> bytes:
 def normalize_png(data: bytes) -> bytes | None:
     """Drop every ancillary chunk that is not on the allowlist.
 
-    A known profile under another name, or in a longer stream, is re-emitted under a known name.
+    A known profile in a body that is not pinned is re-emitted in the one canonical body.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
@@ -63,7 +63,7 @@ def normalize_png(data: bytes) -> bytes | None:
             profile = gate.png_icc_profile(body)
             if profile is None or not gate.icc_known(profile):
                 return None
-            out += png_chunk(chunk, b"ICC Profile\x00\x00" + zlib.compress(profile, 9))
+            out += png_chunk(chunk, gate.png_icc_body(profile))
         elif chunk in gate.PNG_ALLOWED:
             out += data[start:end]
         elif not chunk[0] & 0x20:
@@ -110,6 +110,7 @@ def normalize_jpeg(data: bytes) -> bytes | None:
     """Drop every APP and comment segment that is not on the allowlist.
 
     A JFIF segment is kept once, and a JFIF or Adobe segment is cut to its fixed fields.
+    A known profile is re-emitted in its canonical chunks where the first of its own chunks stood.
     """
     parts, problems = gate.jpeg_parts(data)
     if problems - gate.TRAILING:
@@ -125,14 +126,20 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         n for (_, s, e), n in zip(parts, names) if n == b"Adobe" and e - s - 4 >= 12
     ]
     # With a broken profile, or a second Adobe or Exif, what draws is the decoder's choice.
-    if gate.icc_problems(profile) or len(adobe) > 1 or names.count(b"Exif\x00\x00") > 1:
+    trouble = gate.icc_problems(profile) - {
+        "JPEG ICC profile not in its canonical chunks"
+    }
+    if trouble or len(adobe) > 1 or names.count(b"Exif\x00\x00") > 1:
         return None
     out = bytearray(data[:2])
     kept: set[bytes] = set()
     for (marker, start, end), name in zip(parts, names):
         segment = data[start + 4 : end]
         if name == b"ICC_PROFILE\x00":
-            out += data[start:end]
+            if name not in kept:
+                kept.add(name)
+                chunks = gate.icc_chunks(gate.icc_profile(profile))
+                out += b"".join(app_segment(marker, chunk) for chunk in chunks)
         elif name in gate.JPEG_APP_FIXED:
             fixed = gate.JPEG_APP_FIXED[name]
             # A decoder ignores one shorter than its fields, so dropping it changes nothing.
@@ -193,7 +200,7 @@ def riff_chunk(data: bytes, start: int) -> bytes:
 def normalize_webp(data: bytes) -> bytes | None:
     """Drop every chunk that is not on the allowlist, and restate the RIFF size.
 
-    The VP8X flags are restated to announce the chunks kept, and each pad byte is written as zero.
+    The VP8X reserved bits and each pad byte are written as zero.
     """
     parts, problems = gate.webp_parts(data)
     if problems - gate.TRAILING:
@@ -208,8 +215,15 @@ def normalize_webp(data: bytes) -> bytes | None:
             # A decoder refuses a fixed chunk of another size, so this is not a drop.
             return None
         if chunk == b"VP8X":
-            flags = gate.vp8x_flags(data[start + 8], names)
-            body += data[start : start + 8] + bytes((flags,)) + bytes(3)
+            flags = data[start + 8]
+            # A decoder reads a profile or frames only where a flag announces them, so a flip redraws.
+            if not gate.vp8x_agrees(flags, names):
+                return None
+            body += (
+                data[start : start + 8]
+                + bytes((flags & ~gate.VP8X_RESERVED,))
+                + bytes(3)
+            )
             body += data[start + 12 : start + 18]
             continue
         if chunk != b"ANMF":

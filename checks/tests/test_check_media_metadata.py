@@ -65,35 +65,44 @@ def webp_with_profile(flags: int, profile: bytes) -> bytes:
 
 
 class Profiles(unittest.TestCase):
-    def test_known_jpeg_profile_passes_in_either_chunk_order(self) -> None:
+    def test_known_jpeg_profile_passes_as_one_chunk(self) -> None:
+        segment = fuzz.jpeg_segment(0xE2, fuzz.ICC + PROFILE)
+        with known():
+            self.assertEqual(gate.scan(jpeg_with(segment)), set())
+
+    def test_known_jpeg_profile_in_other_chunks_is_recut(self) -> None:
         with known():
             for order in ((1, 2), (2, 1)):
+                data = jpeg_with(*icc_chunks(PROFILE, order))
                 self.assertEqual(
-                    gate.scan(jpeg_with(*icc_chunks(PROFILE, order))), set()
+                    gate.scan(data), {"JPEG ICC profile not in its canonical chunks"}
                 )
+                new = normalizer.normalize_bytes(data)
+                self.assertIsNotNone(new)
+                self.assertEqual(gate.scan(new), set())
+                self.assertIn(fuzz.ICC + PROFILE, new)
 
     def test_unknown_jpeg_profile_is_refused(self) -> None:
         data = jpeg_with(*icc_chunks(PROFILE, (1, 2)))
         self.assertIn("JPEG ICC profile not a known profile", gate.scan(data))
         self.assertIsNone(normalizer.normalize_bytes(data))
 
-    def test_png_profile_under_another_name_is_renamed(self) -> None:
-        data = png_with(iccp(b"planted", zlib.compress(PROFILE)))
+    def test_known_png_profile_in_its_canonical_body_passes(self) -> None:
+        data = png_with(fuzz.png_chunk(b"iCCP", gate.png_icc_body(PROFILE)))
         with known():
-            self.assertEqual(gate.scan(data), {"PNG iCCP name not a known name"})
-            new = normalizer.normalize_bytes(data)
-            self.assertIsNotNone(new)
-            self.assertEqual(gate.scan(new), set())
-            self.assertNotIn(b"planted", new)
+            self.assertEqual(gate.scan(data), set())
 
-    def test_png_stream_longer_than_its_profile_is_recompressed(self) -> None:
-        # A stored stream is the profile's own bytes plus its framing, so it is longer.
-        data = png_with(iccp(b"icc", zlib.compress(PROFILE, 0)))
-        with known():
-            self.assertIn("PNG iCCP stream longer than its profile", gate.scan(data))
-            new = normalizer.normalize_bytes(data)
-            self.assertIsNotNone(new)
-            self.assertEqual(gate.scan(new), set())
+    def test_known_png_profile_in_another_body_is_restated(self) -> None:
+        for name, level in ((b"planted", 6), (b"icc", 9), (b"icc", 1)):
+            data = png_with(iccp(name, zlib.compress(PROFILE, level)))
+            with known():
+                self.assertEqual(
+                    gate.scan(data), {"PNG iCCP not in its canonical form"}
+                )
+                new = normalizer.normalize_bytes(data)
+                self.assertIsNotNone(new)
+                self.assertEqual(gate.scan(new), set())
+                self.assertNotIn(b"planted", new)
 
     def test_png_bytes_past_the_stream_are_refused(self) -> None:
         data = png_with(iccp(b"icc", zlib.compress(PROFILE) + b"planted"))
@@ -101,13 +110,19 @@ class Profiles(unittest.TestCase):
             self.assertIn("PNG ICC profile not a known profile", gate.scan(data))
             self.assertIsNone(normalizer.normalize_bytes(data))
 
-    def test_webp_profile_flag_is_restated(self) -> None:
+    def test_webp_profile_flag_disagreeing_is_refused(self) -> None:
         with known():
             self.assertEqual(gate.scan(webp_with_profile(0x20, PROFILE)), set())
             data = webp_with_profile(0x00, PROFILE)
             self.assertEqual(
                 gate.scan(data), {"WebP VP8X flags disagree with its chunks"}
             )
+            self.assertIsNone(normalizer.normalize_bytes(data))
+
+    def test_webp_reserved_bits_are_cleared(self) -> None:
+        with known():
+            data = webp_with_profile(0x20 | 0x01, PROFILE)
+            self.assertEqual(gate.scan(data), {"WebP VP8X reserved bits not zero"})
             new = normalizer.normalize_bytes(data)
             self.assertIsNotNone(new)
             self.assertEqual(gate.scan(new), set())

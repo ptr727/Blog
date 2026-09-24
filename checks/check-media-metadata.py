@@ -127,9 +127,20 @@ ICC_PROFILES = frozenset(
 # Longer than any profile above, so a stream inflating past it is not one of them.
 ICC_LIMIT = 64 * 1024
 
-# The names a PNG writer gives the profile it embeds, since the name is free text.
-PNG_ICC_NAMES = frozenset(
-    (b"ICC Profile", b"Photoshop ICC profile", b"icc", b"kCGColorSpaceDisplayP3")
+# The most one JPEG ICC chunk holds, so a canonical profile is cut into chunks of exactly this.
+ICC_CHUNK = 65519
+
+# The whole iCCP bodies carried PNGs hold, each a known profile under a writer's name and stream.
+# A deflate stream leaves an encoder chosen bits, so a body is judged whole rather than by its profile.
+PNG_ICC_BODIES = frozenset(
+    (
+        "333962ab78f6b1617da54c17c149514b66224a85acd42a8d41b8659da6e1fee8",
+        "4498929ed08fb6ff44f5c949ff3db9f24c96e83dc3a7c902e68a0e5c56b7e128",
+        "4f47f046c1eec6e37fe29ea198105f78eda48d40322790cebf9ea7432a3848d7",
+        "51535f90fb8d7199c9d18a06fd2542440b00792662c2456d698eb79d123097ab",
+        "aef7388e8c19faf4e929686552ceddd00bd716bc26eccf3d98248a6db2d83eae",
+        "b822a21e5c3cf6be31556efe876bd193d37a382e40b59a8aa1f2ac105d6d52d3",
+    )
 )
 
 # TIFF tags that exist so a decoder renders the picture correctly, each in its one shape.
@@ -509,6 +520,21 @@ def icc_known(profile: bytes) -> bool:
     return hashlib.sha256(profile).hexdigest() in ICC_PROFILES
 
 
+def icc_chunks(profile: bytes) -> list[bytes]:
+    """The one way to cut a profile into JPEG ICC chunk payloads, full chunks first and in order."""
+    pieces = [profile[i : i + ICC_CHUNK] for i in range(0, len(profile), ICC_CHUNK)]
+    count = len(pieces)
+    return [
+        b"ICC_PROFILE\x00" + bytes((n, count)) + piece
+        for n, piece in enumerate(pieces, 1)
+    ]
+
+
+def icc_profile(segments: list[bytes]) -> bytes:
+    """The profile a JPEG's ICC chunks hold, joined in their sequence order."""
+    return b"".join(s[14:] for s in sorted(segments, key=lambda s: s[12]))
+
+
 def icc_numbering(segment: bytes) -> tuple[int, int] | None:
     """An ICC chunk's sequence number and chunk count, or None where they do not make sense."""
     if len(segment) < 14 or not 1 <= segment[12] <= segment[13]:
@@ -531,9 +557,12 @@ def icc_problems(segments: list[bytes]) -> set[str]:
         # No decoder reads an incomplete profile, so its chunks are bytes nothing draws.
         out.add("JPEG ICC profile incomplete")
     elif segments and not out:
-        profile = b"".join(s[14:] for s in sorted(segments, key=lambda s: s[12]))
+        profile = icc_profile(segments)
         if not icc_known(profile):
             out.add("JPEG ICC profile not a known profile")
+        elif segments != icc_chunks(profile):
+            # Where a writer cuts a profile and in what order it lays the chunks are its choice.
+            out.add("JPEG ICC profile not in its canonical chunks")
     return out
 
 
@@ -606,17 +635,23 @@ def png_icc_profile(body: bytes) -> bytes | None:
     return profile if done else None
 
 
+def png_icc_body(profile: bytes) -> bytes:
+    """The one iCCP body the normalizer writes, a single stored block that leaves no choice."""
+    stored = b"\x01" + struct.pack("<HH", len(profile), len(profile) ^ 0xFFFF) + profile
+    stream = b"\x78\x01" + stored + struct.pack(">I", zlib.adler32(profile))
+    return b"icc\x00\x00" + stream
+
+
 def png_icc_problems(body: bytes) -> set[str]:
-    """What keeps an iCCP chunk from being a known profile under a known name."""
+    """What keeps an iCCP chunk from being a pinned body or the canonical body of a known profile."""
+    if hashlib.sha256(body).hexdigest() in PNG_ICC_BODIES:
+        return set()
     profile = png_icc_profile(body)
     if profile is None or not icc_known(profile):
         return {"PNG ICC profile not a known profile"}
-    name = body.partition(b"\x00")[0]
-    out = set() if name in PNG_ICC_NAMES else {"PNG iCCP name not a known name"}
-    # Every profile here deflates smaller than itself, so a longer stream carries more than it.
-    if len(body) - len(name) - 2 > len(profile):
-        out.add("PNG iCCP stream longer than its profile")
-    return out
+    if body != png_icc_body(profile):
+        return {"PNG iCCP not in its canonical form"}
+    return set()
 
 
 def scan_png(data: bytes) -> set[str]:
@@ -802,7 +837,7 @@ def webp_fields(data: bytes) -> set[str]:
         if chunk == b"VP8X" and length == WEBP_FIXED[b"VP8X"]:
             if body[0] & VP8X_RESERVED or any(body[1:4]):
                 out.add("WebP VP8X reserved bits not zero")
-            if vp8x_flags(body[0], names) != body[0]:
+            if not vp8x_agrees(body[0], names):
                 out.add("WebP VP8X flags disagree with its chunks")
             canvas = (
                 1 + int.from_bytes(body[4:7], "little"),
@@ -815,11 +850,10 @@ def webp_fields(data: bytes) -> set[str]:
     return out
 
 
-def vp8x_flags(flags: int, names: set[bytes]) -> int:
-    """The VP8X flags that announce exactly the chunks a file holds, its alpha hint kept."""
-    kept = flags & ~(VP8X_RESERVED | VP8X_ICC | VP8X_ANIMATION) & 0xFF
-    kept |= VP8X_ICC if b"ICCP" in names else 0
-    return kept | (VP8X_ANIMATION if b"ANIM" in names else 0)
+def vp8x_agrees(flags: int, names: set[bytes]) -> bool:
+    """Whether the ICC and animation flags announce exactly the chunks a file holds."""
+    icc = bool(flags & VP8X_ICC) == (b"ICCP" in names)
+    return icc and bool(flags & VP8X_ANIMATION) == (b"ANIM" in names)
 
 
 def anmf_header_problems(header: bytes, canvas: tuple[int, int] | None) -> set[str]:
