@@ -24,8 +24,10 @@ bounded by both a case count and a time budget, so it can run in CI.
 
 import argparse
 import contextlib
+import functools
 import importlib.util
 import io
+import itertools
 import pathlib
 import random
 import re
@@ -498,33 +500,46 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
     return out if len(out) <= 64 else out[:32] + out[-32:]
 
 
-def orientation_tiff(order: bytes, kind: int, first: int = 6, then: int = 0) -> bytes:
-    """A TIFF header and one IFD holding Orientation `first` as the given type.
+def orientation_tiff(
+    order: bytes, kind: int, first: int = 6, then: int = 0, sub: bool = False
+) -> bytes:
+    """A TIFF header and one IFD holding Orientation `first` as the given type, or none where it is 0.
 
-    A nonzero `then` adds a second Orientation SHORT holding that value.
+    A nonzero `then` adds a second Orientation SHORT holding that value,
+    in the Exif sub-IFD where `sub` is set and in the same IFD otherwise.
     """
     fmt = "<" if order == b"II" else ">"
     if kind == 3:
         value = struct.pack(fmt + "HH", first, 0)
     else:
         value = struct.pack(fmt + "I", first)
-    entry = struct.pack(fmt + "HHI", 0x0112, kind, 1) + value
-    if then:
-        entry += struct.pack(fmt + "HHIHH", 0x0112, 3, 1, then, 0)
-    head = order + struct.pack(fmt + "HIH", 42, 8, 2 if then else 1)
-    return head + entry + struct.pack(fmt + "I", 0)
+    entries = [struct.pack(fmt + "HHI", 0x0112, kind, 1) + value] if first else []
+    second = struct.pack(fmt + "HHIHH", 0x0112, 3, 1, then, 0) if then else b""
+    tail = b""
+    if sub:
+        at = 8 + 2 + 12 * (len(entries) + 1) + 4
+        entries.append(struct.pack(fmt + "HHII", 0x8769, 4, 1, at))
+        tail = struct.pack(fmt + "H", len(second) // 12) + second
+        tail += struct.pack(fmt + "I", 0)
+    elif second:
+        entries.append(second)
+    head = order + struct.pack(fmt + "HIH", 42, 8, len(entries))
+    return head + b"".join(entries) + struct.pack(fmt + "I", 0) + tail
 
 
 # Each pair disagrees, and each order changed what a decoder taking the last entry reads.
 DISPUTED = ((6, 8), (1, 6))
+# Where the second value sits in the Exif sub-IFD, each order changed what a flattening decoder reads.
+PLACES = ((False, "then"), (True, "then in the sub-IFD"))
 
 
-def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
+def turned(kind: str, data: bytes) -> list[tuple[bytes, str, int | None]]:
     """Variants whose Exif turns the picture a quarter turn, as Orientation 6 does.
 
-    The flag marks a turn decoders disagree on, which only a refusal keeps.
+    Each carries the Orientation the normalized file must hold, or None for a turn decoders
+    disagree on, which only a refusal keeps.
     """
-    out: list[tuple[bytes, str, bool]] = []
+    out: list[tuple[bytes, str, int | None]] = []
     if kind == "jpeg":
         parts, _ = gate.jpeg_parts(data)
         bare = data[:2] + b"".join(
@@ -538,30 +553,150 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
             segment = jpeg_segment(
                 0xE1, b"Exif\x00\x00" + orientation_tiff(order, size)
             )
-            out.append((bare[:2] + segment + bare[2:], what, size == 4))
-        for first, then in DISPUTED:
-            tiff = orientation_tiff(b"II", 3, first, then)
+            out.append((bare[:2] + segment + bare[2:], what, None if size == 4 else 6))
+        for (first, then), (sub, place) in itertools.product(
+            (*DISPUTED, (6, 6)), PLACES
+        ):
+            tiff = orientation_tiff(b"II", 3, first, then, sub)
             segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
-            what = f"Orientation {first} then {then}"
-            out.append((bare[:2] + segment + bare[2:], what, True))
+            what = f"Orientation {first} {place} {then}"
+            out.append(
+                (bare[:2] + segment + bare[2:], what, None if first != then else 6)
+            )
+        # An IFD0 saying nothing reads as upright in a browser, so a turn held only elsewhere is disputed.
+        tiff = orientation_tiff(b"II", 3, 0, 6, sub=True)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        out.append(
+            (bare[:2] + segment + bare[2:], "Orientation 6 in the sub-IFD alone", None)
+        )
+        # A zeroed pointer points at the header, whose bytes read as an IFD of thousands of entries.
+        ifd0 = struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        ifd0 += struct.pack("<HHII", 0x8825, 4, 1, 0)
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 2) + ifd0 + struct.pack("<I", 0)
+        tiff += struct.pack("<H", 0x0112) + bytes(10)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        out.append(
+            (bare[:2] + segment + bare[2:], "Orientation 6 by a zeroed pointer", 6)
+        )
+        # The gate reads at most 16 IFDs, so pointers it skips must not use up the reader's 16 first.
+        bad = (*range(1, 8), *range(0xFFFF0000, 0xFFFF0008))
+        at = 8 + 2 + 12 * (2 + len(bad)) + 4
+        ifd0 = struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        ifd0 += struct.pack("<HHII", 0x8769, 4, 1, at)
+        ifd0 += b"".join(struct.pack("<HHII", 0x8769, 4, 1, off) for off in bad)
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 2 + len(bad)) + ifd0
+        tiff += struct.pack("<I", 0) + struct.pack("<H", 1)
+        tiff += struct.pack("<HHIHHI", 0x0112, 3, 1, 8, 0, 0)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 then in the sub-IFD 8 behind skipped pointers"
+        out.append((bare[:2] + segment + bare[2:], what, None))
+        # An IFD0 inside the TIFF header is no IFD to one decoder and a long one to another.
+        tiff = b"II" + struct.pack("<HI", 42, 0) + bytes(6)
+        tiff += struct.pack("<HHIHHI", 0x0112, 3, 1, 6, 0, 0)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 spelled by an IFD0 inside the header"
+        out.append((bare[:2] + segment + bare[2:], what, None))
+        # An IFD0 cut short by the segment is read in part by some decoders and not at all by others.
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 2)
+        tiff += struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 in an IFD0 cut short"
+        out.append((bare[:2] + segment + bare[2:], what, None))
+        # An IFD0 missing only its next-IFD pointer still holds every entry whole.
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 1)
+        tiff += struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 in an IFD0 missing its next pointer"
+        out.append((bare[:2] + segment + bare[2:], what, 6))
+        # A pointer that fits in an IFD0 cut short reaches a turn only some decoders read.
+        tiff = b"II" + struct.pack("<HI", 42, 26) + struct.pack("<H", 1)
+        tiff += struct.pack("<HHIHHI", 0x0112, 3, 1, 6, 0, 0)
+        tiff += struct.pack("<H", 5) + struct.pack("<HHII", 0x8769, 4, 1, 8)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 behind a pointer in an IFD0 cut short"
+        out.append((bare[:2] + segment + bare[2:], what, None))
+        # A last entry cut off after its value still spells a turn to a decoder reading what it can.
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 1)
+        tiff += struct.pack("<HHIH", 0x0112, 3, 1, 6)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 in an IFD0 entry cut off"
+        out.append((bare[:2] + segment + bare[2:], what, None))
+        # A sub-IFD cut short by the segment is read in part by some decoders and not at all by others.
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 1)
+        tiff += struct.pack("<HHII", 0x8769, 4, 1, 26) + struct.pack("<I", 0)
+        tiff += struct.pack("<H", 2) + struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 in a sub-IFD cut short"
+        out.append((bare[:2] + segment + bare[2:], what, None))
+        # A sub-IFD missing only its next-IFD pointer still holds every entry whole.
+        for first, shown in ((0, None), (6, 6)):
+            tiff = orientation_tiff(b"II", 3, first, 6, sub=True)[:-4]
+            segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+            where = "alone" if not first else "in IFD0 and"
+            what = f"Orientation 6 {where} in a sub-IFD missing its next pointer"
+            out.append((bare[:2] + segment + bare[2:], what, shown))
+        # A sub-IFD cut short that agrees with IFD0 reads the same whether a decoder reads it or not.
+        tiff = orientation_tiff(b"II", 3, 6, 6, sub=True)[:-4]
+        tiff = tiff[:-14] + struct.pack("<H", 3) + tiff[-12:]
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 in IFD0 and in a sub-IFD cut short"
+        out.append((bare[:2] + segment + bare[2:], what, 6))
+        # What a sub-IFD cut short leads to is walked apart from the 16 IFDs the gate reads.
+        ifd0 = struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        ifd0 += struct.pack("<HHII", 0x8825, 4, 1, 50)
+        ifd0 += struct.pack("<HHII", 0x8769, 4, 1, 68)
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 3) + ifd0 + struct.pack("<I", 0)
+        tiff += struct.pack("<H", 1) + struct.pack("<HHIHHI", 0x0112, 3, 1, 8, 0, 0)
+        empty = 68 + 2 + 14 * 12
+        tiff += struct.pack("<H", 40) + b"".join(
+            struct.pack("<HHII", 0x8769, 4, 1, empty + 6 * n) for n in range(14)
+        )
+        tiff += struct.pack("<HI", 0, 0) * 14
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 then in the GPS IFD 8 behind a sub-IFD cut short"
+        out.append((bare[:2] + segment + bare[2:], what, None))
+        # An IFD a sub-IFD cut short reaches first is walked again when a clean path reaches it.
+        link = 50 + 18
+        empty = link + 18
+        cut = empty + 6 * 15
+        ifd0 = struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        ifd0 += struct.pack("<HHII", 0x8825, 4, 1, 50)
+        ifd0 += struct.pack("<HHII", 0x8769, 4, 1, cut)
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 3) + ifd0 + struct.pack("<I", 0)
+        tiff += struct.pack("<H", 1) + struct.pack("<HHIII", 0xA005, 4, 1, link, 0)
+        tiff += struct.pack("<H", 1) + struct.pack("<HHIHHI", 0x0112, 3, 1, 8, 0, 0)
+        tiff += struct.pack("<HI", 0, 0) * 15
+        tiff += struct.pack("<H", 60) + struct.pack("<HHII", 0x8769, 4, 1, 50)
+        tiff += b"".join(
+            struct.pack("<HHII", 0xA005, 4, 1, empty + 6 * n) for n in range(15)
+        )
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 then 8 behind an IFD a sub-IFD cut short reaches first"
+        out.append((bare[:2] + segment + bare[2:], what, None))
     elif kind == "png":
-        for first, then in ((6, 0), *DISPUTED):
-            chunk = png_chunk(b"eXIf", orientation_tiff(b"II", 3, first, then))
-            what = (
-                f"eXIf Orientation {first} then {then}"
-                if then
-                else "eXIf with Orientation"
+        out.append(
+            (
+                data[:33] + png_chunk(b"eXIf", orientation_tiff(b"II", 3)) + data[33:],
+                "eXIf with Orientation",
+                6,
             )
-            out.append((data[:33] + chunk + data[33:], what, bool(then)))
+        )
+        for (first, then), (sub, place) in itertools.product(DISPUTED, PLACES):
+            chunk = png_chunk(b"eXIf", orientation_tiff(b"II", 3, first, then, sub))
+            what = f"eXIf Orientation {first} {place} {then}"
+            out.append((data[:33] + chunk + data[33:], what, None))
     elif kind == "webp":
-        for first, then in ((6, 0), *DISPUTED):
-            chunk = riff_chunk(b"EXIF", orientation_tiff(b"II", 3, first, then))
-            what = (
-                f"EXIF Orientation {first} then {then}"
-                if then
-                else "EXIF with Orientation"
+        out.append(
+            (
+                with_riff_size(data + riff_chunk(b"EXIF", orientation_tiff(b"II", 3))),
+                "EXIF with Orientation",
+                6,
             )
-            out.append((with_riff_size(data + chunk), what, bool(then)))
+        )
+        for (first, then), (sub, place) in itertools.product(DISPUTED, PLACES):
+            chunk = riff_chunk(b"EXIF", orientation_tiff(b"II", 3, first, then, sub))
+            what = f"EXIF Orientation {first} {place} {then}"
+            out.append((with_riff_size(data + chunk), what, None))
     return out
 
 
@@ -649,20 +784,38 @@ def check_plant(report: Report, kind: str, data: bytes, where: str) -> None:
 
 
 def check_turn(
-    report: Report, kind: str, data: bytes, where: str, disputed: bool
+    report: Report, kind: str, data: bytes, where: str, shown: int | None
 ) -> None:
     report.cases += 1
+    disputed = shown is None
+    what = where.split(": ", 1)[-1]
+    found, raised = attempt(lambda: gate.scan(data))
+    if raised:
+        report.fail("1 scanner raised", kind, raised, where)
+    elif disputed and not found:
+        report.fail("4 gate admitted a disputed orientation", kind, what, where)
     new, raised = attempt(lambda: normalizer.normalize_bytes(data))
     if raised:
         report.fail("2 normalizer raised", kind, raised, where)
         return
+    if isinstance(new, bytes) and new:
+        again, raised = attempt(lambda: gate.scan(new))
+        if raised:
+            report.fail("1 scanner raised on normalized output", kind, raised, where)
+        elif again:
+            detail = ", ".join(sorted(again))
+            report.fail("2 normalizer output rejected", kind, detail, where)
     if disputed and isinstance(new, bytes) and new:
-        what = where.split(": ", 1)[-1]
         report.fail("6 normalizer settled a disputed orientation", kind, what, where)
+    elif kind == "jpeg" and not disputed and not new:
+        # Only PNG and WebP refuse a turn, since a JPEG can carry one without its other Exif.
+        report.fail("6 normalizer refused an undisputed orientation", kind, what, where)
+    elif kind in ("png", "webp") and shown != 1 and new:
+        # A PNG or WebP keeps no Exif, so only a refusal keeps its turn.
+        report.fail("6 normalizer settled a PNG or WebP turn", kind, what, where)
     elif isinstance(new, bytes) and new:
         kept, raised = attempt(lambda: orientation(kind, new))
-        if raised or kept != 6:
-            what = where.split(": ", 1)[-1]
+        if raised or kept != shown:
             report.fail("6 normalizer lost the orientation", kind, what, where)
 
 
@@ -759,12 +912,22 @@ def main() -> int:
     for label, data in seeds:
         kind = container(data)
         check_variant(report, kind, data, f"{label}: unmodified")
-        if label.startswith("fixture:") and gate.scan(data):
-            report.fail("0 fixture not clean", kind, ", ".join(gate.scan(data)), label)
-        for variant, what in plants(kind, data):
+        if label.startswith("fixture:"):
+            found, raised = attempt(functools.partial(gate.scan, data))
+            if not raised and found:
+                detail = ", ".join(sorted(found))
+                report.fail("0 fixture not clean", kind, detail, label)
+        # Planting and turning split the seed with the gate's parsers and this file's own code.
+        planted, raised = attempt(functools.partial(plants, kind, data))
+        if raised:
+            report.fail("0 variants not built", kind, f"plants {raised}", label)
+        turns, raised = attempt(functools.partial(turned, kind, data))
+        if raised:
+            report.fail("0 variants not built", kind, f"turned {raised}", label)
+        for variant, what in planted or []:
             check_plant(report, kind, variant, f"{label}: {what}")
-        for variant, what, disputed in turned(kind, data):
-            check_turn(report, kind, variant, f"{label}: {what}", disputed)
+        for variant, what, shown in turns or []:
+            check_turn(report, kind, variant, f"{label}: {what}", shown)
         for _ in range(args.cases):
             if time.monotonic() > deadline:
                 break
