@@ -307,8 +307,8 @@ def main(argv: list[str] | None = None) -> int:
         )
     if reported or stale:
         print(
-            f"\n{len(reported)} finding(s), {len(stale)} unused allow entr(ies)."
-            " Remove the value, or declare it in the allow list, see CONTENT.md."
+            f"\nfindings: {len(reported)}, unused allow list entries: {len(stale)}."
+            " Remove the value or declare it, and drop an unused entry, see CONTENT.md."
         )
         return 1
     print(f"text pii: {len(posts(root))} file(s) in scope, nothing undeclared")

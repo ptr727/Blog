@@ -202,6 +202,7 @@ class GateTests(unittest.TestCase):
         code, out = self.tree.run()
         self.assertEqual(1, code)
         self.assertIn("entry 0 (email) matches nothing", out)
+        self.assertIn("findings: 0, unused allow list entries: 1.", out)
         self.assertNotIn("someone@example.com", out)
 
     def test_malformed_declarations_are_refused(self) -> None:
