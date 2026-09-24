@@ -99,7 +99,10 @@ def normalize_jpeg(data: bytes) -> bytes | None:
     parts, problems = gate.jpeg_parts(data)
     if problems - gate.TRAILING:
         return None
-    names = [gate.jpeg_app_name(m, data[s + 4 : e]) for m, s, e in parts]
+    names = [
+        gate.jpeg_app_name(m, data[s + 4 : e]) if 0xE0 <= m <= 0xEF else None
+        for m, s, e in parts
+    ]
     profile = [
         data[s + 4 : e] for (_, s, e), n in zip(parts, names) if n == b"ICC_PROFILE\x00"
     ]

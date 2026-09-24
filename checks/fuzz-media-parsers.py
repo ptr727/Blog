@@ -390,10 +390,11 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
         for name, start, end in parts:
             payload = start + 8 + struct.unpack_from("<I", data, start + 4)[0]
             if name == b"ANMF":
-                header = data[start + 8 : start + 24]
+                held_at = start + 8 + gate.WEBP_FRAME_HEADER
+                header = data[start + 8 : held_at]
                 for held, what in (
-                    (data[start + 24 : payload] + chunk, "EXIF inside ANMF"),
-                    (data[start + 24 : payload] + lossless, "second image inside ANMF"),
+                    (data[held_at:payload] + chunk, "EXIF inside ANMF"),
+                    (data[held_at:payload] + lossless, "second image inside ANMF"),
                     (b"", "ANMF with no image"),
                 ):
                     grown = riff_chunk(b"ANMF", header + held)
@@ -484,10 +485,13 @@ def check_plant(report: Report, kind: str, data: bytes, where: str) -> None:
         report.fail("2 normalizer raised", kind, raised, where)
     elif isinstance(new, bytes) and PLANT_TEXT in new:
         report.fail("4 normalizer kept planted metadata", kind, what, where)
-    elif isinstance(new, bytes) and new and (again := gate.scan(new)):
-        report.fail(
-            "2 normalizer output rejected", kind, ", ".join(sorted(again)), where
-        )
+    elif isinstance(new, bytes) and new:
+        again, raised = attempt(lambda: gate.scan(new))
+        if raised:
+            report.fail("1 scanner raised on normalized output", kind, raised, where)
+        elif again:
+            detail = ", ".join(sorted(again))
+            report.fail("2 normalizer output rejected", kind, detail, where)
 
 
 def check_archive(
