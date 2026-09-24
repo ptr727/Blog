@@ -163,6 +163,16 @@ def redact(data: bytes, entry: dict) -> bytes:
     return normalize.normalize_bytes(result) or result
 
 
+def replace(path: pathlib.Path, data: bytes) -> None:
+    """Write through a scratch file, so the path holds either its old bytes or the new ones."""
+    scratch = path.with_name(f".redact-{path.name}")
+    try:
+        scratch.write_bytes(data)
+        os.replace(scratch, path)
+    finally:
+        scratch.unlink(missing_ok=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -181,6 +191,9 @@ def main() -> int:
     writes: list[tuple[pathlib.Path, str, bytes]] = []
     for name, entry in manifest["files"].items():
         path = REPO / name
+        if not isinstance(entry, dict):
+            errors.append(f"{name}: entry is not an object")
+            continue
         try:
             data = path.read_bytes()
         except OSError as error:
@@ -220,25 +233,30 @@ def main() -> int:
         writes.append((path, current, new))
         print(f"{name}: to redact")
 
-    # Nothing is written when any entry fails, so the manifest never records a partial run.
+    moved = set()
+    for path, current, _ in writes if apply else []:
+        try:
+            same = sha256(path.read_bytes()) == current
+        except OSError:
+            same = False
+        if not same:
+            moved.add(path)
+            errors.append(
+                f"{path.relative_to(REPO).as_posix()}: changed during the run"
+            )
+    # Under --record the manifest and the files move together, so any failure writes neither.
     written = 0
-    if apply and not errors:
+    if apply and not (args.record and errors):
         # The manifest goes first, and each file is replaced whole, so an interrupted run leaves a file at its source.
-        if args.record:
-            MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
-        for path, current, new in writes:
-            name = path.relative_to(REPO).as_posix()
-            scratch = path.with_name(f".redact-{path.name}")
-            try:
-                if sha256(path.read_bytes()) != current:
-                    raise OSError("changed during the run")
-                scratch.write_bytes(new)
-                os.replace(scratch, path)
-            except OSError as error:
-                scratch.unlink(missing_ok=True)
-                errors.append(f"{name}: not replaced ({error})")
-                continue
-            written += 1
+        try:
+            if args.record:
+                replace(MANIFEST, (json.dumps(manifest, indent=2) + "\n").encode())
+            for path, _, new in writes:
+                if path not in moved:
+                    replace(path, new)
+                    written += 1
+        except OSError as error:
+            errors.append(f"not every file was replaced, rerun to converge ({error})")
     for line in errors:
         print(line)
     print()

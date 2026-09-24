@@ -126,7 +126,44 @@ class RedactMediaTests(unittest.TestCase):
                 self.assertIn("not four integers", out)
         self.add("a.jpg", jpeg(), {"fill": None})
         code, out = self.run_script("--record")
+        self.assertEqual(code, 1)
         self.assertIn("not a list", out)
+
+    def test_entry_that_is_not_an_object_is_an_error(self) -> None:
+        self.add("a.jpg", jpeg(), None)
+        code, out = self.run_script()
+        self.assertEqual(code, 1)
+        self.assertIn("not an object", out)
+
+    def test_apply_writes_good_entries_beside_a_failure(self) -> None:
+        data = jpeg()
+        entry = {"fill": [[8, 8, 24, 24]]}
+        self.add("good.jpg", data, entry)
+        self.run_script("--record")
+        recorded = self.manifest()["files"]["static/good.jpg"]
+        good = self.add("good.jpg", data, recorded)
+        self.add("bad.jpg", jpeg((1, 2, 3)), {"fill": [[8, 8, 900, 24]]})
+        code, _ = self.run_script("--apply")
+        self.assertEqual(code, 1)
+        self.assertEqual(sha256(good.read_bytes()), recorded["result"])
+
+    def test_failed_replace_after_record_converges(self) -> None:
+        path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
+        real = redact.replace
+
+        def fail_on_media(target: pathlib.Path, data: bytes) -> None:
+            if target == path:
+                raise PermissionError("in use")
+            real(target, data)
+
+        with mock.patch.object(redact, "replace", fail_on_media):
+            code, out = self.run_script("--record")
+        self.assertEqual(code, 1)
+        self.assertEqual(path.read_bytes(), jpeg())
+        code, out = self.run_script("--apply")
+        self.assertEqual(code, 0, out)
+        entry = self.manifest()["files"]["static/a.jpg"]
+        self.assertEqual(sha256(path.read_bytes()), entry["result"])
 
     def test_missing_file_is_an_error(self) -> None:
         self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]}).unlink()

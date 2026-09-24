@@ -26,6 +26,13 @@ class SubstituteTests(unittest.TestCase):
         out = substitute(f"> {CURLY}", CURLY, "", CURLY)
         self.assertEqual(out, [f"> {CURLY}", CURLY, "", '"quoted"'])
 
+    def test_block_start_ends_a_blockquote(self) -> None:
+        for line in ("- item", "# Heading", "1. item"):
+            with self.subTest(line=line):
+                out = substitute(f"> {CURLY}", f"{line} {CURLY}")
+                self.assertEqual(out[1], f'{line} "quoted"')
+        self.assertEqual(substitute(f"> {CURLY}", "***", CURLY)[2], '"quoted"')
+
     def test_fence_with_info_string_does_not_close(self) -> None:
         out = substitute("```", "```python", CURLY, "```", CURLY)
         self.assertEqual(out, ["```", "```python", CURLY, "```", '"quoted"'])
