@@ -498,12 +498,17 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
     return out if len(out) <= 64 else out[:32] + out[-32:]
 
 
-def orientation_tiff(order: bytes, kind: int) -> bytes:
-    """A TIFF header and one IFD holding Orientation 6 as the given type."""
+def orientation_tiff(order: bytes, kind: int, then: int = 0) -> bytes:
+    """A TIFF header and one IFD holding Orientation 6 as the given type.
+
+    A nonzero `then` adds a second Orientation SHORT holding that value.
+    """
     fmt = "<" if order == b"II" else ">"
     value = struct.pack(fmt + "HH", 6, 0) if kind == 3 else struct.pack(fmt + "I", 6)
     entry = struct.pack(fmt + "HHI", 0x0112, kind, 1) + value
-    head = order + struct.pack(fmt + "HIH", 42, 8, 1)
+    if then:
+        entry += struct.pack(fmt + "HHIHH", 0x0112, 3, 1, then, 0)
+    head = order + struct.pack(fmt + "HIH", 42, 8, 2 if then else 1)
     return head + entry + struct.pack(fmt + "I", 0)
 
 
@@ -527,12 +532,22 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
                 0xE1, b"Exif\x00\x00" + orientation_tiff(order, size)
             )
             out.append((bare[:2] + segment + bare[2:], what, size == 4))
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + orientation_tiff(b"II", 3, 8))
+        out.append((bare[:2] + segment + bare[2:], "Orientation 6 then 8", True))
     elif kind == "png":
-        chunk = png_chunk(b"eXIf", orientation_tiff(b"II", 3))
-        out.append((data[:33] + chunk + data[33:], "eXIf with Orientation", False))
+        for then, what in (
+            (0, "eXIf with Orientation"),
+            (8, "eXIf Orientation 6 then 8"),
+        ):
+            chunk = png_chunk(b"eXIf", orientation_tiff(b"II", 3, then))
+            out.append((data[:33] + chunk + data[33:], what, bool(then)))
     elif kind == "webp":
-        chunk = riff_chunk(b"EXIF", orientation_tiff(b"II", 3))
-        out.append((with_riff_size(data + chunk), "EXIF with Orientation", False))
+        for then, what in (
+            (0, "EXIF with Orientation"),
+            (8, "EXIF Orientation 6 then 8"),
+        ):
+            chunk = riff_chunk(b"EXIF", orientation_tiff(b"II", 3, then))
+            out.append((with_riff_size(data + chunk), what, bool(then)))
     return out
 
 
