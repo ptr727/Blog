@@ -175,6 +175,8 @@ EXIF_SHAPE = {
     0xA005: (frozenset((4,)), 1),  # InteropIFDPointer
 }
 EXIF_ALLOWED = frozenset(EXIF_SHAPE)
+# The tags whose value is the offset of a further IFD.
+EXIF_POINTERS = (0x8769, 0x8825, 0xA005)
 
 # The values an enumerated tag defines, so its one shape holds a choice rather than free bytes.
 # A SHORT tag lists what each of its values may be, and any other tag lists its whole value.
@@ -333,7 +335,8 @@ def exif_unrecognized(raw: bytes) -> set[str]:
     try:
         if struct.unpack_from(fmt + "H", raw, 2)[0] != 42:
             return {"APP1/Exif with a bad TIFF magic"}
-        pending = [struct.unpack_from(fmt + "I", raw, 4)[0]]
+        ifd0 = struct.unpack_from(fmt + "I", raw, 4)[0]
+        pending = [ifd0]
     except struct.error:
         return {"APP1/Exif truncated"}
     covered = [(0, 8)]
@@ -362,8 +365,11 @@ def exif_unrecognized(raw: bytes) -> set[str]:
                 out.add(f"Exif tag 0x{tag:04X}")
             elif tag in tags or kind not in types or number not in counts:
                 out.add(f"Exif tag 0x{tag:04X} not in its one shape")
+            if tag == 0x0112 and offset != ifd0:
+                # Decoders differ on whether they read an Orientation held outside IFD0.
+                out.add("Exif tag 0x0112 outside IFD0")
             tags[tag] = (number, struct.unpack_from(fmt + "H", raw, entry + 8)[0])
-            if tag in (0x8769, 0x8825, 0xA005):
+            if tag in EXIF_POINTERS:
                 pending.append(struct.unpack_from(fmt + "I", raw, entry + 8)[0])
             if kind not in EXIF_TYPE_SIZE:
                 out.add("Exif value of unknown type")
