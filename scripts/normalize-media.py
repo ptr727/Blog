@@ -52,7 +52,7 @@ def normalize_png(data: bytes) -> bytes | None:
     """Drop every ancillary chunk that is not on the allowlist.
 
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
-    A file whose Exif Orientation is not a single SHORT, holds two values in IFD0, or turns the picture, is refused.
+    A file whose Exif Orientation is not a single SHORT, holds two different values in IFD0, or turns the picture, is refused.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
@@ -175,7 +175,7 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         elif name:
             # An Exif segment the gate flags is dropped, since rewriting it means re-computing every offset.
             # Orientation decides which way the picture displays, so a turn is re-emitted alone.
-            # A file whose Orientation is not one SHORT, or holds two values in IFD0, is refused.
+            # A file whose Orientation is not one SHORT, or holds two different values in IFD0, is refused.
             if not gate.exif_unrecognized(segment):
                 out += data[start:end]
             elif (turned := exif_orientation(segment)) is None:
@@ -218,7 +218,7 @@ def normalize_webp(data: bytes) -> bytes | None:
     """Drop every chunk that is not on the allowlist, and restate the RIFF size.
 
     The VP8X reserved bits and each pad byte are written as zero.
-    A file whose Exif Orientation is not a single SHORT, holds two values in IFD0, or turns the picture, is refused.
+    A file whose Exif Orientation is not a single SHORT, holds two different values in IFD0, or turns the picture, is refused.
     """
     parts, problems = gate.webp_parts(data)
     if problems - gate.TRAILING:
