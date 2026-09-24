@@ -52,7 +52,7 @@ def normalize_png(data: bytes) -> bytes | None:
     """Drop every ancillary chunk that is not on the allowlist.
 
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
-    A file whose Exif Orientation is not a single SHORT, holds two different values, or turns the picture, is refused.
+    A file whose Exif Orientation `exif_orientation` refuses, or turns the picture, is refused.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
@@ -82,7 +82,7 @@ def exif_orientation(segment: bytes) -> int | None:
     Any other shape is None, so the file is refused rather than guessed at.
     Two entries that disagree are None too, in IFD0 or in an IFD reached from it, since decoders take either one.
     An IFD0 holding none counts as 1 against a value held elsewhere, since a browser reads IFD0.
-    An IFD0 that runs past the segment is None, and one inside the TIFF header holds nothing.
+    An Orientation in an IFD0 inside the TIFF header, or whose entries run past the segment, is None too.
     """
     raw = segment.removeprefix(b"Exif\x00\x00")
     if raw[:2] not in (b"II", b"MM"):
@@ -98,26 +98,31 @@ def exif_orientation(segment: bytes) -> int | None:
     values, placed = set(), False
     while pending and len(seen) < 16:
         offset = pending.pop()
-        # An IFD the gate cannot read whole is one it reports, so nothing here reads it either.
+        # Past IFD0, an IFD the gate cannot read whole is one it reports, so nothing here reads it either.
         # An offset it skips costs it none of its 16 IFDs, so it costs none here.
-        if offset in seen or offset < 8 or offset + 2 > len(raw):
+        outside = offset + 2 > len(raw) or (offset < 8 and offset != ifd0)
+        if offset in seen or outside:
             continue
         seen.add(offset)
         count = struct.unpack_from(fmt + "H", raw, offset)[0]
-        if offset + 2 + count * 12 + 4 > len(raw):
-            # Decoders differ on an IFD0 cut short, so its entries are neither read nor dropped.
-            if offset == ifd0:
-                return None
+        whole = offset >= 8 and offset + 2 + count * 12 <= len(raw)
+        if offset != ifd0 and (not whole or offset + 2 + count * 12 + 4 > len(raw)):
             continue
         for index in range(count):
             entry = offset + 2 + index * 12
+            if entry + 12 > len(raw):
+                break
             tag = struct.unpack_from(fmt + "H", raw, entry)[0]
             if tag == 0x0112:
-                if struct.unpack_from(fmt + "HI", raw, entry + 2) != (3, 1):
+                # Decoders differ on whether they read a malformed IFD0 at all.
+                if not whole or struct.unpack_from(fmt + "HI", raw, entry + 2) != (
+                    3,
+                    1,
+                ):
                     return None
                 values.add(struct.unpack_from(fmt + "H", raw, entry + 8)[0])
                 placed = placed or offset == ifd0
-            elif tag in gate.EXIF_POINTERS:
+            elif tag in gate.EXIF_POINTERS and whole:
                 pending.append(struct.unpack_from(fmt + "I", raw, entry + 8)[0])
     if values and not placed:
         values.add(1)
@@ -237,7 +242,7 @@ def normalize_webp(data: bytes) -> bytes | None:
     """Drop every chunk that is not on the allowlist, and restate the RIFF size.
 
     The VP8X reserved bits and each pad byte are written as zero.
-    A file whose Exif Orientation is not a single SHORT, holds two different values, or turns the picture, is refused.
+    A file whose Exif Orientation `exif_orientation` refuses, or turns the picture, is refused.
     """
     parts, problems = gate.webp_parts(data)
     if problems - gate.TRAILING:

@@ -590,18 +590,24 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, int | None]]:
         segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
         what = "Orientation 6 then in the sub-IFD 8 behind skipped pointers"
         out.append((bare[:2] + segment + bare[2:], what, None))
-        # An IFD0 inside the TIFF header is no IFD, so the Orientation its bytes spell is none.
+        # An IFD0 inside the TIFF header is no IFD to one decoder and a long one to another.
         tiff = b"II" + struct.pack("<HI", 42, 0) + bytes(6)
         tiff += struct.pack("<HHIHHI", 0x0112, 3, 1, 6, 0, 0)
         segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
         what = "Orientation 6 spelled by an IFD0 inside the header"
-        out.append((bare[:2] + segment + bare[2:], what, 1))
+        out.append((bare[:2] + segment + bare[2:], what, None))
         # An IFD0 cut short by the segment is read in part by some decoders and not at all by others.
         tiff = b"II" + struct.pack("<HIH", 42, 8, 2)
         tiff += struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
         segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
         what = "Orientation 6 in an IFD0 cut short"
         out.append((bare[:2] + segment + bare[2:], what, None))
+        # An IFD0 missing only its next-IFD pointer still holds every entry whole.
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 1)
+        tiff += struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 in an IFD0 missing its next pointer"
+        out.append((bare[:2] + segment + bare[2:], what, 6))
     elif kind == "png":
         out.append(
             (
