@@ -211,6 +211,26 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
     if palette:
         early = png_chunk(b"tRNS", bytes(1))
         out.append((bare[:33] + early + bare[33:], "tRNS before PLTE"))
+    # A palette entry no pixel can address, and a palette no browser draws by, each hold free bytes.
+    if color == 3 and depth <= 8:
+        entries = (1 << depth) + 1
+        long = png_chunk(b"PLTE", (PLANT_TEXT * entries)[: 3 * entries])
+        head = bare[:8] + b"".join(
+            long if c == b"PLTE" else data[s:e]
+            for c, s, e in parts
+            if c in (b"IHDR", b"PLTE", b"IDAT", b"IEND")
+        )
+        out.append((head, "PLTE longer than the bit depth addresses"))
+    elif color != 3:
+        suggested = png_chunk(b"PLTE", PLANT_TEXT * 3)
+        out.append(
+            (bare[:33] + suggested + bare[33:], "PLTE in a color type that draws none")
+        )
+    # An APNG frame is refused, so a still decoder never reads a default image the gate alone passed.
+    control = png_chunk(b"acTL", struct.pack(">II", 1, 0))
+    frame = png_chunk(b"fdAT", struct.pack(">I", 0) + PLANT_TEXT)
+    out.append((bare[:33] + control + bare[33:], "acTL chunk"))
+    out.append((bare[:-12] + frame + bare[-12:], "fdAT with no acTL"))
     return out
 
 
@@ -218,12 +238,23 @@ def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
     """GIF blocks each admitted alone, planted with a reserved or unused field not zero."""
     if len(data) < 13:
         return []
-    out = [(data[:12] + b"p" + data[13:], "aspect ratio byte not zero")]
+    out = [
+        (data[:12] + b"p" + data[13:], "aspect ratio byte not zero"),
+        (data[:11] + b"p" + data[12:], "background index not zero"),
+        (
+            data[:10] + bytes((data[10] | 0x70,)) + data[11:],
+            "color resolution not zero",
+        ),
+        (
+            data[:10] + bytes((data[10] | 0x08,)) + data[11:],
+            "screen sort flag not zero",
+        ),
+    ]
     if data[10] & 0x80:
         table = 3 * (2 << (data[10] & 7))
-        flags = bytes((data[10] & 0x78,))
-        variant = data[:10] + flags + b"p" + data[12:13] + data[13 + table :]
-        out.append((variant, "background index with no color table"))
+        flags = b"\x07"
+        variant = data[:10] + flags + data[11:13] + data[13 + table :]
+        out.append((variant, "table size with no color table"))
     for name, start, end in parts:
         if name == "extension 0xF9" and end - start == 8:
             packed, index = data[start + 3], data[start + 6]
@@ -235,9 +266,16 @@ def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
                 fields = bytes((value,)) + data[start + 4 : start + 6] + bytes((held,))
                 out.append((data[: start + 3] + fields + data[start + 7 :], what))
         elif name == "image":
-            flags = bytes((data[start + 9] | 0x18,))
-            variant = data[: start + 9] + flags + data[start + 10 :]
-            out.append((variant, "image descriptor reserved bits not zero"))
+            held = data[start + 9]
+            for value, what in (
+                (held | 0x18, "image descriptor reserved bits not zero"),
+                (held | 0x20, "image descriptor sort flag not zero"),
+            ):
+                variant = data[: start + 9] + bytes((value,)) + data[start + 10 :]
+                out.append((variant, what))
+            if not held & 0x80:
+                variant = data[: start + 9] + bytes((held | 0x07,)) + data[start + 10 :]
+                out.append((variant, "image table size with no local table"))
     return out
 
 

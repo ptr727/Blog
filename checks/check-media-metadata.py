@@ -212,13 +212,13 @@ PNG_ALLOWED = {
     b"sBIT",
     b"bKGD",
     b"pHYs",
-    b"acTL",
-    b"fcTL",
-    b"fdAT",
 }
 
-# A chunk other than picture data or an animation frame holds its bytes once per repeat, so each admits one.
-PNG_ONCE = PNG_ALLOWED - {b"IDAT", b"fcTL", b"fdAT"}
+# An APNG's frames are refused, since a decoder that reads no animation draws the default image alone.
+PNG_ANIMATION = frozenset((b"acTL", b"fcTL", b"fdAT"))
+
+# A chunk other than picture data holds its bytes once per repeat, so each admits one.
+PNG_ONCE = PNG_ALLOWED - {b"IDAT"}
 
 # The gamma and primaries are sRGB's own, as writers round them, since any other is free.
 PNG_GAMMA = frozenset((struct.pack(">I", 45455),))
@@ -238,6 +238,9 @@ PNG_PRIMARIES = frozenset(
 PNG_SIGNIFICANT = {0: 1, 2: 3, 3: 3, 4: 2, 6: 4}
 PNG_BACKGROUND = {0: 2, 2: 6, 3: 1, 4: 2, 6: 6}
 PNG_UNDRAWN = frozenset((b"sBIT", b"bKGD"))
+
+# The color types whose PLTE only suggests a palette, which no browser draws by.
+PNG_TRUECOLOR = frozenset((2, 6))
 
 # Where a decoder reads each ancillary chunk, since it passes over one out of its place.
 PNG_BEFORE_PLTE = frozenset((b"gAMA", b"cHRM", b"sRGB", b"iCCP", b"sBIT"))
@@ -720,6 +723,10 @@ def png_field_known(
 ) -> bool:
     """Whether an ancillary chunk holds exactly a value its format defines, in its one length."""
     depth, color = header or (0, -1)
+    if chunk == b"PLTE":
+        # A palette longer than the bit depth can address holds entries no pixel reaches.
+        entries = len(body) // 3
+        return color == 3 and len(body) % 3 == 0 and 0 < entries <= 1 << depth
     if chunk == b"gAMA":
         return body in PNG_GAMMA
     if chunk == b"cHRM":
@@ -743,6 +750,12 @@ def png_field_known(
             return False
         return all(v >> depth == 0 for v in struct.unpack(f">{len(body) // 2}H", body))
     return True
+
+
+def png_undrawn(chunk: bytes, header: tuple[int, int] | None) -> bool:
+    """Whether a chunk out of its one value can go, since no browser draws by it."""
+    color = header[1] if header else -1
+    return chunk in PNG_UNDRAWN or (chunk == b"PLTE" and color in PNG_TRUECOLOR)
 
 
 def png_misplaced(names: list[bytes]) -> set[int]:
@@ -858,14 +871,32 @@ def gif_control(block: bytes) -> bytes | None:
     )
 
 
+def gif_screen(head: bytes) -> bytes:
+    """A screen descriptor with every field no browser draws by written as zero.
+
+    That is all but its size and its global table, so the color resolution, sort flag, background index and aspect ratio go.
+    """
+    flags = head[10] & 0x87 if head[10] & 0x80 else 0
+    return head[:10] + bytes((flags, 0, 0)) + head[13:]
+
+
+def gif_descriptor(block: bytes) -> bytes:
+    """An image with its descriptor's sort flag and reserved bits zeroed, and its table size where it has no table."""
+    flags = block[9] & (0xC7 if block[9] & 0x80 else 0x40)
+    return block[:9] + bytes((flags,)) + block[10:]
+
+
 def gif_fields(data: bytes) -> set[str]:
     """Name where a GIF's screen, graphic control or image fields hold a value no decoder reads."""
     parts, _ = gif_parts(data)
     out: set[str] = set()
-    if len(data) >= 13 and data[12]:
-        out.add("GIF aspect ratio not zero")
-    if len(data) >= 13 and not data[10] & 0x80 and data[11]:
-        out.add("GIF background index with no color table")
+    if len(data) >= 13:
+        if data[12]:
+            out.add("GIF aspect ratio not zero")
+        if data[11]:
+            out.add("GIF background index not zero")
+        if data[10] != gif_screen(data[:13])[10]:
+            out.add("GIF screen descriptor unused bits not zero")
     for kind, start, end in parts:
         block = data[start:end]
         if kind == "extension 0xF9" and gif_extension_allowed(block):
@@ -874,8 +905,8 @@ def gif_fields(data: bytes) -> set[str]:
                 out.add("GIF graphic control disposal not a known method")
             elif control != block:
                 out.add("GIF graphic control unused fields not zero")
-        elif kind == "image" and block[9] & 0x18:
-            out.add("GIF image descriptor reserved bits not zero")
+        elif kind == "image" and gif_descriptor(block) != block:
+            out.add("GIF image descriptor unused bits not zero")
     return out
 
 
