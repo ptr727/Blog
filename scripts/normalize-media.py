@@ -31,6 +31,7 @@ import struct
 import subprocess
 import sys
 import zipfile
+import zlib
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
@@ -42,14 +43,28 @@ gate = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(gate)
 
 
+def png_chunk(name: bytes, body: bytes) -> bytes:
+    crc = zlib.crc32(name + body) & 0xFFFFFFFF
+    return struct.pack(">I", len(body)) + name + body + struct.pack(">I", crc)
+
+
 def normalize_png(data: bytes) -> bytes | None:
-    """Drop every ancillary chunk that is not on the allowlist."""
+    """Drop every ancillary chunk that is not on the allowlist.
+
+    A known profile in a body that is not pinned is re-emitted in the one canonical body.
+    """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
         return None
     out = bytearray(data[:8])
     for chunk, start, end in parts:
-        if chunk in gate.PNG_ALLOWED:
+        body = data[start + 8 : end - 4]
+        if chunk == b"iCCP" and gate.png_icc_problems(body):
+            profile = gate.png_icc_profile(body)
+            if profile is None or not gate.icc_known(profile):
+                return None
+            out += png_chunk(chunk, gate.png_icc_body(profile))
+        elif chunk in gate.PNG_ALLOWED:
             out += data[start:end]
         elif not chunk[0] & 0x20:
             # A critical chunk cannot be dropped, so this file needs a re-encode.
@@ -95,6 +110,7 @@ def normalize_jpeg(data: bytes) -> bytes | None:
     """Drop every APP and comment segment that is not on the allowlist.
 
     A JFIF segment is kept once, and a JFIF or Adobe segment is cut to its fixed fields.
+    A known profile is re-emitted in its canonical chunks where the first of its own chunks stood.
     """
     parts, problems = gate.jpeg_parts(data)
     if problems - gate.TRAILING:
@@ -110,14 +126,22 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         n for (_, s, e), n in zip(parts, names) if n == b"Adobe" and e - s - 4 >= 12
     ]
     # With a broken profile, or a second Adobe or Exif, what draws is the decoder's choice.
-    if gate.icc_problems(profile) or len(adobe) > 1 or names.count(b"Exif\x00\x00") > 1:
+    trouble = gate.icc_problems(profile) - {
+        "JPEG ICC profile not in its canonical chunks"
+    }
+    # Moving a chunk a decoder never read to where it reads one redraws the picture.
+    late = gate.jpeg_late_icc(data, parts)
+    if trouble or late or len(adobe) > 1 or names.count(b"Exif\x00\x00") > 1:
         return None
     out = bytearray(data[:2])
     kept: set[bytes] = set()
     for (marker, start, end), name in zip(parts, names):
         segment = data[start + 4 : end]
         if name == b"ICC_PROFILE\x00":
-            out += data[start:end]
+            if name not in kept:
+                kept.add(name)
+                chunks = gate.icc_chunks(gate.icc_profile(profile))
+                out += b"".join(app_segment(marker, chunk) for chunk in chunks)
         elif name in gate.JPEG_APP_FIXED:
             fixed = gate.JPEG_APP_FIXED[name]
             # A decoder ignores one shorter than its fields, so dropping it changes nothing.
@@ -126,7 +150,15 @@ def normalize_jpeg(data: bytes) -> bytes | None:
                 body = segment[:fixed]
                 if name == b"JFIF\x00":
                     body = body[:12] + b"\x00\x00"
-                out += app_segment(marker, body)
+                if gate.jpeg_app_fields(name, body):
+                    out += app_segment(marker, body)
+                elif name == b"JFIF\x00":
+                    out += app_segment(marker, gate.JFIF_FIELDS)
+                elif body[11] <= 2:
+                    # The transform decides how the picture decodes, so only it is kept.
+                    out += app_segment(marker, gate.ADOBE_FIELDS + body[11:])
+                else:
+                    return None
         elif name:
             # An Exif segment with an unrecognized tag goes whole.
             # Rewriting an IFD in place means re-computing every offset in it.
@@ -161,33 +193,57 @@ def normalize_gif(data: bytes) -> bytes | None:
     return bytes(out)
 
 
+def riff_chunk(data: bytes, start: int) -> bytes:
+    """The chunk at start with a zero pad byte, whatever its own pad held."""
+    length = struct.unpack_from("<I", data, start + 4)[0]
+    return data[start : start + 8 + length] + bytes(length & 1)
+
+
 def normalize_webp(data: bytes) -> bytes | None:
-    """Drop every chunk that is not on the allowlist, and restate the RIFF size."""
+    """Drop every chunk that is not on the allowlist, and restate the RIFF size.
+
+    The VP8X reserved bits and each pad byte are written as zero.
+    """
     parts, problems = gate.webp_parts(data)
     if problems - gate.TRAILING:
         return None
+    names = {bytes(c) for c, _, _ in parts if c in gate.WEBP_ALLOWED}
     body = bytearray()
-    for chunk, start, end in parts:
+    for chunk, start, _ in parts:
         length = struct.unpack_from("<I", data, start + 4)[0]
         if chunk not in gate.WEBP_ALLOWED:
             continue
         if gate.WEBP_FIXED.get(chunk, length) != length:
             # A decoder refuses a fixed chunk of another size, so this is not a drop.
             return None
+        if chunk == b"VP8X":
+            flags = data[start + 8]
+            # A decoder reads a profile or frames only where a flag announces them, so a flip redraws.
+            if not gate.vp8x_agrees(flags, names):
+                return None
+            body += (
+                data[start : start + 8]
+                + bytes((flags & ~gate.VP8X_RESERVED,))
+                + bytes(3)
+            )
+            body += data[start + 12 : start + 18]
+            continue
         if chunk != b"ANMF":
-            body += data[start:end]
+            body += riff_chunk(data, start)
             continue
         inner, trouble = gate.anmf_parts(data, start)
         if trouble - gate.TRAILING:
             return None
         frame = data[start + 8 : start + 8 + gate.WEBP_FRAME_HEADER]
         frame += b"".join(
-            data[s:e] for c, s, e in inner if c in gate.WEBP_FRAME_ALLOWED
+            riff_chunk(data, s) for c, s, _ in inner if c in gate.WEBP_FRAME_ALLOWED
         )
         body += b"ANMF" + struct.pack("<I", len(frame)) + frame + bytes(len(frame) & 1)
     result = b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + body
     # Which of two images a decoder draws is its own choice, so that needs a person.
-    return None if not body or gate.webp_layout(result) else result
+    # An unknown profile or a frame header out of its values is not something a drop resolves.
+    refused = gate.webp_layout(result) or gate.webp_fields(result)
+    return None if not body or refused else result
 
 
 def normalize_iso(path: pathlib.Path, destination: pathlib.Path) -> bool:
@@ -345,6 +401,11 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
     return removed
 
 
+def unpadded(data: bytes, start: int) -> bytes:
+    """The chunk at start without its pad byte, which no decoder reads."""
+    return data[start : start + 8 + struct.unpack_from("<I", data, start + 4)[0]]
+
+
 def pixel_payload(data: bytes) -> bytes | None:
     """Return the bytes a decoder draws the picture from, so a rewrite can be proven lossless.
 
@@ -364,15 +425,17 @@ def pixel_payload(data: bytes) -> bytes | None:
     if kind == "webp":
         parts, _ = gate.webp_parts(data)
         drawn = bytearray()
-        for chunk, start, end in parts:
+        for chunk, start, _ in parts:
             if chunk == b"ANMF":
                 inner, _ = gate.anmf_parts(data, start)
                 drawn += data[start + 8 : start + 8 + gate.WEBP_FRAME_HEADER]
                 drawn += b"".join(
-                    data[s:e] for c, s, e in inner if c in gate.WEBP_FRAME_ALLOWED
+                    unpadded(data, s)
+                    for c, s, _ in inner
+                    if c in gate.WEBP_FRAME_ALLOWED
                 )
             elif chunk in gate.WEBP_FRAME_ALLOWED:
-                drawn += data[start:end]
+                drawn += unpadded(data, start)
         return bytes(drawn)
     return None
 

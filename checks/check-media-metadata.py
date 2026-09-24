@@ -15,7 +15,7 @@ should not ship. That turns an unbounded question into a short list that can be 
 one sitting and argued with.
 
 What survives an allowlist is only what exists for display correctness: the dimensions,
-the color profile, and the orientation, plus the capture timestamp on the formats whose
+a standard color profile, and the orientation, plus the capture timestamp on the formats whose
 tags carry one, which is JPEG here and not PNG. Identity, location, device and authorship
 are not enumerated here at all, because they do not need to be. They are not on the list,
 so they fail.
@@ -25,6 +25,7 @@ be vouched for, and `scripts/normalize-media.py` is what resolves that, by decod
 pixels and writing a fresh file that is clean by construction.
 """
 
+import hashlib
 import lzma
 import pathlib
 import re
@@ -103,6 +104,45 @@ JPEG_APP_ALLOWED = ((0xE0, b"JFIF\x00"), (0xE2, b"ICC_PROFILE\x00"), (0xEE, b"Ad
 # JFIF is its fields plus a thumbnail sized by its last two, which have to be zero.
 JPEG_APP_FIXED = {b"JFIF\x00": 14, b"Adobe": 12}
 
+# The fields a normalizer writes where a segment's own are not values its format defines.
+# No browser draws by JFIF density, and Adobe's flags only describe how the encoder worked.
+JFIF_FIELDS = b"JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
+ADOBE_FIELDS = b"Adobe\x00\x64\x00\x00\x00\x00"
+
+# The standard profiles a carried picture may name its colors by, as SHA-256 digests of their bytes.
+# A profile holds text tags and any tag a writer likes, so one outside this set is not read to judge it.
+# Writers restamp a profile's header or clear its ID, so one description has several byte forms.
+ICC_PROFILES = frozenset(
+    (
+        "7e1c7ec53e8ea35fed3e169dee62115ac045f26c7bc256fab16a5c26c29eacbd",  # Display P3, 2015
+        "e468e89239fc0493d5e8fb9b014e91b210c6caa73c81edf04c3d21a734f377cc",  # Display P3, 2017
+        "20789fdbea9835251a4f0796c8bf45cbd964896044886540da21ffc7457af0ab",  # Display P3, 2022
+        "0ff6958f98684c61f6bbdce1368ddeaf3873baf84545baba482e920d92a914c0",  # Display P3, 2022 no ID
+        "2b3aa1645779a9e634744faf9b01e9102b0c9b88fd6deced7934df86b949af7e",  # sRGB IEC61966-2.1
+        "3f6d674174f3804eb0dabdac90ae17486e898c5063a66f861c116ea033da8301",  # the same, intent 1
+        "c4c1153168e817be61a676e403c370ce2c485a6bd54fbb59c3850845cfefad00",  # sRGB black scaled
+    )
+)
+
+# Longer than any profile above, so a stream inflating past it is not one of them.
+ICC_LIMIT = 64 * 1024
+
+# The most one JPEG ICC chunk holds, so a canonical profile is cut into chunks of exactly this.
+ICC_CHUNK = 65519
+
+# The whole iCCP bodies carried PNGs hold, each a known profile under a writer's name and stream.
+# A deflate stream leaves an encoder chosen bits, so a body is judged whole rather than by its profile.
+PNG_ICC_BODIES = frozenset(
+    (
+        "333962ab78f6b1617da54c17c149514b66224a85acd42a8d41b8659da6e1fee8",
+        "4498929ed08fb6ff44f5c949ff3db9f24c96e83dc3a7c902e68a0e5c56b7e128",
+        "4f47f046c1eec6e37fe29ea198105f78eda48d40322790cebf9ea7432a3848d7",
+        "51535f90fb8d7199c9d18a06fd2542440b00792662c2456d698eb79d123097ab",
+        "aef7388e8c19faf4e929686552ceddd00bd716bc26eccf3d98248a6db2d83eae",
+        "b822a21e5c3cf6be31556efe876bd193d37a382e40b59a8aa1f2ac105d6d52d3",
+    )
+)
+
 # TIFF tags that exist so a decoder renders the picture correctly, each in its one shape.
 # A shape is the tag's field types and exactly how many values it holds, so it has no room for more.
 # BitsPerSample holds one value per sample, so its count is the SamplesPerPixel value.
@@ -136,6 +176,27 @@ EXIF_SHAPE = {
 }
 EXIF_ALLOWED = frozenset(EXIF_SHAPE)
 
+# The values an enumerated tag defines, so its one shape holds a choice rather than free bytes.
+# A SHORT tag lists what each of its values may be, and any other tag lists its whole value.
+EXIF_VALUES: dict[int, frozenset[int] | frozenset[bytes]] = {
+    0x0001: frozenset((b"R98\x00", b"R03\x00", b"THM\x00")),
+    0x0002: frozenset((b"0100",)),
+    0x0102: frozenset((8,)),
+    0x0103: frozenset((1, 6)),
+    0x0106: frozenset((1, 2, 6)),
+    0x0112: frozenset(range(1, 9)),
+    0x0115: frozenset((1, 3)),
+    0x011C: frozenset((1, 2)),
+    0x0128: frozenset((1, 2, 3)),
+    0x0213: frozenset((1, 2)),
+    0x9000: frozenset(
+        (b"0200", b"0210", b"0220", b"0221", b"0230", b"0231", b"0232", b"0300")
+    ),
+    0x9101: frozenset((b"\x01\x02\x03\x00", b"\x04\x05\x06\x00", b"\x01\x00\x00\x00")),
+    0xA000: frozenset((b"0100", b"0101")),
+    0xA001: frozenset((1, 2, 0xFFFF)),
+}
+
 PNG_ALLOWED = {
     b"IHDR",
     b"PLTE",
@@ -158,6 +219,12 @@ PNG_ALLOWED = {
 WEBP_ALLOWED = {b"VP8 ", b"VP8L", b"VP8X", b"ALPH", b"ANIM", b"ANMF", b"ICCP"}
 WEBP_FRAME_ALLOWED = {b"VP8 ", b"VP8L", b"ALPH"}
 WEBP_FIXED = {b"VP8X": 10, b"ANIM": 6}
+
+# VP8X flag bits, for the chunks the flags announce and the bits the format reserves.
+# Exif and XMP chunks are never admitted, so a flag announcing one is as reserved as the rest.
+VP8X_ICC = 0x20
+VP8X_ANIMATION = 0x02
+VP8X_RESERVED = 0xC1 | 0x0C
 
 # The chunk runs one picture is drawn from, a lossy image with its alpha or a single image.
 WEBP_IMAGES = ([b"VP8 "], [b"VP8L"], [b"ALPH", b"VP8 "])
@@ -239,6 +306,7 @@ TRAILING = frozenset(
         "GIF trailing bytes after the trailer",
         "WebP trailing bytes outside any chunk",
         "WebP RIFF size does not match the file",
+        "WebP chunk pad byte not zero",
     )
 )
 
@@ -301,17 +369,20 @@ def exif_unrecognized(raw: bytes) -> set[str]:
                 out.add("Exif value of unknown type")
                 continue
             size = EXIF_TYPE_SIZE[kind] * number
+            at = entry + 8
             if size <= 4 and any(raw[entry + 8 + size : entry + 12]):
                 out.add("Exif inline value padding not zero")
             if size > 4:
-                value = struct.unpack_from(fmt + "I", raw, entry + 8)[0]
-                if value + size > len(raw):
+                at = struct.unpack_from(fmt + "I", raw, entry + 8)[0]
+                if at + size > len(raw):
                     out.add("Exif value runs past the segment")
                     continue
-                covered.append((value, value + size))
-                date = raw[value : value + size]
-                if tag in EXIF_DATES and not EXIF_DATE.fullmatch(date):
-                    out.add(f"Exif tag 0x{tag:04X} is not a date")
+                covered.append((at, at + size))
+            value = raw[at : at + size]
+            if tag in EXIF_DATES and not EXIF_DATE.fullmatch(value):
+                out.add(f"Exif tag 0x{tag:04X} is not a date")
+            if not exif_value_known(tag, kind, value, fmt):
+                out.add(f"Exif tag 0x{tag:04X} not a value its format defines")
         bits, samples = tags.get(0x0102), tags.get(0x0115)
         if bits and samples and bits[0] != samples[1]:
             out.add("Exif tag 0x0102 not in its one shape")
@@ -322,13 +393,24 @@ def exif_unrecognized(raw: bytes) -> set[str]:
         out.add("Exif holds more IFDs than this reads")
     # A value starts on a word boundary, so a single pad byte is the only gap a writer leaves.
     reach = 0
-    for low, high in sorted(covered):
+    for low, high in [*sorted(covered), (len(raw), len(raw))]:
         if low - reach > 1:
             out.add("Exif bytes no IFD references")
+        elif low - reach == 1 and raw[reach]:
+            out.add("Exif pad byte not zero")
         reach = max(reach, high)
-    if len(raw) - reach > 1:
-        out.add("Exif bytes no IFD references")
     return out
+
+
+def exif_value_known(tag: int, kind: int, value: bytes, fmt: str) -> bool:
+    """Whether an enumerated tag's value is one its format defines, where the tag is one."""
+    allowed = EXIF_VALUES.get(tag)
+    if allowed is None:
+        return True
+    if kind == 3:
+        shorts = struct.unpack(f"{fmt}{len(value) // 2}H", value[: len(value) // 2 * 2])
+        return all(short in allowed for short in shorts)
+    return value in allowed
 
 
 def jpeg_parts(data: bytes) -> tuple[list[Part], set[str]]:
@@ -418,6 +500,54 @@ def jpeg_app_fixed(name: bytes, segment: bytes) -> bool:
     )
 
 
+def jpeg_app_fields(name: bytes, segment: bytes) -> bool:
+    """Whether a JFIF or Adobe segment's fields each hold a value its format defines.
+
+    JFIF density is a free pair, so it is held to square pixels, the only shape a browser draws.
+    """
+    if name == b"JFIF\x00":
+        version, units = segment[5:7], segment[7]
+        return (
+            version in (b"\x01\x00", b"\x01\x01", b"\x01\x02")
+            and units <= 2
+            and (segment[8:10] == segment[10:12])
+        )
+    return segment[:11] == ADOBE_FIELDS and segment[11] <= 2
+
+
+def icc_known(profile: bytes) -> bool:
+    """Whether a profile is byte for byte one of the standard profiles this admits."""
+    return hashlib.sha256(profile).hexdigest() in ICC_PROFILES
+
+
+def icc_chunks(profile: bytes) -> list[bytes]:
+    """The one way to cut a profile into JPEG ICC chunk payloads, full chunks first and in order."""
+    pieces = [profile[i : i + ICC_CHUNK] for i in range(0, len(profile), ICC_CHUNK)]
+    count = len(pieces)
+    return [
+        b"ICC_PROFILE\x00" + bytes((n, count)) + piece
+        for n, piece in enumerate(pieces, 1)
+    ]
+
+
+def icc_profile(segments: list[bytes]) -> bytes:
+    """The profile a JPEG's ICC chunks hold, joined in their sequence order."""
+    return b"".join(s[14:] for s in sorted(segments, key=lambda s: s[12]))
+
+
+def jpeg_late_icc(data: bytes, parts: list[Part]) -> bool:
+    """Whether an ICC chunk follows the first scan, where a decoder has already read its profile."""
+    scanned = False
+    for marker, start, end in parts:
+        scanned = scanned or marker == 0xDA
+        if (
+            scanned
+            and jpeg_app_name(marker, data[start + 4 : end]) == b"ICC_PROFILE\x00"
+        ):
+            return True
+    return False
+
+
 def icc_numbering(segment: bytes) -> tuple[int, int] | None:
     """An ICC chunk's sequence number and chunk count, or None where they do not make sense."""
     if len(segment) < 14 or not 1 <= segment[12] <= segment[13]:
@@ -439,6 +569,13 @@ def icc_problems(segments: list[bytes]) -> set[str]:
     elif totals and set(sequence) != set(range(1, max(totals) + 1)):
         # No decoder reads an incomplete profile, so its chunks are bytes nothing draws.
         out.add("JPEG ICC profile incomplete")
+    elif segments and not out:
+        profile = icc_profile(segments)
+        if not icc_known(profile):
+            out.add("JPEG ICC profile not a known profile")
+        elif segments != icc_chunks(profile):
+            # Where a writer cuts a profile and in what order it lays the chunks are its choice.
+            out.add("JPEG ICC profile not in its canonical chunks")
     return out
 
 
@@ -461,6 +598,8 @@ def scan_jpeg(data: bytes) -> set[str]:
             names.add(name)
         if name in JPEG_APP_FIXED and not jpeg_app_fixed(name, segment):
             out.add(f"JPEG {label} segment not in its fixed shape")
+        elif name in JPEG_APP_FIXED and not jpeg_app_fields(name, segment):
+            out.add(f"JPEG {label} fields not values its format defines")
         if name == b"Exif\x00\x00":
             out |= exif_unrecognized(segment)
         elif name:
@@ -471,6 +610,8 @@ def scan_jpeg(data: bytes) -> set[str]:
             out.add("JPEG comment")
         elif marker not in JPEG_STRUCTURAL:
             out.add(f"JPEG marker 0x{marker:02X}")
+    if jpeg_late_icc(data, parts):
+        out.add("JPEG ICC chunk after the first scan")
     return out | icc_problems(profile)
 
 
@@ -495,11 +636,46 @@ def png_parts(data: bytes) -> tuple[list[Part], set[str]]:
     return parts, problems
 
 
+def png_icc_profile(body: bytes) -> bytes | None:
+    """The profile an iCCP chunk holds, or None where it is not one bounded deflate stream."""
+    _, _, rest = body.partition(b"\x00")
+    if rest[:1] != b"\x00":
+        return None
+    stream = zlib.decompressobj()
+    try:
+        profile = stream.decompress(rest[1:], ICC_LIMIT)
+    except zlib.error:
+        return None
+    done = stream.eof and not stream.unconsumed_tail and not stream.unused_data
+    return profile if done else None
+
+
+def png_icc_body(profile: bytes) -> bytes:
+    """The one iCCP body the normalizer writes, a single stored block that leaves no choice."""
+    stored = b"\x01" + struct.pack("<HH", len(profile), len(profile) ^ 0xFFFF) + profile
+    stream = b"\x78\x01" + stored + struct.pack(">I", zlib.adler32(profile))
+    return b"icc\x00\x00" + stream
+
+
+def png_icc_problems(body: bytes) -> set[str]:
+    """What keeps an iCCP chunk from being a pinned body or the canonical body of a known profile."""
+    if hashlib.sha256(body).hexdigest() in PNG_ICC_BODIES:
+        return set()
+    profile = png_icc_profile(body)
+    if profile is None or not icc_known(profile):
+        return {"PNG ICC profile not a known profile"}
+    if body != png_icc_body(profile):
+        return {"PNG iCCP not in its canonical form"}
+    return set()
+
+
 def scan_png(data: bytes) -> set[str]:
     parts, out = png_parts(data)
-    for chunk, _, _ in parts:
+    for chunk, start, end in parts:
         if chunk not in PNG_ALLOWED:
             out.add(f"PNG {chunk.decode('ascii', 'replace')} chunk")
+        elif chunk == b"iCCP":
+            out |= png_icc_problems(data[start + 8 : end - 4])
     return out
 
 
@@ -608,6 +784,8 @@ def riff_chunks(data: bytes, i: int, stop: int) -> tuple[list[Part], set[str]]:
         if i + span > stop:
             problems.add("WebP chunk runs past the end of the file")
             return parts, problems
+        if length & 1 and i + span <= stop and data[i + span - 1]:
+            problems.add("WebP chunk pad byte not zero")
         parts.append((data[i : i + 4], i, i + span))
         i += span
     if i < stop:
@@ -631,7 +809,7 @@ def scan_webp(data: bytes) -> set[str]:
                 if held not in WEBP_FRAME_ALLOWED:
                     label = bytes(held).decode("ascii", "replace")
                     out.add(f"WebP {label} chunk inside a frame")
-    return out | webp_layout(data)
+    return out | webp_layout(data) | webp_fields(data)
 
 
 def webp_layout(data: bytes) -> set[str]:
@@ -659,6 +837,53 @@ def webp_layout(data: bytes) -> set[str]:
         held = [bytes(c) for c, _, _ in inner if c in WEBP_FRAME_ALLOWED]
         if held not in WEBP_IMAGES:
             out.add("WebP frame not one image")
+    return out
+
+
+def webp_fields(data: bytes) -> set[str]:
+    """Name where a WebP's VP8X, ICCP or ANMF fields hold other than a value the format defines."""
+    parts, _ = webp_parts(data)
+    names = {bytes(chunk) for chunk, _, _ in parts}
+    out: set[str] = set()
+    canvas = None
+    for chunk, start, _ in parts:
+        length = struct.unpack_from("<I", data, start + 4)[0]
+        body = data[start + 8 : start + 8 + length]
+        if chunk == b"VP8X" and length == WEBP_FIXED[b"VP8X"]:
+            if body[0] & VP8X_RESERVED or any(body[1:4]):
+                out.add("WebP VP8X reserved bits not zero")
+            if not vp8x_agrees(body[0], names):
+                out.add("WebP VP8X flags disagree with its chunks")
+            canvas = (
+                1 + int.from_bytes(body[4:7], "little"),
+                1 + int.from_bytes(body[7:10], "little"),
+            )
+        elif chunk == b"ICCP" and not icc_known(body):
+            out.add("WebP ICC profile not a known profile")
+        elif chunk == b"ANMF" and length >= WEBP_FRAME_HEADER:
+            out |= anmf_header_problems(body[:WEBP_FRAME_HEADER], canvas)
+    return out
+
+
+def vp8x_agrees(flags: int, names: set[bytes]) -> bool:
+    """Whether the ICC and animation flags announce exactly the chunks a file holds."""
+    icc = bool(flags & VP8X_ICC) == (b"ICCP" in names)
+    return icc and bool(flags & VP8X_ANIMATION) == (b"ANIM" in names)
+
+
+def anmf_header_problems(header: bytes, canvas: tuple[int, int] | None) -> set[str]:
+    """What an animation frame's header holds beyond a frame drawn inside its canvas."""
+    out = {"WebP ANMF reserved bits not zero"} if header[15] & 0xFC else set()
+    x, y, width, height = (
+        int.from_bytes(header[i : i + 3], "little") for i in (0, 3, 6, 9)
+    )
+    # An offset is stored halved, and a size less one.
+    if (
+        canvas is None
+        or 2 * x + width + 1 > canvas[0]
+        or 2 * y + height + 1 > canvas[1]
+    ):
+        out.add("WebP ANMF frame outside the canvas")
     return out
 
 
