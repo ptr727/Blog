@@ -139,6 +139,10 @@ JPEG_APP_BENT = (
         [jpeg_segment(0xE2, ICC + bytes(8)), jpeg_segment(0xE2, ICC + PLANT_TEXT)],
         "repeated ICC chunk",
     ),
+    (
+        [jpeg_segment(0xE2, ICC[:12] + b"\x01\x03" + PLANT_TEXT)],
+        "incomplete ICC profile",
+    ),
 )
 
 
@@ -382,16 +386,34 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
         out.append((data + PLANT_TEXT[:7], "bytes appended"))
         frame = riff_chunk(b"VP8L", PLANT_TEXT)
         out.append((data + frame, "frame past the RIFF size"))
+        lossless = riff_chunk(b"VP8L", b"\x2f" + PLANT_TEXT)
         for name, start, end in parts:
             if name == b"ANMF":
-                inner = data[start + 8 : end] + chunk
-                grown = riff_chunk(b"ANMF", inner)
-                variant = with_riff_size(data[:start] + grown + data[end:])
-                out.append((variant, "EXIF inside ANMF"))
+                header = data[start + 8 : start + 24]
+                for held, what in (
+                    (data[start + 24 : end] + chunk, "EXIF inside ANMF"),
+                    (data[start + 24 : end] + lossless, "second image inside ANMF"),
+                    (b"", "ANMF with no image"),
+                ):
+                    grown = riff_chunk(b"ANMF", header + held)
+                    variant = with_riff_size(data[:start] + grown + data[end:])
+                    out.append((variant, what))
+            if name in (b"VP8 ", b"VP8L"):
+                variant = with_riff_size(data[:end] + lossless + data[end:])
+                out.append((variant, "second image"))
+                alpha = riff_chunk(b"ALPH", PLANT_TEXT)
+                variant = with_riff_size(data[:start] + alpha + data[start:])
+                out.append((variant, "ALPH not before a lossy image"))
             if name in (b"VP8X", b"ANIM"):
                 grown = riff_chunk(name, data[start + 8 : end] + PLANT_TEXT)
                 variant = with_riff_size(data[:start] + grown + data[end:])
                 out.append((variant, f"{name.decode()} with bytes past its fields"))
+                again = riff_chunk(name, (PLANT_TEXT + bytes(10))[: end - start - 8])
+                variant = with_riff_size(data[:end] + again + data[end:])
+                out.append((variant, f"repeated {name.decode()}"))
+        if any(name == b"ANMF" for name, _, _ in parts):
+            variant = with_riff_size(data + lossless)
+            out.append((variant, "image beside the frames"))
     elif kind == "iso":
         out.append((data + atom(b"udta", PLANT_TEXT), "udta atom appended"))
         deep = atom(b"udta", PLANT_TEXT)
