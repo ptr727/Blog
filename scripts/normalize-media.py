@@ -52,6 +52,7 @@ def normalize_png(data: bytes) -> bytes | None:
     """Drop every ancillary chunk that is not on the allowlist.
 
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
+    A file whose Exif turns the picture is refused, since dropping that Exif turns it back.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
@@ -59,6 +60,8 @@ def normalize_png(data: bytes) -> bytes | None:
     out = bytearray(data[:8])
     for chunk, start, end in parts:
         body = data[start + 8 : end - 4]
+        if chunk == b"eXIf" and exif_orientation(body) != 1:
+            return None
         if chunk == b"iCCP" and gate.png_icc_problems(body):
             profile = gate.png_icc_profile(body)
             if profile is None or not gate.icc_known(profile):
@@ -73,8 +76,11 @@ def normalize_png(data: bytes) -> bytes | None:
 
 
 def exif_orientation(segment: bytes) -> int:
-    """The Orientation value in an Exif segment, or 1 where it says nothing."""
-    raw = segment[segment.find(b"Exif\x00\x00") + 6 :]
+    """The Orientation value in an Exif segment or chunk, or 1 where it says nothing.
+
+    The value is read by its declared type, a SHORT or a LONG holding one value.
+    """
+    raw = segment.removeprefix(b"Exif\x00\x00")
     if raw[:2] not in (b"II", b"MM"):
         return 1
     fmt = "<" if raw[:2] == b"II" else ">"
@@ -88,7 +94,11 @@ def exif_orientation(segment: bytes) -> int:
             if entry + 12 > len(raw):
                 break
             if struct.unpack_from(fmt + "H", raw, entry)[0] == 0x0112:
-                value = struct.unpack_from(fmt + "H", raw, entry + 8)[0]
+                kind, many = struct.unpack_from(fmt + "HI", raw, entry + 2)
+                if kind not in (3, 4) or many != 1:
+                    return 1
+                size = "H" if kind == 3 else "I"
+                value = struct.unpack_from(fmt + size, raw, entry + 8)[0]
                 return value if 1 <= value <= 8 else 1
     except struct.error:
         return 1
@@ -203,6 +213,7 @@ def normalize_webp(data: bytes) -> bytes | None:
     """Drop every chunk that is not on the allowlist, and restate the RIFF size.
 
     The VP8X reserved bits and each pad byte are written as zero.
+    A file whose Exif turns the picture is refused, since dropping that Exif turns it back.
     """
     parts, problems = gate.webp_parts(data)
     if problems - gate.TRAILING:
@@ -211,6 +222,11 @@ def normalize_webp(data: bytes) -> bytes | None:
     body = bytearray()
     for chunk, start, _ in parts:
         length = struct.unpack_from("<I", data, start + 4)[0]
+        if (
+            chunk == b"EXIF"
+            and exif_orientation(data[start + 8 : start + 8 + length]) != 1
+        ):
+            return None
         if chunk not in gate.WEBP_ALLOWED:
             continue
         if gate.WEBP_FIXED.get(chunk, length) != length:
