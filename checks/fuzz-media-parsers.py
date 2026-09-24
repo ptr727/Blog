@@ -822,14 +822,18 @@ def main() -> int:
     for label, data in seeds:
         kind = container(data)
         check_variant(report, kind, data, f"{label}: unmodified")
-        found, raised = attempt(functools.partial(gate.scan, data))
-        if label.startswith("fixture:") and not raised and found:
-            report.fail("0 fixture not clean", kind, ", ".join(found), label)
-        # Planting and turning split the seed with the gate's own parsers, which may raise on it.
+        if label.startswith("fixture:"):
+            found, raised = attempt(functools.partial(gate.scan, data))
+            if not raised and found:
+                detail = ", ".join(sorted(found))
+                report.fail("0 fixture not clean", kind, detail, label)
+        # Planting and turning split the seed with the gate's parsers and this file's own code.
         planted, raised = attempt(functools.partial(plants, kind, data))
-        turns, turn_raised = attempt(functools.partial(turned, kind, data))
-        if raised or turn_raised:
-            report.fail("1 scanner raised", kind, raised or turn_raised, label)
+        if raised:
+            report.fail("0 variants not built", kind, f"plants {raised}", label)
+        turns, raised = attempt(functools.partial(turned, kind, data))
+        if raised:
+            report.fail("0 variants not built", kind, f"turned {raised}", label)
         for variant, what in planted or []:
             check_plant(report, kind, variant, f"{label}: {what}")
         for variant, what, disputed in turns or []:
