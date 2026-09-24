@@ -114,7 +114,7 @@ These are settled, in new media and old alike, and reopening one wastes a review
 
 **A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else.
 
-**The archive's bar is narrow because its images have been public for years.** A fill there covers a street address or house number, an email address, a clearly visible face, a landmark or a neighbor's property that places the home, an SSID or BSSID, a VIN or license plate, and a child's name beside an occupancy time. The author's name and handle, private-range and long-reassigned public addresses, machine names, serials and barcodes on retired equipment, and public credits all stay. So does a face too faint to recognize.
+**The archive's bar is narrow because its images have been public for years.** A fill there covers a street address or house number, an email address, a phone number, people's names on clothing, a clearly visible face, a landmark or a neighbor's property that places the home, an SSID or BSSID, a VIN or license plate, and a child's name beside an occupancy time. The author's name and handle, private-range and long-reassigned public addresses, machine names, serials and barcodes on retired equipment, and public credits all stay. So does a face too faint to recognize.
 
 Treat that as a judgment about the archive, never as a precedent for a new post.
 
