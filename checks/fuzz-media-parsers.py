@@ -74,6 +74,19 @@ def exif_gap_segment() -> bytes:
     return jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
 
 
+def exif_long_value_segment() -> bytes:
+    """An Exif APP1 whose allowed DateTime tag claims far more bytes than a date needs."""
+    value = b"2001:01:01 00:00:00\x00" + PLANT_TEXT
+    ifd0 = struct.pack("<H", 1) + struct.pack("<HHII", 0x0132, 2, len(value), 26)
+    tiff = b"II" + struct.pack("<HI", 42, 8) + ifd0 + struct.pack("<I", 0) + value
+    return jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+
+
+def with_riff_size(data: bytes) -> bytes:
+    """Restate a WebP's RIFF size to cover the whole file, as a decoder then reads it all."""
+    return data[:4] + struct.pack("<I", len(data) - 8) + data[8:]
+
+
 def jpeg_fixture(progressive: bool) -> bytes:
     """A structurally complete JPEG, with stuffed bytes and a restart marker in its scans."""
     sof = 0xC2 if progressive else 0xC0
@@ -146,6 +159,9 @@ def zip_fixture() -> bytes:
         archive.writestr("picture.png", png_fixture())
         archive.writestr("picture.jpg", jpeg_fixture(False))
         archive.writestr("notes.txt", b"not media")
+        for method in (zipfile.ZIP_LZMA, zipfile.ZIP_BZIP2):
+            picture = jpeg_fixture(True) * 8
+            archive.writestr(f"picture-{method}.jpg", picture, compress_type=method)
     return buffer.getvalue()
 
 
@@ -238,6 +254,10 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
         out.append(
             (data[:2] + exif_gap_segment() + data[2:], "bytes between Exif IFDs")
         )
+        long_value = exif_long_value_segment()
+        out.append(
+            (data[:2] + long_value + data[2:], "bytes inside an allowed Exif tag")
+        )
         for marker, start, end in parts:
             if marker != 0xE1 or data[start + 4 : start + 10] != b"Exif\x00\x00":
                 continue
@@ -261,8 +281,14 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
                 out.append((variant, f"sub-block inside {name}"))
     elif kind == "webp":
         parts, _ = gate.webp_parts(data)
-        out += at_boundaries(data, parts, riff_chunk(b"EXIF", PLANT_TEXT), "EXIF")
+        chunk = riff_chunk(b"EXIF", PLANT_TEXT)
+        out += [
+            (with_riff_size(variant), what)
+            for variant, what in at_boundaries(data, parts, chunk, "EXIF")
+        ]
         out.append((data + PLANT_TEXT[:7], "bytes appended"))
+        frame = riff_chunk(b"VP8L", PLANT_TEXT)
+        out.append((data + frame, "frame past the RIFF size"))
     elif kind == "iso":
         out.append((data + atom(b"udta", PLANT_TEXT), "udta atom appended"))
         deep = atom(b"udta", PLANT_TEXT)
@@ -321,13 +347,15 @@ def check_plant(report: Report, kind: str, data: bytes, where: str) -> None:
     found, raised = attempt(lambda: gate.scan(data))
     if raised:
         report.fail("1 scanner raised", kind, raised, where)
-    elif not found:
-        report.fail(
-            "4 planted metadata passed",
-            kind,
-            re.sub(r" at \d+$", "", where.split(": ", 1)[-1]),
-            where,
-        )
+        return
+    what = re.sub(r" at \d+$", "", where.split(": ", 1)[-1])
+    if not found:
+        report.fail("4 planted metadata passed", kind, what, where)
+    new, raised = attempt(lambda: normalizer.normalize_bytes(data))
+    if raised:
+        report.fail("2 normalizer raised", kind, raised, where)
+    elif isinstance(new, bytes) and PLANT_TEXT in new:
+        report.fail("4 normalizer kept planted metadata", kind, what, where)
 
 
 def check_archive(
@@ -354,7 +382,7 @@ def carried_seeds(
         root = REPO / tree
         if not root.is_dir():
             continue
-        for path in sorted(root.rglob("*")):
+        for path in sorted(root.rglob("*"), key=pathlib.Path.as_posix):
             if path.is_symlink() or not path.is_file() or path.suffix.lower() == ".zip":
                 continue
             if path.stat().st_size > max_size:

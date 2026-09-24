@@ -25,6 +25,7 @@ be vouched for, and `scripts/normalize-media.py` is what resolves that, by decod
 pixels and writing a fresh file that is clean by construction.
 """
 
+import lzma
 import pathlib
 import re
 import struct
@@ -78,6 +79,7 @@ ZIP_ERRORS = (
     EOFError,
     ValueError,
     zlib.error,
+    lzma.LZMAError,
 )
 
 # A file or archive member larger than this is reported rather than read.
@@ -189,6 +191,19 @@ ISO_CONTAINERS = {b"moov", b"trak", b"mdia", b"minf", b"stbl", b"edts", b"dinf"}
 COORDINATE = re.compile(rb"[+-]\d{2}\.\d{2,}[+-]\d{3}\.\d{2,}")
 
 
+# The most values an allowed tag holds, so an allowed tag cannot carry arbitrary bytes.
+# A tag not named here holds one value.
+EXIF_MAX_COUNT = {
+    0x0001: 4,  # InteropIndex
+    0x0002: 4,  # InteropVersion
+    0x0102: 4,  # BitsPerSample
+    0x0132: 20,  # DateTime
+    0x9000: 4,  # ExifVersion
+    0x9003: 20,  # DateTimeOriginal
+    0x9101: 4,  # ComponentsConfiguration
+    0xA000: 4,  # FlashpixVersion
+}
+
 # Bytes per value for each TIFF field type, so a value's extent can be bounded.
 EXIF_TYPE_SIZE = {
     1: 1,
@@ -263,6 +278,8 @@ def exif_unrecognized(raw: bytes) -> set[str]:
             tag, kind, number = struct.unpack_from(fmt + "HHI", raw, entry)
             if tag not in EXIF_ALLOWED:
                 out.add(f"Exif tag 0x{tag:04X}")
+            elif number > EXIF_MAX_COUNT.get(tag, 1):
+                out.add(f"Exif tag 0x{tag:04X} holds more values than it takes")
             if tag in (0x8769, 0x8825, 0xA005):
                 pending.append(struct.unpack_from(fmt + "I", raw, entry + 8)[0])
             if kind not in EXIF_TYPE_SIZE:
@@ -484,21 +501,23 @@ def scan_gif(data: bytes) -> set[str]:
 
 
 def webp_parts(data: bytes) -> tuple[list[Part], set[str]]:
-    """Split a WebP into its chunks, reading to the end of the file rather than the RIFF size."""
+    """Split a WebP into its chunks, reading no further than the RIFF size says a decoder does."""
     parts: list[Part] = []
     problems: set[str] = set()
-    if struct.unpack_from("<I", data, 4)[0] + 8 != len(data):
+    riff = struct.unpack_from("<I", data, 4)[0] + 8
+    stop = min(riff, len(data))
+    if riff != len(data):
         problems.add("WebP RIFF size does not match the file")
     i = 12
-    while i + 8 <= len(data):
+    while i + 8 <= stop:
         length = struct.unpack_from("<I", data, i + 4)[0]
         span = 8 + length + (length & 1)
-        if i + span > len(data):
+        if i + span > stop:
             problems.add("WebP chunk runs past the end of the file")
             return parts, problems
         parts.append((data[i : i + 4], i, i + span))
         i += span
-    if i != len(data):
+    if i < stop:
         problems.add("WebP trailing bytes outside any chunk")
     return parts, problems
 
