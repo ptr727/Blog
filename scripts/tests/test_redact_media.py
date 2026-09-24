@@ -168,6 +168,21 @@ class RedactMediaTests(unittest.TestCase):
         second = (self.repo / "static" / "b.jpg").read_bytes()
         self.assertEqual(sha256(second), entries["static/b.jpg"]["result"])
 
+    def test_failed_manifest_write_counts_held_files(self) -> None:
+        path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
+        real = redact.replace
+
+        def fail_on_manifest(target: pathlib.Path, data: bytes) -> None:
+            if target == self.manifest_path:
+                raise PermissionError("read-only")
+            real(target, data)
+
+        with mock.patch.object(redact, "replace", fail_on_manifest):
+            code, out = self.run_script("--record")
+        self.assertEqual(code, 1)
+        self.assertIn("1 not written", out)
+        self.assertEqual(path.read_bytes(), jpeg())
+
     def test_failed_replace_after_record_converges(self) -> None:
         path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
         real = redact.replace

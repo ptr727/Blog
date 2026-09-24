@@ -34,7 +34,7 @@ TREE = REPO / "content"
 FENCE = re.compile(r"(`{3,}|~{3,})")
 CLOSER = re.compile(r"(`{3,}|~{3,})[ \t]*\r?")
 BLOCK = re.compile(
-    r"#{1,6}(\s|$)|[-*+][ \t]+\S|0*1[.)][ \t]+\S|([-*_])[ \t]*(\2[ \t]*){2,}\r?$"
+    r"#{1,6}(\s|$)|[-*+][ \t]+\S|0{0,8}1[.)][ \t]+\S|([-*_])[ \t]*(\2[ \t]*){2,}\r?$"
 )
 
 SUBSTITUTIONS = {

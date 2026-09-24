@@ -34,7 +34,7 @@ class SubstituteTests(unittest.TestCase):
         self.assertEqual(substitute(f"> {CURLY}", "***", CURLY)[2], '"quoted"')
 
     def test_lazy_lines_that_cannot_interrupt_stay_quoted(self) -> None:
-        for line in ("2. item", "    - item"):
+        for line in ("2. item", "    - item", "0000000001. item"):
             with self.subTest(line=line):
                 out = substitute(f"> {CURLY}", f"{line} {CURLY}")
                 self.assertEqual(out[1], f"{line} {CURLY}")

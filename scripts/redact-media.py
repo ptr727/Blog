@@ -244,7 +244,7 @@ def main() -> int:
             errors.append(
                 f"{path.relative_to(REPO).as_posix()}: changed during the run"
             )
-    # Under --record the manifest and the files move together, so any failure writes neither.
+    # Under --record an entry that fails before writing starts writes neither the manifest nor any file.
     written = 0
     if apply and not (args.record and errors):
         # The manifest goes first, and each file is replaced whole, so an interrupted run leaves a file at its source.
@@ -253,7 +253,7 @@ def main() -> int:
                 replace(MANIFEST, (json.dumps(manifest, indent=2) + "\n").encode())
         except OSError as error:
             errors.append(f"{MANIFEST.name}: not written ({error})")
-            writes = []
+            moved.update(path for path, _, _ in writes)
         for path, _, new in writes:
             if path in moved:
                 continue
