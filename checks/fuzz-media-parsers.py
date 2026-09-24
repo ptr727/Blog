@@ -608,6 +608,19 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, int | None]]:
         segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
         what = "Orientation 6 in an IFD0 missing its next pointer"
         out.append((bare[:2] + segment + bare[2:], what, 6))
+        # A pointer that fits in an IFD0 cut short reaches a turn only some decoders read.
+        tiff = b"II" + struct.pack("<HI", 42, 26) + struct.pack("<H", 1)
+        tiff += struct.pack("<HHIHHI", 0x0112, 3, 1, 6, 0, 0)
+        tiff += struct.pack("<H", 5) + struct.pack("<HHII", 0x8769, 4, 1, 8)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 behind a pointer in an IFD0 cut short"
+        out.append((bare[:2] + segment + bare[2:], what, None))
+        # A last entry cut off after its value still spells a turn to a decoder reading what it can.
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 1)
+        tiff += struct.pack("<HHIH", 0x0112, 3, 1, 6)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 in an IFD0 entry cut off"
+        out.append((bare[:2] + segment + bare[2:], what, None))
     elif kind == "png":
         out.append(
             (

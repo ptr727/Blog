@@ -82,7 +82,7 @@ def exif_orientation(segment: bytes) -> int | None:
     Any other shape is None, so the file is refused rather than guessed at.
     Two entries that disagree are None too, in IFD0 or in an IFD reached from it, since decoders take either one.
     An IFD0 holding none counts as 1 against a value held elsewhere, since a browser reads IFD0.
-    An Orientation in an IFD0 inside the TIFF header, or whose entries run past the segment, is None too.
+    An Orientation in or reached from an IFD0 inside the TIFF header, or whose entries run past the segment, is None too.
     """
     raw = segment.removeprefix(b"Exif\x00\x00")
     if raw[:2] not in (b"II", b"MM"):
@@ -95,7 +95,7 @@ def exif_orientation(segment: bytes) -> int | None:
     except struct.error:
         return 1
     pending, seen = [ifd0], set()
-    values, placed = set(), False
+    values, placed, malformed = set(), False, False
     while pending and len(seen) < 16:
         offset = pending.pop()
         # Past IFD0, an IFD the gate cannot read whole is one it reports, so nothing here reads it either.
@@ -108,21 +108,23 @@ def exif_orientation(segment: bytes) -> int | None:
         whole = offset >= 8 and offset + 2 + count * 12 <= len(raw)
         if offset != ifd0 and (not whole or offset + 2 + count * 12 + 4 > len(raw)):
             continue
+        # Decoders differ on whether they read a malformed IFD0, or anything reached from it, at all.
+        malformed = malformed or not whole
         for index in range(count):
             entry = offset + 2 + index * 12
-            if entry + 12 > len(raw):
+            if entry + 2 > len(raw):
                 break
             tag = struct.unpack_from(fmt + "H", raw, entry)[0]
+            if tag == 0x0112 and malformed:
+                return None
+            if entry + 12 > len(raw):
+                break
             if tag == 0x0112:
-                # Decoders differ on whether they read a malformed IFD0 at all.
-                if not whole or struct.unpack_from(fmt + "HI", raw, entry + 2) != (
-                    3,
-                    1,
-                ):
+                if struct.unpack_from(fmt + "HI", raw, entry + 2) != (3, 1):
                     return None
                 values.add(struct.unpack_from(fmt + "H", raw, entry + 8)[0])
                 placed = placed or offset == ifd0
-            elif tag in gate.EXIF_POINTERS and whole:
+            elif tag in gate.EXIF_POINTERS:
                 pending.append(struct.unpack_from(fmt + "I", raw, entry + 8)[0])
     if values and not placed:
         values.add(1)
