@@ -533,12 +533,13 @@ DISPUTED = ((6, 8), (1, 6))
 PLACES = ((False, "then"), (True, "then in the sub-IFD"))
 
 
-def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
+def turned(kind: str, data: bytes) -> list[tuple[bytes, str, int | None]]:
     """Variants whose Exif turns the picture a quarter turn, as Orientation 6 does.
 
-    The flag marks a turn decoders disagree on, which only a refusal keeps.
+    Each carries the Orientation a browser shows, or None for a turn decoders disagree on,
+    which only a refusal keeps.
     """
-    out: list[tuple[bytes, str, bool]] = []
+    out: list[tuple[bytes, str, int | None]] = []
     if kind == "jpeg":
         parts, _ = gate.jpeg_parts(data)
         bare = data[:2] + b"".join(
@@ -552,19 +553,21 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
             segment = jpeg_segment(
                 0xE1, b"Exif\x00\x00" + orientation_tiff(order, size)
             )
-            out.append((bare[:2] + segment + bare[2:], what, size == 4))
+            out.append((bare[:2] + segment + bare[2:], what, None if size == 4 else 6))
         for (first, then), (sub, place) in itertools.product(
             (*DISPUTED, (6, 6)), PLACES
         ):
             tiff = orientation_tiff(b"II", 3, first, then, sub)
             segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
             what = f"Orientation {first} {place} {then}"
-            out.append((bare[:2] + segment + bare[2:], what, first != then))
+            out.append(
+                (bare[:2] + segment + bare[2:], what, None if first != then else 6)
+            )
         # An IFD0 saying nothing reads as upright in a browser, so a turn held only elsewhere is disputed.
         tiff = orientation_tiff(b"II", 3, 0, 6, sub=True)
         segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
         out.append(
-            (bare[:2] + segment + bare[2:], "Orientation 6 in the sub-IFD alone", True)
+            (bare[:2] + segment + bare[2:], "Orientation 6 in the sub-IFD alone", None)
         )
         # A zeroed pointer points at the header, whose bytes read as an IFD of thousands of entries.
         ifd0 = struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
@@ -573,7 +576,7 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
         tiff += struct.pack("<H", 0x0112) + bytes(10)
         segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
         out.append(
-            (bare[:2] + segment + bare[2:], "Orientation 6 by a zeroed pointer", False)
+            (bare[:2] + segment + bare[2:], "Orientation 6 by a zeroed pointer", 6)
         )
         # The gate reads at most 16 IFDs, so pointers it skips must not use up the reader's 16 first.
         bad = (*range(1, 8), *range(0xFFFF0000, 0xFFFF0008))
@@ -586,31 +589,43 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
         tiff += struct.pack("<HHIHHI", 0x0112, 3, 1, 8, 0, 0)
         segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
         what = "Orientation 6 then in the sub-IFD 8 behind skipped pointers"
-        out.append((bare[:2] + segment + bare[2:], what, True))
+        out.append((bare[:2] + segment + bare[2:], what, None))
+        # An IFD0 inside the TIFF header is no IFD, so the Orientation its bytes spell is none.
+        tiff = b"II" + struct.pack("<HI", 42, 0) + bytes(6)
+        tiff += struct.pack("<HHIHHI", 0x0112, 3, 1, 6, 0, 0)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 spelled by an IFD0 inside the header"
+        out.append((bare[:2] + segment + bare[2:], what, 1))
+        # An IFD0 cut short by the segment is read in part by some decoders and not at all by others.
+        tiff = b"II" + struct.pack("<HIH", 42, 8, 2)
+        tiff += struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        what = "Orientation 6 in an IFD0 cut short"
+        out.append((bare[:2] + segment + bare[2:], what, None))
     elif kind == "png":
         out.append(
             (
                 data[:33] + png_chunk(b"eXIf", orientation_tiff(b"II", 3)) + data[33:],
                 "eXIf with Orientation",
-                False,
+                6,
             )
         )
         for (first, then), (sub, place) in itertools.product(DISPUTED, PLACES):
             chunk = png_chunk(b"eXIf", orientation_tiff(b"II", 3, first, then, sub))
             what = f"eXIf Orientation {first} {place} {then}"
-            out.append((data[:33] + chunk + data[33:], what, True))
+            out.append((data[:33] + chunk + data[33:], what, None))
     elif kind == "webp":
         out.append(
             (
                 with_riff_size(data + riff_chunk(b"EXIF", orientation_tiff(b"II", 3))),
                 "EXIF with Orientation",
-                False,
+                6,
             )
         )
         for (first, then), (sub, place) in itertools.product(DISPUTED, PLACES):
             chunk = riff_chunk(b"EXIF", orientation_tiff(b"II", 3, first, then, sub))
             what = f"EXIF Orientation {first} {place} {then}"
-            out.append((with_riff_size(data + chunk), what, True))
+            out.append((with_riff_size(data + chunk), what, None))
     return out
 
 
@@ -698,9 +713,10 @@ def check_plant(report: Report, kind: str, data: bytes, where: str) -> None:
 
 
 def check_turn(
-    report: Report, kind: str, data: bytes, where: str, disputed: bool
+    report: Report, kind: str, data: bytes, where: str, shown: int | None
 ) -> None:
     report.cases += 1
+    disputed = shown is None
     what = where.split(": ", 1)[-1]
     found, raised = attempt(lambda: gate.scan(data))
     if raised:
@@ -725,7 +741,7 @@ def check_turn(
         report.fail("6 normalizer refused an undisputed orientation", kind, what, where)
     elif isinstance(new, bytes) and new:
         kept, raised = attempt(lambda: orientation(kind, new))
-        if raised or kept != 6:
+        if raised or kept != shown:
             report.fail("6 normalizer lost the orientation", kind, what, where)
 
 
@@ -836,8 +852,8 @@ def main() -> int:
             report.fail("0 variants not built", kind, f"turned {raised}", label)
         for variant, what in planted or []:
             check_plant(report, kind, variant, f"{label}: {what}")
-        for variant, what, disputed in turns or []:
-            check_turn(report, kind, variant, f"{label}: {what}", disputed)
+        for variant, what, shown in turns or []:
+            check_turn(report, kind, variant, f"{label}: {what}", shown)
         for _ in range(args.cases):
             if time.monotonic() > deadline:
                 break

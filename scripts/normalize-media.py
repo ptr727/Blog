@@ -82,6 +82,7 @@ def exif_orientation(segment: bytes) -> int | None:
     Any other shape is None, so the file is refused rather than guessed at.
     Two entries that disagree are None too, in IFD0 or in an IFD reached from it, since decoders take either one.
     An IFD0 holding none counts as 1 against a value held elsewhere, since a browser reads IFD0.
+    An IFD0 that runs past the segment is None, and one inside the TIFF header holds nothing.
     """
     raw = segment.removeprefix(b"Exif\x00\x00")
     if raw[:2] not in (b"II", b"MM"):
@@ -97,19 +98,19 @@ def exif_orientation(segment: bytes) -> int | None:
     values, placed = set(), False
     while pending and len(seen) < 16:
         offset = pending.pop()
-        # Past IFD0, an IFD the gate cannot read whole is one it reports, so nothing here reads it either.
+        # An IFD the gate cannot read whole is one it reports, so nothing here reads it either.
         # An offset it skips costs it none of its 16 IFDs, so it costs none here.
-        outside = offset + 2 > len(raw) or (offset < 8 and offset != ifd0)
-        if offset in seen or outside:
+        if offset in seen or offset < 8 or offset + 2 > len(raw):
             continue
         seen.add(offset)
         count = struct.unpack_from(fmt + "H", raw, offset)[0]
-        if offset != ifd0 and offset + 2 + count * 12 + 4 > len(raw):
+        if offset + 2 + count * 12 + 4 > len(raw):
+            # Decoders differ on an IFD0 cut short, so its entries are neither read nor dropped.
+            if offset == ifd0:
+                return None
             continue
         for index in range(count):
             entry = offset + 2 + index * 12
-            if entry + 12 > len(raw):
-                break
             tag = struct.unpack_from(fmt + "H", raw, entry)[0]
             if tag == 0x0112:
                 if struct.unpack_from(fmt + "HI", raw, entry + 2) != (3, 1):
