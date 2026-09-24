@@ -105,6 +105,44 @@ EXIF_BENT = (
         "DateTime not a date",
     ),
     ([ORIENTATION, (0x0132, 2, 4, b"abc\x00")], "short DateTime"),
+    ([ORIENTATION, (0x9000, 7, 2, b"02\x00\x00")], "ExifVersion with fewer values"),
+    ([ORIENTATION, (0x0102, 3, 2, struct.pack("<HH", 8, 8))], "BitsPerSample of 2"),
+    (
+        [
+            ORIENTATION,
+            (0x0115, 3, 1, struct.pack("<H", 1)),
+            (0x0102, 3, 3, struct.pack("<HHH", 8, 8, 8)),
+        ],
+        "BitsPerSample of 3 for 1 sample",
+    ),
+    ([(0x0112, 3, 1, struct.pack("<H", 6) + b"pl")], "Orientation padding"),
+)
+
+JFIF = b"JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
+ADOBE = b"Adobe\x00\x64\x00\x00\x00\x00\x01"
+ICC = b"ICC_PROFILE\x00\x01\x01"
+SOF = jpeg_segment(0xC0, b"\x08\x00\x08\x00\x08\x01\x01\x11\x00")
+SOS = jpeg_segment(0xDA, b"\x01\x01\x00\x00\x3f\x00")
+
+# APP segments each already allowed alone, planted so that their shape or repetition carries bytes.
+JPEG_APP_BENT = (
+    ([jpeg_segment(0xE0, JFIF + PLANT_TEXT)], "JFIF with bytes past its fields"),
+    (
+        [jpeg_segment(0xE0, JFIF[:12] + b"\x03\x01" + PLANT_TEXT + b"\x00\x00")],
+        "JFIF thumbnail",
+    ),
+    ([jpeg_segment(0xEE, ADOBE + PLANT_TEXT)], "Adobe with bytes past its fields"),
+    ([jpeg_segment(0xE0, JFIF)] * 2, "repeated JFIF"),
+    ([jpeg_segment(0xEE, ADOBE)] * 2, "repeated Adobe"),
+    ([exif_segment()] * 8, "repeated Exif"),
+    (
+        [jpeg_segment(0xE2, ICC + bytes(8)), jpeg_segment(0xE2, ICC + PLANT_TEXT)],
+        "repeated ICC chunk",
+    ),
+    (
+        [jpeg_segment(0xE2, ICC[:12] + b"\x01\x03" + PLANT_TEXT)],
+        "incomplete ICC profile",
+    ),
 )
 
 
@@ -143,8 +181,7 @@ def dated_jpeg_fixture() -> bytes:
             (0x0132, 2, 20, DATE),
         ]
     )
-    plain = jpeg_fixture(False)
-    return plain[:2] + exif + plain[2:]
+    return jpeg_fixture(False).replace(exif_segment(), exif)
 
 
 def png_chunk(name: bytes, body: bytes) -> bytes:
@@ -180,6 +217,15 @@ def riff_chunk(name: bytes, body: bytes) -> bytes:
 
 def webp_fixture() -> bytes:
     body = riff_chunk(b"VP8X", bytes(10)) + riff_chunk(b"VP8L", b"\x2f\x00\x00\x00\x00")
+    return b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + body
+
+
+def animated_webp_fixture() -> bytes:
+    """An animated WebP of one frame, which holds its own chunks inside an ANMF."""
+    frame = bytes(12) + b"\x64\x00\x00\x00"
+    frame += riff_chunk(b"VP8L", b"\x2f\x00\x00\x00\x00")
+    body = riff_chunk(b"VP8X", b"\x02" + bytes(9)) + riff_chunk(b"ANIM", bytes(6))
+    body += riff_chunk(b"ANMF", frame)
     return b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + body
 
 
@@ -295,9 +341,20 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
         out.append(
             (data[:2] + exif_gap_segment() + data[2:], "bytes between Exif IFDs")
         )
+        # A shape plant goes into a seed with no APP segments, so that repetition cannot report it.
+        bare = data[:2] + b"".join(
+            data[s:e] for m, s, e in parts if not 0xE0 <= m <= 0xEF
+        )
         for entries, what in EXIF_BENT:
             bent = exif_ifd_segment(entries)
-            out.append((data[:2] + bent + data[2:], f"Exif {what}"))
+            out.append((bare[:2] + bent + bare[2:], f"Exif {what}"))
+        for segments, what in JPEG_APP_BENT:
+            out.append((bare[:2] + b"".join(segments) + bare[2:], what))
+        eoi = [s for m, s, _ in parts if m == 0xD9]
+        if eoi:
+            second = b"\xff\xd8" + SOF + SOS + PLANT_TEXT
+            out.append((data[: eoi[-1]] + second + data[eoi[-1] :], "second stream"))
+            out.append((data[: eoi[-1]] + SOF + data[eoi[-1] :], "second frame header"))
         for marker, start, end in parts:
             if marker != 0xE1 or data[start + 4 : start + 10] != b"Exif\x00\x00":
                 continue
@@ -329,6 +386,38 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
         out.append((data + PLANT_TEXT[:7], "bytes appended"))
         frame = riff_chunk(b"VP8L", PLANT_TEXT)
         out.append((data + frame, "frame past the RIFF size"))
+        lossless = riff_chunk(b"VP8L", b"\x2f" + PLANT_TEXT)
+        for name, start, end in parts:
+            payload = start + 8 + struct.unpack_from("<I", data, start + 4)[0]
+            if name == b"ANMF":
+                held_at = start + 8 + gate.WEBP_FRAME_HEADER
+                header = data[start + 8 : held_at]
+                for held, what in (
+                    (data[held_at:payload] + chunk, "EXIF inside ANMF"),
+                    (data[held_at:payload] + lossless, "second image inside ANMF"),
+                    (b"", "ANMF with no image"),
+                ):
+                    grown = riff_chunk(b"ANMF", header + held)
+                    variant = with_riff_size(data[:start] + grown + data[end:])
+                    out.append((variant, what))
+            if name in (b"VP8 ", b"VP8L"):
+                variant = with_riff_size(data[:end] + lossless + data[end:])
+                out.append((variant, "second image"))
+                alpha = riff_chunk(b"ALPH", PLANT_TEXT)
+                variant = with_riff_size(data[:start] + alpha + data[start:])
+                out.append((variant, "ALPH not before a lossy image"))
+            if name in (b"VP8X", b"ANIM"):
+                grown = riff_chunk(name, data[start + 8 : payload] + PLANT_TEXT)
+                variant = with_riff_size(data[:start] + grown + data[end:])
+                out.append((variant, f"{name.decode()} with bytes past its fields"))
+                again = riff_chunk(
+                    name, (PLANT_TEXT + bytes(10))[: payload - start - 8]
+                )
+                variant = with_riff_size(data[:end] + again + data[end:])
+                out.append((variant, f"repeated {name.decode()}"))
+        if any(name == b"ANMF" for name, _, _ in parts):
+            variant = with_riff_size(data + lossless)
+            out.append((variant, "image beside the frames"))
     elif kind == "iso":
         out.append((data + atom(b"udta", PLANT_TEXT), "udta atom appended"))
         deep = atom(b"udta", PLANT_TEXT)
@@ -396,6 +485,13 @@ def check_plant(report: Report, kind: str, data: bytes, where: str) -> None:
         report.fail("2 normalizer raised", kind, raised, where)
     elif isinstance(new, bytes) and PLANT_TEXT in new:
         report.fail("4 normalizer kept planted metadata", kind, what, where)
+    elif isinstance(new, bytes) and new:
+        again, raised = attempt(lambda: gate.scan(new))
+        if raised:
+            report.fail("1 scanner raised on normalized output", kind, raised, where)
+        elif again:
+            detail = ", ".join(sorted(again))
+            report.fail("2 normalizer output rejected", kind, detail, where)
 
 
 def check_archive(
@@ -452,6 +548,12 @@ def main() -> int:
         "--budget", type=float, default=90.0, help="seconds before stopping"
     )
     parser.add_argument(
+        "--min-cases",
+        type=int,
+        default=4000,
+        help="fewest cases a run the time budget cut short may pass with",
+    )
+    parser.add_argument(
         "--no-carried", action="store_true", help="constructed fixtures only"
     )
     args = parser.parse_args()
@@ -465,6 +567,7 @@ def main() -> int:
         ("fixture:png", png_fixture()),
         ("fixture:gif", gif_fixture()),
         ("fixture:webp", webp_fixture()),
+        ("fixture:webp-animated", animated_webp_fixture()),
         ("fixture:iso", iso_fixture()),
     ]
     if not args.no_carried:
@@ -501,10 +604,12 @@ def main() -> int:
         print(f"{prop}: {kind}{suffix}, {count} case(s), first {first}")
     budget = ", stopped at the time budget" if stopped else ""
     print(f"\nfuzz    : {report.cases} case(s) over {len(seeds)} seed(s){budget}")
+    short = stopped and report.cases < args.min_cases
+    if short:
+        print(f"the time budget stopped the run below {args.min_cases} case(s)")
     if report.failures:
         print(f"{len(report.failures)} distinct failure(s)")
-        return 1
-    return 0
+    return 1 if report.failures or short else 0
 
 
 if __name__ == "__main__":

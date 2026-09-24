@@ -87,17 +87,25 @@ SIZE_LIMIT = 256 * 1024 * 1024
 
 # JPEG markers that carry picture data or coding tables rather than description.
 # TEM and the restart markers stand alone, so they are skipped before a length is read.
+JPEG_FRAME = frozenset(
+    (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF)
+)
 JPEG_STRUCTURAL = (
     {0xD8, 0xD9, 0xDA, 0xDB, 0xC4, 0xCC, 0xDD, 0x01}
     | set(range(0xD0, 0xD8))
-    | {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}
+    | JPEG_FRAME
 )
 
 # JPEG APP segments that carry rendering data rather than description.
 JPEG_APP_ALLOWED = ((0xE0, b"JFIF\x00"), (0xE2, b"ICC_PROFILE\x00"), (0xEE, b"Adobe"))
 
+# The one length of each admitted APP segment whose fields are fixed, so it has no room for more.
+# JFIF is its fields plus a thumbnail sized by its last two, which have to be zero.
+JPEG_APP_FIXED = {b"JFIF\x00": 14, b"Adobe": 12}
+
 # TIFF tags that exist so a decoder renders the picture correctly, each in its one shape.
-# A shape is the tag's field types and how many values it holds, so it has no room for more.
+# A shape is the tag's field types and exactly how many values it holds, so it has no room for more.
+# BitsPerSample holds one value per sample, so its count is the SamplesPerPixel value.
 # A tag outside this set is not judged, it is simply not vouched for.
 SHORT_OR_LONG = frozenset((3, 4))
 EXIF_SHAPE = {
@@ -148,6 +156,14 @@ PNG_ALLOWED = {
 }
 
 WEBP_ALLOWED = {b"VP8 ", b"VP8L", b"VP8X", b"ALPH", b"ANIM", b"ANMF", b"ICCP"}
+WEBP_FRAME_ALLOWED = {b"VP8 ", b"VP8L", b"ALPH"}
+WEBP_FIXED = {b"VP8X": 10, b"ANIM": 6}
+
+# The chunk runs one picture is drawn from, a lossy image with its alpha or a single image.
+WEBP_IMAGES = ([b"VP8 "], [b"VP8L"], [b"ALPH", b"VP8 "])
+
+# An animation frame's position, size, duration and flags, which precede its own chunks.
+WEBP_FRAME_HEADER = 16
 
 # ISO base media atoms that hold the picture, the timing, or nothing at all.
 ISO_ALLOWED = {
@@ -268,24 +284,25 @@ def exif_unrecognized(raw: bytes) -> set[str]:
             out.add("Exif IFD runs past the segment")
             continue
         covered.append((offset, end))
-        tags: set[int] = set()
+        tags: dict[int, tuple[int, int]] = {}
         for index in range(count):
             entry = offset + 2 + index * 12
             tag, kind, number = struct.unpack_from(fmt + "HHI", raw, entry)
-            types, most = EXIF_SHAPE.get(tag, (frozenset(), 0))
+            types, exact = EXIF_SHAPE.get(tag, (frozenset(), 0))
+            counts = (1, 3) if tag == 0x0102 else (exact,)
             if tag not in EXIF_ALLOWED:
                 out.add(f"Exif tag 0x{tag:04X}")
-            elif tag in tags or kind not in types or not 0 < number <= most:
+            elif tag in tags or kind not in types or number not in counts:
                 out.add(f"Exif tag 0x{tag:04X} not in its one shape")
-            elif tag in EXIF_DATES and number != 20:
-                out.add(f"Exif tag 0x{tag:04X} is not a date")
-            tags.add(tag)
+            tags[tag] = (number, struct.unpack_from(fmt + "H", raw, entry + 8)[0])
             if tag in (0x8769, 0x8825, 0xA005):
                 pending.append(struct.unpack_from(fmt + "I", raw, entry + 8)[0])
             if kind not in EXIF_TYPE_SIZE:
                 out.add("Exif value of unknown type")
                 continue
             size = EXIF_TYPE_SIZE[kind] * number
+            if size <= 4 and any(raw[entry + 8 + size : entry + 12]):
+                out.add("Exif inline value padding not zero")
             if size > 4:
                 value = struct.unpack_from(fmt + "I", raw, entry + 8)[0]
                 if value + size > len(raw):
@@ -295,6 +312,9 @@ def exif_unrecognized(raw: bytes) -> set[str]:
                 date = raw[value : value + size]
                 if tag in EXIF_DATES and not EXIF_DATE.fullmatch(date):
                     out.add(f"Exif tag 0x{tag:04X} is not a date")
+        bits, samples = tags.get(0x0102), tags.get(0x0115)
+        if bits and samples and bits[0] != samples[1]:
+            out.add("Exif tag 0x0102 not in its one shape")
         # A chained IFD is a second image, usually a thumbnail of the frame before any edit.
         if struct.unpack_from(fmt + "I", raw, end - 4)[0]:
             out.add("Exif chained IFD")
@@ -359,6 +379,11 @@ def jpeg_parts(data: bytes) -> tuple[list[Part], set[str]]:
         i = end
     if not any(marker == 0xDA for marker, _, _ in parts):
         problems.add("JPEG has no scan")
+    # A second stream is picture data no decoder draws, so it is not dropped as if it were a tag.
+    if any(marker == 0xD8 for marker, _, _ in parts):
+        problems.add("JPEG second start of image")
+    if sum(marker in JPEG_FRAME for marker, _, _ in parts) > 1:
+        problems.add("JPEG second frame header")
     return parts, problems
 
 
@@ -377,23 +402,76 @@ def entropy_end(data: bytes, i: int) -> int:
             return i
 
 
+def jpeg_app_name(marker: int, segment: bytes) -> bytes | None:
+    """The name an APP segment is admitted by, or None where it is not admitted."""
+    if marker == 0xE1 and segment.startswith(b"Exif\x00\x00"):
+        return b"Exif\x00\x00"
+    return next(
+        (p for m, p in JPEG_APP_ALLOWED if m == marker and segment.startswith(p)), None
+    )
+
+
+def jpeg_app_fixed(name: bytes, segment: bytes) -> bool:
+    """Whether a JFIF or Adobe segment is exactly its fields, with no thumbnail."""
+    return len(segment) == JPEG_APP_FIXED[name] and (
+        name != b"JFIF\x00" or segment[12:14] == b"\x00\x00"
+    )
+
+
+def icc_numbering(segment: bytes) -> tuple[int, int] | None:
+    """An ICC chunk's sequence number and chunk count, or None where they do not make sense."""
+    if len(segment) < 14 or not 1 <= segment[12] <= segment[13]:
+        return None
+    return segment[12], segment[13]
+
+
+def icc_problems(segments: list[bytes]) -> set[str]:
+    """What keeps a JPEG's ICC chunks from being one complete profile holding each chunk once."""
+    numbers = [icc_numbering(segment) for segment in segments]
+    known = [n for n in numbers if n is not None]
+    out = {"JPEG ICC chunk not numbered"} if len(known) < len(numbers) else set()
+    sequence = [n[0] for n in known]
+    if len(set(sequence)) < len(sequence):
+        out.add("JPEG repeated ICC chunk")
+    totals = {n[1] for n in known}
+    if len(totals) > 1:
+        out.add("JPEG ICC chunks disagree on their count")
+    elif totals and set(sequence) != set(range(1, max(totals) + 1)):
+        # No decoder reads an incomplete profile, so its chunks are bytes nothing draws.
+        out.add("JPEG ICC profile incomplete")
+    return out
+
+
 def scan_jpeg(data: bytes) -> set[str]:
     parts, out = jpeg_parts(data)
+    names: set[bytes] = set()
+    profile: list[bytes] = []
     for marker, start, end in parts:
         segment = data[start + 4 : end]
         if marker in (0x01, 0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
             continue
-        if any(marker == m and segment.startswith(p) for m, p in JPEG_APP_ALLOWED):
-            continue
-        if marker == 0xE1 and segment.startswith(b"Exif\x00\x00"):
+        name = jpeg_app_name(marker, segment)
+        label = name.rstrip(b"\x00").decode("ascii") if name else ""
+        # A segment that passes alone still carries bytes once per repeat, so each admits one.
+        if name == b"ICC_PROFILE\x00":
+            profile.append(segment)
+        elif name:
+            if name in names:
+                out.add(f"JPEG repeated {label} segment")
+            names.add(name)
+        if name in JPEG_APP_FIXED and not jpeg_app_fixed(name, segment):
+            out.add(f"JPEG {label} segment not in its fixed shape")
+        if name == b"Exif\x00\x00":
             out |= exif_unrecognized(segment)
+        elif name:
+            continue
         elif 0xE0 <= marker <= 0xEF:
             out.add(f"JPEG APP{marker - 0xE0} segment")
         elif marker == 0xFE:
             out.add("JPEG comment")
         elif marker not in JPEG_STRUCTURAL:
             out.add(f"JPEG marker 0x{marker:02X}")
-    return out
+    return out | icc_problems(profile)
 
 
 def png_parts(data: bytes) -> tuple[list[Part], set[str]]:
@@ -505,13 +583,25 @@ def scan_gif(data: bytes) -> set[str]:
 
 def webp_parts(data: bytes) -> tuple[list[Part], set[str]]:
     """Split a WebP into its chunks, reading no further than the RIFF size says a decoder does."""
-    parts: list[Part] = []
-    problems: set[str] = set()
     riff = struct.unpack_from("<I", data, 4)[0] + 8
-    stop = min(riff, len(data))
+    parts, problems = riff_chunks(data, 12, min(riff, len(data)))
     if riff != len(data):
         problems.add("WebP RIFF size does not match the file")
-    i = 12
+    return parts, problems
+
+
+def anmf_parts(data: bytes, start: int) -> tuple[list[Part], set[str]]:
+    """Split the ANMF frame at start into the chunks it holds after its header."""
+    length = struct.unpack_from("<I", data, start + 4)[0]
+    if length < WEBP_FRAME_HEADER:
+        return [], {"WebP ANMF frame shorter than its header"}
+    return riff_chunks(data, start + 8 + WEBP_FRAME_HEADER, start + 8 + length)
+
+
+def riff_chunks(data: bytes, i: int, stop: int) -> tuple[list[Part], set[str]]:
+    """Split the bytes from i to stop into RIFF chunks."""
+    parts: list[Part] = []
+    problems: set[str] = set()
     while i + 8 <= stop:
         length = struct.unpack_from("<I", data, i + 4)[0]
         span = 8 + length + (length & 1)
@@ -527,9 +617,48 @@ def webp_parts(data: bytes) -> tuple[list[Part], set[str]]:
 
 def scan_webp(data: bytes) -> set[str]:
     parts, out = webp_parts(data)
-    for chunk, _, _ in parts:
+    for chunk, start, _ in parts:
+        name = bytes(chunk).decode("ascii", "replace")
+        length = struct.unpack_from("<I", data, start + 4)[0]
         if chunk not in WEBP_ALLOWED:
-            out.add(f"WebP {bytes(chunk).decode('ascii', 'replace')} chunk")
+            out.add(f"WebP {name} chunk")
+        elif WEBP_FIXED.get(chunk, length) != length:
+            out.add(f"WebP {name} chunk not in its fixed shape")
+        elif chunk == b"ANMF":
+            inner, problems = anmf_parts(data, start)
+            out |= problems
+            for held, _, _ in inner:
+                if held not in WEBP_FRAME_ALLOWED:
+                    label = bytes(held).decode("ascii", "replace")
+                    out.add(f"WebP {label} chunk inside a frame")
+    return out | webp_layout(data)
+
+
+def webp_layout(data: bytes) -> set[str]:
+    """Name where a WebP's allowlisted chunks hold other than one picture per frame.
+
+    A decoder draws one image and passes over any other, so a second one is bytes nothing draws.
+    """
+    parts, _ = webp_parts(data)
+    names = [bytes(chunk) for chunk, _, _ in parts if chunk in WEBP_ALLOWED]
+    out = {
+        f"WebP repeated {once.decode()} chunk"
+        for once in (b"VP8X", b"ICCP", b"ANIM")
+        if names.count(once) > 1
+    }
+    if b"VP8X" not in names and names not in WEBP_IMAGES[:2]:
+        out.add("WebP extended chunks with no VP8X")
+    drawn = [name for name in names if name in WEBP_FRAME_ALLOWED]
+    frames = [start for chunk, start, _ in parts if chunk == b"ANMF"]
+    if not frames and drawn not in WEBP_IMAGES:
+        out.add("WebP not one image")
+    if frames and drawn:
+        out.add("WebP image beside its frames")
+    for start in frames:
+        inner, _ = anmf_parts(data, start)
+        held = [bytes(c) for c, _, _ in inner if c in WEBP_FRAME_ALLOWED]
+        if held not in WEBP_IMAGES:
+            out.add("WebP frame not one image")
     return out
 
 
