@@ -704,7 +704,10 @@ def check_turn(
     if raised:
         report.fail("2 normalizer raised", kind, raised, where)
         return
-    if disputed and not gate.scan(data):
+    found, raised = attempt(lambda: gate.scan(data))
+    if raised:
+        report.fail("1 scanner raised", kind, raised, where)
+    elif disputed and not found:
         what = where.split(": ", 1)[-1]
         report.fail("4 gate admitted a disputed orientation", kind, what, where)
     if disputed and isinstance(new, bytes) and new:
