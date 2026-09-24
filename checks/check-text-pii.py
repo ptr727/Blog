@@ -46,11 +46,10 @@ EMAIL = re.compile(
 # A retina asset name such as icon@2x.png has the shape of an address.
 FILE_SUFFIXES = frozenset(("png", "jpg", "jpeg", "gif", "webp", "svg", "avif"))
 
-# A label such as MAC: may touch the address, and a seventh hex group means a longer value.
+# A label such as MAC: may touch the address, and a longer hex run still carries one.
 MAC = re.compile(
-    r"(?<![\w-])(?<!\W[0-9A-Fa-f]{2}[:-])(?<!^[0-9A-Fa-f]{2}[:-])"
-    r"(?:[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}"
-    r"|[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})(?![\w-]|[:.][0-9A-Fa-f])"
+    r"(?<![0-9A-Za-z])(?:[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}"
+    r"|[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})(?![0-9A-Za-z])"
 )
 
 IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w]|\.\d)")
@@ -62,11 +61,11 @@ IPV6 = re.compile(r"(?<![\w:.])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}(?![\w:
 
 # Three decimal places is about a hundred meters, which is a block rather than a city.
 DECIMAL_PAIR = re.compile(
-    r"(?<![\w.])([-+]?\d{1,3}\.\d{3,})\s*°?\s*([NS])?\s*([,/]|\s)\s*"
-    r"([-+]?\d{1,3}\.\d{3,})\s*°?\s*([EW])?(?![\w.])"
+    r"(?<![\w.])([-+]?\d{1,3}\.\d{3,})\s*°?\s*([NSEW])?\s*([,/]|\s)\s*"
+    r"([-+]?\d{1,3}\.\d{3,})\s*°?\s*([NSEW])?(?![\w.])"
 )
 COORDINATE_KEY = re.compile(
-    r"\b(?:lat|latitude|lon|lng|long|longitude)[\"']?\s*[:=]\s*[\"']?[-+]?\d{1,3}\.\d{3,}",
+    r"(?<![A-Za-z])(?:lat|latitude|lon|lng|longitude)[\"']?\s*[:=\s]\s*[\"']?[-+]?\d{1,3}\.\d{3,}",
     re.IGNORECASE,
 )
 DMS = re.compile(
@@ -134,19 +133,33 @@ def is_public(text: str) -> bool:
 
 
 def is_coordinate(
-    lat: str, lat_hemi: str | None, sep: str, lon: str, lon_hemi: str | None
+    first: str, first_hemi: str | None, sep: str, second: str, second_hemi: str | None
 ) -> bool:
-    """Whether two decimals read as a coordinate pair, in either order, rather than two table cells."""
-    if sep.isspace() and not (lat_hemi and lon_hemi):
+    """Whether two decimals read as a coordinate pair rather than two measurements."""
+    if sep.isspace() and not (first_hemi and second_hemi):
         return False
-    if (lat_hemi and lat.startswith(("-", "+"))) or (
-        lon_hemi and lon.startswith(("-", "+"))
+    if (first_hemi and first.startswith(("-", "+"))) or (
+        second_hemi and second.startswith(("-", "+"))
     ):
         return False
-    a, b = abs(float(lat)), abs(float(lon))
-    return (a <= 90 and b <= 180) or (
-        not (lat_hemi or lon_hemi) and a <= 180 and b <= 90
-    )
+    a, b = abs(float(first)), abs(float(second))
+    if first_hemi and second_hemi:
+        if {first_hemi, second_hemi} not in (
+            {"N", "E"},
+            {"N", "W"},
+            {"S", "E"},
+            {"S", "W"},
+        ):
+            return False
+        lat, lon = (a, b) if first_hemi in "NS" else (b, a)
+        return lat <= 90 and lon <= 180
+    if first_hemi or second_hemi:
+        return False
+    if a <= 90 and b <= 180:
+        return True
+    # Longitude first is how GeoJSON writes a point, and a measurement rarely carries four places.
+    places = min(len(first.split(".")[1]), len(second.split(".")[1]))
+    return a <= 180 and b <= 90 and places >= 4
 
 
 def scan_line(text: str) -> Iterator[tuple[str, str]]:

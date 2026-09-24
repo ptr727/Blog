@@ -24,6 +24,8 @@ POSITIVE = {
         "The switch lists 0200.00ab.cdef on that port.",
         "MAC:02:00:00:ab:cd:ef",
         "02:00:00:ab:cd:ef: link up",
+        "BD:02:00:00:ab:cd:ef",
+        "MAC-02:00:00:ab:cd:ef",
     ],
     "public ip": [
         "The resolver answers on 1.1.1.1 today.",
@@ -33,8 +35,12 @@ POSITIVE = {
         "The unit sits at 12.345, -67.890 in the yard.",
         "The unit sits at 12.345 N 67.890 W in the yard.",
         """The unit sits at 12°20'42"N 67°53'24"W in the yard.""",
-        "The feature is [-167.890, 12.345] in the file.",
+        "The feature is [-167.8901, 12.3456] in the file.",
+        "The unit sits at 167.890 E, 12.345 N in the yard.",
         "latitude: 12.345",
+        "home_latitude: 12.345",
+        "gps_lon=-67.890",
+        "lat 12.345",
         '{"lat": 12.345, "lon": -67.890}',
     ],
     "coordinate url": [
@@ -66,7 +72,8 @@ NEGATIVE = [
     "| Model | 122.294 | 120.172 | 89.258 |",
     "Paris is a city in France.",
     "date: 2026-08-01T10:00:00-07:00",
-    "A longer value aa:02:00:00:ab:cd:ef is not an address.",
+    "The sizes are 123.456, 45.678 mm and 100.000/12.500 in.",
+    "The board is long: 12.345 cm.",
 ]
 
 
