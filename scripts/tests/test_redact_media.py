@@ -1,6 +1,6 @@
 """Tests for `scripts/redact-media.py`, on images built here rather than taken from the archive.
 
-Run with `uv run --with pillow==11.3.0 python -m unittest discover -s scripts/tests`.
+Run with `uv run --no-project --with-requirements scripts/redact-media.py python -m unittest discover -s scripts/tests`.
 """
 
 import contextlib
@@ -9,6 +9,7 @@ import importlib.util
 import io
 import json
 import pathlib
+import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -48,6 +49,7 @@ class RedactMediaTests(unittest.TestCase):
         self.saved = redact.REPO, redact.MANIFEST
         redact.REPO, redact.MANIFEST = self.repo, self.manifest_path
         self.addCleanup(self.restore)
+        self.git("init", "-q")
 
     def restore(self) -> None:
         redact.REPO, redact.MANIFEST = self.saved
@@ -59,6 +61,30 @@ class RedactMediaTests(unittest.TestCase):
         files[f"static/{name}"] = entry
         self.manifest_path.write_text(json.dumps({"files": files}, indent=2) + "\n")
         return path
+
+    def git(self, *argv: str) -> None:
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repo),
+                "-c",
+                "user.name=Test",
+                "-c",
+                "user.email=test@example.com",
+                "-c",
+                "commit.gpgsign=false",
+                "-c",
+                "core.hooksPath=/dev/null",
+                *argv,
+            ],
+            check=True,
+            capture_output=True,
+        )
+
+    def commit(self) -> None:
+        self.git("add", "checks", "static")
+        self.git("commit", "-q", "-m", "round")
 
     def manifest(self) -> dict:
         return json.loads(self.manifest_path.read_text())
@@ -118,6 +144,39 @@ class RedactMediaTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("not normalized", out)
         self.assertNotIn("result", self.manifest()["files"]["static/a.png"])
+
+    def test_source_holding_earlier_fills_is_refused(self) -> None:
+        original = jpeg()
+        path = self.add("a.jpg", original, {"fill": [[8, 8, 24, 24]]})
+        self.assertEqual(self.run_script("--record")[0], 0)
+        self.commit()
+        first_round = path.read_bytes()
+        entry = self.manifest()["files"]["static/a.jpg"]
+        self.add("a.jpg", original, entry | {"fill": [[32, 8, 48, 24]]})
+        self.assertEqual(self.run_script("--record")[0], 0)
+        self.commit()
+        entry = self.manifest()["files"]["static/a.jpg"]
+        self.add("a.jpg", first_round, entry | {"fill": [[8, 24, 24, 40]]})
+        before = self.manifest_path.read_bytes()
+        code, out = self.run_script("--record")
+        self.assertEqual(code, 1)
+        self.assertIn("already carries an earlier round's fills", out)
+        self.assertEqual(self.manifest_path.read_bytes(), before)
+        self.assertEqual(path.read_bytes(), first_round)
+        self.add("a.jpg", original, entry | {"fill": [[8, 24, 24, 40]]})
+        code, out = self.run_script("--record")
+        self.assertEqual(code, 0, out)
+
+    def test_unreadable_history_is_an_error(self) -> None:
+        path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
+        before = path.read_bytes()
+        with mock.patch.object(
+            redact.subprocess, "run", side_effect=FileNotFoundError("git")
+        ):
+            code, out = self.run_script("--record")
+        self.assertEqual(code, 1)
+        self.assertIn("cannot read the manifest's history", out)
+        self.assertEqual(path.read_bytes(), before)
 
     def test_malformed_boxes_are_errors_not_crashes(self) -> None:
         for box in ([8, 8, 24, True], [8, 8, 24], "8,8,24,24", None):
