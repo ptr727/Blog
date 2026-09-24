@@ -176,7 +176,7 @@ def replace(path: pathlib.Path, data: bytes) -> None:
         scratch.unlink(missing_ok=True)
 
 
-def results_in(text: str) -> set[str]:
+def results_in(text: bytes | str) -> set[str]:
     """The result hashes one revision of the manifest records, none if it does not parse."""
     try:
         entries = json.loads(text)["files"].values()
@@ -189,25 +189,31 @@ def results_in(text: str) -> set[str]:
     }
 
 
+def git(*argv: str) -> bytes:
+    """Run git on this checkout, whatever repository a calling hook's environment names."""
+    env = {
+        key: value for key, value in os.environ.items() if not key.startswith("GIT_")
+    }
+    return subprocess.run(
+        ["git", "-C", str(REPO), *argv], capture_output=True, check=True, env=env
+    ).stdout
+
+
 def recorded_results() -> set[str]:
     """Every result hash the manifest records on disk or in a committed revision on any branch."""
     manifest = MANIFEST.relative_to(REPO).as_posix()
-    git = ["git", "-C", str(REPO)]
-    revisions = subprocess.run(
-        [*git, "log", "--all", "--format=%H", "--diff-filter=AM", "--", manifest],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.split()
-    results = results_in(MANIFEST.read_text())
+    revisions = git(
+        "log",
+        "--all",
+        "--no-show-signature",
+        "--format=%H",
+        "--diff-filter=AM",
+        "--",
+        manifest,
+    ).split()
+    results = results_in(MANIFEST.read_bytes())
     for revision in revisions:
-        shown = subprocess.run(
-            [*git, "show", f"{revision}:{manifest}"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        results |= results_in(shown.stdout)
+        results |= results_in(git("show", f"{revision.decode()}:{manifest}"))
     return results
 
 
@@ -255,10 +261,9 @@ def main() -> int:
             try:
                 history, history_read = recorded_results(), True
             except (OSError, subprocess.CalledProcessError) as error:
-                stderr = getattr(error, "stderr", None) or ""
-                errors.append(
-                    f"{name}: cannot read the manifest's history ({stderr.strip() or error})"
-                )
+                stderr = getattr(error, "stderr", None) or b""
+                reason = stderr.decode(errors="replace").strip() or error
+                errors.append(f"{name}: cannot read the manifest's history ({reason})")
                 continue
         if changed and current in history:
             errors.append(

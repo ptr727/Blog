@@ -8,6 +8,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 import pathlib
 import subprocess
 import tempfile
@@ -80,6 +81,7 @@ class RedactMediaTests(unittest.TestCase):
             ],
             check=True,
             capture_output=True,
+            env={k: v for k, v in os.environ.items() if not k.startswith("GIT_")},
         )
 
     def commit(self) -> None:
