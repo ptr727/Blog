@@ -52,7 +52,7 @@ def normalize_png(data: bytes) -> bytes | None:
     """Drop every ancillary chunk that is not on the allowlist.
 
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
-    A file whose Exif Orientation is not a single SHORT, holds two values, or turns the picture, is refused.
+    A file whose Exif Orientation is not a single SHORT, holds two values in IFD0, or turns the picture, is refused.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
@@ -80,7 +80,7 @@ def exif_orientation(segment: bytes) -> int | None:
 
     A browser reads it only as one SHORT, where other decoders read a LONG too.
     Any other shape is None, so the file is refused rather than guessed at.
-    Two entries that disagree are None too, since decoders take either one.
+    Two IFD0 entries that disagree are None too, since decoders take either one.
     """
     raw = segment.removeprefix(b"Exif\x00\x00")
     if raw[:2] not in (b"II", b"MM"):
@@ -175,7 +175,7 @@ def normalize_jpeg(data: bytes) -> bytes | None:
         elif name:
             # An Exif segment the gate flags is dropped, since rewriting it means re-computing every offset.
             # Orientation decides which way the picture displays, so a turn is re-emitted alone.
-            # A file whose Orientation is not one SHORT, or holds two values, is refused.
+            # A file whose Orientation is not one SHORT, or holds two values in IFD0, is refused.
             if not gate.exif_unrecognized(segment):
                 out += data[start:end]
             elif (turned := exif_orientation(segment)) is None:
@@ -218,7 +218,7 @@ def normalize_webp(data: bytes) -> bytes | None:
     """Drop every chunk that is not on the allowlist, and restate the RIFF size.
 
     The VP8X reserved bits and each pad byte are written as zero.
-    A file whose Exif Orientation is not a single SHORT, holds two values, or turns the picture, is refused.
+    A file whose Exif Orientation is not a single SHORT, holds two values in IFD0, or turns the picture, is refused.
     """
     parts, problems = gate.webp_parts(data)
     if problems - gate.TRAILING:
