@@ -163,7 +163,7 @@ def normalize_webp(data: bytes) -> bytes | None:
     parts, problems = gate.webp_parts(data)
     if problems - gate.TRAILING:
         return None
-    body = b""
+    body = bytearray()
     for chunk, start, end in parts:
         length = struct.unpack_from("<I", data, start + 4)[0]
         if chunk not in gate.WEBP_ALLOWED:

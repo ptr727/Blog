@@ -481,9 +481,10 @@ def check_plant(report: Report, kind: str, data: bytes, where: str) -> None:
         report.fail("2 normalizer raised", kind, raised, where)
     elif isinstance(new, bytes) and PLANT_TEXT in new:
         report.fail("4 normalizer kept planted metadata", kind, what, where)
-    elif isinstance(new, bytes) and new and gate.scan(new):
-        detail = ", ".join(sorted(gate.scan(new)))
-        report.fail("2 normalizer output rejected", kind, detail, where)
+    elif isinstance(new, bytes) and new and (again := gate.scan(new)):
+        report.fail(
+            "2 normalizer output rejected", kind, ", ".join(sorted(again)), where
+        )
 
 
 def check_archive(
