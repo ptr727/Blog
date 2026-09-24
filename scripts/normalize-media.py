@@ -80,7 +80,8 @@ def exif_orientation(segment: bytes) -> int | None:
 
     A browser reads it only as one SHORT, where other decoders read a LONG too.
     Any other shape is None, so the file is refused rather than guessed at.
-    Two entries that disagree are None too, in one IFD or in two, since decoders take either one.
+    Two entries that disagree are None too, in IFD0 or in an IFD it points to, since decoders take either one.
+    An IFD0 holding none counts as 1 against a value held elsewhere, since a browser reads IFD0.
     """
     raw = segment.removeprefix(b"Exif\x00\x00")
     if raw[:2] not in (b"II", b"MM"):
@@ -89,11 +90,11 @@ def exif_orientation(segment: bytes) -> int | None:
     try:
         if struct.unpack_from(fmt + "H", raw, 2)[0] != 42:
             return 1
-        pending = [struct.unpack_from(fmt + "I", raw, 4)[0]]
+        ifd0 = struct.unpack_from(fmt + "I", raw, 4)[0]
     except struct.error:
         return 1
-    seen: set[int] = set()
-    values = set()
+    pending, seen = [ifd0], set()
+    values, placed = set(), False
     while pending and len(seen) < 16:
         offset = pending.pop()
         if offset in seen:
@@ -102,7 +103,9 @@ def exif_orientation(segment: bytes) -> int | None:
         try:
             count = struct.unpack_from(fmt + "H", raw, offset)[0]
         except struct.error:
-            # An IFD no decoder can reach holds nothing it reads.
+            continue
+        # Past IFD0, an IFD the gate cannot read whole is one it reports, so nothing here reads it either.
+        if offset != ifd0 and (offset < 8 or offset + 2 + count * 12 + 4 > len(raw)):
             continue
         for index in range(count):
             entry = offset + 2 + index * 12
@@ -113,8 +116,11 @@ def exif_orientation(segment: bytes) -> int | None:
                 if struct.unpack_from(fmt + "HI", raw, entry + 2) != (3, 1):
                     return None
                 values.add(struct.unpack_from(fmt + "H", raw, entry + 8)[0])
+                placed = placed or offset == ifd0
             elif tag in gate.EXIF_POINTERS:
                 pending.append(struct.unpack_from(fmt + "I", raw, entry + 8)[0])
+    if values and not placed:
+        values.add(1)
     if len(values) > 1:
         return None
     value = values.pop() if values else 1

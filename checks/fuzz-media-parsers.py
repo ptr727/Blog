@@ -502,7 +502,7 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
 def orientation_tiff(
     order: bytes, kind: int, first: int = 6, then: int = 0, sub: bool = False
 ) -> bytes:
-    """A TIFF header and one IFD holding Orientation `first` as the given type.
+    """A TIFF header and one IFD holding Orientation `first` as the given type, or none where it is 0.
 
     A nonzero `then` adds a second Orientation SHORT holding that value,
     in the Exif sub-IFD where `sub` is set and in the same IFD otherwise.
@@ -512,15 +512,18 @@ def orientation_tiff(
         value = struct.pack(fmt + "HH", first, 0)
     else:
         value = struct.pack(fmt + "I", first)
-    entry = struct.pack(fmt + "HHI", 0x0112, kind, 1) + value
+    entries = [struct.pack(fmt + "HHI", 0x0112, kind, 1) + value] if first else []
     second = struct.pack(fmt + "HHIHH", 0x0112, 3, 1, then, 0) if then else b""
+    tail = b""
     if sub:
-        entry += struct.pack(fmt + "HHII", 0x8769, 4, 1, 8 + 2 + 24 + 4)
-        second = struct.pack(fmt + "H", 1) + second + struct.pack(fmt + "I", 0)
-        head = order + struct.pack(fmt + "HIH", 42, 8, 2)
-        return head + entry + struct.pack(fmt + "I", 0) + second
-    head = order + struct.pack(fmt + "HIH", 42, 8, 2 if then else 1)
-    return head + entry + second + struct.pack(fmt + "I", 0)
+        at = 8 + 2 + 12 * (len(entries) + 1) + 4
+        entries.append(struct.pack(fmt + "HHII", 0x8769, 4, 1, at))
+        tail = struct.pack(fmt + "H", len(second) // 12) + second
+        tail += struct.pack(fmt + "I", 0)
+    elif second:
+        entries.append(second)
+    head = order + struct.pack(fmt + "HIH", 42, 8, len(entries))
+    return head + b"".join(entries) + struct.pack(fmt + "I", 0) + tail
 
 
 # Each pair disagrees, and each order changed what a decoder taking the last entry reads.
@@ -556,6 +559,12 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
             segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
             what = f"Orientation {first} {place} {then}"
             out.append((bare[:2] + segment + bare[2:], what, first != then))
+        # An IFD0 saying nothing reads as upright in a browser, so a turn held only elsewhere is disputed.
+        tiff = orientation_tiff(b"II", 3, 0, 6, sub=True)
+        segment = jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
+        out.append(
+            (bare[:2] + segment + bare[2:], "Orientation 6 in the sub-IFD alone", True)
+        )
     elif kind == "png":
         out.append(
             (
