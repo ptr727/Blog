@@ -30,10 +30,25 @@ runs:
       shell: bash
       run: python3 checks/check-media-metadata.py
 
+    # The carried tree is all well formed, so this feeds the same parsers seeded malformed variants.
+    - name: Fuzz media parsers step
+      shell: bash
+      run: python3 checks/fuzz-media-parsers.py
+
     # A redacted image replaced by its original passes every other check, so this compares hashes.
     - name: Check media redactions step
       shell: bash
       run: python3 checks/check-media-redactions.py
+
+    # The prose gate reads characters, so this is what reads a post's text for personal data.
+    - name: Check text personal data step
+      shell: bash
+      run: python3 checks/check-text-pii.py
+
+    # The hub's unit-test job needs a root pyproject.toml, which this repo does not keep.
+    - name: Test checks step
+      shell: bash
+      run: python3 -m unittest discover -s checks/tests
 
     # The hub's validate job checkout is shallow.
     # The mtime restore below needs full history to date each file from its last commit.

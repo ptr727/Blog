@@ -31,7 +31,6 @@ import struct
 import subprocess
 import sys
 import zipfile
-import zlib
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
@@ -45,24 +44,17 @@ _spec.loader.exec_module(gate)
 
 def normalize_png(data: bytes) -> bytes | None:
     """Drop every ancillary chunk that is not on the allowlist."""
+    parts, problems = gate.png_parts(data)
+    if problems - gate.TRAILING:
+        return None
     out = bytearray(data[:8])
-    i = 8
-    while i + 8 <= len(data):
-        length = struct.unpack_from(">I", data, i)[0]
-        chunk = data[i + 4 : i + 8]
-        if i + 12 + length > len(data):
+    for chunk, start, end in parts:
+        if chunk in gate.PNG_ALLOWED:
+            out += data[start:end]
+        elif not chunk[0] & 0x20:
+            # A critical chunk cannot be dropped, so this file needs a re-encode.
             return None
-        critical = not (chunk[0] & 0x20)
-        if chunk in gate.PNG_ALLOWED or critical:
-            if chunk not in gate.PNG_ALLOWED and critical:
-                # A critical chunk cannot be dropped, so this file needs a re-encode.
-                return None
-            out += data[i : i + 12 + length]
-        i += 12 + length
-        if chunk == b"IEND":
-            return bytes(out)
-    # No IEND means the stream was truncated, so there is nothing safe to write.
-    return None
+    return bytes(out)
 
 
 def exif_orientation(segment: bytes) -> int:
@@ -81,7 +73,8 @@ def exif_orientation(segment: bytes) -> int:
             if entry + 12 > len(raw):
                 break
             if struct.unpack_from(fmt + "H", raw, entry)[0] == 0x0112:
-                return struct.unpack_from(fmt + "H", raw, entry + 8)[0]
+                value = struct.unpack_from(fmt + "H", raw, entry + 8)[0]
+                return value if 1 <= value <= 8 else 1
     except struct.error:
         return 1
     return 1
@@ -97,106 +90,57 @@ def orientation_segment(value: int) -> bytes:
 
 def normalize_jpeg(data: bytes) -> bytes | None:
     """Drop every APP and comment segment that is not on the allowlist."""
+    parts, problems = gate.jpeg_parts(data)
+    if problems - gate.TRAILING:
+        return None
     out = bytearray(data[:2])
-    i = 2
-    while i + 4 <= len(data):
-        if data[i] != 0xFF:
-            return None
-        marker = data[i + 1]
-        if marker in (0x01, 0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
-            i += 2
-            continue
-        length = struct.unpack_from(">H", data, i + 2)[0]
-        if length < 2 or i + 2 + length > len(data):
-            return None
-        segment = data[i + 4 : i + 2 + length]
-        keep = True
+    for marker, start, end in parts:
+        segment = data[start + 4 : end]
         if any(marker == m and segment.startswith(p) for m, p in gate.JPEG_APP_ALLOWED):
-            keep = True
+            out += data[start:end]
         elif marker == 0xE1 and segment.startswith(b"Exif\x00\x00"):
             # An Exif segment with an unrecognized tag goes whole.
             # Rewriting an IFD in place means re-computing every offset in it.
             # Orientation decides which way the picture displays, so it is re-emitted alone.
-            keep = not gate.exif_unrecognized(segment)
-            if not keep:
-                turned = exif_orientation(segment)
-                if turned not in (0, 1):
-                    out += orientation_segment(turned)
+            if not gate.exif_unrecognized(segment):
+                out += data[start:end]
+            elif (turned := exif_orientation(segment)) != 1:
+                out += orientation_segment(turned)
         elif 0xE0 <= marker <= 0xEF or marker == 0xFE:
-            keep = False
-        if marker == 0xDA:
-            # The first end marker after the scan is the real one.
-            # A later one is appended, so searching backwards would keep what it hides.
-            end = data.find(b"\xff\xd9", i)
-            if end < 0:
-                return None
-            out += data[i : end + 2]
-            return bytes(out)
-        if keep:
-            out += data[i : i + 2 + length]
-        i += 2 + length
-    # The loop ended without reaching the scan, so the picture was never found.
-    return None
+            continue
+        elif marker in gate.JPEG_STRUCTURAL:
+            out += data[start:end]
+        else:
+            # An unknown marker may be one a decoder needs, so dropping it is not safe.
+            return None
+    return bytes(out)
 
 
 def normalize_gif(data: bytes) -> bytes | None:
     """Drop every extension block that is not on the allowlist."""
-    head = 13
-    if len(data) > 10 and data[10] & 0x80:
-        head += 3 * (2 << (data[10] & 7))
-    out = bytearray(data[:head])
-    i = head
-
-    def block_end(j: int) -> int:
-        while j < len(data) and data[j]:
-            j += data[j] + 1
-        return j + 1
-
-    while i < len(data):
-        marker = data[i]
-        if marker == 0x3B:
-            return bytes(out) + b"\x3b"
-        if marker == 0x21:
-            if i + 2 > len(data) - 1:
-                return None
-            label = data[i + 1]
-            end = block_end(i + 2)
-            netscape = label == 0xFF and data[i + 3 : i + 14] == b"NETSCAPE2.0"
-            if label == 0xF9 or netscape:
-                out += data[i:end]
-            i = end
-        elif marker == 0x2C:
-            if i + 10 > len(data):
-                return None
-            flags = data[i + 9]
-            j = i + 10
-            if flags & 0x80:
-                j += 3 * (2 << (flags & 7))
-            end = block_end(j + 1)
-            out += data[i:end]
-            i = end
-        else:
+    parts, problems = gate.gif_parts(data)
+    if problems - gate.TRAILING:
+        return None
+    out = bytearray()
+    for kind, start, end in parts:
+        block = data[start:end]
+        if not str(kind).startswith("extension") or gate.gif_extension_allowed(block):
+            out += block
+        elif block[1] == 0xF9:
+            # A graphic control extension sets transparency and timing, so it is not dropped.
             return None
-    # No trailer means the stream was truncated.
-    return None
+    return bytes(out)
 
 
 def normalize_webp(data: bytes) -> bytes | None:
     """Drop every chunk that is not on the allowlist, and restate the RIFF size."""
-    body = bytearray()
-    i = 12
-    while i + 8 <= len(data):
-        chunk = data[i : i + 4]
-        length = struct.unpack_from("<I", data, i + 4)[0]
-        span = 8 + length + (length & 1)
-        if i + span > len(data):
-            return None
-        if chunk in gate.WEBP_ALLOWED:
-            body += data[i : i + span]
-        i += span
+    parts, problems = gate.webp_parts(data)
+    if problems - gate.TRAILING:
+        return None
+    body = b"".join(data[s:e] for chunk, s, e in parts if chunk in gate.WEBP_ALLOWED)
     if not body:
         return None
-    return b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + bytes(body)
+    return b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + body
 
 
 def normalize_iso(path: pathlib.Path, destination: pathlib.Path) -> bool:
@@ -233,17 +177,18 @@ def normalize_iso(path: pathlib.Path, destination: pathlib.Path) -> bool:
     return True
 
 
+NORMALIZERS = {
+    "png": normalize_png,
+    "jpeg": normalize_jpeg,
+    "gif": normalize_gif,
+    "webp": normalize_webp,
+}
+
+
 def normalize_bytes(data: bytes) -> bytes | None:
     """Dispatch one file's bytes to the normalizer for its container."""
-    if data[:8] == b"\x89PNG\r\n\x1a\n":
-        return normalize_png(data)
-    if data[:2] == b"\xff\xd8":
-        return normalize_jpeg(data)
-    if data[:6] in (b"GIF87a", b"GIF89a"):
-        return normalize_gif(data)
-    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
-        return normalize_webp(data)
-    return None
+    normalizer = NORMALIZERS.get(gate.container(data))
+    return normalizer(data) if normalizer else None
 
 
 def member_suffix(info: zipfile.ZipInfo) -> str:
@@ -259,7 +204,7 @@ def normalize_member(
     The scratch file keeps the member's extension, because ffmpeg picks the output
     container from it and writes nothing when given a name it cannot infer one from.
     """
-    if data[4:8] in (b"ftyp", b"moov", b"wide", b"mdat", b"free", b"skip"):
+    if gate.container(data) == "iso":
         if not shutil.which("ffmpeg"):
             return None
         if not apply:
@@ -284,7 +229,12 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
     """
     removed: list[str] = []
     stuck: list[str] = []
-    with zipfile.ZipFile(path) as archive:
+    try:
+        archive = zipfile.ZipFile(path)
+    except gate.ZIP_ERRORS as exc:
+        print(f"{path}: unreadable archive, {type(exc).__name__}")
+        return removed
+    with archive:
         for info in archive.infolist():
             if info.is_dir():
                 continue
@@ -293,7 +243,7 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
                 continue
             try:
                 data = archive.read(info)
-            except (RuntimeError, zipfile.BadZipFile, zlib.error) as exc:
+            except gate.ZIP_ERRORS as exc:
                 # An encrypted or corrupt member is left as it is, and said so.
                 print(f"{path}!{info.filename}: unreadable, {type(exc).__name__}")
                 continue
@@ -330,7 +280,7 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
                 continue
             try:
                 data = source.read(info)
-            except (RuntimeError, zipfile.BadZipFile, zlib.error):
+            except gate.ZIP_ERRORS:
                 # A member that cannot be read cannot be repacked, so the rewrite stops.
                 scratch.unlink(missing_ok=True)
                 raise
@@ -349,34 +299,25 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
 
 
 def pixel_payload(data: bytes) -> bytes | None:
-    """Return the compressed picture bytes, so a rewrite can be proven lossless.
+    """Return the bytes a decoder draws the picture from, so a rewrite can be proven lossless.
 
     None means this cannot isolate them for that format, so the caller asserts nothing
     rather than comparing whole files and calling every rewrite lossy.
     """
-    if data[:8] == b"\x89PNG\r\n\x1a\n":
-        out, i = bytearray(), 8
-        while i + 8 <= len(data):
-            length = struct.unpack_from(">I", data, i)[0]
-            if data[i + 4 : i + 8] == b"IDAT":
-                out += data[i + 8 : i + 8 + length]
-            i += 12 + length
-        return bytes(out)
-    if data[:2] == b"\xff\xd8":
-        i = 2
-        while i + 4 <= len(data):
-            if data[i] != 0xFF:
-                break
-            marker = data[i + 1]
-            if marker in (0x01, 0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
-                i += 2
-                continue
-            if marker == 0xDA:
-                # To the first end marker after the scan.
-                # A later one is appended, and reading to it counts a payload as picture.
-                end = data.find(b"\xff\xd9", i)
-                return data[i : end + 2] if end >= 0 else data[i:]
-            i += 2 + struct.unpack_from(">H", data, i + 2)[0]
+    kind = gate.container(data)
+    if kind == "png":
+        parts, _ = gate.png_parts(data)
+        return b"".join(data[s + 8 : e - 4] for c, s, e in parts if c == b"IDAT")
+    if kind == "jpeg":
+        parts, _ = gate.jpeg_parts(data)
+        return b"".join(data[s:e] for m, s, e in parts if m in gate.JPEG_STRUCTURAL)
+    if kind == "gif":
+        parts, _ = gate.gif_parts(data)
+        return b"".join(data[s:e] for k, s, e in parts if k in ("header", "image"))
+    if kind == "webp":
+        parts, _ = gate.webp_parts(data)
+        drawn = (b"VP8 ", b"VP8L", b"ALPH", b"ANMF")
+        return b"".join(data[s:e] for c, s, e in parts if c in drawn)
     return None
 
 
@@ -417,27 +358,18 @@ def main() -> int:
         holds = gate.scan(data)
         if not holds:
             continue
-        if data[:8] == b"\x89PNG\r\n\x1a\n":
-            new = normalize_png(data)
-        elif data[:2] == b"\xff\xd8":
-            new = normalize_jpeg(data)
-        elif data[:6] in (b"GIF87a", b"GIF89a"):
-            new = normalize_gif(data)
-        elif data[:4] == b"RIFF" and data[8:12] == b"WEBP":
-            new = normalize_webp(data)
-        elif data[4:8] in (b"ftyp", b"moov", b"wide", b"mdat", b"free", b"skip"):
-            if not shutil.which("ffmpeg"):
-                # Reported as needing a re-encode, since nothing here can perform one.
-                new = None
-            elif not args.apply:
-                # A report does not run ffmpeg, so it stands in for the rewrite.
-                new = b""
-            else:
-                scratch = path.with_name(f".normalize-{path.name}")
-                new = scratch.read_bytes() if normalize_iso(path, scratch) else None
-                scratch.unlink(missing_ok=True)
-        else:
+        if gate.container(data) != "iso":
+            new = normalize_bytes(data)
+        elif not shutil.which("ffmpeg"):
+            # Reported as needing a re-encode, since nothing here can perform one.
             new = None
+        elif not args.apply:
+            # A report does not run ffmpeg, so it stands in for the rewrite.
+            new = b""
+        else:
+            scratch = path.with_name(f".normalize-{path.name}")
+            new = scratch.read_bytes() if normalize_iso(path, scratch) else None
+            scratch.unlink(missing_ok=True)
 
         name = str(path.relative_to(REPO)) if path.is_relative_to(REPO) else str(path)
         if new is None:
@@ -446,6 +378,9 @@ def main() -> int:
         before, after = pixel_payload(data), pixel_payload(new) if new else None
         if before is not None and after != before:
             reencode.append((name, [*sorted(holds), "rewrite would not be lossless"]))
+            continue
+        if new and gate.scan(new):
+            reencode.append((name, [*sorted(holds), "rewrite would still not pass"]))
             continue
         changed.append((name, sorted(holds), len(data) - len(new) if new else 0))
         saved += len(data) - len(new) if new else 0

@@ -78,6 +78,10 @@ Embed with the `figure` shortcode, and wrap a set in `gallery`:
 
 **Every image is normalized before it is committed.** Run [`scripts/normalize-media.py`][normalize]. It keeps only what a picture needs in order to render, the dimensions, the color profile, and the orientation, plus the capture timestamp on the formats whose tags carry one. Everything else goes, and it never asks what the removed thing was. Location, device, and authorship are not on the list, so they go without anyone thinking of them. That is the point. A rule that enumerates hiding places is only as good as its last revision. The removal is lossless on every format carried here, so an original is not degraded in order to clean it. [`checks/check-media-metadata.py`][metadata] fails the build on anything left over, and it reads inside a `.zip`. Then inspect the image at full resolution. Redact a house number, a license plate, a face, a serial number, a rating plate, a barcode, and a hardware address. "What Identifies" below gives the full checklist and the narrower rule for an image already published. Cover each one with a flat opaque fill, never a blur or a mosaic. Both can be reversed for a short string drawn from a known alphabet. A fill also tells the reader that something was removed. Verify both halves. `python3 checks/check-media-metadata.py` passes, and a full-resolution crop of each redacted area is unreadable.
 
+**The text of a post is gated the same way.** [`checks/check-text-pii.py`][text-pii] reads every Markdown file under `content/` outside the imported archive years, the same boundary `.github/prose-gate-excludes` draws for the prose gate. It reads front matter and code blocks too, since a pasted configuration is where a hardware address usually hides. It reports an email address, a hardware address, a public IP address, a coordinate pair, a URL carrying coordinates or naming a sensor or station, a street address, and a phone number. Each finding names the file, the line, and the class, and never the value, so the CI log does not republish it. A documentation-range or private address is not public and is not reported. Voice still requires a placeholder for a private one. A hardware address is read in its colon, hyphen, and dotted forms. A bare run of twelve hex digits is not, since a short commit hash has the same shape. A four-part number directly after a word such as version, build, or firmware is read as a version rather than an address. Run `python3 checks/check-text-pii.py` locally, the same command the validate action runs.
+
+**A value a post prints on purpose is declared, not passed silently.** A vendor's support email or a public service's address goes in [`checks/text-pii-allow.json`][text-pii-allow] as an entry under `allow`, with a `class` naming what the gate reported, exactly one of `value` (the exact text) or `pattern` (a regular expression the whole value must match), and a `reason`. An entry is bound to its class, so a pattern declared for one class never silences another. An entry that matches nothing in scope fails the gate, so the list holds only values a post still prints. Any other false positive is declared the same way. The tests in `checks/tests/` run in the same action, and every value in them is constructed.
+
 **Every image added must be linked from a page.** `ORPHANED_MEDIA` in [`checks/check-url-parity.py`][parity] is an exact count rather than a ceiling, so an unlinked file moves it and fails the gate. That is deliberate: it is the only check that can see an image the site carries and no page shows.
 
 ## What Identifies
@@ -114,7 +118,7 @@ These are settled, in new media and old alike, and reopening one wastes a review
 
 **A wide default is affordable in new media and destructive in old.** Nothing in the imported archive can be reframed or retaken, so a fill there removes meaning that no longer exists anywhere else.
 
-**The archive's bar is narrow because its images have been public for years.** A fill there covers a street address or house number, an email address, a clearly visible face, a landmark or a neighbor's property that places the home, an SSID or BSSID, a VIN or license plate, and a child's name beside an occupancy time. The author's name and handle, private-range and long-reassigned public addresses, machine names, serials and barcodes on retired equipment, and public credits all stay. So does a face too faint to recognize.
+**The archive's bar is narrow because its images have been public for years.** A fill there covers a street address or house number, an email address, a phone number, people's names on clothing, a clearly visible face, a landmark or a neighbor's property that places the home, an SSID or BSSID, a VIN or license plate, and a child's name beside an occupancy time. The author's name and handle, private-range and long-reassigned public addresses, machine names, serials and barcodes on retired equipment, and public credits all stay. So does a face too faint to recognize.
 
 Treat that as a judgment about the archive, never as a precedent for a new post.
 
@@ -192,6 +196,7 @@ This is the reason this file exists, so it is worth stating plainly.
 | markdownlint | no, `content/.markdownlint-cli2.jsonc` ignores the tree |
 | CSpell | no, `cspell.json` ignores the tree |
 | `prose_lint.py` | yes, for characters and punctuation on changed lines. `.github/prose-gate-excludes` leaves out the imported posts' years |
+| [`checks/check-text-pii.py`][text-pii] | yes, for personal data in the text, outside the same archive years |
 
 Nothing above judges the writing itself. A human does, before the post merges, and that read is the only gate for it.
 
@@ -208,6 +213,8 @@ A fact in a published post that proves wrong is corrected in the post. It is not
 [operations]: ./OPERATIONS.md
 [metadata]: ./checks/check-media-metadata.py
 [normalize]: ./scripts/normalize-media.py
+[text-pii]: ./checks/check-text-pii.py
+[text-pii-allow]: ./checks/text-pii-allow.json
 [normalize-text]: ./scripts/normalize-text.py
 [parity]: ./checks/check-url-parity.py
 [redact]: ./scripts/redact-media.py
