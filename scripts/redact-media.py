@@ -23,6 +23,8 @@ makes the output reproducible byte for byte.
 **A redacted file no longer holds its source, so changing one starts from history.**
 Restore the file's original with `git checkout <revision> -- <file>`, normalize it
 with `scripts/normalize-media.py --apply`, edit its entry, and run with `--record`.
+A restored file whose hash any committed revision of the manifest records as a result
+is refused, since it already carries an earlier round's fills.
 The same restore, run without `--record`, is how a Pillow upgrade is checked, since a
 changed output is then reported against the recorded result.
 
@@ -45,6 +47,7 @@ import json
 import os
 import pathlib
 import struct
+import subprocess
 import sys
 
 from PIL import Image, ImageDraw, JpegImagePlugin
@@ -173,6 +176,47 @@ def replace(path: pathlib.Path, data: bytes) -> None:
         scratch.unlink(missing_ok=True)
 
 
+def results_in(text: bytes | str) -> set[str]:
+    """The result hashes one revision of the manifest records, none if it does not parse."""
+    try:
+        entries = json.loads(text)["files"].values()
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return set()
+    return {
+        entry["result"]
+        for entry in entries
+        if isinstance(entry, dict) and isinstance(entry.get("result"), str)
+    }
+
+
+def git(*argv: str) -> bytes:
+    """Run git on this checkout, whatever repository a calling hook's environment names."""
+    env = {
+        key: value for key, value in os.environ.items() if not key.startswith("GIT_")
+    }
+    return subprocess.run(
+        ["git", "-C", str(REPO), *argv], capture_output=True, check=True, env=env
+    ).stdout
+
+
+def recorded_results() -> set[str]:
+    """Every result hash the manifest records on disk or in a committed revision on any branch."""
+    manifest = MANIFEST.relative_to(REPO).as_posix()
+    revisions = git(
+        "log",
+        "--all",
+        "--no-show-signature",
+        "--format=%H",
+        "--diff-filter=AM",
+        "--",
+        manifest,
+    ).split()
+    results = results_in(MANIFEST.read_bytes())
+    for revision in revisions:
+        results |= results_in(git("show", f"{revision.decode()}:{manifest}"))
+    return results
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -188,6 +232,8 @@ def main() -> int:
 
     manifest = json.loads(MANIFEST.read_text())
     done, errors = 0, []
+    history: set[str] = set()
+    history_read = False
     writes: list[tuple[pathlib.Path, str, bytes]] = []
     for name, entry in manifest["files"].items():
         path = REPO / name
@@ -210,6 +256,19 @@ def main() -> int:
             continue
         if current == entry.get("result"):
             done += 1
+            continue
+        if changed and not history_read:
+            try:
+                history, history_read = recorded_results(), True
+            except (OSError, subprocess.CalledProcessError) as error:
+                stderr = getattr(error, "stderr", None) or b""
+                reason = stderr.decode(errors="replace").strip() or error
+                errors.append(f"{name}: cannot read the manifest's history ({reason})")
+                continue
+        if changed and current in history:
+            errors.append(
+                f"{name}: already carries an earlier round's fills, restore the original from before them"
+            )
             continue
         if changed and (unclean := gate.scan(data)):
             errors.append(
