@@ -810,7 +810,7 @@ def check_turn(
     elif kind == "jpeg" and not disputed and not new:
         # Only PNG and WebP refuse a turn, since a JPEG can carry one without its other Exif.
         report.fail("6 normalizer refused an undisputed orientation", kind, what, where)
-    elif kind != "jpeg" and shown != 1 and new:
+    elif kind in ("png", "webp") and shown != 1 and new:
         # A PNG or WebP keeps no Exif, so only a refusal keeps its turn.
         report.fail("6 normalizer settled a PNG or WebP turn", kind, what, where)
     elif isinstance(new, bytes) and new:
