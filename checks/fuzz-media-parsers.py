@@ -151,6 +151,96 @@ def bend(fields: bytes, at: int, value: bytes) -> bytes:
     return fields[:at] + value + fields[at + len(value) :]
 
 
+# A restart marker, which a fill run inside a scan precedes.
+RESTART = re.compile(rb"\xff[\xd0-\xd7]")
+
+# The values sBIT and bKGD hold for each PNG color type, stated here rather than taken from the gate.
+PNG_SIGNIFICANT = {0: 1, 2: 3, 3: 3, 4: 2, 6: 4}
+PNG_BACKGROUND = {0: 2, 2: 6, 3: 1, 4: 2, 6: 6}
+SRGB_GAMMA = struct.pack(">I", 45455)
+SQUARE = struct.pack(">IIB", 3779, 3779, 1)
+
+
+def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
+    """Ancillary PNG chunks each admitted alone, planted out of their values or more than once.
+
+    A plant goes into a seed with no ancillary chunks, so that repetition cannot report it.
+    """
+    if len(data) < 33:
+        return []
+    bare = data[:8] + b"".join(
+        data[s:e] for c, s, e in parts if c in (b"IHDR", b"PLTE", b"IDAT", b"IEND")
+    )
+    depth, color = data[24], data[25]
+    significant = PNG_SIGNIFICANT.get(color, 1)
+    background = PNG_BACKGROUND.get(color, 2)
+    palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
+    alpha = {0: b"pla", 2: PLANT_TEXT, 3: bytes(palette + 1)}.get(color, b"pl")
+    planted = [
+        (b"gAMA", b"plnt", "gAMA not the sRGB gamma"),
+        (b"gAMA", SRGB_GAMMA + PLANT_TEXT, "gAMA with bytes past its fields"),
+        (b"cHRM", (PLANT_TEXT * 5)[:32], "cHRM not the sRGB primaries"),
+        (b"sRGB", b"p", "sRGB intent not a known intent"),
+        (b"pHYs", SQUARE[:4] + b"plnt\x01", "pHYs density not square"),
+        (b"pHYs", SQUARE[:8] + b"p", "pHYs unit not a known unit"),
+        (b"pHYs", SQUARE + PLANT_TEXT, "pHYs with bytes past its fields"),
+        (b"sBIT", b"p" * significant, "sBIT not the full depth"),
+        (b"bKGD", b"p" * background, "bKGD not zero"),
+        (b"hIST", b"pl", "hIST chunk"),
+        (b"tRNS", alpha, "tRNS not in its shape"),
+    ]
+    if color == 0 and depth < 16:
+        planted.append((b"tRNS", b"\xff\xff", "tRNS gray past its depth"))
+    out = [
+        (bare[:33] + png_chunk(chunk, body) + bare[33:], what)
+        for chunk, body, what in planted
+    ]
+    full = bytes((8 if color == 3 else depth,)) * significant
+    for chunk, body in (
+        (b"gAMA", SRGB_GAMMA),
+        (b"sRGB", b"\x00"),
+        (b"pHYs", SQUARE),
+        (b"sBIT", full),
+        (b"bKGD", bytes(background)),
+    ):
+        twice = png_chunk(chunk, body) * 2
+        out.append((bare[:33] + twice + bare[33:], f"repeated {chunk.decode()}"))
+    # A decoder passes over a chunk out of its place, so its bytes are free there.
+    late = png_chunk(b"gAMA", SRGB_GAMMA)
+    out.append((bare[:-12] + late + bare[-12:], "gAMA after IDAT"))
+    if palette:
+        early = png_chunk(b"tRNS", bytes(1))
+        out.append((bare[:33] + early + bare[33:], "tRNS before PLTE"))
+    return out
+
+
+def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
+    """GIF blocks each admitted alone, planted with a reserved or unused field not zero."""
+    if len(data) < 13:
+        return []
+    out = [(data[:12] + b"p" + data[13:], "aspect ratio byte not zero")]
+    if data[10] & 0x80:
+        table = 3 * (2 << (data[10] & 7))
+        flags = bytes((data[10] & 0x78,))
+        variant = data[:10] + flags + b"p" + data[12:13] + data[13 + table :]
+        out.append((variant, "background index with no color table"))
+    for name, start, end in parts:
+        if name == "extension 0xF9" and end - start == 8:
+            packed, index = data[start + 3], data[start + 6]
+            for value, held, what in (
+                (packed | 0xE0, index, "graphic control reserved bits not zero"),
+                (packed | 0x1C, index, "graphic control disposal not a known method"),
+                (packed & 0xFE, 0x70, "graphic control unused transparent index"),
+            ):
+                fields = bytes((value,)) + data[start + 4 : start + 6] + bytes((held,))
+                out.append((data[: start + 3] + fields + data[start + 7 :], what))
+        elif name == "image":
+            flags = bytes((data[start + 9] | 0x18,))
+            variant = data[: start + 9] + flags + data[start + 10 :]
+            out.append((variant, "image descriptor reserved bits not zero"))
+    return out
+
+
 ICC = b"ICC_PROFILE\x00\x01\x01"
 SOF = jpeg_segment(0xC0, b"\x08\x00\x08\x00\x08\x01\x01\x11\x00")
 SOS = jpeg_segment(0xDA, b"\x01\x01\x00\x00\x3f\x00")
@@ -405,12 +495,26 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
             grown = struct.pack(">H", length + len(tail))
             variant = data[: start + 2] + grown + data[start + 4 : end] + tail
             out.append((variant + data[end:], "bytes past the Exif IFDs"))
+        # A run of fill bytes has a length nothing reads, before a segment or after a scan alike.
+        for at in (parts[1][1], *eoi) if len(parts) > 1 else ():
+            out.append(
+                (data[:at] + b"\xff" * 5 + data[at:], "fill bytes before a marker")
+            )
+        scans = [(s, e) for m, s, e in parts if m == 0xDA]
+        restart = next(
+            (hit.start() for s, e in scans for hit in RESTART.finditer(data, s, e)),
+            None,
+        )
+        if restart is not None:
+            variant = data[:restart] + b"\xff\xff" + data[restart:]
+            out.append((variant, "fill bytes inside a scan"))
     elif kind == "png":
         parts, _ = gate.png_parts(data)
         text = png_chunk(b"tEXt", b"Comment\x00" + PLANT_TEXT)
         out += at_boundaries(data, parts[1:], text, "tEXt")
         profile = png_chunk(b"iCCP", b"icc\x00\x00" + zlib.compress(PLANT_TEXT))
         out.append((data[:33] + profile + data[33:], "iCCP not a known profile"))
+        out += png_field_plants(data, parts)
     elif kind == "gif":
         parts, _ = gate.gif_parts(data)
         comment = b"\x21\xfe" + bytes((len(PLANT_TEXT),)) + PLANT_TEXT + b"\x00"
@@ -420,6 +524,7 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
             if str(name).startswith("extension"):
                 variant = data[: end - 1] + block + data[end - 1 :]
                 out.append((variant, f"sub-block inside {name}"))
+        out += gif_field_plants(data, parts)
     elif kind == "webp":
         parts, _ = gate.webp_parts(data)
         chunk = riff_chunk(b"EXIF", PLANT_TEXT)
@@ -450,6 +555,9 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
                 alpha = riff_chunk(b"ALPH", PLANT_TEXT)
                 variant = with_riff_size(data[:start] + alpha + data[start:])
                 out.append((variant, "ALPH not before a lossy image"))
+            if name == b"ANIM" and payload - start - 8 == gate.WEBP_FIXED[name]:
+                variant = data[: start + 8] + b"plnt" + data[start + 12 :]
+                out.append((variant, "ANIM background not zero"))
             if name == b"ANMF":
                 header = data[start + 8 : start + 8 + gate.WEBP_FRAME_HEADER]
                 for field, value, what in (
