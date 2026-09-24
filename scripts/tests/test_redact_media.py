@@ -76,7 +76,7 @@ class RedactMediaTests(unittest.TestCase):
                 "-c",
                 "commit.gpgsign=false",
                 "-c",
-                "core.hooksPath=/dev/null",
+                f"core.hooksPath={os.devnull}",
                 *argv,
             ],
             check=True,
