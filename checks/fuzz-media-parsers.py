@@ -24,6 +24,7 @@ bounded by both a case count and a time budget, so it can run in CI.
 
 import argparse
 import contextlib
+import functools
 import importlib.util
 import io
 import itertools
@@ -700,24 +701,31 @@ def check_turn(
     report: Report, kind: str, data: bytes, where: str, disputed: bool
 ) -> None:
     report.cases += 1
+    what = where.split(": ", 1)[-1]
+    found, raised = attempt(lambda: gate.scan(data))
+    if raised:
+        report.fail("1 scanner raised", kind, raised, where)
+    elif disputed and not found:
+        report.fail("4 gate admitted a disputed orientation", kind, what, where)
     new, raised = attempt(lambda: normalizer.normalize_bytes(data))
     if raised:
         report.fail("2 normalizer raised", kind, raised, where)
         return
-    if disputed and not gate.scan(data):
-        what = where.split(": ", 1)[-1]
-        report.fail("4 gate admitted a disputed orientation", kind, what, where)
+    if isinstance(new, bytes) and new:
+        again, raised = attempt(lambda: gate.scan(new))
+        if raised:
+            report.fail("1 scanner raised on normalized output", kind, raised, where)
+        elif again:
+            detail = ", ".join(sorted(again))
+            report.fail("2 normalizer output rejected", kind, detail, where)
     if disputed and isinstance(new, bytes) and new:
-        what = where.split(": ", 1)[-1]
         report.fail("6 normalizer settled a disputed orientation", kind, what, where)
     elif kind == "jpeg" and not disputed and not new:
         # Only PNG and WebP refuse a turn, since a JPEG can carry one without its other Exif.
-        what = where.split(": ", 1)[-1]
         report.fail("6 normalizer refused an undisputed orientation", kind, what, where)
     elif isinstance(new, bytes) and new:
         kept, raised = attempt(lambda: orientation(kind, new))
         if raised or kept != 6:
-            what = where.split(": ", 1)[-1]
             report.fail("6 normalizer lost the orientation", kind, what, where)
 
 
@@ -814,11 +822,21 @@ def main() -> int:
     for label, data in seeds:
         kind = container(data)
         check_variant(report, kind, data, f"{label}: unmodified")
-        if label.startswith("fixture:") and gate.scan(data):
-            report.fail("0 fixture not clean", kind, ", ".join(gate.scan(data)), label)
-        for variant, what in plants(kind, data):
+        if label.startswith("fixture:"):
+            found, raised = attempt(functools.partial(gate.scan, data))
+            if not raised and found:
+                detail = ", ".join(sorted(found))
+                report.fail("0 fixture not clean", kind, detail, label)
+        # Planting and turning split the seed with the gate's parsers and this file's own code.
+        planted, raised = attempt(functools.partial(plants, kind, data))
+        if raised:
+            report.fail("0 variants not built", kind, f"plants {raised}", label)
+        turns, raised = attempt(functools.partial(turned, kind, data))
+        if raised:
+            report.fail("0 variants not built", kind, f"turned {raised}", label)
+        for variant, what in planted or []:
             check_plant(report, kind, variant, f"{label}: {what}")
-        for variant, what, disputed in turned(kind, data):
+        for variant, what, disputed in turns or []:
             check_turn(report, kind, variant, f"{label}: {what}", disputed)
         for _ in range(args.cases):
             if time.monotonic() > deadline:
