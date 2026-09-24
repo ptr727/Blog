@@ -22,6 +22,8 @@ POSITIVE = {
         "The board reports 02:00:00:ab:cd:ef on boot.",
         "The board reports 02-00-00-AB-CD-EF on boot.",
         "The switch lists 0200.00ab.cdef on that port.",
+        "MAC:02:00:00:ab:cd:ef",
+        "02:00:00:ab:cd:ef: link up",
     ],
     "public ip": [
         "The resolver answers on 1.1.1.1 today.",
@@ -31,6 +33,9 @@ POSITIVE = {
         "The unit sits at 12.345, -67.890 in the yard.",
         "The unit sits at 12.345 N 67.890 W in the yard.",
         """The unit sits at 12°20'42"N 67°53'24"W in the yard.""",
+        "The feature is [-167.890, 12.345] in the file.",
+        "latitude: 12.345",
+        '{"lat": 12.345, "lon": -67.890}',
     ],
     "coordinate url": [
         "See https://www.openstreetmap.org/?mlat=12.345&mlon=-67.890 for the spot.",
@@ -61,6 +66,7 @@ NEGATIVE = [
     "| Model | 122.294 | 120.172 | 89.258 |",
     "Paris is a city in France.",
     "date: 2026-08-01T10:00:00-07:00",
+    "A longer value aa:02:00:00:ab:cd:ef is not an address.",
 ]
 
 
@@ -79,7 +85,7 @@ class Tree:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
 
-    def allow(self, entries: list[dict]) -> None:
+    def allow(self, entries: list[object]) -> None:
         path = self.root / "checks" / "text-pii-allow.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps({"allow": entries}), encoding="utf-8")
@@ -188,11 +194,31 @@ class GateTests(unittest.TestCase):
         self.assertIn("entry 0 (email) matches nothing", out)
         self.assertNotIn("someone@example.com", out)
 
-    def test_declaration_without_reason_is_refused(self) -> None:
+    def test_malformed_declarations_are_refused(self) -> None:
         self.tree.post("content/posts/2026/01/02/a.md", "Nothing to see.\n")
-        self.tree.allow([{"class": "email", "value": "someone@example.com"}])
-        with self.assertRaises(SystemExit):
-            self.tree.run()
+        base = {
+            "class": "email",
+            "value": "someone@example.com",
+            "reason": "constructed",
+        }
+        for entry in (
+            {k: v for k, v in base.items() if k != "reason"},
+            {**base, "reason": None},
+            {**base, "reason": False},
+            {"class": "email", "pattern": 5, "reason": "constructed"},
+            {"class": "email", "pattern": "(", "reason": "constructed"},
+            "not an object",
+        ):
+            with self.subTest(entry=entry):
+                self.tree.allow([entry])
+                with self.assertRaises(SystemExit):
+                    self.tree.run()
+
+    def test_line_numbers_count_newlines_only(self) -> None:
+        self.tree.post(
+            "content/posts/2026/01/02/a.md", "one\x0ctwo\n" + POSITIVE["email"][0]
+        )
+        self.assertIn("a.md:2: email", self.tree.run()[1])
 
 
 if __name__ == "__main__":

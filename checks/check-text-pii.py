@@ -46,9 +46,11 @@ EMAIL = re.compile(
 # A retina asset name such as icon@2x.png has the shape of an address.
 FILE_SUFFIXES = frozenset(("png", "jpg", "jpeg", "gif", "webp", "svg", "avif"))
 
+# A label such as MAC: may touch the address, and a seventh hex group means a longer value.
 MAC = re.compile(
-    r"(?<![\w:-])(?:[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}"
-    r"|[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})(?![\w:-])"
+    r"(?<![\w-])(?<!\W[0-9A-Fa-f]{2}[:-])(?<!^[0-9A-Fa-f]{2}[:-])"
+    r"(?:[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}"
+    r"|[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4}\.[0-9A-Fa-f]{4})(?![\w-]|[:.][0-9A-Fa-f])"
 )
 
 IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w]|\.\d)")
@@ -60,8 +62,12 @@ IPV6 = re.compile(r"(?<![\w:.])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}(?![\w:
 
 # Three decimal places is about a hundred meters, which is a block rather than a city.
 DECIMAL_PAIR = re.compile(
-    r"(?<![\w.])([-+]?\d{1,2}\.\d{3,})\s*°?\s*([NS])?\s*([,/]|\s)\s*"
+    r"(?<![\w.])([-+]?\d{1,3}\.\d{3,})\s*°?\s*([NS])?\s*([,/]|\s)\s*"
     r"([-+]?\d{1,3}\.\d{3,})\s*°?\s*([EW])?(?![\w.])"
+)
+COORDINATE_KEY = re.compile(
+    r"\b(?:lat|latitude|lon|lng|long|longitude)[\"']?\s*[:=]\s*[\"']?[-+]?\d{1,3}\.\d{3,}",
+    re.IGNORECASE,
 )
 DMS = re.compile(
     r"\d{1,3}\s*°\s*\d{1,2}\s*['\u2032]\s*(?:\d{1,2}(?:\.\d+)?\s*[\"\u2033]\s*)?([NSEW])\b"
@@ -130,14 +136,17 @@ def is_public(text: str) -> bool:
 def is_coordinate(
     lat: str, lat_hemi: str | None, sep: str, lon: str, lon_hemi: str | None
 ) -> bool:
-    """Whether two decimals read as a latitude and a longitude rather than two table cells."""
+    """Whether two decimals read as a coordinate pair, in either order, rather than two table cells."""
     if sep.isspace() and not (lat_hemi and lon_hemi):
         return False
     if (lat_hemi and lat.startswith(("-", "+"))) or (
         lon_hemi and lon.startswith(("-", "+"))
     ):
         return False
-    return abs(float(lat)) <= 90 and abs(float(lon)) <= 180
+    a, b = abs(float(lat)), abs(float(lon))
+    return (a <= 90 and b <= 180) or (
+        not (lat_hemi or lon_hemi) and a <= 180 and b <= 90
+    )
 
 
 def scan_line(text: str) -> Iterator[tuple[str, str]]:
@@ -156,6 +165,8 @@ def scan_line(text: str) -> Iterator[tuple[str, str]]:
     for m in DECIMAL_PAIR.finditer(text):
         if is_coordinate(*m.groups()):
             yield "coordinates", m.group()
+    for m in COORDINATE_KEY.finditer(text):
+        yield "coordinates", m.group()
     hemispheres = {m.group(1) for m in DMS.finditer(text)}
     if hemispheres & {"N", "S"} and hemispheres & {"E", "W"}:
         yield "coordinates", " ".join(m.group() for m in DMS.finditer(text))
@@ -197,7 +208,8 @@ def findings(root: pathlib.Path) -> list[Finding]:
     out = []
     for path in posts(root):
         name = path.relative_to(root).as_posix()
-        for number, text in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        lines = path.read_text(encoding="utf-8").split("\n")
+        for number, text in enumerate((line.rstrip("\r") for line in lines), 1):
             seen = set()
             for kind, value in scan_line(text):
                 if (kind, value) not in seen:
@@ -210,8 +222,13 @@ def load_allow(path: pathlib.Path) -> list[dict]:
     """The declared values, each checked for a known class, one matcher, and a reason."""
     if not path.is_file():
         return []
-    entries = json.loads(path.read_text(encoding="utf-8"))["allow"]
+    data = json.loads(path.read_text(encoding="utf-8"))
+    entries = data.get("allow") if isinstance(data, dict) else None
+    if not isinstance(entries, list):
+        raise SystemExit(f"{path}: needs an object with an allow list")
     for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            raise SystemExit(f"{path}: entry {index}: must be an object")
         if entry.get("class") not in CLASSES:
             raise SystemExit(
                 f"{path}: entry {index}: class must be one of {', '.join(CLASSES)}"
@@ -220,7 +237,21 @@ def load_allow(path: pathlib.Path) -> list[dict]:
             raise SystemExit(
                 f"{path}: entry {index}: needs exactly one of value or pattern"
             )
-        if not str(entry.get("reason", "")).strip():
+        if not all(
+            isinstance(entry[k], str) for k in ("value", "pattern") if k in entry
+        ):
+            raise SystemExit(
+                f"{path}: entry {index}: value and pattern must be strings"
+            )
+        if "pattern" in entry:
+            try:
+                re.compile(entry["pattern"])
+            except re.error:
+                raise SystemExit(
+                    f"{path}: entry {index}: pattern does not compile"
+                ) from None
+        reason = entry.get("reason")
+        if not isinstance(reason, str) or not reason.strip():
             raise SystemExit(f"{path}: entry {index}: needs a reason")
     return entries
 
