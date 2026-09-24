@@ -177,8 +177,7 @@ def dated_jpeg_fixture() -> bytes:
             (0x0132, 2, 20, DATE),
         ]
     )
-    plain = jpeg_fixture(False)
-    return plain[:2] + exif + plain[2:]
+    return jpeg_fixture(False).replace(exif_segment(), exif)
 
 
 def png_chunk(name: bytes, body: bytes) -> bytes:

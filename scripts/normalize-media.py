@@ -80,31 +80,59 @@ def exif_orientation(segment: bytes) -> int:
     return 1
 
 
+def app_segment(marker: int, body: bytes) -> bytes:
+    return bytes((0xFF, marker)) + struct.pack(">H", len(body) + 2) + body
+
+
 def orientation_segment(value: int) -> bytes:
     """A minimal Exif segment carrying nothing but Orientation."""
     entry = struct.pack("<HHI", 0x0112, 3, 1) + struct.pack("<HH", value, 0)
     tiff = b"II" + struct.pack("<HI", 42, 8) + struct.pack("<H", 1) + entry
-    body = b"Exif\x00\x00" + tiff + struct.pack("<I", 0)
-    return b"\xff\xe1" + struct.pack(">H", len(body) + 2) + body
+    return app_segment(0xE1, b"Exif\x00\x00" + tiff + struct.pack("<I", 0))
 
 
 def normalize_jpeg(data: bytes) -> bytes | None:
-    """Drop every APP and comment segment that is not on the allowlist."""
+    """Drop every APP and comment segment that is not on the allowlist.
+
+    Each admitted segment is kept once, and a JFIF or Adobe segment is cut to its fixed fields.
+    """
     parts, problems = gate.jpeg_parts(data)
     if problems - gate.TRAILING:
         return None
     out = bytearray(data[:2])
+    kept: set[bytes] = set()
+    chunks: dict[int, int] = {}
     for marker, start, end in parts:
         segment = data[start + 4 : end]
-        if any(marker == m and segment.startswith(p) for m, p in gate.JPEG_APP_ALLOWED):
-            out += data[start:end]
-        elif marker == 0xE1 and segment.startswith(b"Exif\x00\x00"):
+        name = gate.jpeg_app_name(marker, segment)
+        if name == b"ICC_PROFILE\x00":
+            numbering = gate.icc_numbering(segment)
+            if numbering is None or any(t != numbering[1] for t in chunks.values()):
+                # Dropping a chunk of a profile would change the colors, so this needs a person.
+                return None
+            if numbering[0] not in chunks:
+                chunks[numbering[0]] = numbering[1]
+                out += data[start:end]
+        elif name in gate.JPEG_APP_FIXED:
+            fixed = gate.JPEG_APP_FIXED[name]
+            # A decoder ignores one shorter than its fields, so dropping it changes nothing.
+            if name not in kept and len(segment) >= fixed:
+                kept.add(name)
+                body = segment[:fixed]
+                if name == b"JFIF\x00":
+                    body = body[:12] + b"\x00\x00"
+                out += app_segment(marker, body)
+        elif name:
             # An Exif segment with an unrecognized tag goes whole.
             # Rewriting an IFD in place means re-computing every offset in it.
             # Orientation decides which way the picture displays, so it is re-emitted alone.
+            if name in kept:
+                continue
             if not gate.exif_unrecognized(segment):
+                kept.add(name)
                 out += data[start:end]
             elif (turned := exif_orientation(segment)) != 1:
+                kept.add(name)
                 out += orientation_segment(turned)
         elif 0xE0 <= marker <= 0xEF or marker == 0xFE:
             continue
@@ -137,7 +165,25 @@ def normalize_webp(data: bytes) -> bytes | None:
     parts, problems = gate.webp_parts(data)
     if problems - gate.TRAILING:
         return None
-    body = b"".join(data[s:e] for chunk, s, e in parts if chunk in gate.WEBP_ALLOWED)
+    body = b""
+    for chunk, start, end in parts:
+        length = struct.unpack_from("<I", data, start + 4)[0]
+        if chunk not in gate.WEBP_ALLOWED:
+            continue
+        if gate.WEBP_FIXED.get(chunk, length) != length:
+            # A decoder refuses a fixed chunk of another size, so this is not a drop.
+            return None
+        if chunk != b"ANMF":
+            body += data[start:end]
+            continue
+        inner, trouble = gate.anmf_parts(data, start)
+        if trouble - gate.TRAILING:
+            return None
+        frame = data[start + 8 : start + 8 + gate.WEBP_FRAME_HEADER]
+        frame += b"".join(
+            data[s:e] for c, s, e in inner if c in gate.WEBP_FRAME_ALLOWED
+        )
+        body += b"ANMF" + struct.pack("<I", len(frame)) + frame + bytes(len(frame) & 1)
     if not body:
         return None
     return b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + body
@@ -316,8 +362,17 @@ def pixel_payload(data: bytes) -> bytes | None:
         return b"".join(data[s:e] for k, s, e in parts if k in ("header", "image"))
     if kind == "webp":
         parts, _ = gate.webp_parts(data)
-        drawn = (b"VP8 ", b"VP8L", b"ALPH", b"ANMF")
-        return b"".join(data[s:e] for c, s, e in parts if c in drawn)
+        drawn = bytearray()
+        for chunk, start, end in parts:
+            if chunk == b"ANMF":
+                inner, _ = gate.anmf_parts(data, start)
+                drawn += data[start + 8 : start + 8 + gate.WEBP_FRAME_HEADER]
+                drawn += b"".join(
+                    data[s:e] for c, s, e in inner if c in gate.WEBP_FRAME_ALLOWED
+                )
+            elif chunk in gate.WEBP_FRAME_ALLOWED:
+                drawn += data[start:end]
+        return bytes(drawn)
     return None
 
 
