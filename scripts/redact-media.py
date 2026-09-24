@@ -251,12 +251,19 @@ def main() -> int:
         try:
             if args.record:
                 replace(MANIFEST, (json.dumps(manifest, indent=2) + "\n").encode())
-            for path, _, new in writes:
-                if path not in moved:
-                    replace(path, new)
-                    written += 1
         except OSError as error:
-            errors.append(f"not every file was replaced, rerun to converge ({error})")
+            errors.append(f"{MANIFEST.name}: not written ({error})")
+            writes = []
+        for path, _, new in writes:
+            if path in moved:
+                continue
+            try:
+                replace(path, new)
+            except OSError as error:
+                name = path.relative_to(REPO).as_posix()
+                errors.append(f"{name}: not replaced, rerun to converge ({error})")
+                continue
+            written += 1
     for line in errors:
         print(line)
     print()

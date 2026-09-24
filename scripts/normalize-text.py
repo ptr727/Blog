@@ -34,7 +34,7 @@ TREE = REPO / "content"
 FENCE = re.compile(r"(`{3,}|~{3,})")
 CLOSER = re.compile(r"(`{3,}|~{3,})[ \t]*\r?")
 BLOCK = re.compile(
-    r"#{1,6}(\s|$)|[-*+]\s|\d{1,9}[.)]\s|([-*_])[ \t]*(\2[ \t]*){2,}\r?$"
+    r"#{1,6}(\s|$)|[-*+][ \t]+\S|0*1[.)][ \t]+\S|([-*_])[ \t]*(\2[ \t]*){2,}\r?$"
 )
 
 SUBSTITUTIONS = {
@@ -77,7 +77,9 @@ def substitute(text: str, protected: list[str]) -> str:
             fence, quote = opener.group(1), False
             continue
         quote = stripped.startswith(">") or (
-            quote and bool(stripped.strip()) and not BLOCK.match(stripped)
+            quote
+            and bool(stripped.strip())
+            and (line.startswith(("    ", "\t")) or not BLOCK.match(stripped))
         )
         if quote or any(token in line for token in protected):
             continue

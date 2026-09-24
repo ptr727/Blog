@@ -147,6 +147,27 @@ class RedactMediaTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(sha256(good.read_bytes()), recorded["result"])
 
+    def test_failed_replace_does_not_stop_later_files(self) -> None:
+        for name in ("a.jpg", "b.jpg"):
+            self.add(name, jpeg(), {"fill": [[8, 8, 24, 24]]})
+        self.run_script("--record")
+        entries = self.manifest()["files"]
+        for name in ("a.jpg", "b.jpg"):
+            self.add(name, jpeg(), entries[f"static/{name}"])
+        first = self.repo / "static" / "a.jpg"
+        real = redact.replace
+
+        def fail_on_first(target: pathlib.Path, data: bytes) -> None:
+            if target == first:
+                raise PermissionError("in use")
+            real(target, data)
+
+        with mock.patch.object(redact, "replace", fail_on_first):
+            code, _ = self.run_script("--apply")
+        self.assertEqual(code, 1)
+        second = (self.repo / "static" / "b.jpg").read_bytes()
+        self.assertEqual(sha256(second), entries["static/b.jpg"]["result"])
+
     def test_failed_replace_after_record_converges(self) -> None:
         path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
         real = redact.replace
