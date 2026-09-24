@@ -15,6 +15,7 @@ The properties, each checked on every variant:
 4. Planted metadata is always reported.
 5. The archive walk never raises on a damaged archive.
 6. The normalizer refuses a picture its Exif turns, or returns one turned the same way.
+   Where decoders disagree on the turn, it refuses.
 
 Seeds are constructed fixtures plus a sample of the carried media, read in memory and
 never written anywhere. The run is deterministic for a given seed and file list, and
@@ -506,9 +507,12 @@ def orientation_tiff(order: bytes, kind: int) -> bytes:
     return head + entry + struct.pack(fmt + "I", 0)
 
 
-def turned(kind: str, data: bytes) -> list[tuple[bytes, str]]:
-    """Variants whose Exif turns the picture a quarter turn, as Orientation 6 does."""
-    out: list[tuple[bytes, str]] = []
+def turned(kind: str, data: bytes) -> list[tuple[bytes, str, bool]]:
+    """Variants whose Exif turns the picture a quarter turn, as Orientation 6 does.
+
+    The flag marks a turn decoders disagree on, which only a refusal keeps.
+    """
+    out: list[tuple[bytes, str, bool]] = []
     if kind == "jpeg":
         parts, _ = gate.jpeg_parts(data)
         bare = data[:2] + b"".join(
@@ -522,13 +526,13 @@ def turned(kind: str, data: bytes) -> list[tuple[bytes, str]]:
             segment = jpeg_segment(
                 0xE1, b"Exif\x00\x00" + orientation_tiff(order, size)
             )
-            out.append((bare[:2] + segment + bare[2:], what))
+            out.append((bare[:2] + segment + bare[2:], what, size == 4))
     elif kind == "png":
         chunk = png_chunk(b"eXIf", orientation_tiff(b"II", 3))
-        out.append((data[:33] + chunk + data[33:], "eXIf with Orientation"))
+        out.append((data[:33] + chunk + data[33:], "eXIf with Orientation", False))
     elif kind == "webp":
         chunk = riff_chunk(b"EXIF", orientation_tiff(b"II", 3))
-        out.append((with_riff_size(data + chunk), "EXIF with Orientation"))
+        out.append((with_riff_size(data + chunk), "EXIF with Orientation", False))
     return out
 
 
@@ -615,13 +619,18 @@ def check_plant(report: Report, kind: str, data: bytes, where: str) -> None:
             report.fail("2 normalizer output rejected", kind, detail, where)
 
 
-def check_turn(report: Report, kind: str, data: bytes, where: str) -> None:
+def check_turn(
+    report: Report, kind: str, data: bytes, where: str, disputed: bool
+) -> None:
     report.cases += 1
     new, raised = attempt(lambda: normalizer.normalize_bytes(data))
     if raised:
         report.fail("2 normalizer raised", kind, raised, where)
         return
-    if isinstance(new, bytes) and new:
+    if disputed and isinstance(new, bytes) and new:
+        what = where.split(": ", 1)[-1]
+        report.fail("6 normalizer settled a disputed orientation", kind, what, where)
+    elif isinstance(new, bytes) and new:
         kept, raised = attempt(lambda: orientation(kind, new))
         if raised or kept != 6:
             what = where.split(": ", 1)[-1]
@@ -725,8 +734,8 @@ def main() -> int:
             report.fail("0 fixture not clean", kind, ", ".join(gate.scan(data)), label)
         for variant, what in plants(kind, data):
             check_plant(report, kind, variant, f"{label}: {what}")
-        for variant, what in turned(kind, data):
-            check_turn(report, kind, variant, f"{label}: {what}")
+        for variant, what, disputed in turned(kind, data):
+            check_turn(report, kind, variant, f"{label}: {what}", disputed)
         for _ in range(args.cases):
             if time.monotonic() > deadline:
                 break

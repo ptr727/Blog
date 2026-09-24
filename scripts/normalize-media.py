@@ -75,10 +75,11 @@ def normalize_png(data: bytes) -> bytes | None:
     return bytes(out)
 
 
-def exif_orientation(segment: bytes) -> int:
+def exif_orientation(segment: bytes) -> int | None:
     """The Orientation value in an Exif segment or chunk, or 1 where it says nothing.
 
-    The value is read by its declared type, a SHORT or a LONG holding one value.
+    A browser reads it only as one SHORT, where other decoders read a LONG too.
+    Any other shape is None, since which way the picture displays depends on the decoder.
     """
     raw = segment.removeprefix(b"Exif\x00\x00")
     if raw[:2] not in (b"II", b"MM"):
@@ -94,11 +95,9 @@ def exif_orientation(segment: bytes) -> int:
             if entry + 12 > len(raw):
                 break
             if struct.unpack_from(fmt + "H", raw, entry)[0] == 0x0112:
-                kind, many = struct.unpack_from(fmt + "HI", raw, entry + 2)
-                if kind not in (3, 4) or many != 1:
-                    return 1
-                size = "H" if kind == 3 else "I"
-                value = struct.unpack_from(fmt + size, raw, entry + 8)[0]
+                if struct.unpack_from(fmt + "HI", raw, entry + 2) != (3, 1):
+                    return None
+                value = struct.unpack_from(fmt + "H", raw, entry + 8)[0]
                 return value if 1 <= value <= 8 else 1
     except struct.error:
         return 1
@@ -175,7 +174,9 @@ def normalize_jpeg(data: bytes) -> bytes | None:
             # Orientation decides which way the picture displays, so it is re-emitted alone.
             if not gate.exif_unrecognized(segment):
                 out += data[start:end]
-            elif (turned := exif_orientation(segment)) != 1:
+            elif (turned := exif_orientation(segment)) is None:
+                return None
+            elif turned != 1:
                 out += orientation_segment(turned)
         elif 0xE0 <= marker <= 0xEF or marker == 0xFE:
             continue
