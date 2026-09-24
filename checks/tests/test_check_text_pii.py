@@ -27,6 +27,11 @@ POSITIVE = {
         "02:00:00:ab:cd:ef: link up",
         "BD:02:00:00:ab:cd:ef",
         "MAC-02:00:00:ab:cd:ef",
+        "MAC-02-00-00-ab-cd-ef",
+        "HWaddr-02-00-00-ab-cd-ef",
+        "host-02-00-00-ab-cd-ef",
+        "MAC-00-11-22-33-44-55",
+        "host-00-11-22-33-44-55",
     ],
     "public ip": [
         "The resolver answers on 1.1.1.1 today.",
@@ -46,6 +51,9 @@ POSITIVE = {
         "gps_lon=-67.890",
         "lat 12.345",
         '{"lat": 12.345, "lon": -67.890}',
+        "homeLatitude: 12.345",
+        '{"gpsLat": 12.345}',
+        "homeLongitude=-67.890",
     ],
     "coordinate url": [
         "See https://www.openstreetmap.org/?mlat=12.345&mlon=-67.890 for the spot.",
@@ -78,6 +86,9 @@ NEGATIVE = [
     "date: 2026-08-01T10:00:00-07:00",
     "The sizes are 123.456, 45.678 mm and 100.000/12.500 in.",
     "The board is long: 12.345 cm.",
+    "The job wrote backup-26-08-01-12-30-45.tar overnight.",
+    "The roof is flat 12.345 m across.",
+    "FLAT 12.345",
 ]
 
 
