@@ -52,7 +52,7 @@ def normalize_png(data: bytes) -> bytes | None:
     """Drop every ancillary chunk that is not on the allowlist.
 
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
-    A file whose Exif Orientation `exif_orientation` refuses, or turns the picture, is refused.
+    A file is refused where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
@@ -82,7 +82,9 @@ def exif_orientation(segment: bytes) -> int | None:
     Any other shape is None, so the file is refused rather than guessed at.
     Two entries that disagree are None too, in IFD0 or in an IFD reached from it, since decoders take either one.
     An IFD0 holding none counts as 1 against a value held elsewhere, since a browser reads IFD0.
-    An Orientation in or reached from an IFD0 inside the TIFF header, or whose entries run past the segment, is None too.
+    Decoders differ on whether they read an IFD whose entries run past the segment, or an IFD0 inside
+    the TIFF header. An Orientation in or reached from such an IFD0 is None, and one held past IFD0 is
+    None where reading it changes the answer. An Orientation entry the segment cuts off is None wherever it sits.
     """
     raw = segment.removeprefix(b"Exif\x00\x00")
     if raw[:2] not in (b"II", b"MM"):
@@ -94,43 +96,65 @@ def exif_orientation(segment: bytes) -> int | None:
         ifd0 = struct.unpack_from(fmt + "I", raw, 4)[0]
     except struct.error:
         return 1
-    pending, seen = [ifd0], set()
-    values, placed, malformed = set(), False, False
-    while pending and len(seen) < 16:
-        offset = pending.pop()
-        # Past IFD0, an IFD the gate cannot read whole is one it reports, so nothing here reads it either.
-        # An offset it skips costs it none of its 16 IFDs, so it costs none here.
+    # Each pending IFD carries what malformed IFD led to it: none, one past IFD0, or IFD0 itself.
+    pending = [(ifd0, 0)]
+    seen: set[int] = set()
+    behind: set[int] = set()
+    values: set[int] = set()
+    maybe: set[int] = set()
+    placed = False
+    while pending:
+        offset, taint = pending.pop()
+        # An offset the gate skips costs it none of its 16 IFDs, so it costs none here.
+        # The gate never walks what a malformed IFD leads to, so that has a budget of its own.
+        walked = behind if taint else seen
         outside = offset + 2 > len(raw) or (offset < 8 and offset != ifd0)
-        if offset in seen or outside:
+        # A clean path walks an IFD again though a malformed one reached it first, as the gate does.
+        if (
+            outside
+            or offset in seen
+            or (taint and offset in behind)
+            or len(walked) >= 16
+        ):
             continue
-        seen.add(offset)
+        walked.add(offset)
         count = struct.unpack_from(fmt + "H", raw, offset)[0]
-        whole = offset >= 8 and offset + 2 + count * 12 <= len(raw)
-        if offset != ifd0 and (not whole or offset + 2 + count * 12 + 4 > len(raw)):
-            continue
-        # Decoders differ on whether they read a malformed IFD0, or anything reached from it, at all.
-        malformed = malformed or not whole
+        if offset < 8 or offset + 2 + count * 12 > len(raw):
+            taint = taint or (2 if offset == ifd0 else 1)
         for index in range(count):
             entry = offset + 2 + index * 12
             if entry + 2 > len(raw):
                 break
             tag = struct.unpack_from(fmt + "H", raw, entry)[0]
-            if tag == 0x0112 and malformed:
+            # A browser reads a malformed IFD0 or it does not, so an Orientation there or behind it is disputed.
+            if tag == 0x0112 and (taint == 2 or entry + 12 > len(raw)):
                 return None
             if entry + 12 > len(raw):
                 break
             if tag == 0x0112:
                 if struct.unpack_from(fmt + "HI", raw, entry + 2) != (3, 1):
                     return None
-                values.add(struct.unpack_from(fmt + "H", raw, entry + 8)[0])
+                value = struct.unpack_from(fmt + "H", raw, entry + 8)[0]
+                (maybe if taint else values).add(value)
                 placed = placed or offset == ifd0
             elif tag in gate.EXIF_POINTERS:
-                pending.append(struct.unpack_from(fmt + "I", raw, entry + 8)[0])
+                pointer = struct.unpack_from(fmt + "I", raw, entry + 8)[0]
+                pending.append((pointer, taint))
+    held = settled(values, placed)
+    # A decoder may read an Orientation held in a malformed IFD or skip it, so both readings must agree.
+    return held if settled(values | maybe, placed) == held else None
+
+
+def settled(values: set[int], placed: bool) -> int | None:
+    """The one Orientation a set of values read from an Exif segment settles on, or None where they disagree.
+
+    An IFD0 holding none counts as 1 against a value held elsewhere, since a browser reads IFD0.
+    """
     if values and not placed:
-        values.add(1)
+        values = values | {1}
     if len(values) > 1:
         return None
-    value = values.pop() if values else 1
+    value = next(iter(values)) if values else 1
     return value if 1 <= value <= 8 else 1
 
 
@@ -244,7 +268,7 @@ def normalize_webp(data: bytes) -> bytes | None:
     """Drop every chunk that is not on the allowlist, and restate the RIFF size.
 
     The VP8X reserved bits and each pad byte are written as zero.
-    A file whose Exif Orientation `exif_orientation` refuses, or turns the picture, is refused.
+    A file is refused where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.webp_parts(data)
     if problems - gate.TRAILING:
