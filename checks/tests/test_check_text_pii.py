@@ -147,6 +147,7 @@ class GateTests(unittest.TestCase):
             for _, value in gate.scan_line(line):
                 self.assertNotIn(value, out, kind)
         self.assertIn("content/posts/2026/01/02/leaky.md:1: email", out)
+        self.assertIn("To fix, remove each value or declare it, see", out)
 
     def test_archive_years_are_out_of_scope(self) -> None:
         self.tree.post("content/posts/2010/01/02/old.md", POSITIVE["email"][0] + "\n")
@@ -204,6 +205,7 @@ class GateTests(unittest.TestCase):
         self.assertEqual(1, code)
         self.assertIn("entry 0 (email) matches nothing", out)
         self.assertIn("findings: 0, unused allow list entries: 1.", out)
+        self.assertIn("To fix, drop each unused entry, see", out)
         self.assertNotIn("someone@example.com", out)
 
     def test_malformed_declarations_are_refused(self) -> None:

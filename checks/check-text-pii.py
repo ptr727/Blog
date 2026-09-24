@@ -306,9 +306,14 @@ def main(argv: list[str] | None = None) -> int:
             f"{ALLOW.as_posix()}: entry {i} ({entries[i]['class']}) matches nothing in scope"
         )
     if reported or stale:
+        advice = []
+        if reported:
+            advice.append("remove each value or declare it")
+        if stale:
+            advice.append("drop each unused entry")
         print(
             f"\nfindings: {len(reported)}, unused allow list entries: {len(stale)}."
-            " Remove the value or declare it, and drop an unused entry, see CONTENT.md."
+            f" To fix, {' and '.join(advice)}, see CONTENT.md."
         )
         return 1
     print(f"text pii: {len(posts(root))} file(s) in scope, nothing undeclared")
