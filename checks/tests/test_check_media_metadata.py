@@ -194,5 +194,74 @@ class Fields(unittest.TestCase):
         self.assertEqual(gate.scan(fuzz.webp_fixture()), set())
 
 
+class FreeValues(unittest.TestCase):
+    def assert_restated(self, data: bytes, expected: bytes) -> None:
+        self.assertTrue(gate.scan(data))
+        new = normalizer.normalize_bytes(data)
+        self.assertEqual(new, expected)
+        self.assertEqual(gate.scan(new), set())
+
+    def test_png_values_writers_use_pass(self) -> None:
+        for chunk, body in (
+            *((b"sRGB", bytes((intent,))) for intent in range(4)),
+            *((b"cHRM", primaries) for primaries in gate.PNG_PRIMARIES),
+            (b"pHYs", struct.pack(">IIB", 2835, 2835, 0)),
+            (b"sBIT", b"\x08"),
+            (b"bKGD", bytes(2)),
+            (b"tRNS", struct.pack(">H", 255)),
+        ):
+            self.assertEqual(gate.scan(png_with(fuzz.png_chunk(chunk, body))), set())
+
+    def test_png_undrawn_chunk_out_of_its_value_is_dropped(self) -> None:
+        for chunk, body in ((b"sBIT", b"\x05"), (b"bKGD", b"\x00\x07")):
+            self.assert_restated(
+                png_with(fuzz.png_chunk(chunk, body)), fuzz.png_fixture()
+            )
+
+    def test_png_misplaced_chunk_is_dropped_or_refused(self) -> None:
+        data = fuzz.png_fixture()
+        late = fuzz.png_chunk(b"sBIT", b"\x08")
+        self.assert_restated(data[:-12] + late + data[-12:], data)
+        late = fuzz.png_chunk(b"pHYs", fuzz.SQUARE)
+        data = data[:-12] + late + data[-12:]
+        self.assertIn("PNG pHYs chunk out of place", gate.scan(data))
+        self.assertIsNone(normalizer.normalize_bytes(data))
+
+    def test_png_repeated_gamma_is_refused(self) -> None:
+        data = png_with(fuzz.png_chunk(b"gAMA", struct.pack(">I", 45455)))
+        self.assertIn("PNG repeated gAMA chunk", gate.scan(data))
+        self.assertIsNone(normalizer.normalize_bytes(data))
+
+    def test_gif_unused_control_fields_are_zeroed(self) -> None:
+        data = fuzz.gif_fixture()
+        at = data.index(b"\x21\xf9") + 3
+        bent = data[:at] + b"\xe0" + data[at + 1 : at + 3] + b"\x05" + data[at + 4 :]
+        self.assert_restated(bent, data)
+
+    def test_gif_aspect_ratio_is_refused(self) -> None:
+        data = fuzz.gif_fixture()
+        data = data[:12] + b"\x31" + data[13:]
+        self.assertIn("GIF aspect ratio not zero", gate.scan(data))
+        self.assertIsNone(normalizer.normalize_bytes(data))
+
+    def test_webp_background_is_zeroed_and_loop_count_kept(self) -> None:
+        data = fuzz.animated_webp_fixture()
+        at = data.index(b"ANIM") + 8
+        looped = data[:at] + bytes(4) + b"\x03\x00" + data[at + 6 :]
+        self.assertEqual(gate.scan(looped), set())
+        bent = looped[:at] + b"\xff" * 4 + looped[at + 4 :]
+        self.assert_restated(bent, looped)
+
+    def test_jpeg_fill_before_a_marker_is_dropped(self) -> None:
+        data = fuzz.jpeg_fixture(False)
+        for at in (2, len(data) - 2):
+            self.assert_restated(data[:at] + b"\xff" * 3 + data[at:], data)
+
+    def test_jpeg_fill_inside_a_scan_is_refused(self) -> None:
+        data = fuzz.jpeg_fixture(False).replace(b"\xff\xd0", b"\xff\xff\xd0")
+        self.assertIn("JPEG fill bytes inside a scan", gate.scan(data))
+        self.assertIsNone(normalizer.normalize_bytes(data))
+
+
 if __name__ == "__main__":
     unittest.main()

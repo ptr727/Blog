@@ -212,11 +212,37 @@ PNG_ALLOWED = {
     b"sBIT",
     b"bKGD",
     b"pHYs",
-    b"hIST",
     b"acTL",
     b"fcTL",
     b"fdAT",
 }
+
+# A chunk other than picture data or an animation frame holds its bytes once per repeat, so each admits one.
+PNG_ONCE = PNG_ALLOWED - {b"IDAT", b"fcTL", b"fdAT"}
+
+# The gamma and primaries are sRGB's own, as writers round them, since any other is free.
+PNG_GAMMA = frozenset((struct.pack(">I", 45455),))
+PNG_PRIMARIES = frozenset(
+    (
+        bytes.fromhex(
+            "00007a25000080830000f9ff000080e9000075300000ea6000003a980000176f"
+        ),
+        bytes.fromhex(
+            "00007a26000080840000fa00000080e8000075300000ea6000003a9800001770"
+        ),
+    )
+)
+
+# How many values sBIT and bKGD hold for each color type.
+# No browser draws by either, so each holds the one value that says nothing: every bit significant, and zero.
+PNG_SIGNIFICANT = {0: 1, 2: 3, 3: 3, 4: 2, 6: 4}
+PNG_BACKGROUND = {0: 2, 2: 6, 3: 1, 4: 2, 6: 6}
+PNG_UNDRAWN = frozenset((b"sBIT", b"bKGD"))
+
+# Where a decoder reads each ancillary chunk, since it passes over one out of its place.
+PNG_BEFORE_PLTE = frozenset((b"gAMA", b"cHRM", b"sRGB", b"iCCP", b"sBIT"))
+PNG_AFTER_PLTE = frozenset((b"tRNS", b"bKGD"))
+PNG_BEFORE_IDAT = PNG_BEFORE_PLTE | PNG_AFTER_PLTE | {b"pHYs"}
 
 WEBP_ALLOWED = {b"VP8 ", b"VP8L", b"VP8X", b"ALPH", b"ANIM", b"ANMF", b"ICCP"}
 WEBP_FRAME_ALLOWED = {b"VP8 ", b"VP8L", b"ALPH"}
@@ -309,6 +335,7 @@ TRAILING = frozenset(
         "WebP trailing bytes outside any chunk",
         "WebP RIFF size does not match the file",
         "WebP chunk pad byte not zero",
+        "JPEG fill bytes before a marker",
     )
 )
 
@@ -423,7 +450,7 @@ def jpeg_parts(data: bytes) -> tuple[list[Part], set[str]]:
     """Split a JPEG into its segments, and name what stopped the split.
 
     A scan segment runs through its entropy data, which ends at the first marker that is
-    neither a stuffed byte nor a restart. So a segment between two scans, or between the
+    neither a stuffed byte nor a restart, or at the fill bytes before it. So a segment between two scans, or between the
     last scan and the end marker, is a segment like any other rather than picture data.
     """
     parts: list[Part] = []
@@ -438,7 +465,8 @@ def jpeg_parts(data: bytes) -> tuple[list[Part], set[str]]:
             break
         marker = data[i + 1]
         if marker == 0xFF:
-            # A fill byte may precede any marker.
+            # A fill byte may precede any marker, and how many precede it is nobody's to read.
+            problems.add("JPEG fill bytes before a marker")
             i += 1
             continue
         if marker == 0xD9:
@@ -463,6 +491,9 @@ def jpeg_parts(data: bytes) -> tuple[list[Part], set[str]]:
             if end < 0:
                 problems.add("JPEG has no end marker")
                 break
+            # Entropy data holds a 0xFF only before a zero or a restart, so a second one is fill.
+            if b"\xff\xff" in data[i + 2 + length : end]:
+                problems.add("JPEG fill bytes inside a scan")
         parts.append((marker, i, end))
         i = end
     if not any(marker == 0xDA for marker, _, _ in parts):
@@ -476,18 +507,21 @@ def jpeg_parts(data: bytes) -> tuple[list[Part], set[str]]:
 
 
 def entropy_end(data: bytes, i: int) -> int:
-    """The offset of the marker that ends a scan's entropy data, or -1 where none does."""
+    """The offset of the fill bytes or marker that end a scan's entropy data, or -1 where none does."""
+    run = -1
     while True:
         i = data.find(b"\xff", i)
         if i < 0 or i + 1 >= len(data):
             return -1
         following = data[i + 1]
         if following == 0x00 or 0xD0 <= following <= 0xD7:
+            run = -1
             i += 2
         elif following == 0xFF:
+            run = i if run < 0 else run
             i += 1
         else:
-            return i
+            return i if run < 0 else run
 
 
 def jpeg_app_name(marker: int, segment: bytes) -> bytes | None:
@@ -675,13 +709,77 @@ def png_icc_problems(body: bytes) -> set[str]:
     return set()
 
 
+def png_header(data: bytes, parts: list[Part]) -> tuple[int, int] | None:
+    """The bit depth and color type IHDR states, or None where there is no whole IHDR."""
+    header = [data[s + 8 : e - 4] for c, s, e in parts if c == b"IHDR"]
+    return (header[0][8], header[0][9]) if header and len(header[0]) == 13 else None
+
+
+def png_field_known(
+    chunk: bytes, body: bytes, header: tuple[int, int] | None, palette: int
+) -> bool:
+    """Whether an ancillary chunk holds exactly a value its format defines, in its one length."""
+    depth, color = header or (0, -1)
+    if chunk == b"gAMA":
+        return body in PNG_GAMMA
+    if chunk == b"cHRM":
+        return body in PNG_PRIMARIES
+    if chunk == b"sRGB":
+        return len(body) == 1 and body[0] <= 3
+    if chunk == b"pHYs":
+        # Density is held to square pixels, as JFIF density is.
+        return len(body) == 9 and body[:4] == body[4:8] and body[8] <= 1
+    if chunk == b"sBIT":
+        full = 8 if color == 3 else depth
+        return (
+            color in PNG_SIGNIFICANT and body == bytes((full,)) * PNG_SIGNIFICANT[color]
+        )
+    if chunk == b"bKGD":
+        return color in PNG_BACKGROUND and body == bytes(PNG_BACKGROUND[color])
+    if chunk == b"tRNS":
+        if color == 3:
+            return 0 < len(body) <= palette
+        if color not in (0, 2) or len(body) != (2 if color == 0 else 6):
+            return False
+        return all(v >> depth == 0 for v in struct.unpack(f">{len(body) // 2}H", body))
+    return True
+
+
+def png_misplaced(names: list[bytes]) -> set[int]:
+    """The positions of the pinned ancillary chunks that sit where a decoder does not read them."""
+    idat = names.index(b"IDAT") if b"IDAT" in names else len(names)
+    plte = names.index(b"PLTE") if b"PLTE" in names else -1
+    return {
+        at
+        for at, name in enumerate(names)
+        if (name in PNG_BEFORE_IDAT and at > idat)
+        or (name in PNG_BEFORE_PLTE and 0 <= plte < at)
+        or (name in PNG_AFTER_PLTE and at < plte)
+    }
+
+
 def scan_png(data: bytes) -> set[str]:
     parts, out = png_parts(data)
-    for chunk, start, end in parts:
+    names = [bytes(chunk) for chunk, _, _ in parts]
+    out |= {
+        f"PNG repeated {once.decode()} chunk"
+        for once in PNG_ONCE
+        if names.count(once) > 1
+    }
+    header = png_header(data, parts)
+    palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
+    misplaced = png_misplaced(names)
+    for at, (chunk, start, end) in enumerate(parts):
+        name = chunk.decode("ascii", "replace")
+        body = data[start + 8 : end - 4]
+        if at in misplaced:
+            out.add(f"PNG {name} chunk out of place")
         if chunk not in PNG_ALLOWED:
-            out.add(f"PNG {chunk.decode('ascii', 'replace')} chunk")
+            out.add(f"PNG {name} chunk")
         elif chunk == b"iCCP":
-            out |= png_icc_problems(data[start + 8 : end - 4])
+            out |= png_icc_problems(body)
+        elif not png_field_known(chunk, body, header, palette):
+            out.add(f"PNG {name} fields not values its format defines")
     return out
 
 
@@ -746,8 +844,44 @@ def gif_extension_allowed(block: bytes) -> bool:
     return netscape and len(block) == 19 and block[14:16] == b"\x03\x01"
 
 
+def gif_control(block: bytes) -> bytes | None:
+    """A graphic control block with its reserved bits and an unused transparent index zeroed.
+
+    None where its disposal method is not one the format defines, since decoders differ on those.
+    """
+    packed = block[3]
+    if packed >> 2 & 7 > 3:
+        return None
+    index = block[6] if packed & 1 else 0
+    return (
+        block[:3] + bytes((packed & 0x1F,)) + block[4:6] + bytes((index,)) + block[7:]
+    )
+
+
+def gif_fields(data: bytes) -> set[str]:
+    """Name where a GIF's screen, graphic control or image fields hold a value no decoder reads."""
+    parts, _ = gif_parts(data)
+    out: set[str] = set()
+    if len(data) >= 13 and data[12]:
+        out.add("GIF aspect ratio not zero")
+    if len(data) >= 13 and not data[10] & 0x80 and data[11]:
+        out.add("GIF background index with no color table")
+    for kind, start, end in parts:
+        block = data[start:end]
+        if kind == "extension 0xF9" and gif_extension_allowed(block):
+            control = gif_control(block)
+            if control is None:
+                out.add("GIF graphic control disposal not a known method")
+            elif control != block:
+                out.add("GIF graphic control unused fields not zero")
+        elif kind == "image" and block[9] & 0x18:
+            out.add("GIF image descriptor reserved bits not zero")
+    return out
+
+
 def scan_gif(data: bytes) -> set[str]:
     parts, out = gif_parts(data)
+    out |= gif_fields(data)
     for kind, start, end in parts:
         if not str(kind).startswith("extension"):
             continue
@@ -847,7 +981,7 @@ def webp_layout(data: bytes) -> set[str]:
 
 
 def webp_fields(data: bytes) -> set[str]:
-    """Name where a WebP's VP8X, ICCP or ANMF fields hold other than a value the format defines."""
+    """Name where a WebP's VP8X, ICCP, ANIM or ANMF fields hold other than a value the format defines."""
     parts, _ = webp_parts(data)
     names = {bytes(chunk) for chunk, _, _ in parts}
     out: set[str] = set()
@@ -866,6 +1000,9 @@ def webp_fields(data: bytes) -> set[str]:
             )
         elif chunk == b"ICCP" and not icc_known(body):
             out.add("WebP ICC profile not a known profile")
+        elif chunk == b"ANIM" and length == WEBP_FIXED[b"ANIM"] and any(body[:4]):
+            # No browser draws the background color, and the loop count is kept as a GIF's is.
+            out.add("WebP ANIM background not zero")
         elif chunk == b"ANMF" and length >= WEBP_FRAME_HEADER:
             out |= anmf_header_problems(body[:WEBP_FRAME_HEADER], canvas)
     return out
