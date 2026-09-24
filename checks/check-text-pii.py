@@ -154,7 +154,9 @@ def is_coordinate(
         lat, lon = (a, b) if first_hemi in "NS" else (b, a)
         return lat <= 90 and lon <= 180
     if first_hemi or second_hemi:
-        return False
+        first_is_lat = first_hemi in "NS" if first_hemi else second_hemi in "EW"
+        lat, lon = (a, b) if first_is_lat else (b, a)
+        return lat <= 90 and lon <= 180
     if a <= 90 and b <= 180:
         return True
     # Longitude first is how GeoJSON writes a point, and a measurement rarely carries four places.
