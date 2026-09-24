@@ -264,7 +264,7 @@ def normalize_gif(data: bytes) -> bytes | None:
     """Drop every extension block that is not on the allowlist.
 
     A graphic control block's reserved bits and unused transparent index are written as zero.
-    So are the screen and image descriptor fields no browser draws by.
+    So are the screen and image descriptor fields no browser draws by, and a global table no image reads is dropped.
     """
     parts, problems = gate.gif_parts(data)
     if problems - gate.TRAILING:
@@ -278,7 +278,7 @@ def normalize_gif(data: bytes) -> bytes | None:
                 return None
             out += control
         elif kind == "header":
-            out += gate.gif_screen(block)
+            out += gate.gif_screen(block, gate.gif_table_read(data, parts))
         elif kind == "image":
             out += gate.gif_descriptor(block)
         elif not str(kind).startswith("extension") or gate.gif_extension_allowed(block):
@@ -529,7 +529,11 @@ def pixel_payload(data: bytes) -> bytes | None:
     if kind == "gif":
         # The descriptor fields the normalizer zeroes are not drawn, so they are compared as it writes them.
         parts, _ = gate.gif_parts(data)
-        drawn = {"header": gate.gif_screen, "image": gate.gif_descriptor}
+        read = gate.gif_table_read(data, parts)
+        drawn = {
+            "header": lambda b: gate.gif_screen(b, read),
+            "image": gate.gif_descriptor,
+        }
         return b"".join(drawn[k](data[s:e]) for k, s, e in parts if k in drawn)
     if kind == "webp":
         parts, _ = gate.webp_parts(data)

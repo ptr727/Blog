@@ -242,10 +242,10 @@ PNG_UNDRAWN = frozenset((b"sBIT", b"bKGD"))
 # The color types whose PLTE only suggests a palette, which no browser draws by.
 PNG_TRUECOLOR = frozenset((2, 6))
 
-# Where a decoder reads each ancillary chunk, since it passes over one out of its place.
+# Where a decoder reads each placed chunk, since it passes over one out of its place.
 PNG_BEFORE_PLTE = frozenset((b"gAMA", b"cHRM", b"sRGB", b"iCCP", b"sBIT"))
 PNG_AFTER_PLTE = frozenset((b"tRNS", b"bKGD"))
-PNG_BEFORE_IDAT = PNG_BEFORE_PLTE | PNG_AFTER_PLTE | {b"pHYs"}
+PNG_BEFORE_IDAT = PNG_BEFORE_PLTE | PNG_AFTER_PLTE | {b"pHYs", b"PLTE"}
 
 WEBP_ALLOWED = {b"VP8 ", b"VP8L", b"VP8X", b"ALPH", b"ANIM", b"ANMF", b"ICCP"}
 WEBP_FRAME_ALLOWED = {b"VP8 ", b"VP8L", b"ALPH"}
@@ -759,7 +759,7 @@ def png_undrawn(chunk: bytes, header: tuple[int, int] | None) -> bool:
 
 
 def png_misplaced(names: list[bytes]) -> set[int]:
-    """The positions of the pinned ancillary chunks that sit where a decoder does not read them."""
+    """The positions of the palette and pinned ancillary chunks that sit where a decoder does not read them."""
     idat = names.index(b"IDAT") if b"IDAT" in names else len(names)
     plte = names.index(b"PLTE") if b"PLTE" in names else -1
     return {
@@ -871,13 +871,20 @@ def gif_control(block: bytes) -> bytes | None:
     )
 
 
-def gif_screen(head: bytes) -> bytes:
-    """A screen descriptor with every field no browser draws by written as zero.
+def gif_screen(head: bytes, read: bool = True) -> bytes:
+    """A header with every field no browser draws by written as zero, and its version as the one version.
 
     That is all but its size and its global table, so the color resolution, sort flag, background index and aspect ratio go.
+    The global table goes too where no image reads it, which read says.
     """
-    flags = head[10] & 0x87 if head[10] & 0x80 else 0
-    return head[:10] + bytes((flags, 0, 0)) + head[13:]
+    if not head[10] & 0x80 or not read:
+        return b"GIF89a" + head[6:10] + bytes(3)
+    return b"GIF89a" + head[6:10] + bytes((head[10] & 0x87, 0, 0)) + head[13:]
+
+
+def gif_table_read(data: bytes, parts: list[Part]) -> bool:
+    """Whether an image draws from the global table, which only one with no local table does."""
+    return any(k == "image" and not data[s + 9] & 0x80 for k, s, _ in parts)
 
 
 def gif_descriptor(block: bytes) -> bytes:
@@ -891,6 +898,10 @@ def gif_fields(data: bytes) -> set[str]:
     parts, _ = gif_parts(data)
     out: set[str] = set()
     if len(data) >= 13:
+        if data[:6] != b"GIF89a":
+            out.add("GIF version not 89a")
+        if data[10] & 0x80 and not gif_table_read(data, parts):
+            out.add("GIF global color table no image reads")
         if data[12]:
             out.add("GIF aspect ratio not zero")
         if data[11]:

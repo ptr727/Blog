@@ -226,6 +226,14 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
         out.append(
             (bare[:33] + suggested + bare[33:], "PLTE in a color type that draws none")
         )
+    # A palette after the picture data is one a decoder does not read.
+    late = [data[s:e] for c, s, e in parts if c == b"PLTE"][:1] or [
+        png_chunk(b"PLTE", PLANT_TEXT * 3)
+    ]
+    moved = bare[:8] + b"".join(
+        data[s:e] for c, s, e in parts if c in (b"IHDR", b"IDAT")
+    )
+    out.append((moved + late[0] + bare[-12:], "PLTE after IDAT"))
     # An APNG frame is refused, so a still decoder never reads a default image the gate alone passed.
     control = png_chunk(b"acTL", struct.pack(">II", 1, 0))
     frame = png_chunk(b"fdAT", struct.pack(">I", 0) + PLANT_TEXT)
@@ -255,6 +263,14 @@ def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
         flags = b"\x07"
         variant = data[:10] + flags + data[11:13] + data[13 + table :]
         out.append((variant, "table size with no color table"))
+        # A local table on every image leaves the global one read by nothing.
+        local = bytearray(data)
+        for name, start, _ in reversed(parts):
+            if name == "image" and not data[start + 9] & 0x80:
+                local[start + 9] |= 0x80
+                local[start + 10 : start + 10] = bytes(6)
+        out.append((bytes(local), "global color table no image reads"))
+    out.append((b"GIF87a" + data[6:], "version not 89a"))
     for name, start, end in parts:
         if name == "extension 0xF9" and end - start == 8:
             packed, index = data[start + 3], data[start + 6]
