@@ -74,10 +74,15 @@ def exif_gap_segment() -> bytes:
     return jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
 
 
-def exif_ifd_segment(entries: list[tuple[int, int, int, bytes]]) -> bytes:
-    """An Exif APP1 with one IFD holding the given tag, type, count and value entries."""
+def exif_ifd_segment(
+    entries: list[tuple[int, int, int, bytes]], pad: bytes = b""
+) -> bytes:
+    """An Exif APP1 with one IFD holding the given tag, type, count and value entries.
+
+    A pad goes between the IFD and the values it points to, as a writer aligning them leaves one.
+    """
     table, values = b"", b""
-    start = 8 + 2 + 12 * len(entries) + 4
+    start = 8 + 2 + 12 * len(entries) + 4 + len(pad)
     for tag, kind, count, value in entries:
         if len(value) > 4:
             field = struct.pack("<I", start + len(values))
@@ -86,7 +91,7 @@ def exif_ifd_segment(entries: list[tuple[int, int, int, bytes]]) -> bytes:
             field = value.ljust(4, b"\x00")
         table += struct.pack("<HHI", tag, kind, count) + field
     ifd = struct.pack("<H", len(entries)) + table + struct.pack("<I", 0)
-    tiff = b"II" + struct.pack("<HI", 42, 8) + ifd + values
+    tiff = b"II" + struct.pack("<HI", 42, 8) + ifd + pad + values
     return jpeg_segment(0xE1, b"Exif\x00\x00" + tiff)
 
 
@@ -116,10 +121,32 @@ EXIF_BENT = (
         "BitsPerSample of 3 for 1 sample",
     ),
     ([(0x0112, 3, 1, struct.pack("<H", 6) + b"pl")], "Orientation padding"),
+    ([(0x0112, 3, 1, b"pl")], "Orientation out of its range"),
+    ([ORIENTATION, (0x9000, 7, 4, b"plnt")], "ExifVersion not a known version"),
+    ([ORIENTATION, (0xA000, 7, 4, b"plnt")], "FlashpixVersion not a known version"),
+    ([ORIENTATION, (0x0002, 7, 4, b"plnt")], "InteropVersion not a known version"),
+    ([ORIENTATION, (0x0001, 2, 4, b"pln\x00")], "InteropIndex not a known index"),
+    (
+        [ORIENTATION, (0x9101, 7, 4, b"plnt")],
+        "ComponentsConfiguration not a known order",
+    ),
+    ([ORIENTATION, (0x0102, 3, 3, PLANT_TEXT[:6])], "BitsPerSample of 3 not 8 bits"),
+    ([ORIENTATION, (0x0102, 3, 1, b"pl")], "BitsPerSample of 1 not 8 bits"),
+    *(
+        ([ORIENTATION, (tag, 3, 1, b"pl")], f"SHORT 0x{tag:04X} out of its range")
+        for tag in (0x0103, 0x0106, 0x0115, 0x011C, 0x0128, 0x0213, 0xA001)
+    ),
 )
 
 JFIF = b"JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
 ADOBE = b"Adobe\x00\x64\x00\x00\x00\x00\x01"
+
+
+def bend(fields: bytes, at: int, value: bytes) -> bytes:
+    """A fixed-shape segment's fields with the bytes at one offset replaced."""
+    return fields[:at] + value + fields[at + len(value) :]
+
+
 ICC = b"ICC_PROFILE\x00\x01\x01"
 SOF = jpeg_segment(0xC0, b"\x08\x00\x08\x00\x08\x01\x01\x11\x00")
 SOS = jpeg_segment(0xDA, b"\x01\x01\x00\x00\x3f\x00")
@@ -143,6 +170,13 @@ JPEG_APP_BENT = (
         [jpeg_segment(0xE2, ICC[:12] + b"\x01\x03" + PLANT_TEXT)],
         "incomplete ICC profile",
     ),
+    ([jpeg_segment(0xE2, ICC + PLANT_TEXT)], "ICC profile not a known profile"),
+    ([jpeg_segment(0xE0, bend(JFIF, 5, b"pl"))], "JFIF version not a known version"),
+    ([jpeg_segment(0xE0, bend(JFIF, 7, b"p"))], "JFIF units not a known unit"),
+    ([jpeg_segment(0xE0, bend(JFIF, 8, b"plan"))], "JFIF density not square"),
+    ([jpeg_segment(0xEE, bend(ADOBE, 5, b"pl"))], "Adobe version not 100"),
+    ([jpeg_segment(0xEE, bend(ADOBE, 7, b"plan"))], "Adobe flags not zero"),
+    ([jpeg_segment(0xEE, bend(ADOBE, 11, b"p"))], "Adobe transform not a known one"),
 )
 
 
@@ -350,6 +384,10 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
             out.append((bare[:2] + bent + bare[2:], f"Exif {what}"))
         for segments, what in JPEG_APP_BENT:
             out.append((bare[:2] + b"".join(segments) + bare[2:], what))
+        padded = exif_ifd_segment([ORIENTATION, (0x0132, 2, 20, DATE)], b"p")
+        out.append((bare[:2] + padded + bare[2:], "Exif pad byte not zero"))
+        tailed = exif_segment(b"p")
+        out.append((bare[:2] + tailed + bare[2:], "Exif trailing pad byte not zero"))
         eoi = [s for m, s, _ in parts if m == 0xD9]
         if eoi:
             second = b"\xff\xd8" + SOF + SOS + PLANT_TEXT
@@ -367,6 +405,8 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
         parts, _ = gate.png_parts(data)
         text = png_chunk(b"tEXt", b"Comment\x00" + PLANT_TEXT)
         out += at_boundaries(data, parts[1:], text, "tEXt")
+        profile = png_chunk(b"iCCP", b"icc\x00\x00" + zlib.compress(PLANT_TEXT))
+        out.append((data[:33] + profile + data[33:], "iCCP not a known profile"))
     elif kind == "gif":
         parts, _ = gate.gif_parts(data)
         comment = b"\x21\xfe" + bytes((len(PLANT_TEXT),)) + PLANT_TEXT + b"\x00"
@@ -406,6 +446,35 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
                 alpha = riff_chunk(b"ALPH", PLANT_TEXT)
                 variant = with_riff_size(data[:start] + alpha + data[start:])
                 out.append((variant, "ALPH not before a lossy image"))
+            if name == b"ANMF":
+                header = data[start + 8 : start + 8 + gate.WEBP_FRAME_HEADER]
+                for field, value, what in (
+                    (15, b"p", "ANMF reserved bits not zero"),
+                    (0, b"pla", "ANMF frame outside the canvas"),
+                ):
+                    moved = bend(header, field, value)
+                    variant = data[: start + 8] + moved
+                    variant += data[start + 8 + gate.WEBP_FRAME_HEADER :]
+                    out.append((variant, what))
+            if name == b"VP8X":
+                flags = data[start + 8]
+                for value, what in (
+                    (bytes((flags | 0x01,)) + b"pla", "VP8X reserved bits not zero"),
+                    (bytes((flags | 0x0C,)), "VP8X flags a chunk never admitted"),
+                    (bytes((flags ^ 0x20,)), "VP8X ICC flag without its chunk"),
+                    (bytes((flags ^ 0x02,)), "VP8X animation flag without its chunks"),
+                ):
+                    variant = data[: start + 8] + value + data[start + 8 + len(value) :]
+                    out.append((variant, what))
+                profile = riff_chunk(b"ICCP", PLANT_TEXT)
+                flagged = bytes((flags | 0x20,))
+                variant = data[: start + 8] + flagged + data[start + 9 : end]
+                variant = with_riff_size(variant + profile + data[end:])
+                out.append((variant, "ICCP not a known profile"))
+            length = struct.unpack_from("<I", data, start + 4)[0]
+            if length & 1 and name in gate.WEBP_ALLOWED:
+                variant = data[: end - 1] + b"p" + data[end:]
+                out.append((variant, f"{name.decode()} pad byte not zero"))
             if name in (b"VP8X", b"ANIM"):
                 grown = riff_chunk(name, data[start + 8 : payload] + PLANT_TEXT)
                 variant = with_riff_size(data[:start] + grown + data[end:])
