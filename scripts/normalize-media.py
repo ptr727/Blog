@@ -52,7 +52,7 @@ def normalize_png(data: bytes) -> bytes | None:
     """Drop every ancillary chunk that is not on the allowlist.
 
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
-    A file whose Exif turns the picture is refused, since dropping that Exif turns it back.
+    A file whose Exif Orientation is a LONG, or a SHORT that turns the picture, is refused.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
@@ -214,7 +214,7 @@ def normalize_webp(data: bytes) -> bytes | None:
     """Drop every chunk that is not on the allowlist, and restate the RIFF size.
 
     The VP8X reserved bits and each pad byte are written as zero.
-    A file whose Exif turns the picture is refused, since dropping that Exif turns it back.
+    A file whose Exif Orientation is a LONG, or a SHORT that turns the picture, is refused.
     """
     parts, problems = gate.webp_parts(data)
     if problems - gate.TRAILING:
