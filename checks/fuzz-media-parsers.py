@@ -385,6 +385,9 @@ def png_stream_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
     ]
     variants = [(head + body + tail, what, REFUSED) for body, what in out]
     header = data[16:29]
+    side = struct.pack(">I", gate.PNG_SIDE_LIMIT // 10)
+    vast = data[:8] + png_chunk(b"IHDR", side * 2 + header[8:]) + data[33:]
+    variants.append((vast, "IHDR picture past the size limit", REFUSED))
     interlaced = header[:12] + b"\x01"
     if gate.png_picture_size(interlaced) != len(rows):
         bent = data[:8] + png_chunk(b"IHDR", interlaced) + data[33:]

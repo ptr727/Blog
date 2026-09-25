@@ -867,6 +867,9 @@ def png_stream(data: bytes, parts: list[Part]) -> set[str]:
     if not png_field_known(b"IHDR", header[0], png_header(data, parts), 0):
         return set()
     need = png_picture_size(header[0])
+    if need > SIZE_LIMIT:
+        # A small file can declare a picture far larger than it holds, so the inflate stops at the size the gate reads a file to.
+        return {"PNG IHDR picture larger than the gate inflates"}
     rows = (length for count, length in png_passes(header[0]) for _ in range(count))
     stream = zlib.decompressobj()
     got = 0

@@ -326,6 +326,19 @@ class FreeValues(unittest.TestCase):
         wide = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:start] + rows
         self.assertEqual(gate.scan(wide + data[end:]), set())
 
+    def test_png_picture_past_the_size_limit_is_refused_before_inflating(self) -> None:
+        side = gate.PNG_SIDE_LIMIT // 10
+        header = struct.pack(">IIBBBBB", side, side, 8, 0, 0, 0, 0)
+        self.assertGreater(gate.png_picture_size(header), gate.SIZE_LIMIT)
+        data = fuzz.png_fixture()
+        bent = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:]
+        with mock.patch.object(gate.zlib, "decompressobj") as inflate:
+            self.assertEqual(
+                gate.scan(bent), {"PNG IHDR picture larger than the gate inflates"}
+            )
+        inflate.assert_not_called()
+        self.assertIsNone(normalizer.normalize_bytes(bent))
+
     def test_png_interlaced_size_sums_its_adam7_passes(self) -> None:
         header = struct.pack(">IIBBBBB", 8, 8, 8, 0, 0, 0, 1)
         # Passes of 1x1, 1x1, 2x1, 2x2, 4x2, 4x4 and 8x4 pixels, each row opening with a filter byte.
