@@ -249,8 +249,11 @@ class FreeValues(unittest.TestCase):
         data = fuzz.png_fixture()
         control = fuzz.png_chunk(b"acTL", struct.pack(">II", 1, 0))
         frame = fuzz.png_chunk(b"fdAT", bytes(4))
+        header = struct.pack(">IIIIIHHBB", 0, 1, 1, 0, 0, 1, 1, 0, 0)
+        region = fuzz.png_chunk(b"fcTL", header)
         for chunk, bent in (
             (b"acTL", data[:33] + control + data[33:]),
+            (b"fcTL", data[:33] + region + data[33:]),
             (b"fdAT", data[:-12] + frame + data[-12:]),
         ):
             self.assertIn(f"PNG {chunk.decode()} chunk", gate.scan(bent))
