@@ -381,6 +381,7 @@ def png_stream_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
         (png_chunk(b"IDAT", stream[:-4]), "IDAT stream cut off"),
         (png_chunk(b"IDAT", zlib.compress(rows + PLANT_TEXT)), "IDAT past its rows"),
         (png_chunk(b"IDAT", zlib.compress(rows[:-1])), "IDAT short of its rows"),
+        (png_chunk(b"IDAT", zlib.compress(b"\x05" + rows[1:])), "IDAT row filter 5"),
     ]
     variants = [(head + body + tail, what, REFUSED) for body, what in out]
     header = data[16:29]
@@ -539,6 +540,19 @@ def truecolor_png_fixture() -> bytes:
         b"\x89PNG\r\n\x1a\n"
         + png_chunk(b"IHDR", ihdr)
         + png_chunk(b"IDAT", idat)
+        + png_chunk(b"IEND", b"")
+    )
+
+
+def small_png_fixture() -> bytes:
+    """A 5x3 grayscale PNG at two bits a sample, so rows hold a partial byte and interlacing spans several passes."""
+    ihdr = struct.pack(">IIBBBBB", 5, 3, 2, 0, 0, 0, 0)
+    idat = zlib.compress(b"\x00\x1b\xc0" * 3)
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + png_chunk(b"IHDR", ihdr)
+        + png_chunk(b"IDAT", idat[:5])
+        + png_chunk(b"IDAT", idat[5:])
         + png_chunk(b"IEND", b"")
     )
 
@@ -745,7 +759,16 @@ def plants(kind: str, data: bytes) -> list[tuple]:
         parts, _ = gate.png_parts(data)
         text = png_chunk(b"tEXt", b"Comment\x00" + PLANT_TEXT)
         texts = at_boundaries(data, parts[1:], text, "tEXt")
-        out += [(variant, what, REWRITTEN) for variant, what in texts]
+        # One between two IDAT chunks splits the picture data, which no decoder draws past.
+        split = {
+            f"tEXt at {start}"
+            for (c, _, _), (d, start, _) in itertools.pairwise(parts)
+            if c == d == b"IDAT"
+        }
+        out += [
+            (variant, what, REFUSED if what in split else REWRITTEN)
+            for variant, what in texts
+        ]
         profile = png_chunk(b"iCCP", b"icc\x00\x00" + zlib.compress(PLANT_TEXT))
         variant = data[:33] + profile + data[33:]
         out.append((variant, "iCCP not a known profile", REFUSED))
@@ -1276,6 +1299,7 @@ def main() -> int:
         ("fixture:png", png_fixture()),
         ("fixture:png-palette", palette_png_fixture()),
         ("fixture:png-truecolor", truecolor_png_fixture()),
+        ("fixture:png-small", small_png_fixture()),
         ("fixture:gif", gif_fixture()),
         ("fixture:webp", webp_fixture()),
         ("fixture:webp-animated", animated_webp_fixture()),

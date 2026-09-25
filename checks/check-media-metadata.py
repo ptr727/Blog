@@ -262,6 +262,9 @@ PNG_ADAM7 = (
     (0, 1, 1, 2),
 )
 
+# The last row filter type the specification defines, since a decoder fails the picture on any past it.
+PNG_FILTER_LAST = 4
+
 # How much picture data one inflate step writes, so the check holds a bounded piece rather than the picture.
 PNG_INFLATE_PIECE = 1 << 20
 
@@ -823,30 +826,37 @@ def png_structure(names: list[bytes], header: tuple[int, int] | None) -> set[str
         out.add("PNG IHDR not the first chunk")
     if b"IDAT" not in names:
         out.add("PNG without IDAT")
+    else:
+        first = names.index(b"IDAT")
+        run = len(names) - first - names[first:][::-1].index(b"IDAT")
+        # A decoder reads the picture data up to the first other chunk, so a later IDAT is never drawn.
+        if names[first : first + run].count(b"IDAT") != run:
+            out.add("PNG IDAT chunks not consecutive")
     if header and header[1] == 3 and b"PLTE" not in names:
         out.add("PNG palette image without PLTE")
     return out
 
 
-def png_rows(width: int, height: int, bits: int) -> int:
-    """The bytes a picture's rows need once inflated, one filter byte opening each."""
-    return height * (1 + (width * bits + 7) // 8) if width and height else 0
+def png_passes(body: bytes) -> list[tuple[int, int]]:
+    """Each pass an IHDR body lays its rows out in, as a row count and a row length, one filter byte opening each row."""
+    width, height, depth, color, _, _, interlace = struct.unpack(">IIBBBBB", body)
+    bits = depth * PNG_CHANNELS[color]
+    passes = PNG_ADAM7 if interlace else ((0, 0, 1, 1),)
+    sizes = [
+        ((width - x + dx - 1) // dx, (height - y + dy - 1) // dy)
+        for x, y, dx, dy in passes
+    ]
+    # A pass with no pixels holds no rows.
+    return [(h, 1 + (w * bits + 7) // 8) for w, h in sizes if w and h]
 
 
 def png_picture_size(body: bytes) -> int:
     """The inflated length an IHDR body's width, height, depth, color type and interlace method need."""
-    width, height, depth, color, _, _, interlace = struct.unpack(">IIBBBBB", body)
-    bits = depth * PNG_CHANNELS[color]
-    if not interlace:
-        return png_rows(width, height, bits)
-    return sum(
-        png_rows((width - x + dx - 1) // dx, (height - y + dy - 1) // dy, bits)
-        for x, y, dx, dy in PNG_ADAM7
-    )
+    return sum(rows * length for rows, length in png_passes(body))
 
 
 def png_stream(data: bytes, parts: list[Part]) -> set[str]:
-    """What keeps the IDAT bodies from being one whole zlib stream of the length IHDR needs.
+    """What keeps the IDAT bodies from being one whole zlib stream of the length IHDR needs, each row opening with a defined filter type.
 
     The stream is inflated in bounded pieces and counted rather than held, so a file that inflates far past its header costs no memory.
     A file with no IDAT, or no IHDR of known values, is left to the rules that name those, so each fault is reported once.
@@ -857,15 +867,27 @@ def png_stream(data: bytes, parts: list[Part]) -> set[str]:
     if not png_field_known(b"IHDR", header[0], png_header(data, parts), 0):
         return set()
     need = png_picture_size(header[0])
+    rows = (length for count, length in png_passes(header[0]) for _ in range(count))
     stream = zlib.decompressobj()
     got = 0
+    # Where the next row's filter byte falls in the inflated stream.
+    at = 0
+    filtered = True
+
+    def take(piece: bytes) -> None:
+        nonlocal got, at, filtered
+        while at < got + len(piece):
+            filtered = filtered and piece[at - got] <= PNG_FILTER_LAST
+            at += next(rows, len(piece) + 1)
+        got += len(piece)
+
     try:
         for c, s, e in parts:
             if c != b"IDAT":
                 continue
             pending = data[s + 8 : e - 4]
             while pending and not stream.eof and got <= need:
-                got += len(stream.decompress(pending, PNG_INFLATE_PIECE))
+                take(stream.decompress(pending, PNG_INFLATE_PIECE))
                 pending = stream.unconsumed_tail
             if stream.eof and (pending or stream.unused_data):
                 return {"PNG bytes after the end of the IDAT stream"}
@@ -873,7 +895,7 @@ def png_stream(data: bytes, parts: list[Part]) -> set[str]:
             piece = stream.decompress(stream.unconsumed_tail, PNG_INFLATE_PIECE)
             if not piece:
                 break
-            got += len(piece)
+            take(piece)
     except zlib.error:
         return {"PNG IDAT not a valid zlib stream"}
     if got > need:
@@ -882,6 +904,8 @@ def png_stream(data: bytes, parts: list[Part]) -> set[str]:
         return {"PNG IDAT stream cut off before its end"}
     if got < need:
         return {"PNG IDAT inflates short of what IHDR needs"}
+    if not filtered:
+        return {"PNG IDAT row filter type not a defined one"}
     return set()
 
 

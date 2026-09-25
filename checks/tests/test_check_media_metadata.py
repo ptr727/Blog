@@ -334,6 +334,10 @@ class FreeValues(unittest.TestCase):
         # A pass with no pixels holds no rows, so a 1x1 picture holds the first pass alone.
         one = struct.pack(">IIBBBBB", 1, 1, 8, 0, 0, 0, 1)
         self.assertEqual(gate.png_picture_size(one), 2)
+        # At one bit a sample, 5x3 passes of 1x1, 1x1, 1x1, 3x1, 2x2 and 5x1 pixels each fit a byte a row.
+        small = struct.pack(">IIBBBBB", 5, 3, 1, 0, 0, 0, 1)
+        self.assertEqual(gate.png_picture_size(small), 2 + 2 + 2 + 2 + 4 + 2)
+        self.assertEqual(gate.png_picture_size(small[:12] + b"\x00"), 3 * 2)
 
     def test_png_picture_data_not_one_whole_stream_is_refused(self) -> None:
         data = fuzz.png_fixture()
@@ -348,6 +352,10 @@ class FreeValues(unittest.TestCase):
             ("PNG IDAT stream cut off before its end", [stream[:-4]]),
             ("PNG IDAT inflates past what IHDR needs", [zlib.compress(rows + b"\x00")]),
             ("PNG IDAT inflates short of what IHDR needs", [zlib.compress(rows[:-1])]),
+            (
+                "PNG IDAT row filter type not a defined one",
+                [zlib.compress(b"\x05" + rows[1:])],
+            ),
         ):
             idat = b"".join(fuzz.png_chunk(b"IDAT", body) for body in bodies)
             bent = data[:start] + idat + data[end:]
@@ -357,6 +365,12 @@ class FreeValues(unittest.TestCase):
         split = [stream[:1], stream[1:3], stream[3:]]
         whole = b"".join(fuzz.png_chunk(b"IDAT", body) for body in split)
         self.assertEqual(gate.scan(data[:start] + whole + data[end:]), set())
+        text = fuzz.png_chunk(b"tEXt", b"Comment\x00planted")
+        parted = fuzz.png_chunk(b"IDAT", split[0]) + text
+        parted += fuzz.png_chunk(b"IDAT", b"".join(split[1:]))
+        bent = data[:start] + parted + data[end:]
+        self.assertIn("PNG IDAT chunks not consecutive", gate.scan(bent))
+        self.assertIsNone(normalizer.normalize_bytes(bent))
 
     def test_png_end_with_a_body_is_emptied(self) -> None:
         data = fuzz.png_fixture()
