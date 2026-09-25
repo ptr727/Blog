@@ -53,6 +53,10 @@ def png_with(chunk: bytes) -> bytes:
     return data[:33] + chunk + data[33:]
 
 
+def span(data: bytes, name: bytes) -> tuple[int, int]:
+    return next((s, e) for c, s, e in gate.png_parts(data)[0] if c == name)
+
+
 def truecolor_png(chunks: bytes) -> bytes:
     ihdr = fuzz.png_chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
     idat = fuzz.png_chunk(b"IDAT", zlib.compress(bytes(4)))
@@ -270,13 +274,14 @@ class FreeValues(unittest.TestCase):
     def test_png_missing_critical_chunk_is_refused(self) -> None:
         data = fuzz.png_fixture()
         signature, ihdr, end = data[:8], data[8:33], data[-12:]
-        idat = next(data[s:e] for c, s, e in gate.png_parts(data)[0] if c == b"IDAT")
+        idat = data[slice(*span(data, b"IDAT"))]
         palette = fuzz.palette_png_fixture()
+        first, last = span(palette, b"PLTE")
         for problem, bent in (
             ("PNG IHDR not the first chunk", signature + idat + end),
             ("PNG IHDR not the first chunk", signature + idat + ihdr + end),
             ("PNG without IDAT", signature + ihdr + end),
-            ("PNG palette image without PLTE", palette[:33] + palette[51:]),
+            ("PNG palette image without PLTE", palette[:first] + palette[last:]),
         ):
             self.assertIn(problem, gate.scan(bent))
             self.assertIsNone(normalizer.normalize_bytes(bent))
@@ -311,8 +316,11 @@ class FreeValues(unittest.TestCase):
     def test_png_chunk_whose_crc_is_not_its_own_is_dropped_or_refused(self) -> None:
         data = fuzz.png_fixture()
         self.assert_restated(data[:-4] + bytes(4), data)
-        self.assert_restated(data[:45] + bytes(4) + data[49:], data[:33] + data[49:])
-        bent = data[:29] + bytes(4) + data[33:]
+        start, end = span(data, b"gAMA")
+        bent = data[: end - 4] + bytes(4) + data[end:]
+        self.assert_restated(bent, data[:start] + data[end:])
+        end = span(data, b"IHDR")[1]
+        bent = data[: end - 4] + bytes(4) + data[end:]
         self.assertIn("PNG IHDR CRC not its chunk's", gate.scan(bent))
         self.assertIsNone(normalizer.normalize_bytes(bent))
 

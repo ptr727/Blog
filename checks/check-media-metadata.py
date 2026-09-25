@@ -790,7 +790,7 @@ def png_misplaced(names: list[bytes], color: int) -> set[int]:
 
 def png_crc_known(data: bytes, start: int, end: int) -> bool:
     """Whether a chunk's CRC is its own, since a decoder drops or fails a chunk whose CRC is not."""
-    crc = zlib.crc32(data[start + 4 : end - 4]) & 0xFFFFFFFF
+    crc = zlib.crc32(memoryview(data)[start + 4 : end - 4]) & 0xFFFFFFFF
     return data[end - 4 : end] == struct.pack(">I", crc)
 
 
