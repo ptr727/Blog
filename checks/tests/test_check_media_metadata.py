@@ -271,6 +271,17 @@ class FreeValues(unittest.TestCase):
         )
         self.assert_restated(data, truecolor_png(color_key))
 
+    def test_png_structure_refused_is_not_inflated_as_well(self) -> None:
+        data = fuzz.png_fixture()
+        signature, ihdr, end = data[:8], data[8:33], data[-12:]
+        idat = data[slice(*span(data, b"IDAT"))]
+        with mock.patch.object(gate.zlib, "decompressobj") as inflate:
+            self.assertEqual(
+                gate.scan(signature + idat + ihdr + end),
+                {"PNG IHDR not the first chunk"},
+            )
+        inflate.assert_not_called()
+
     def test_png_missing_critical_chunk_is_refused(self) -> None:
         data = fuzz.png_fixture()
         signature, ihdr, end = data[:8], data[8:33], data[-12:]
@@ -315,9 +326,7 @@ class FreeValues(unittest.TestCase):
             header = struct.pack(">IIBBBBB", width, height, 8, 0, 0, 0, 0)
             data = fuzz.png_fixture()
             bent = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:]
-            self.assertIn(
-                "PNG IHDR fields not values its format defines", gate.scan(bent)
-            )
+            self.assertEqual(gate.scan(bent), {"PNG IHDR side past libpng's limit"})
             self.assertIsNone(normalizer.normalize_bytes(bent))
         header = struct.pack(">IIBBBBB", limit, 1, 8, 0, 0, 0, 0)
         rows = fuzz.png_chunk(b"IDAT", zlib.compress(bytes(limit + 1)))

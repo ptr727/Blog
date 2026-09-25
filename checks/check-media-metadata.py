@@ -756,7 +756,7 @@ def png_field_known(
         if len(body) != 13:
             return False
         width, height = struct.unpack_from(">II", body)
-        sizes = 0 < width <= PNG_SIDE_LIMIT and 0 < height <= PNG_SIDE_LIMIT
+        sizes = 0 < width < 1 << 31 and 0 < height < 1 << 31
         return sizes and depth in PNG_DEPTHS.get(color, ()) and body[10:] in PNG_METHODS
     if chunk == b"IEND":
         return not body
@@ -858,6 +858,8 @@ def png_picture_size(body: bytes) -> int:
 def png_stream(data: bytes, parts: list[Part]) -> set[str]:
     """What keeps the IDAT bodies from being one whole zlib stream of the length IHDR needs, each row opening with a defined filter type.
 
+    A side past libpng's limit, or a picture needing more than the gate reads of a file, is refused before any inflate.
+
     The stream is inflated in bounded pieces and counted rather than held, so a file that inflates far past its header costs no memory.
     A file with no IDAT, or no IHDR of known values, is left to the rules that name those, so each fault is reported once.
     """
@@ -866,6 +868,8 @@ def png_stream(data: bytes, parts: list[Part]) -> set[str]:
         return set()
     if not png_field_known(b"IHDR", header[0], png_header(data, parts), 0):
         return set()
+    if max(struct.unpack_from(">II", header[0])) > PNG_SIDE_LIMIT:
+        return {"PNG IHDR side past libpng's limit"}
     need = png_picture_size(header[0])
     if need > SIZE_LIMIT:
         # A small file can declare a picture far larger than it holds, so the inflate stops at the size the gate reads a file to.
@@ -916,8 +920,9 @@ def scan_png(data: bytes) -> set[str]:
     parts, out = png_parts(data)
     names = [bytes(chunk) for chunk, _, _ in parts]
     header = png_header(data, parts)
-    out |= png_structure(names, header)
-    out |= png_stream(data, parts)
+    structure = png_structure(names, header)
+    # Picture data around a missing or misplaced critical chunk is refused already, so it is not inflated as well.
+    out |= structure or png_stream(data, parts)
     out |= {
         f"PNG repeated {once.decode()} chunk"
         for once in PNG_ONCE
