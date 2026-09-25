@@ -53,19 +53,26 @@ def normalize_png(data: bytes) -> bytes | None:
 
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
     An sBIT or bKGD out of its one value, out of place, or repeated, is dropped, since no browser draws by either.
-    A file is refused where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
+    So is a single PLTE in a truecolor image, which only suggests a palette.
+    A file is refused where it holds two PLTE chunks, which libpng fails the picture on, or an APNG control or frame chunk, since dropping those would leave the default image alone, or where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
         return None
     header = gate.png_header(data, parts)
+    names = [bytes(c) for c, _, _ in parts]
+    if names.count(b"PLTE") > 1:
+        # A second palette fails the whole picture in libpng, so dropping both would draw one the original did not.
+        return None
     palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
     out = bytearray(data[:8])
     kept: set[bytes] = set()
-    misplaced = gate.png_misplaced([bytes(c) for c, _, _ in parts])
+    misplaced = gate.png_misplaced(names, header[1] if header else -1)
     for at, (chunk, start, end) in enumerate(parts):
         body = data[start + 8 : end - 4]
         if chunk == b"eXIf" and exif_orientation(body) != 1:
+            return None
+        if chunk in gate.PNG_ANIMATION:
             return None
         if chunk not in gate.PNG_ALLOWED:
             if not chunk[0] & 0x20:
@@ -76,7 +83,7 @@ def normalize_png(data: bytes) -> bytes | None:
         known = gate.png_field_known(chunk, body, header, palette)
         if repeated or at in misplaced or not known:
             # Which copy a decoder reads, and how it reads a value out of range, is its own choice.
-            if chunk in gate.PNG_UNDRAWN:
+            if gate.png_undrawn(chunk, header):
                 continue
             return None
         kept.add(chunk)
@@ -261,6 +268,8 @@ def normalize_gif(data: bytes) -> bytes | None:
     """Drop every extension block that is not on the allowlist.
 
     A graphic control block's reserved bits and unused transparent index are written as zero.
+    So are the screen and image descriptor fields no browser draws by, and a global table no image reads is dropped.
+    The version is written as 89a.
     """
     parts, problems = gate.gif_parts(data)
     if problems - gate.TRAILING:
@@ -273,12 +282,16 @@ def normalize_gif(data: bytes) -> bytes | None:
             if control is None:
                 return None
             out += control
+        elif kind == "header":
+            out += gate.gif_screen(block, gate.gif_table_read(data, parts))
+        elif kind == "image":
+            out += gate.gif_descriptor(block)
         elif not str(kind).startswith("extension") or gate.gif_extension_allowed(block):
             out += block
         elif block[1] == 0xF9:
             # A graphic control extension sets transparency and timing, so it is not dropped.
             return None
-    # The screen and image descriptors are picture data, so a field out of its values is not a drop.
+    # Every field gif_fields names is written above, so this guards only against the two drifting apart.
     return None if gate.gif_fields(bytes(out)) else bytes(out)
 
 
@@ -519,8 +532,14 @@ def pixel_payload(data: bytes) -> bytes | None:
         parts, _ = gate.jpeg_parts(data)
         return b"".join(data[s:e] for m, s, e in parts if m in gate.JPEG_STRUCTURAL)
     if kind == "gif":
+        # The descriptor fields the normalizer zeroes are not drawn, so they are compared as it writes them.
         parts, _ = gate.gif_parts(data)
-        return b"".join(data[s:e] for k, s, e in parts if k in ("header", "image"))
+        read = gate.gif_table_read(data, parts)
+        drawn = {
+            "header": lambda b: gate.gif_screen(b, read),
+            "image": gate.gif_descriptor,
+        }
+        return b"".join(drawn[k](data[s:e]) for k, s, e in parts if k in drawn)
     if kind == "webp":
         parts, _ = gate.webp_parts(data)
         drawn = bytearray()

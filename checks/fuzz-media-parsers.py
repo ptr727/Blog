@@ -211,6 +211,34 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
     if palette:
         early = png_chunk(b"tRNS", bytes(1))
         out.append((bare[:33] + early + bare[33:], "tRNS before PLTE"))
+    # A palette entry no pixel can address, and a palette no browser draws by, each hold free bytes.
+    if color == 3 and depth <= 8:
+        entries = (1 << depth) + 1
+        long = png_chunk(b"PLTE", (PLANT_TEXT * entries)[: 3 * entries])
+        head = bare[:8] + b"".join(
+            long if c == b"PLTE" else data[s:e]
+            for c, s, e in parts
+            if c in (b"IHDR", b"PLTE", b"IDAT", b"IEND")
+        )
+        out.append((head, "PLTE longer than the bit depth addresses"))
+    elif color != 3:
+        suggested = png_chunk(b"PLTE", PLANT_TEXT * 3)
+        out.append(
+            (bare[:33] + suggested + bare[33:], "PLTE in a color type that draws none")
+        )
+    # A palette after the picture data is one a decoder does not read.
+    late = [data[s:e] for c, s, e in parts if c == b"PLTE"][:1] or [
+        png_chunk(b"PLTE", PLANT_TEXT * 3)
+    ]
+    moved = bare[:8] + b"".join(
+        data[s:e] for c, s, e in parts if c in (b"IHDR", b"IDAT")
+    )
+    out.append((moved + late[0] + bare[-12:], "PLTE after IDAT"))
+    # An APNG frame is refused, so a still decoder never reads a default image the gate alone passed.
+    control = png_chunk(b"acTL", struct.pack(">II", 1, 0))
+    frame = png_chunk(b"fdAT", struct.pack(">I", 0) + PLANT_TEXT)
+    out.append((bare[:33] + control + bare[33:], "acTL chunk"))
+    out.append((bare[:-12] + frame + bare[-12:], "fdAT with no acTL"))
     return out
 
 
@@ -218,12 +246,31 @@ def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
     """GIF blocks each admitted alone, planted with a reserved or unused field not zero."""
     if len(data) < 13:
         return []
-    out = [(data[:12] + b"p" + data[13:], "aspect ratio byte not zero")]
+    out = [
+        (data[:12] + b"p" + data[13:], "aspect ratio byte not zero"),
+        (data[:11] + b"p" + data[12:], "background index not zero"),
+        (
+            data[:10] + bytes((data[10] | 0x70,)) + data[11:],
+            "color resolution not zero",
+        ),
+        (
+            data[:10] + bytes((data[10] | 0x08,)) + data[11:],
+            "screen sort flag not zero",
+        ),
+    ]
     if data[10] & 0x80:
         table = 3 * (2 << (data[10] & 7))
-        flags = bytes((data[10] & 0x78,))
-        variant = data[:10] + flags + b"p" + data[12:13] + data[13 + table :]
-        out.append((variant, "background index with no color table"))
+        flags = b"\x07"
+        variant = data[:10] + flags + data[11:13] + data[13 + table :]
+        out.append((variant, "table size with no color table"))
+        # A local table on every image leaves the global one read by nothing.
+        local = bytearray(data)
+        for name, start, _ in reversed(parts):
+            if name == "image" and not data[start + 9] & 0x80:
+                local[start + 9] = data[start + 9] & 0x40 | 0x80
+                local[start + 10 : start + 10] = bytes(6)
+        out.append((bytes(local), "global color table no image reads"))
+    out.append((b"GIF87a" + data[6:], "version not 89a"))
     for name, start, end in parts:
         if name == "extension 0xF9" and end - start == 8:
             packed, index = data[start + 3], data[start + 6]
@@ -235,9 +282,16 @@ def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
                 fields = bytes((value,)) + data[start + 4 : start + 6] + bytes((held,))
                 out.append((data[: start + 3] + fields + data[start + 7 :], what))
         elif name == "image":
-            flags = bytes((data[start + 9] | 0x18,))
-            variant = data[: start + 9] + flags + data[start + 10 :]
-            out.append((variant, "image descriptor reserved bits not zero"))
+            held = data[start + 9]
+            for value, what in (
+                (held | 0x18, "image descriptor reserved bits not zero"),
+                (held | 0x20, "image descriptor sort flag not zero"),
+            ):
+                variant = data[: start + 9] + bytes((value,)) + data[start + 10 :]
+                out.append((variant, what))
+            if not held & 0x80:
+                variant = data[: start + 9] + bytes((held | 0x07,)) + data[start + 10 :]
+                out.append((variant, "image table size with no local table"))
     return out
 
 
@@ -324,6 +378,18 @@ def png_fixture() -> bytes:
         b"\x89PNG\r\n\x1a\n"
         + png_chunk(b"IHDR", ihdr)
         + png_chunk(b"gAMA", struct.pack(">I", 45455))
+        + png_chunk(b"IDAT", idat)
+        + png_chunk(b"IEND", b"")
+    )
+
+
+def palette_png_fixture() -> bytes:
+    ihdr = struct.pack(">IIBBBBB", 1, 1, 1, 3, 0, 0, 0)
+    idat = zlib.compress(b"\x00\x00")
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + png_chunk(b"IHDR", ihdr)
+        + png_chunk(b"PLTE", bytes(6))
         + png_chunk(b"IDAT", idat)
         + png_chunk(b"IEND", b"")
     )
@@ -998,6 +1064,7 @@ def main() -> int:
         ("fixture:jpeg-progressive", jpeg_fixture(True)),
         ("fixture:jpeg-dated", dated_jpeg_fixture()),
         ("fixture:png", png_fixture()),
+        ("fixture:png-palette", palette_png_fixture()),
         ("fixture:gif", gif_fixture()),
         ("fixture:webp", webp_fixture()),
         ("fixture:webp-animated", animated_webp_fixture()),

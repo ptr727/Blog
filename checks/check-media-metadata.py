@@ -212,13 +212,13 @@ PNG_ALLOWED = {
     b"sBIT",
     b"bKGD",
     b"pHYs",
-    b"acTL",
-    b"fcTL",
-    b"fdAT",
 }
 
-# A chunk other than picture data or an animation frame holds its bytes once per repeat, so each admits one.
-PNG_ONCE = PNG_ALLOWED - {b"IDAT", b"fcTL", b"fdAT"}
+# An APNG's control and frame chunks are refused, since a decoder that reads no animation draws the default image alone.
+PNG_ANIMATION = frozenset((b"acTL", b"fcTL", b"fdAT"))
+
+# A chunk other than picture data holds its bytes once per repeat, so each admits one.
+PNG_ONCE = PNG_ALLOWED - {b"IDAT"}
 
 # The gamma and primaries are sRGB's own, as writers round them, since any other is free.
 PNG_GAMMA = frozenset((struct.pack(">I", 45455),))
@@ -239,10 +239,13 @@ PNG_SIGNIFICANT = {0: 1, 2: 3, 3: 3, 4: 2, 6: 4}
 PNG_BACKGROUND = {0: 2, 2: 6, 3: 1, 4: 2, 6: 6}
 PNG_UNDRAWN = frozenset((b"sBIT", b"bKGD"))
 
-# Where a decoder reads each ancillary chunk, since it passes over one out of its place.
+# The color types whose PLTE only suggests a palette, which no browser draws by.
+PNG_TRUECOLOR = frozenset((2, 6))
+
+# Where a decoder reads each placed chunk, since one out of its place is passed over or fails the picture.
 PNG_BEFORE_PLTE = frozenset((b"gAMA", b"cHRM", b"sRGB", b"iCCP", b"sBIT"))
 PNG_AFTER_PLTE = frozenset((b"tRNS", b"bKGD"))
-PNG_BEFORE_IDAT = PNG_BEFORE_PLTE | PNG_AFTER_PLTE | {b"pHYs"}
+PNG_BEFORE_IDAT = PNG_BEFORE_PLTE | PNG_AFTER_PLTE | {b"pHYs", b"PLTE"}
 
 WEBP_ALLOWED = {b"VP8 ", b"VP8L", b"VP8X", b"ALPH", b"ANIM", b"ANMF", b"ICCP"}
 WEBP_FRAME_ALLOWED = {b"VP8 ", b"VP8L", b"ALPH"}
@@ -718,8 +721,12 @@ def png_header(data: bytes, parts: list[Part]) -> tuple[int, int] | None:
 def png_field_known(
     chunk: bytes, body: bytes, header: tuple[int, int] | None, palette: int
 ) -> bool:
-    """Whether an ancillary chunk holds exactly a value its format defines, in its one length."""
+    """Whether a palette or ancillary chunk holds exactly a value its format defines, in its one length."""
     depth, color = header or (0, -1)
+    if chunk == b"PLTE":
+        # A palette longer than the bit depth can address holds entries no pixel reaches.
+        entries = len(body) // 3
+        return color == 3 and len(body) % 3 == 0 and 0 < entries <= 1 << depth
     if chunk == b"gAMA":
         return body in PNG_GAMMA
     if chunk == b"cHRM":
@@ -745,8 +752,17 @@ def png_field_known(
     return True
 
 
-def png_misplaced(names: list[bytes]) -> set[int]:
-    """The positions of the pinned ancillary chunks that sit where a decoder does not read them."""
+def png_undrawn(chunk: bytes, header: tuple[int, int] | None) -> bool:
+    """Whether a chunk out of its one value can go, since no browser draws by it."""
+    color = header[1] if header else -1
+    return chunk in PNG_UNDRAWN or (chunk == b"PLTE" and color in PNG_TRUECOLOR)
+
+
+def png_misplaced(names: list[bytes], color: int) -> set[int]:
+    """The positions of the palette and pinned ancillary chunks that sit where a decoder does not read them.
+
+    Transparency and background place against the palette only in a palette image, since elsewhere it is a suggestion.
+    """
     idat = names.index(b"IDAT") if b"IDAT" in names else len(names)
     plte = names.index(b"PLTE") if b"PLTE" in names else -1
     return {
@@ -754,7 +770,7 @@ def png_misplaced(names: list[bytes]) -> set[int]:
         for at, name in enumerate(names)
         if (name in PNG_BEFORE_IDAT and at > idat)
         or (name in PNG_BEFORE_PLTE and 0 <= plte < at)
-        or (name in PNG_AFTER_PLTE and at < plte)
+        or (name in PNG_AFTER_PLTE and at < plte and color == 3)
     }
 
 
@@ -768,7 +784,7 @@ def scan_png(data: bytes) -> set[str]:
     }
     header = png_header(data, parts)
     palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
-    misplaced = png_misplaced(names)
+    misplaced = png_misplaced(names, header[1] if header else -1)
     for at, (chunk, start, end) in enumerate(parts):
         name = chunk.decode("ascii", "replace")
         body = data[start + 8 : end - 4]
@@ -858,14 +874,47 @@ def gif_control(block: bytes) -> bytes | None:
     )
 
 
+def gif_screen(head: bytes, read: bool = True) -> bytes:
+    """A header with every field no browser draws by written as zero, and its version as the one version.
+
+    That is all but its size and its global table, so the color resolution, sort flag, background index and aspect ratio go.
+    The global table goes too where no image reads it, which read says.
+    """
+    if not head[10] & 0x80 or not read:
+        return b"GIF89a" + head[6:10] + bytes(3)
+    return b"GIF89a" + head[6:10] + bytes((head[10] & 0x87, 0, 0)) + head[13:]
+
+
+def gif_table_read(data: bytes, parts: list[Part]) -> bool:
+    """Whether an image draws from the global table, which only one with no local table does."""
+    return any(k == "image" and not data[s + 9] & 0x80 for k, s, _ in parts)
+
+
+def gif_descriptor(block: bytes) -> bytes:
+    """An image with its descriptor's sort flag and reserved bits zeroed, and its table size where it has no table."""
+    flags = block[9] & (0xC7 if block[9] & 0x80 else 0x40)
+    return block[:9] + bytes((flags,)) + block[10:]
+
+
 def gif_fields(data: bytes) -> set[str]:
-    """Name where a GIF's screen, graphic control or image fields hold a value no decoder reads."""
+    """Name where a GIF's version, screen, graphic control or image fields hold other than their one value.
+
+    A disposal method is named only where the format does not define it.
+    A global table no image reads is named too, since no decoder draws by it.
+    """
     parts, _ = gif_parts(data)
     out: set[str] = set()
-    if len(data) >= 13 and data[12]:
-        out.add("GIF aspect ratio not zero")
-    if len(data) >= 13 and not data[10] & 0x80 and data[11]:
-        out.add("GIF background index with no color table")
+    if len(data) >= 13:
+        if data[:6] != b"GIF89a":
+            out.add("GIF version not 89a")
+        if data[10] & 0x80 and not gif_table_read(data, parts):
+            out.add("GIF global color table no image reads")
+        if data[12]:
+            out.add("GIF aspect ratio not zero")
+        if data[11]:
+            out.add("GIF background index not zero")
+        if data[10] != gif_screen(data[:13])[10]:
+            out.add("GIF screen descriptor unused bits not zero")
     for kind, start, end in parts:
         block = data[start:end]
         if kind == "extension 0xF9" and gif_extension_allowed(block):
@@ -874,8 +923,8 @@ def gif_fields(data: bytes) -> set[str]:
                 out.add("GIF graphic control disposal not a known method")
             elif control != block:
                 out.add("GIF graphic control unused fields not zero")
-        elif kind == "image" and block[9] & 0x18:
-            out.add("GIF image descriptor reserved bits not zero")
+        elif kind == "image" and gif_descriptor(block) != block:
+            out.add("GIF image descriptor unused bits not zero")
     return out
 
 
