@@ -897,7 +897,11 @@ def gif_descriptor(block: bytes) -> bytes:
 
 
 def gif_fields(data: bytes) -> set[str]:
-    """Name where a GIF's screen, graphic control or image fields hold a value no decoder reads."""
+    """Name where a GIF's version, screen, graphic control or image fields hold other than their one value.
+
+    A disposal method is named only where the format does not define it.
+    A global table no image reads is named too, since no decoder draws by it.
+    """
     parts, _ = gif_parts(data)
     out: set[str] = set()
     if len(data) >= 13:
