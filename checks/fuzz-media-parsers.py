@@ -981,11 +981,15 @@ def plants(kind: str, data: bytes) -> list[tuple]:
             if name in (b"VP8 ", b"VP8L"):
                 variant = with_riff_size(data[:end] + lossless + data[end:])
                 out.append((variant, "second image", REFUSED))
-            # An ALPH before a lossy image in a file with a VP8X is the one layout that draws it, so that image takes no plant.
-            if name == b"VP8L" or not any(c == b"VP8X" for c, _, _ in parts):
+            # An ALPH draws only before a lossy image in a file with a VP8X, so that image takes no plant.
+            extended = any(c == b"VP8X" for c, _, _ in parts)
+            if name == b"VP8L" or (name == b"VP8 " and not extended):
                 alpha = riff_chunk(b"ALPH", PLANT_TEXT)
                 variant = with_riff_size(data[:start] + alpha + data[start:])
-                out.append((variant, "ALPH not before a lossy image", REFUSED))
+                what = (
+                    "ALPH not before a lossy image" if extended else "ALPH with no VP8X"
+                )
+                out.append((variant, what, REFUSED))
             if name == b"ANIM" and payload - start - 8 == gate.WEBP_FIXED[name]:
                 variant = data[: start + 8] + b"plnt" + data[start + 12 :]
                 out.append((variant, "ANIM background not zero", data))
