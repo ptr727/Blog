@@ -981,8 +981,8 @@ def plants(kind: str, data: bytes) -> list[tuple]:
             if name in (b"VP8 ", b"VP8L"):
                 variant = with_riff_size(data[:end] + lossless + data[end:])
                 out.append((variant, "second image", REFUSED))
-            # An ALPH before a lossy image is the one layout that draws it, so only a lossless one takes this plant.
-            if name == b"VP8L":
+            # An ALPH before a lossy image in a file with a VP8X is the one layout that draws it, so that image takes no plant.
+            if name == b"VP8L" or not any(c == b"VP8X" for c, _, _ in parts):
                 alpha = riff_chunk(b"ALPH", PLANT_TEXT)
                 variant = with_riff_size(data[:start] + alpha + data[start:])
                 out.append((variant, "ALPH not before a lossy image", REFUSED))
