@@ -168,7 +168,7 @@ SRGB_GAMMA = struct.pack(">I", 45455)
 SQUARE = struct.pack(">IIB", 3779, 3779, 1)
 
 
-def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
+def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str | bytes]]:
     """Ancillary PNG chunks each admitted alone, planted out of their values or more than once.
 
     A plant goes into a seed with no ancillary chunks, so that repetition cannot report it.
