@@ -235,7 +235,7 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str | b
         suggested = png_chunk(b"PLTE", PLANT_TEXT * 3)
         variant = bare[:33] + suggested + bare[33:]
         out.append((variant, "PLTE in a color type that draws none", suggestion))
-        # libpng fails the picture on a second palette, so dropping both would draw one it did not.
+        # A second palette fails the picture in libpng, so dropping both would draw one it did not.
         out.append((bare[:33] + suggested * 2 + bare[33:], "two PLTE", REFUSED))
     if color == 2:
         # A truecolor color key may precede a suggested palette, so only the palette goes.
@@ -273,7 +273,7 @@ def png_clean_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
     full = bytes((8 if color == 3 else depth,)) * PNG_SIGNIFICANT.get(color, 1)
     kept = [
         *((b"sRGB", bytes((intent,))) for intent in range(4)),
-        *((b"cHRM", primaries) for primaries in gate.PNG_PRIMARIES),
+        *((b"cHRM", primaries) for primaries in sorted(gate.PNG_PRIMARIES)),
         (b"gAMA", SRGB_GAMMA),
         (b"pHYs", SQUARE),
         (b"pHYs", struct.pack(">IIB", 72, 72, 0)),
