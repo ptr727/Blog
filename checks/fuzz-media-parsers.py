@@ -40,7 +40,7 @@ import time
 import warnings
 import zipfile
 import zlib
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
@@ -293,7 +293,9 @@ def png_clean_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
         out.append((variant, f"{chunk.decode()} {body.hex()}"))
     # Rows of filter type zero and sample zero, laid out in the Adam7 passes an interlaced header needs.
     interlaced = data[16:28] + b"\x01"
-    rows = zlib.compress(bytes(gate.png_picture_size(interlaced)))
+    size = gate.png_picture_size(interlaced)
+    piece = gate.PNG_INFLATE_PIECE
+    rows = deflated(bytes(min(piece, size - at)) for at in range(0, size, piece))
     idat = [(s, e) for c, s, e in parts if c == b"IDAT"]
     if idat:
         head = data[:8] + png_chunk(b"IHDR", interlaced) + data[33 : idat[0][0]]
@@ -362,6 +364,28 @@ def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str
     return out
 
 
+def inflated(stream: bytes) -> Iterator[bytes]:
+    """A seed's picture data inflated in bounded pieces, so a plant built from it never holds the whole picture."""
+    inflate = zlib.decompressobj()
+    while piece := inflate.decompress(stream, gate.PNG_INFLATE_PIECE):
+        yield piece
+        stream = inflate.unconsumed_tail
+
+
+def all_but_last(pieces: Iterator[bytes]) -> Iterator[bytes]:
+    """The pieces with their final byte left off."""
+    held = b""
+    for piece in pieces:
+        yield held
+        held = piece
+    yield held[:-1]
+
+
+def deflated(pieces: Iterable[bytes]) -> bytes:
+    deflate = zlib.compressobj()
+    return b"".join(deflate.compress(piece) for piece in pieces) + deflate.flush()
+
+
 def png_stream_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
     """PNGs whose picture data is not one whole zlib stream of the length IHDR needs, so a decoder fails the picture or passes over bytes."""
     idat = [(s, e) for c, s, e in parts if c == b"IDAT"]
@@ -369,7 +393,11 @@ def png_stream_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
         return []
     head, tail = data[: idat[0][0]], data[idat[-1][1] :]
     stream = b"".join(data[s + 8 : e - 4] for s, e in idat)
-    rows = zlib.decompress(stream)
+    past = deflated(itertools.chain(inflated(stream), (PLANT_TEXT,)))
+    short = deflated(all_but_last(inflated(stream)))
+    pieces = inflated(stream)
+    first = next(pieces)
+    bent = deflated(itertools.chain((b"\x05" + first[1:],), pieces))
     out = [
         (png_chunk(b"IDAT", b""), "IDAT empty"),
         (png_chunk(b"IDAT", PLANT_TEXT), "IDAT not a zlib stream"),
@@ -379,9 +407,9 @@ def png_stream_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
             "IDAT after the stream's end",
         ),
         (png_chunk(b"IDAT", stream[:-4]), "IDAT stream cut off"),
-        (png_chunk(b"IDAT", zlib.compress(rows + PLANT_TEXT)), "IDAT past its rows"),
-        (png_chunk(b"IDAT", zlib.compress(rows[:-1])), "IDAT short of its rows"),
-        (png_chunk(b"IDAT", zlib.compress(b"\x05" + rows[1:])), "IDAT row filter 5"),
+        (png_chunk(b"IDAT", past), "IDAT past its rows"),
+        (png_chunk(b"IDAT", short), "IDAT short of its rows"),
+        (png_chunk(b"IDAT", bent), "IDAT row filter 5"),
     ]
     variants = [(head + body + tail, what, REFUSED) for body, what in out]
     header = data[16:29]
@@ -389,9 +417,9 @@ def png_stream_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
     vast = data[:8] + png_chunk(b"IHDR", side * 2 + header[8:]) + data[33:]
     variants.append((vast, "IHDR picture past the size limit", REFUSED))
     interlaced = header[:12] + b"\x01"
-    if gate.png_picture_size(interlaced) != len(rows):
-        bent = data[:8] + png_chunk(b"IHDR", interlaced) + data[33:]
-        variants.append((bent, "interlaced IHDR over rows laid out whole", REFUSED))
+    if gate.png_picture_size(interlaced) != gate.png_picture_size(header):
+        whole = data[:8] + png_chunk(b"IHDR", interlaced) + data[33:]
+        variants.append((whole, "interlaced IHDR over rows laid out whole", REFUSED))
     return variants
 
 
