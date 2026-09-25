@@ -423,45 +423,62 @@ def png_stream_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
     return variants
 
 
-def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
-    """GIF blocks each admitted alone, planted with a reserved or unused field not zero."""
+def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str | bytes]]:
+    """GIF blocks each admitted alone, planted with a reserved or unused field not zero.
+
+    A field the normalizer writes as zero comes back as the seed, which a clean seed holds zero there.
+    """
     if len(data) < 13:
         return []
     out = [
-        (data[:12] + b"p" + data[13:], "aspect ratio byte not zero"),
-        (data[:11] + b"p" + data[12:], "background index not zero"),
+        (data[:12] + b"p" + data[13:], "aspect ratio byte not zero", data),
+        (data[:11] + b"p" + data[12:], "background index not zero", data),
         (
             data[:10] + bytes((data[10] | 0x70,)) + data[11:],
             "color resolution not zero",
+            data,
         ),
         (
             data[:10] + bytes((data[10] | 0x08,)) + data[11:],
             "screen sort flag not zero",
+            data,
         ),
     ]
     if data[10] & 0x80:
         table = 3 * (2 << (data[10] & 7))
         flags = b"\x07"
         variant = data[:10] + flags + data[11:13] + data[13 + table :]
-        out.append((variant, "table size with no color table"))
+        out.append((variant, "table size with no color table", REWRITTEN))
         # A local table on every image leaves the global one read by nothing.
         local = bytearray(data)
         for name, start, _ in reversed(parts):
             if name == "image" and not data[start + 9] & 0x80:
                 local[start + 9] = data[start + 9] & 0x40 | 0x80
                 local[start + 10 : start + 10] = bytes(6)
-        out.append((bytes(local), "global color table no image reads"))
-    out.append((b"GIF87a" + data[6:], "version not 89a"))
+        out.append((bytes(local), "global color table no image reads", REWRITTEN))
+    out.append((b"GIF87a" + data[6:], "version not 89a", data))
     for name, start, end in parts:
         if name == "extension 0xF9" and end - start == 8:
             packed, index = data[start + 3], data[start + 6]
-            for value, held, what in (
-                (packed | 0xE0, index, "graphic control reserved bits not zero"),
-                (packed | 0x1C, index, "graphic control disposal not a known method"),
-                (packed & 0xFE, 0x70, "graphic control unused transparent index"),
+            # Decoders differ on a disposal method the format does not define, so it is not rewritten.
+            for value, held, what, expect in (
+                (packed | 0xE0, index, "graphic control reserved bits not zero", data),
+                (
+                    packed | 0x1C,
+                    index,
+                    "graphic control disposal not a known method",
+                    REFUSED,
+                ),
+                (
+                    packed & 0xFE,
+                    0x70,
+                    "graphic control unused transparent index",
+                    REWRITTEN,
+                ),
             ):
                 fields = bytes((value,)) + data[start + 4 : start + 6] + bytes((held,))
-                out.append((data[: start + 3] + fields + data[start + 7 :], what))
+                variant = data[: start + 3] + fields + data[start + 7 :]
+                out.append((variant, what, expect))
         elif name == "image":
             held = data[start + 9]
             for value, what in (
@@ -469,10 +486,10 @@ def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
                 (held | 0x20, "image descriptor sort flag not zero"),
             ):
                 variant = data[: start + 9] + bytes((value,)) + data[start + 10 :]
-                out.append((variant, what))
+                out.append((variant, what, data))
             if not held & 0x80:
                 variant = data[: start + 9] + bytes((held | 0x07,)) + data[start + 10 :]
-                out.append((variant, "image table size with no local table"))
+                out.append((variant, "image table size with no local table", data))
     return out
 
 
@@ -482,30 +499,61 @@ SOS = jpeg_segment(0xDA, b"\x01\x01\x00\x00\x3f\x00")
 
 # APP segments each already allowed alone, planted so that their shape or repetition carries bytes.
 JPEG_APP_BENT = (
-    ([jpeg_segment(0xE0, JFIF + PLANT_TEXT)], "JFIF with bytes past its fields"),
+    (
+        [jpeg_segment(0xE0, JFIF + PLANT_TEXT)],
+        "JFIF with bytes past its fields",
+        REWRITTEN,
+    ),
     (
         [jpeg_segment(0xE0, JFIF[:12] + b"\x03\x01" + PLANT_TEXT + b"\x00\x00")],
         "JFIF thumbnail",
+        REWRITTEN,
     ),
-    ([jpeg_segment(0xEE, ADOBE + PLANT_TEXT)], "Adobe with bytes past its fields"),
-    ([jpeg_segment(0xE0, JFIF)] * 2, "repeated JFIF"),
-    ([jpeg_segment(0xEE, ADOBE)] * 2, "repeated Adobe"),
-    ([exif_segment()] * 8, "repeated Exif"),
+    (
+        [jpeg_segment(0xEE, ADOBE + PLANT_TEXT)],
+        "Adobe with bytes past its fields",
+        REWRITTEN,
+    ),
+    ([jpeg_segment(0xE0, JFIF)] * 2, "repeated JFIF", REWRITTEN),
+    ([jpeg_segment(0xEE, ADOBE)] * 2, "repeated Adobe", REFUSED),
+    ([exif_segment()] * 8, "repeated Exif", REFUSED),
     (
         [jpeg_segment(0xE2, ICC + bytes(8)), jpeg_segment(0xE2, ICC + PLANT_TEXT)],
         "repeated ICC chunk",
+        REFUSED,
     ),
     (
         [jpeg_segment(0xE2, ICC[:12] + b"\x01\x03" + PLANT_TEXT)],
         "incomplete ICC profile",
+        REFUSED,
     ),
-    ([jpeg_segment(0xE2, ICC + PLANT_TEXT)], "ICC profile not a known profile"),
-    ([jpeg_segment(0xE0, bend(JFIF, 5, b"pl"))], "JFIF version not a known version"),
-    ([jpeg_segment(0xE0, bend(JFIF, 7, b"p"))], "JFIF units not a known unit"),
-    ([jpeg_segment(0xE0, bend(JFIF, 8, b"plan"))], "JFIF density not square"),
-    ([jpeg_segment(0xEE, bend(ADOBE, 5, b"pl"))], "Adobe version not 100"),
-    ([jpeg_segment(0xEE, bend(ADOBE, 7, b"plan"))], "Adobe flags not zero"),
-    ([jpeg_segment(0xEE, bend(ADOBE, 11, b"p"))], "Adobe transform not a known one"),
+    (
+        [jpeg_segment(0xE2, ICC + PLANT_TEXT)],
+        "ICC profile not a known profile",
+        REFUSED,
+    ),
+    (
+        [jpeg_segment(0xE0, bend(JFIF, 5, b"pl"))],
+        "JFIF version not a known version",
+        REWRITTEN,
+    ),
+    (
+        [jpeg_segment(0xE0, bend(JFIF, 7, b"p"))],
+        "JFIF units not a known unit",
+        REWRITTEN,
+    ),
+    (
+        [jpeg_segment(0xE0, bend(JFIF, 8, b"plan"))],
+        "JFIF density not square",
+        REWRITTEN,
+    ),
+    ([jpeg_segment(0xEE, bend(ADOBE, 5, b"pl"))], "Adobe version not 100", REWRITTEN),
+    ([jpeg_segment(0xEE, bend(ADOBE, 7, b"plan"))], "Adobe flags not zero", REWRITTEN),
+    (
+        [jpeg_segment(0xEE, bend(ADOBE, 11, b"p"))],
+        "Adobe transform not a known one",
+        REFUSED,
+    ),
 )
 
 
@@ -726,10 +774,85 @@ def at_boundaries(
     return [(data[:o] + piece + data[o:], f"{what} at {o}") for o in offsets]
 
 
+def jpeg_clean_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
+    """JFIF and Adobe segments each holding values writers use, planted into a seed with no APP segments."""
+    bare = data[:2] + b"".join(data[s:e] for m, s, e in parts if not 0xE0 <= m <= 0xEF)
+    kept = [
+        *(jpeg_segment(0xE0, bend(JFIF, 5, bytes((1, minor)))) for minor in range(3)),
+        *(
+            jpeg_segment(0xE0, bend(JFIF, 7, struct.pack(">BHH", units, dots, dots)))
+            for units, dots in ((1, 72), (1, 96), (1, 300), (2, 28), (2, 118))
+        ),
+        *(jpeg_segment(0xEE, ADOBE[:11] + bytes((move,))) for move in range(3)),
+    ]
+    return [(bare[:2] + app + bare[2:], f"APP {app[4:].hex()}") for app in kept]
+
+
+def gif_clean_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
+    """Looping and graphic control blocks each holding values writers use, before the first image of a seed with no extensions."""
+    images = [s for k, s, _ in parts if k == "image"]
+    if not images:
+        return []
+    bare = b"".join(
+        data[s:e] for k, s, e in parts if not str(k).startswith("extension")
+    )
+    at = images[0] - sum(
+        e - s for k, s, e in parts if str(k).startswith("extension") and s < images[0]
+    )
+    kept = [
+        *(
+            b"\x21\xff\x0bNETSCAPE2.0\x03\x01" + struct.pack("<H", loops) + b"\x00"
+            for loops in (0, 1, 3, 65535)
+        ),
+        *(
+            b"\x21\xf9\x04"
+            + bytes((dispose << 2 | clear,))
+            + struct.pack("<HB", delay, index)
+            + b"\x00"
+            for dispose, clear, delay, index in (
+                (0, 0, 0, 0),
+                (1, 0, 10, 0),
+                (2, 1, 10, 1),
+                (3, 1, 100, 1),
+            )
+        ),
+    ]
+    return [
+        (bare[:at] + block + bare[at:], f"extension {block.hex()}") for block in kept
+    ]
+
+
+def webp_clean_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
+    """VP8X, ANIM and ANMF fields each holding values writers use, set in a seed that already carries the chunk."""
+    out = []
+    for name, start, _ in parts:
+        body = start + 8
+        if name == b"VP8X":
+            flags = data[body] | 0x10
+            variant = data[:body] + bytes((flags,)) + data[body + 1 :]
+            out.append((variant, "VP8X alpha flag"))
+        elif name == b"ANIM":
+            for loops in (1, 3, 65535):
+                variant = data[: body + 4] + struct.pack("<H", loops) + data[body + 6 :]
+                out.append((variant, f"ANIM loop count {loops}"))
+        elif name == b"ANMF":
+            for duration, flags in ((0, 0), (40, 1), (100, 2), (0xFFFFFF, 3)):
+                fields = duration.to_bytes(3, "little") + bytes((flags,))
+                variant = data[: body + 12] + fields + data[body + 16 :]
+                out.append((variant, f"ANMF duration {duration} flags {flags}"))
+    return out
+
+
 def clean_plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
     """Variants holding only values the gate admits, which it has to pass and the normalizer keep."""
     if kind == "png":
         return png_clean_plants(data, gate.png_parts(data)[0])
+    if kind == "jpeg":
+        return jpeg_clean_plants(data, gate.jpeg_parts(data)[0])
+    if kind == "gif":
+        return gif_clean_plants(data, gate.gif_parts(data)[0])
+    if kind == "webp":
+        return webp_clean_plants(data, gate.webp_parts(data)[0])
     return []
 
 
@@ -743,28 +866,35 @@ def plants(kind: str, data: bytes) -> list[tuple]:
     if kind == "jpeg":
         parts, _ = gate.jpeg_parts(data)
         comment = jpeg_segment(0xFE, PLANT_TEXT)
-        out += at_boundaries(data, parts, comment, "comment")
-        out.append(
-            (data[:2] + exif_gap_segment() + data[2:], "bytes between Exif IFDs")
-        )
+        out += [
+            (variant, what, data)
+            for variant, what in at_boundaries(data, parts, comment, "comment")
+        ]
         # A shape plant goes into a seed with no APP segments, so that repetition cannot report it.
         bare = data[:2] + b"".join(
             data[s:e] for m, s, e in parts if not 0xE0 <= m <= 0xEF
         )
+        # The planted Exif holds no Orientation, so dropping it leaves nothing to re-emit.
+        gap = bare[:2] + exif_gap_segment() + bare[2:]
+        out.append((gap, "bytes between Exif IFDs", bare))
         for entries, what in EXIF_BENT:
             bent = exif_ifd_segment(entries)
-            out.append((bare[:2] + bent + bare[2:], f"Exif {what}"))
-        for segments, what in JPEG_APP_BENT:
-            out.append((bare[:2] + b"".join(segments) + bare[2:], what))
+            out.append((bare[:2] + bent + bare[2:], f"Exif {what}", REWRITTEN))
+        for segments, what, expect in JPEG_APP_BENT:
+            out.append((bare[:2] + b"".join(segments) + bare[2:], what, expect))
         padded = exif_ifd_segment([ORIENTATION, (0x0132, 2, 20, DATE)], b"p")
-        out.append((bare[:2] + padded + bare[2:], "Exif pad byte not zero"))
+        out.append((bare[:2] + padded + bare[2:], "Exif pad byte not zero", REWRITTEN))
         tailed = exif_segment(b"p")
-        out.append((bare[:2] + tailed + bare[2:], "Exif trailing pad byte not zero"))
+        out.append(
+            (bare[:2] + tailed + bare[2:], "Exif trailing pad byte not zero", REWRITTEN)
+        )
         eoi = [s for m, s, _ in parts if m == 0xD9]
         if eoi:
             second = b"\xff\xd8" + SOF + SOS + PLANT_TEXT
-            out.append((data[: eoi[-1]] + second + data[eoi[-1] :], "second stream"))
-            out.append((data[: eoi[-1]] + SOF + data[eoi[-1] :], "second frame header"))
+            variant = data[: eoi[-1]] + second + data[eoi[-1] :]
+            out.append((variant, "second stream", REFUSED))
+            variant = data[: eoi[-1]] + SOF + data[eoi[-1] :]
+            out.append((variant, "second frame header", REFUSED))
         for marker, start, end in parts:
             if marker != 0xE1 or data[start + 4 : start + 10] != b"Exif\x00\x00":
                 continue
@@ -772,12 +902,11 @@ def plants(kind: str, data: bytes) -> list[tuple]:
             tail = b"\xff\xd8" + PLANT_TEXT + b"\xff\xd9"
             grown = struct.pack(">H", length + len(tail))
             variant = data[: start + 2] + grown + data[start + 4 : end] + tail
-            out.append((variant + data[end:], "bytes past the Exif IFDs"))
+            out.append((variant + data[end:], "bytes past the Exif IFDs", REWRITTEN))
         # A run of fill bytes has a length nothing reads, before a segment or after a scan alike.
         for at in (parts[1][1], *eoi) if len(parts) > 1 else ():
-            out.append(
-                (data[:at] + b"\xff" * 5 + data[at:], "fill bytes before a marker")
-            )
+            variant = data[:at] + b"\xff" * 5 + data[at:]
+            out.append((variant, "fill bytes before a marker", data))
         scans = [(s, e) for m, s, e in parts if m == 0xDA]
         restart = next(
             (hit.start() for s, e in scans for hit in RESTART.finditer(data, s, e)),
@@ -785,7 +914,7 @@ def plants(kind: str, data: bytes) -> list[tuple]:
         )
         if restart is not None:
             variant = data[:restart] + b"\xff\xff" + data[restart:]
-            out.append((variant, "fill bytes inside a scan"))
+            out.append((variant, "fill bytes inside a scan", REFUSED))
     elif kind == "png":
         parts, _ = gate.png_parts(data)
         text = png_chunk(b"tEXt", b"Comment\x00" + PLANT_TEXT)
@@ -809,48 +938,60 @@ def plants(kind: str, data: bytes) -> list[tuple]:
     elif kind == "gif":
         parts, _ = gate.gif_parts(data)
         comment = b"\x21\xfe" + bytes((len(PLANT_TEXT),)) + PLANT_TEXT + b"\x00"
-        out += at_boundaries(data, parts[1:], comment, "comment")
+        out += [
+            (variant, what, data)
+            for variant, what in at_boundaries(data, parts[1:], comment, "comment")
+        ]
         block = bytes((len(PLANT_TEXT),)) + PLANT_TEXT
         for name, _, end in parts:
             if str(name).startswith("extension"):
                 variant = data[: end - 1] + block + data[end - 1 :]
-                out.append((variant, f"sub-block inside {name}"))
+                # A graphic control block sets transparency and timing, so it is refused rather than dropped.
+                expect = REFUSED if name == "extension 0xF9" else REWRITTEN
+                out.append((variant, f"sub-block inside {name}", expect))
         out += gif_field_plants(data, parts)
     elif kind == "webp":
         parts, _ = gate.webp_parts(data)
         chunk = riff_chunk(b"EXIF", PLANT_TEXT)
         out += [
-            (with_riff_size(variant), what)
+            (with_riff_size(variant), what, data)
             for variant, what in at_boundaries(data, parts, chunk, "EXIF")
         ]
-        out.append((data + PLANT_TEXT[:7], "bytes appended"))
+        out.append((data + PLANT_TEXT[:7], "bytes appended", data))
         frame = riff_chunk(b"VP8L", PLANT_TEXT)
-        out.append((data + frame, "frame past the RIFF size"))
+        out.append((data + frame, "frame past the RIFF size", data))
         lossless = riff_chunk(b"VP8L", b"\x2f" + PLANT_TEXT)
         for name, start, end in parts:
             payload = start + 8 + struct.unpack_from("<I", data, start + 4)[0]
             if name == b"ANMF":
                 held_at = start + 8 + gate.WEBP_FRAME_HEADER
                 header = data[start + 8 : held_at]
-                for held, what in (
-                    (data[held_at:payload] + chunk, "EXIF inside ANMF"),
-                    (data[held_at:payload] + lossless, "second image inside ANMF"),
-                    (b"", "ANMF with no image"),
+                for held, what, expect in (
+                    (data[held_at:payload] + chunk, "EXIF inside ANMF", data),
+                    (
+                        data[held_at:payload] + lossless,
+                        "second image inside ANMF",
+                        REFUSED,
+                    ),
+                    (b"", "ANMF with no image", REFUSED),
                 ):
                     grown = riff_chunk(b"ANMF", header + held)
                     variant = with_riff_size(data[:start] + grown + data[end:])
-                    out.append((variant, what))
+                    out.append((variant, what, expect))
             if name in (b"VP8 ", b"VP8L"):
                 variant = with_riff_size(data[:end] + lossless + data[end:])
-                out.append((variant, "second image"))
+                out.append((variant, "second image", REFUSED))
+            # An ALPH before a lossy image is the one layout that draws it, so only a lossless one takes this plant.
+            if name == b"VP8L":
                 alpha = riff_chunk(b"ALPH", PLANT_TEXT)
                 variant = with_riff_size(data[:start] + alpha + data[start:])
-                out.append((variant, "ALPH not before a lossy image"))
+                out.append((variant, "ALPH not before a lossy image", REFUSED))
             if name == b"ANIM" and payload - start - 8 == gate.WEBP_FIXED[name]:
                 variant = data[: start + 8] + b"plnt" + data[start + 12 :]
-                out.append((variant, "ANIM background not zero"))
+                out.append((variant, "ANIM background not zero", data))
             if name == b"ANMF":
                 header = data[start + 8 : start + 8 + gate.WEBP_FRAME_HEADER]
+                # The normalizer keeps a frame header as it is, so one out of its values is refused.
                 for field, value, what in (
                     (15, b"p", "ANMF reserved bits not zero"),
                     (0, b"pla", "ANMF frame outside the canvas"),
@@ -858,38 +999,51 @@ def plants(kind: str, data: bytes) -> list[tuple]:
                     moved = bend(header, field, value)
                     variant = data[: start + 8] + moved
                     variant += data[start + 8 + gate.WEBP_FRAME_HEADER :]
-                    out.append((variant, what))
+                    out.append((variant, what, REFUSED))
             if name == b"VP8X":
                 flags = data[start + 8]
-                for value, what in (
-                    (bytes((flags | 0x01,)) + b"pla", "VP8X reserved bits not zero"),
-                    (bytes((flags | 0x0C,)), "VP8X flags a chunk never admitted"),
-                    (bytes((flags ^ 0x20,)), "VP8X ICC flag without its chunk"),
-                    (bytes((flags ^ 0x02,)), "VP8X animation flag without its chunks"),
+                for value, what, expect in (
+                    (
+                        bytes((flags | 0x01,)) + b"pla",
+                        "VP8X reserved bits not zero",
+                        data,
+                    ),
+                    (bytes((flags | 0x0C,)), "VP8X flags a chunk never admitted", data),
+                    (
+                        bytes((flags ^ 0x20,)),
+                        "VP8X ICC flag without its chunk",
+                        REFUSED,
+                    ),
+                    (
+                        bytes((flags ^ 0x02,)),
+                        "VP8X animation flag without its chunks",
+                        REFUSED,
+                    ),
                 ):
                     variant = data[: start + 8] + value + data[start + 8 + len(value) :]
-                    out.append((variant, what))
+                    out.append((variant, what, expect))
                 profile = riff_chunk(b"ICCP", PLANT_TEXT)
                 flagged = bytes((flags | 0x20,))
                 variant = data[: start + 8] + flagged + data[start + 9 : end]
                 variant = with_riff_size(variant + profile + data[end:])
-                out.append((variant, "ICCP not a known profile"))
+                out.append((variant, "ICCP not a known profile", REFUSED))
             length = struct.unpack_from("<I", data, start + 4)[0]
             if length & 1 and name in gate.WEBP_ALLOWED:
                 variant = data[: end - 1] + b"p" + data[end:]
-                out.append((variant, f"{name.decode()} pad byte not zero"))
+                out.append((variant, f"{name.decode()} pad byte not zero", data))
             if name in (b"VP8X", b"ANIM"):
                 grown = riff_chunk(name, data[start + 8 : payload] + PLANT_TEXT)
                 variant = with_riff_size(data[:start] + grown + data[end:])
-                out.append((variant, f"{name.decode()} with bytes past its fields"))
+                what = f"{name.decode()} with bytes past its fields"
+                out.append((variant, what, REFUSED))
                 again = riff_chunk(
                     name, (PLANT_TEXT + bytes(10))[: payload - start - 8]
                 )
                 variant = with_riff_size(data[:end] + again + data[end:])
-                out.append((variant, f"repeated {name.decode()}"))
+                out.append((variant, f"repeated {name.decode()}", REFUSED))
         if any(name == b"ANMF" for name, _, _ in parts):
             variant = with_riff_size(data + lossless)
-            out.append((variant, "image beside the frames"))
+            out.append((variant, "image beside the frames", REFUSED))
     elif kind == "iso":
         out.append((data + atom(b"udta", PLANT_TEXT), "udta atom appended"))
         deep = atom(b"udta", PLANT_TEXT)
