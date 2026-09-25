@@ -40,7 +40,7 @@ import time
 import warnings
 import zipfile
 import zlib
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
@@ -291,6 +291,16 @@ def png_clean_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
         place = at if chunk in (b"tRNS", b"bKGD") else 33
         variant = bare[:place] + png_chunk(chunk, body) + bare[place:]
         out.append((variant, f"{chunk.decode()} {body.hex()}"))
+    # Rows of filter type zero and sample zero, laid out in the Adam7 passes an interlaced header needs.
+    interlaced = data[16:28] + b"\x01"
+    size = gate.png_picture_size(interlaced)
+    piece = gate.PNG_INFLATE_PIECE
+    rows = deflated(bytes(min(piece, size - at)) for at in range(0, size, piece))
+    idat = [(s, e) for c, s, e in parts if c == b"IDAT"]
+    if idat:
+        head = data[:8] + png_chunk(b"IHDR", interlaced) + data[33 : idat[0][0]]
+        variant = head + png_chunk(b"IDAT", rows) + data[idat[-1][1] :]
+        out.append((variant, "interlaced IHDR over its Adam7 passes"))
     return out
 
 
@@ -300,7 +310,8 @@ def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str
         return []
     signature, ihdr, iend = data[:8], data[8:33], data[-12:]
     header = ihdr[8:21]
-    idat = png_chunk(b"IDAT", zlib.compress(PLANT_TEXT))
+    # The seed's own picture data, so each plant bends only the rule it names.
+    idat = b"".join(data[s:e] for c, s, e in parts if c == b"IDAT")
     plte = [data[s:e] for c, s, e in parts if c == b"PLTE"]
     body = b"".join(data[s:e] for c, s, e in parts if c in (b"PLTE", b"IDAT"))
     ended = png_chunk(b"IEND", PLANT_TEXT)
@@ -315,6 +326,16 @@ def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str
     for at, value, what in (
         (0, bytes(4), "IHDR width zero"),
         (4, b"\x80\x00\x00\x00", "IHDR height past the range"),
+        (
+            0,
+            struct.pack(">I", gate.PNG_SIDE_LIMIT + 1),
+            "IHDR width past libpng's limit",
+        ),
+        (
+            4,
+            struct.pack(">I", gate.PNG_SIDE_LIMIT + 1),
+            "IHDR height past libpng's limit",
+        ),
         (8, b"\x03", "IHDR depth not one its color type pairs with"),
         (9, b"\x05", "IHDR color type not a defined one"),
         (10, b"\x01", "IHDR compression not zero"),
@@ -341,6 +362,65 @@ def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str
     gamma = png_chunk(b"gAMA", SRGB_GAMMA)[:-4] + b"plnt"
     out.append((data[:33] + gamma + data[33:], "gAMA CRC not its own", REWRITTEN))
     return out
+
+
+def inflated(stream: bytes) -> Iterator[bytes]:
+    """A seed's picture data inflated in bounded pieces, so a plant built from it never holds the whole picture."""
+    inflate = zlib.decompressobj()
+    while piece := inflate.decompress(stream, gate.PNG_INFLATE_PIECE):
+        yield piece
+        stream = inflate.unconsumed_tail
+
+
+def all_but_last(pieces: Iterator[bytes]) -> Iterator[bytes]:
+    """The pieces with their final byte left off."""
+    held = b""
+    for piece in pieces:
+        yield held
+        held = piece
+    yield held[:-1]
+
+
+def deflated(pieces: Iterable[bytes]) -> bytes:
+    deflate = zlib.compressobj()
+    return b"".join(deflate.compress(piece) for piece in pieces) + deflate.flush()
+
+
+def png_stream_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
+    """PNGs whose picture data is not one whole zlib stream of the length IHDR needs, so a decoder fails the picture or passes over bytes."""
+    idat = [(s, e) for c, s, e in parts if c == b"IDAT"]
+    if len(data) < 33 or not idat:
+        return []
+    head, tail = data[: idat[0][0]], data[idat[-1][1] :]
+    stream = b"".join(data[s + 8 : e - 4] for s, e in idat)
+    past = deflated(itertools.chain(inflated(stream), (PLANT_TEXT,)))
+    short = deflated(all_but_last(inflated(stream)))
+    pieces = inflated(stream)
+    first = next(pieces)
+    bent = deflated(itertools.chain((b"\x05" + first[1:],), pieces))
+    out = [
+        (png_chunk(b"IDAT", b""), "IDAT empty"),
+        (png_chunk(b"IDAT", PLANT_TEXT), "IDAT not a zlib stream"),
+        (png_chunk(b"IDAT", stream + PLANT_TEXT), "bytes after the IDAT stream"),
+        (
+            png_chunk(b"IDAT", stream) + png_chunk(b"IDAT", PLANT_TEXT),
+            "IDAT after the stream's end",
+        ),
+        (png_chunk(b"IDAT", stream[:-4]), "IDAT stream cut off"),
+        (png_chunk(b"IDAT", past), "IDAT past its rows"),
+        (png_chunk(b"IDAT", short), "IDAT short of its rows"),
+        (png_chunk(b"IDAT", bent), "IDAT row filter 5"),
+    ]
+    variants = [(head + body + tail, what, REFUSED) for body, what in out]
+    header = data[16:29]
+    side = struct.pack(">I", gate.PNG_SIDE_LIMIT // 10)
+    vast = data[:8] + png_chunk(b"IHDR", side * 2 + header[8:]) + data[33:]
+    variants.append((vast, "IHDR picture past the size limit", REFUSED))
+    interlaced = header[:12] + b"\x01"
+    if gate.png_picture_size(interlaced) != gate.png_picture_size(header):
+        whole = data[:8] + png_chunk(b"IHDR", interlaced) + data[33:]
+        variants.append((whole, "interlaced IHDR over rows laid out whole", REFUSED))
+    return variants
 
 
 def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
@@ -491,6 +571,19 @@ def truecolor_png_fixture() -> bytes:
         b"\x89PNG\r\n\x1a\n"
         + png_chunk(b"IHDR", ihdr)
         + png_chunk(b"IDAT", idat)
+        + png_chunk(b"IEND", b"")
+    )
+
+
+def small_png_fixture() -> bytes:
+    """A 5x3 grayscale PNG at two bits a sample, so rows hold a partial byte and interlacing spans several passes."""
+    ihdr = struct.pack(">IIBBBBB", 5, 3, 2, 0, 0, 0, 0)
+    idat = zlib.compress(b"\x00\x1b\xc0" * 3)
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + png_chunk(b"IHDR", ihdr)
+        + png_chunk(b"IDAT", idat[:5])
+        + png_chunk(b"IDAT", idat[5:])
         + png_chunk(b"IEND", b"")
     )
 
@@ -697,12 +790,22 @@ def plants(kind: str, data: bytes) -> list[tuple]:
         parts, _ = gate.png_parts(data)
         text = png_chunk(b"tEXt", b"Comment\x00" + PLANT_TEXT)
         texts = at_boundaries(data, parts[1:], text, "tEXt")
-        out += [(variant, what, REWRITTEN) for variant, what in texts]
+        # One between two IDAT chunks splits the picture data, which no decoder draws past.
+        split = {
+            f"tEXt at {start}"
+            for (c, _, _), (d, start, _) in itertools.pairwise(parts)
+            if c == d == b"IDAT"
+        }
+        out += [
+            (variant, what, REFUSED if what in split else REWRITTEN)
+            for variant, what in texts
+        ]
         profile = png_chunk(b"iCCP", b"icc\x00\x00" + zlib.compress(PLANT_TEXT))
         variant = data[:33] + profile + data[33:]
         out.append((variant, "iCCP not a known profile", REFUSED))
         out += png_field_plants(data, parts)
         out += png_structure_plants(data, parts)
+        out += png_stream_plants(data, parts)
     elif kind == "gif":
         parts, _ = gate.gif_parts(data)
         comment = b"\x21\xfe" + bytes((len(PLANT_TEXT),)) + PLANT_TEXT + b"\x00"
@@ -1227,6 +1330,7 @@ def main() -> int:
         ("fixture:png", png_fixture()),
         ("fixture:png-palette", palette_png_fixture()),
         ("fixture:png-truecolor", truecolor_png_fixture()),
+        ("fixture:png-small", small_png_fixture()),
         ("fixture:gif", gif_fixture()),
         ("fixture:webp", webp_fixture()),
         ("fixture:webp-animated", animated_webp_fixture()),

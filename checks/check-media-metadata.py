@@ -245,6 +245,29 @@ PNG_DEPTHS = {0: (1, 2, 4, 8, 16), 2: (8, 16), 3: (1, 2, 4, 8), 4: (8, 16), 6: (
 # The compression, filter and interlace methods the specification defines, since a decoder refuses any other.
 PNG_METHODS = frozenset((b"\x00\x00\x00", b"\x00\x00\x01"))
 
+# The limit libpng holds each side to by default, since a libpng-based decoder refuses a picture past it.
+PNG_SIDE_LIMIT = 1_000_000
+
+# How many samples each color type holds per pixel, which with the depth sets a row's length.
+PNG_CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
+
+# Each Adam7 pass's first column and row, and its column and row step.
+PNG_ADAM7 = (
+    (0, 0, 8, 8),
+    (4, 0, 8, 8),
+    (0, 4, 4, 8),
+    (2, 0, 4, 4),
+    (0, 2, 2, 4),
+    (1, 0, 2, 2),
+    (0, 1, 1, 2),
+)
+
+# The last row filter type the specification defines, since a decoder fails the picture on any past it.
+PNG_FILTER_LAST = 4
+
+# How much picture data one inflate step writes, so the check holds a bounded piece rather than the picture.
+PNG_INFLATE_PIECE = 1 << 20
+
 # The color types whose PLTE only suggests a palette, which no browser draws by.
 PNG_TRUECOLOR = frozenset((2, 6))
 
@@ -803,16 +826,104 @@ def png_structure(names: list[bytes], header: tuple[int, int] | None) -> set[str
         out.add("PNG IHDR not the first chunk")
     if b"IDAT" not in names:
         out.add("PNG without IDAT")
+    else:
+        first = names.index(b"IDAT")
+        run = len(names) - first - names[first:][::-1].index(b"IDAT")
+        # A decoder reads the picture data up to the first other chunk, so a later IDAT is never drawn.
+        if names[first : first + run].count(b"IDAT") != run:
+            out.add("PNG IDAT chunks not consecutive")
     if header and header[1] == 3 and b"PLTE" not in names:
         out.add("PNG palette image without PLTE")
     return out
+
+
+def png_passes(body: bytes) -> list[tuple[int, int]]:
+    """Each pass an IHDR body lays its rows out in, as a row count and a row length, one filter byte opening each row."""
+    width, height, depth, color, _, _, interlace = struct.unpack(">IIBBBBB", body)
+    bits = depth * PNG_CHANNELS[color]
+    passes = PNG_ADAM7 if interlace else ((0, 0, 1, 1),)
+    sizes = [
+        ((width - x + dx - 1) // dx, (height - y + dy - 1) // dy)
+        for x, y, dx, dy in passes
+    ]
+    # A pass with no pixels holds no rows.
+    return [(h, 1 + (w * bits + 7) // 8) for w, h in sizes if w and h]
+
+
+def png_picture_size(body: bytes) -> int:
+    """The inflated length an IHDR body's width, height, depth, color type and interlace method need."""
+    return sum(rows * length for rows, length in png_passes(body))
+
+
+def png_stream(data: bytes, parts: list[Part]) -> set[str]:
+    """What keeps the IDAT bodies from being one whole zlib stream of the length IHDR needs, each row opening with a defined filter type.
+
+    A side past libpng's limit, or a picture needing more than the gate reads of a file, is refused before any inflate.
+
+    The stream is inflated in bounded pieces and counted rather than held, so a file that inflates far past its header costs no memory.
+    A file with no IDAT, or no IHDR of known values, is left to the rules that name those, so each fault is reported once.
+    """
+    header = [data[s + 8 : e - 4] for c, s, e in parts if c == b"IHDR"]
+    if not any(c == b"IDAT" for c, _, _ in parts) or not header:
+        return set()
+    if not png_field_known(b"IHDR", header[0], png_header(data, parts), 0):
+        return set()
+    if max(struct.unpack_from(">II", header[0])) > PNG_SIDE_LIMIT:
+        return {"PNG IHDR side past libpng's limit"}
+    need = png_picture_size(header[0])
+    if need > SIZE_LIMIT:
+        # A small file can declare a picture far larger than it holds, so the inflate stops at the size the gate reads a file to.
+        return {"PNG IHDR picture larger than the gate inflates"}
+    rows = (length for count, length in png_passes(header[0]) for _ in range(count))
+    stream = zlib.decompressobj()
+    got = 0
+    # Where the next row's filter byte falls in the inflated stream.
+    at = 0
+    filtered = True
+
+    def take(piece: bytes) -> None:
+        nonlocal got, at, filtered
+        while at < got + len(piece):
+            filtered = filtered and piece[at - got] <= PNG_FILTER_LAST
+            at += next(rows, len(piece) + 1)
+        got += len(piece)
+
+    try:
+        for c, s, e in parts:
+            if c != b"IDAT":
+                continue
+            pending = data[s + 8 : e - 4]
+            while pending and not stream.eof and got <= need:
+                take(stream.decompress(pending, PNG_INFLATE_PIECE))
+                pending = stream.unconsumed_tail
+            if stream.eof and (pending or stream.unused_data):
+                return {"PNG bytes after the end of the IDAT stream"}
+        while not stream.eof and got <= need:
+            piece = stream.decompress(stream.unconsumed_tail, PNG_INFLATE_PIECE)
+            if not piece:
+                break
+            take(piece)
+    except zlib.error:
+        return {"PNG IDAT not a valid zlib stream"}
+    if got > need:
+        return {"PNG IDAT inflates past what IHDR needs"}
+    if not stream.eof:
+        return {"PNG IDAT stream cut off before its end"}
+    if got < need:
+        return {"PNG IDAT inflates short of what IHDR needs"}
+    if not filtered:
+        return {"PNG IDAT row filter type not a defined one"}
+    return set()
 
 
 def scan_png(data: bytes) -> set[str]:
     parts, out = png_parts(data)
     names = [bytes(chunk) for chunk, _, _ in parts]
     header = png_header(data, parts)
-    out |= png_structure(names, header)
+    structure = png_structure(names, header)
+    # A file whose critical chunks are missing or misplaced is refused whatever its picture data holds, so it is not inflated.
+    # Beside any other finding the stream is still read, so a fault in it is named rather than hidden behind a droppable chunk.
+    out |= structure or png_stream(data, parts)
     out |= {
         f"PNG repeated {once.decode()} chunk"
         for once in PNG_ONCE
