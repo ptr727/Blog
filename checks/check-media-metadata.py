@@ -245,6 +245,26 @@ PNG_DEPTHS = {0: (1, 2, 4, 8, 16), 2: (8, 16), 3: (1, 2, 4, 8), 4: (8, 16), 6: (
 # The compression, filter and interlace methods the specification defines, since a decoder refuses any other.
 PNG_METHODS = frozenset((b"\x00\x00\x00", b"\x00\x00\x01"))
 
+# The limit libpng holds each side to by default, since a libpng-based decoder refuses a picture past it.
+PNG_SIDE_LIMIT = 1_000_000
+
+# How many samples each color type holds per pixel, which with the depth sets a row's length.
+PNG_CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
+
+# Each Adam7 pass's first column and row, and its column and row step.
+PNG_ADAM7 = (
+    (0, 0, 8, 8),
+    (4, 0, 8, 8),
+    (0, 4, 4, 8),
+    (2, 0, 4, 4),
+    (0, 2, 2, 4),
+    (1, 0, 2, 2),
+    (0, 1, 1, 2),
+)
+
+# How much picture data one inflate step writes, so the check holds a bounded piece rather than the picture.
+PNG_INFLATE_PIECE = 1 << 20
+
 # The color types whose PLTE only suggests a palette, which no browser draws by.
 PNG_TRUECOLOR = frozenset((2, 6))
 
@@ -733,7 +753,7 @@ def png_field_known(
         if len(body) != 13:
             return False
         width, height = struct.unpack_from(">II", body)
-        sizes = 0 < width < 1 << 31 and 0 < height < 1 << 31
+        sizes = 0 < width <= PNG_SIDE_LIMIT and 0 < height <= PNG_SIDE_LIMIT
         return sizes and depth in PNG_DEPTHS.get(color, ()) and body[10:] in PNG_METHODS
     if chunk == b"IEND":
         return not body
@@ -808,11 +828,69 @@ def png_structure(names: list[bytes], header: tuple[int, int] | None) -> set[str
     return out
 
 
+def png_rows(width: int, height: int, bits: int) -> int:
+    """The bytes a picture's rows need once inflated, one filter byte opening each."""
+    return height * (1 + (width * bits + 7) // 8) if width and height else 0
+
+
+def png_picture_size(body: bytes) -> int:
+    """The inflated length an IHDR body's width, height, depth, color type and interlace method need."""
+    width, height, depth, color, _, _, interlace = struct.unpack(">IIBBBBB", body)
+    bits = depth * PNG_CHANNELS[color]
+    if not interlace:
+        return png_rows(width, height, bits)
+    return sum(
+        png_rows((width - x + dx - 1) // dx, (height - y + dy - 1) // dy, bits)
+        for x, y, dx, dy in PNG_ADAM7
+    )
+
+
+def png_stream(data: bytes, parts: list[Part]) -> set[str]:
+    """What keeps the IDAT bodies from being one whole zlib stream of the length IHDR needs.
+
+    The stream is inflated in bounded pieces and counted rather than held, so a file that inflates far past its header costs no memory.
+    A file with no IDAT, or no IHDR of known values, is left to the rules that name those, so each fault is reported once.
+    """
+    header = [data[s + 8 : e - 4] for c, s, e in parts if c == b"IHDR"]
+    if not any(c == b"IDAT" for c, _, _ in parts) or not header:
+        return set()
+    if not png_field_known(b"IHDR", header[0], png_header(data, parts), 0):
+        return set()
+    need = png_picture_size(header[0])
+    stream = zlib.decompressobj()
+    got = 0
+    try:
+        for c, s, e in parts:
+            if c != b"IDAT":
+                continue
+            pending = data[s + 8 : e - 4]
+            while pending and not stream.eof and got <= need:
+                got += len(stream.decompress(pending, PNG_INFLATE_PIECE))
+                pending = stream.unconsumed_tail
+            if stream.eof and (pending or stream.unused_data):
+                return {"PNG bytes after the end of the IDAT stream"}
+        while not stream.eof and got <= need:
+            piece = stream.decompress(stream.unconsumed_tail, PNG_INFLATE_PIECE)
+            if not piece:
+                break
+            got += len(piece)
+    except zlib.error:
+        return {"PNG IDAT not a valid zlib stream"}
+    if got > need:
+        return {"PNG IDAT inflates past what IHDR needs"}
+    if not stream.eof:
+        return {"PNG IDAT stream cut off before its end"}
+    if got < need:
+        return {"PNG IDAT inflates short of what IHDR needs"}
+    return set()
+
+
 def scan_png(data: bytes) -> set[str]:
     parts, out = png_parts(data)
     names = [bytes(chunk) for chunk, _, _ in parts]
     header = png_header(data, parts)
     out |= png_structure(names, header)
+    out |= png_stream(data, parts)
     out |= {
         f"PNG repeated {once.decode()} chunk"
         for once in PNG_ONCE

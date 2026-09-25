@@ -291,6 +291,14 @@ def png_clean_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
         place = at if chunk in (b"tRNS", b"bKGD") else 33
         variant = bare[:place] + png_chunk(chunk, body) + bare[place:]
         out.append((variant, f"{chunk.decode()} {body.hex()}"))
+    # Rows of filter type zero and sample zero, laid out in the Adam7 passes an interlaced header needs.
+    interlaced = data[16:28] + b"\x01"
+    rows = zlib.compress(bytes(gate.png_picture_size(interlaced)))
+    idat = [(s, e) for c, s, e in parts if c == b"IDAT"]
+    if idat:
+        head = data[:8] + png_chunk(b"IHDR", interlaced) + data[33 : idat[0][0]]
+        variant = head + png_chunk(b"IDAT", rows) + data[idat[-1][1] :]
+        out.append((variant, "interlaced IHDR over its Adam7 passes"))
     return out
 
 
@@ -300,7 +308,8 @@ def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str
         return []
     signature, ihdr, iend = data[:8], data[8:33], data[-12:]
     header = ihdr[8:21]
-    idat = png_chunk(b"IDAT", zlib.compress(PLANT_TEXT))
+    # The seed's own picture data, so each plant bends only the rule it names.
+    idat = b"".join(data[s:e] for c, s, e in parts if c == b"IDAT")
     plte = [data[s:e] for c, s, e in parts if c == b"PLTE"]
     body = b"".join(data[s:e] for c, s, e in parts if c in (b"PLTE", b"IDAT"))
     ended = png_chunk(b"IEND", PLANT_TEXT)
@@ -315,6 +324,16 @@ def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str
     for at, value, what in (
         (0, bytes(4), "IHDR width zero"),
         (4, b"\x80\x00\x00\x00", "IHDR height past the range"),
+        (
+            0,
+            struct.pack(">I", gate.PNG_SIDE_LIMIT + 1),
+            "IHDR width past libpng's limit",
+        ),
+        (
+            4,
+            struct.pack(">I", gate.PNG_SIDE_LIMIT + 1),
+            "IHDR height past libpng's limit",
+        ),
         (8, b"\x03", "IHDR depth not one its color type pairs with"),
         (9, b"\x05", "IHDR color type not a defined one"),
         (10, b"\x01", "IHDR compression not zero"),
@@ -341,6 +360,35 @@ def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str
     gamma = png_chunk(b"gAMA", SRGB_GAMMA)[:-4] + b"plnt"
     out.append((data[:33] + gamma + data[33:], "gAMA CRC not its own", REWRITTEN))
     return out
+
+
+def png_stream_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
+    """PNGs whose picture data is not one whole zlib stream of the length IHDR needs, so a decoder fails the picture or passes over bytes."""
+    idat = [(s, e) for c, s, e in parts if c == b"IDAT"]
+    if len(data) < 33 or not idat:
+        return []
+    head, tail = data[: idat[0][0]], data[idat[-1][1] :]
+    stream = b"".join(data[s + 8 : e - 4] for s, e in idat)
+    rows = zlib.decompress(stream)
+    out = [
+        (png_chunk(b"IDAT", b""), "IDAT empty"),
+        (png_chunk(b"IDAT", PLANT_TEXT), "IDAT not a zlib stream"),
+        (png_chunk(b"IDAT", stream + PLANT_TEXT), "bytes after the IDAT stream"),
+        (
+            png_chunk(b"IDAT", stream) + png_chunk(b"IDAT", PLANT_TEXT),
+            "IDAT after the stream's end",
+        ),
+        (png_chunk(b"IDAT", stream[:-4]), "IDAT stream cut off"),
+        (png_chunk(b"IDAT", zlib.compress(rows + PLANT_TEXT)), "IDAT past its rows"),
+        (png_chunk(b"IDAT", zlib.compress(rows[:-1])), "IDAT short of its rows"),
+    ]
+    variants = [(head + body + tail, what, REFUSED) for body, what in out]
+    header = data[16:29]
+    interlaced = header[:12] + b"\x01"
+    if gate.png_picture_size(interlaced) != len(rows):
+        bent = data[:8] + png_chunk(b"IHDR", interlaced) + data[33:]
+        variants.append((bent, "interlaced IHDR over rows laid out whole", REFUSED))
+    return variants
 
 
 def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
@@ -703,6 +751,7 @@ def plants(kind: str, data: bytes) -> list[tuple]:
         out.append((variant, "iCCP not a known profile", REFUSED))
         out += png_field_plants(data, parts)
         out += png_structure_plants(data, parts)
+        out += png_stream_plants(data, parts)
     elif kind == "gif":
         parts, _ = gate.gif_parts(data)
         comment = b"\x21\xfe" + bytes((len(PLANT_TEXT),)) + PLANT_TEXT + b"\x00"

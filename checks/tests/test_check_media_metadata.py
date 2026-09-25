@@ -309,6 +309,55 @@ class FreeValues(unittest.TestCase):
             gate.scan(data[:8] + fuzz.png_chunk(b"IHDR", interlaced) + data[33:]), set()
         )
 
+    def test_png_side_past_libpng_limit_is_refused(self) -> None:
+        limit = gate.PNG_SIDE_LIMIT
+        for width, height in ((limit + 1, 1), (1, limit + 1)):
+            header = struct.pack(">IIBBBBB", width, height, 8, 0, 0, 0, 0)
+            data = fuzz.png_fixture()
+            bent = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:]
+            self.assertIn(
+                "PNG IHDR fields not values its format defines", gate.scan(bent)
+            )
+            self.assertIsNone(normalizer.normalize_bytes(bent))
+        header = struct.pack(">IIBBBBB", limit, 1, 8, 0, 0, 0, 0)
+        rows = fuzz.png_chunk(b"IDAT", zlib.compress(bytes(limit + 1)))
+        data = fuzz.png_fixture()
+        start, end = span(data, b"IDAT")
+        wide = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:start] + rows
+        self.assertEqual(gate.scan(wide + data[end:]), set())
+
+    def test_png_interlaced_size_sums_its_adam7_passes(self) -> None:
+        header = struct.pack(">IIBBBBB", 8, 8, 8, 0, 0, 0, 1)
+        # Passes of 1x1, 1x1, 2x1, 2x2, 4x2, 4x4 and 8x4 pixels, each row opening with a filter byte.
+        self.assertEqual(gate.png_picture_size(header), 2 + 2 + 3 + 6 + 10 + 20 + 36)
+        self.assertEqual(gate.png_picture_size(header[:12] + b"\x00"), 8 * 9)
+        # A pass with no pixels holds no rows, so a 1x1 picture holds the first pass alone.
+        one = struct.pack(">IIBBBBB", 1, 1, 8, 0, 0, 0, 1)
+        self.assertEqual(gate.png_picture_size(one), 2)
+
+    def test_png_picture_data_not_one_whole_stream_is_refused(self) -> None:
+        data = fuzz.png_fixture()
+        start, end = span(data, b"IDAT")
+        stream = data[start + 8 : end - 4]
+        rows = zlib.decompress(stream)
+        for problem, bodies in (
+            ("PNG IDAT stream cut off before its end", [b""]),
+            ("PNG IDAT not a valid zlib stream", [b"planted"]),
+            ("PNG bytes after the end of the IDAT stream", [stream + b"\x00"]),
+            ("PNG bytes after the end of the IDAT stream", [stream, b"\x00"]),
+            ("PNG IDAT stream cut off before its end", [stream[:-4]]),
+            ("PNG IDAT inflates past what IHDR needs", [zlib.compress(rows + b"\x00")]),
+            ("PNG IDAT inflates short of what IHDR needs", [zlib.compress(rows[:-1])]),
+        ):
+            idat = b"".join(fuzz.png_chunk(b"IDAT", body) for body in bodies)
+            bent = data[:start] + idat + data[end:]
+            self.assertEqual(gate.scan(bent), {problem})
+            self.assertIsNone(normalizer.normalize_bytes(bent))
+        # A stream split across chunks at any byte is still one stream.
+        split = [stream[:1], stream[1:3], stream[3:]]
+        whole = b"".join(fuzz.png_chunk(b"IDAT", body) for body in split)
+        self.assertEqual(gate.scan(data[:start] + whole + data[end:]), set())
+
     def test_png_end_with_a_body_is_emptied(self) -> None:
         data = fuzz.png_fixture()
         self.assert_restated(data[:-12] + fuzz.png_chunk(b"IEND", b"\x00"), data)

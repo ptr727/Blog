@@ -57,14 +57,14 @@ def normalize_png(data: bytes) -> bytes | None:
     An IEND holding bytes or a wrong CRC is written empty, with its own CRC.
     An ancillary chunk whose CRC is not its own is dropped, as libpng drops it, and a critical one is refused.
     An eXIf or APNG chunk refused below is refused whatever its CRC, since dropping it would change how the picture turns or moves.
-    A file is refused where `gate.png_structure` names a missing or misplaced critical chunk, where it holds two PLTE chunks, which libpng fails the picture on, or an APNG control or frame chunk, since dropping those would leave the default image alone, or where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
+    A file is refused where `gate.png_structure` names a missing or misplaced critical chunk, where `gate.png_stream` names picture data that is not one whole stream of the header's size, where it holds two PLTE chunks, which libpng fails the picture on, or an APNG control or frame chunk, since dropping those would leave the default image alone, or where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
         return None
     header = gate.png_header(data, parts)
     names = [bytes(c) for c, _, _ in parts]
-    if gate.png_structure(names, header):
+    if gate.png_structure(names, header) or gate.png_stream(data, parts):
         return None
     if names.count(b"PLTE") > 1:
         # A second palette fails the whole picture in libpng, so dropping both would draw one the original did not.
