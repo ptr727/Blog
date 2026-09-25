@@ -54,13 +54,16 @@ def normalize_png(data: bytes) -> bytes | None:
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
     An sBIT or bKGD out of its one value, out of place, or repeated, is dropped, since no browser draws by either.
     So is a single PLTE in a truecolor image, which only suggests a palette.
-    A file is refused where it holds two PLTE chunks, which libpng fails the picture on, or an APNG control or frame chunk, since dropping those would leave the default image alone, or where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
+    An IEND holding bytes is written empty, since a decoder reads none of them.
+    A file is refused where `gate.png_structure` names a missing or misplaced critical chunk, where it holds two PLTE chunks, which libpng fails the picture on, or an APNG control or frame chunk, since dropping those would leave the default image alone, or where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.png_parts(data)
     if problems - gate.TRAILING:
         return None
     header = gate.png_header(data, parts)
     names = [bytes(c) for c, _, _ in parts]
+    if gate.png_structure(names, header):
+        return None
     if names.count(b"PLTE") > 1:
         # A second palette fails the whole picture in libpng, so dropping both would draw one the original did not.
         return None
@@ -74,6 +77,9 @@ def normalize_png(data: bytes) -> bytes | None:
             return None
         if chunk in gate.PNG_ANIMATION:
             return None
+        if chunk == b"IEND":
+            out += png_chunk(chunk, b"")
+            continue
         if chunk not in gate.PNG_ALLOWED:
             if not chunk[0] & 0x20:
                 # A critical chunk cannot be dropped, so this file needs a re-encode.

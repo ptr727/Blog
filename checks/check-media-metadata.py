@@ -239,6 +239,12 @@ PNG_SIGNIFICANT = {0: 1, 2: 3, 3: 3, 4: 2, 6: 4}
 PNG_BACKGROUND = {0: 2, 2: 6, 3: 1, 4: 2, 6: 6}
 PNG_UNDRAWN = frozenset((b"sBIT", b"bKGD"))
 
+# The bit depths the PNG specification pairs with each color type, since a decoder refuses any other.
+PNG_DEPTHS = {0: (1, 2, 4, 8, 16), 2: (8, 16), 3: (1, 2, 4, 8), 4: (8, 16), 6: (8, 16)}
+
+# The compression, filter and interlace methods the specification defines, since a decoder refuses any other.
+PNG_METHODS = frozenset((b"\x00\x00\x00", b"\x00\x00\x01"))
+
 # The color types whose PLTE only suggests a palette, which no browser draws by.
 PNG_TRUECOLOR = frozenset((2, 6))
 
@@ -721,8 +727,16 @@ def png_header(data: bytes, parts: list[Part]) -> tuple[int, int] | None:
 def png_field_known(
     chunk: bytes, body: bytes, header: tuple[int, int] | None, palette: int
 ) -> bool:
-    """Whether a palette or ancillary chunk holds exactly a value its format defines, in its one length."""
+    """Whether a chunk other than picture data holds exactly a value its format defines, in its one length."""
     depth, color = header or (0, -1)
+    if chunk == b"IHDR":
+        if len(body) != 13:
+            return False
+        width, height = struct.unpack_from(">II", body)
+        sizes = 0 < width < 1 << 31 and 0 < height < 1 << 31
+        return sizes and depth in PNG_DEPTHS.get(color, ()) and body[10:] in PNG_METHODS
+    if chunk == b"IEND":
+        return not body
     if chunk == b"PLTE":
         # A palette longer than the bit depth can address holds entries no pixel reaches.
         entries = len(body) // 3
@@ -774,15 +788,31 @@ def png_misplaced(names: list[bytes], color: int) -> set[int]:
     }
 
 
+def png_structure(names: list[bytes], header: tuple[int, int] | None) -> set[str]:
+    """What keeps a PNG from holding the critical chunks a decoder needs to draw it.
+
+    A file no decoder draws holds every one of its bytes free, so each of these is refused.
+    """
+    out = set()
+    if names[:1] != [b"IHDR"]:
+        out.add("PNG IHDR not the first chunk")
+    if b"IDAT" not in names:
+        out.add("PNG without IDAT")
+    if header and header[1] == 3 and b"PLTE" not in names:
+        out.add("PNG palette image without PLTE")
+    return out
+
+
 def scan_png(data: bytes) -> set[str]:
     parts, out = png_parts(data)
     names = [bytes(chunk) for chunk, _, _ in parts]
+    header = png_header(data, parts)
+    out |= png_structure(names, header)
     out |= {
         f"PNG repeated {once.decode()} chunk"
         for once in PNG_ONCE
         if names.count(once) > 1
     }
-    header = png_header(data, parts)
     palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
     misplaced = png_misplaced(names, header[1] if header else -1)
     for at, (chunk, start, end) in enumerate(parts):
