@@ -271,6 +271,31 @@ class FreeValues(unittest.TestCase):
         )
         self.assert_restated(data, truecolor_png(color_key))
 
+    def test_png_refused_for_its_structure_is_not_inflated(self) -> None:
+        data = fuzz.png_fixture()
+        signature, ihdr, end = data[:8], data[8:33], data[-12:]
+        idat = data[slice(*span(data, b"IDAT"))]
+        palette = fuzz.palette_png_fixture()
+        plte = palette[slice(*span(palette, b"PLTE"))]
+        twice = palette.replace(plte, plte * 2)
+        with mock.patch.object(gate.zlib, "decompressobj") as inflate:
+            self.assertEqual(
+                gate.scan(signature + idat + ihdr + end),
+                {"PNG IHDR not the first chunk"},
+            )
+            self.assertIsNone(normalizer.normalize_bytes(twice))
+        inflate.assert_not_called()
+        # A stream fault beside a droppable chunk is still named, since it is why the normalizer refuses.
+        start, stop = span(data, b"IDAT")
+        cut = fuzz.png_chunk(b"IDAT", data[start + 8 : stop - 8])
+        text = fuzz.png_chunk(b"tEXt", b"Comment\x00planted")
+        bent = data[:start] + cut + text + data[stop:]
+        self.assertEqual(
+            gate.scan(bent),
+            {"PNG tEXt chunk", "PNG IDAT stream cut off before its end"},
+        )
+        self.assertIsNone(normalizer.normalize_bytes(bent))
+
     def test_png_missing_critical_chunk_is_refused(self) -> None:
         data = fuzz.png_fixture()
         signature, ihdr, end = data[:8], data[8:33], data[-12:]
@@ -308,6 +333,80 @@ class FreeValues(unittest.TestCase):
         self.assertEqual(
             gate.scan(data[:8] + fuzz.png_chunk(b"IHDR", interlaced) + data[33:]), set()
         )
+
+    def test_png_side_past_libpng_limit_is_refused(self) -> None:
+        limit = gate.PNG_SIDE_LIMIT
+        for width, height in ((limit + 1, 1), (1, limit + 1)):
+            header = struct.pack(">IIBBBBB", width, height, 8, 0, 0, 0, 0)
+            data = fuzz.png_fixture()
+            bent = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:]
+            self.assertEqual(gate.scan(bent), {"PNG IHDR side past libpng's limit"})
+            self.assertIsNone(normalizer.normalize_bytes(bent))
+        header = struct.pack(">IIBBBBB", limit, 1, 8, 0, 0, 0, 0)
+        rows = fuzz.png_chunk(b"IDAT", zlib.compress(bytes(limit + 1)))
+        data = fuzz.png_fixture()
+        start, end = span(data, b"IDAT")
+        wide = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:start] + rows
+        self.assertEqual(gate.scan(wide + data[end:]), set())
+
+    def test_png_picture_past_the_size_limit_is_refused_before_inflating(self) -> None:
+        side = gate.PNG_SIDE_LIMIT // 10
+        header = struct.pack(">IIBBBBB", side, side, 8, 0, 0, 0, 0)
+        self.assertGreater(gate.png_picture_size(header), gate.SIZE_LIMIT)
+        data = fuzz.png_fixture()
+        bent = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:]
+        with mock.patch.object(gate.zlib, "decompressobj") as inflate:
+            self.assertEqual(
+                gate.scan(bent), {"PNG IHDR picture larger than the gate inflates"}
+            )
+        inflate.assert_not_called()
+        self.assertIsNone(normalizer.normalize_bytes(bent))
+
+    def test_png_interlaced_size_sums_its_adam7_passes(self) -> None:
+        header = struct.pack(">IIBBBBB", 8, 8, 8, 0, 0, 0, 1)
+        # Passes of 1x1, 1x1, 2x1, 2x2, 4x2, 4x4 and 8x4 pixels, each row opening with a filter byte.
+        self.assertEqual(gate.png_picture_size(header), 2 + 2 + 3 + 6 + 10 + 20 + 36)
+        self.assertEqual(gate.png_picture_size(header[:12] + b"\x00"), 8 * 9)
+        # A pass with no pixels holds no rows, so a 1x1 picture holds the first pass alone.
+        one = struct.pack(">IIBBBBB", 1, 1, 8, 0, 0, 0, 1)
+        self.assertEqual(gate.png_picture_size(one), 2)
+        # At one bit a sample, 5x3 passes of 1x1, 1x1, 1x1, 3x1, 2x2 and 5x1 pixels each fit a byte a row.
+        small = struct.pack(">IIBBBBB", 5, 3, 1, 0, 0, 0, 1)
+        self.assertEqual(gate.png_picture_size(small), 2 + 2 + 2 + 2 + 4 + 2)
+        self.assertEqual(gate.png_picture_size(small[:12] + b"\x00"), 3 * 2)
+
+    def test_png_picture_data_not_one_whole_stream_is_refused(self) -> None:
+        data = fuzz.png_fixture()
+        start, end = span(data, b"IDAT")
+        stream = data[start + 8 : end - 4]
+        rows = zlib.decompress(stream)
+        for problem, bodies in (
+            ("PNG IDAT stream cut off before its end", [b""]),
+            ("PNG IDAT not a valid zlib stream", [b"planted"]),
+            ("PNG bytes after the end of the IDAT stream", [stream + b"\x00"]),
+            ("PNG bytes after the end of the IDAT stream", [stream, b"\x00"]),
+            ("PNG IDAT stream cut off before its end", [stream[:-4]]),
+            ("PNG IDAT inflates past what IHDR needs", [zlib.compress(rows + b"\x00")]),
+            ("PNG IDAT inflates short of what IHDR needs", [zlib.compress(rows[:-1])]),
+            (
+                "PNG IDAT row filter type not a defined one",
+                [zlib.compress(b"\x05" + rows[1:])],
+            ),
+        ):
+            idat = b"".join(fuzz.png_chunk(b"IDAT", body) for body in bodies)
+            bent = data[:start] + idat + data[end:]
+            self.assertEqual(gate.scan(bent), {problem})
+            self.assertIsNone(normalizer.normalize_bytes(bent))
+        # A stream split across chunks at any byte is still one stream.
+        split = [stream[:1], stream[1:3], stream[3:]]
+        whole = b"".join(fuzz.png_chunk(b"IDAT", body) for body in split)
+        self.assertEqual(gate.scan(data[:start] + whole + data[end:]), set())
+        text = fuzz.png_chunk(b"tEXt", b"Comment\x00planted")
+        parted = fuzz.png_chunk(b"IDAT", split[0]) + text
+        parted += fuzz.png_chunk(b"IDAT", b"".join(split[1:]))
+        bent = data[:start] + parted + data[end:]
+        self.assertIn("PNG IDAT chunks not consecutive", gate.scan(bent))
+        self.assertIsNone(normalizer.normalize_bytes(bent))
 
     def test_png_end_with_a_body_is_emptied(self) -> None:
         data = fuzz.png_fixture()
