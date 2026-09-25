@@ -1065,11 +1065,10 @@ def check_plant(
 ) -> None:
     report.cases += 1
     found, raised = attempt(lambda: gate.scan(data))
+    what = re.sub(r" at \d+$", "", where.split(": ", 1)[-1])
     if raised:
         report.fail("1 scanner raised", kind, raised, where)
-        return
-    what = re.sub(r" at \d+$", "", where.split(": ", 1)[-1])
-    if not found:
+    elif not found:
         report.fail("4 planted metadata passed", kind, what, where)
     new, raised = attempt(lambda: normalizer.normalize_bytes(data))
     if raised:
