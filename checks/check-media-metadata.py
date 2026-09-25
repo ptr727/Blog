@@ -214,7 +214,7 @@ PNG_ALLOWED = {
     b"pHYs",
 }
 
-# An APNG's frames are refused, since a decoder that reads no animation draws the default image alone.
+# An APNG's control and frame chunks are refused, since a decoder that reads no animation draws the default image alone.
 PNG_ANIMATION = frozenset((b"acTL", b"fcTL", b"fdAT"))
 
 # A chunk other than picture data holds its bytes once per repeat, so each admits one.
@@ -242,7 +242,7 @@ PNG_UNDRAWN = frozenset((b"sBIT", b"bKGD"))
 # The color types whose PLTE only suggests a palette, which no browser draws by.
 PNG_TRUECOLOR = frozenset((2, 6))
 
-# Where a decoder reads each placed chunk, since it passes over one out of its place.
+# Where a decoder reads each placed chunk, since one out of its place is passed over or fails the picture.
 PNG_BEFORE_PLTE = frozenset((b"gAMA", b"cHRM", b"sRGB", b"iCCP", b"sBIT"))
 PNG_AFTER_PLTE = frozenset((b"tRNS", b"bKGD"))
 PNG_BEFORE_IDAT = PNG_BEFORE_PLTE | PNG_AFTER_PLTE | {b"pHYs", b"PLTE"}
@@ -721,7 +721,7 @@ def png_header(data: bytes, parts: list[Part]) -> tuple[int, int] | None:
 def png_field_known(
     chunk: bytes, body: bytes, header: tuple[int, int] | None, palette: int
 ) -> bool:
-    """Whether an ancillary chunk holds exactly a value its format defines, in its one length."""
+    """Whether a palette or ancillary chunk holds exactly a value its format defines, in its one length."""
     depth, color = header or (0, -1)
     if chunk == b"PLTE":
         # A palette longer than the bit depth can address holds entries no pixel reaches.
