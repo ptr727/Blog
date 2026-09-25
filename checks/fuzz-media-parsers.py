@@ -242,6 +242,54 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
     return out
 
 
+def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
+    """PNGs missing or bending a critical chunk a decoder needs, so no browser draws them and every byte is free."""
+    if len(data) < 33:
+        return []
+    signature, ihdr, iend = data[:8], data[8:33], data[-12:]
+    header = ihdr[8:21]
+    idat = png_chunk(b"IDAT", zlib.compress(PLANT_TEXT))
+    plte = [data[s:e] for c, s, e in parts if c == b"PLTE"]
+    body = b"".join(data[s:e] for c, s, e in parts if c in (b"PLTE", b"IDAT"))
+    out = [
+        (signature + idat + iend, "no IHDR"),
+        (signature + idat + ihdr + iend, "IHDR not first"),
+        (signature + ihdr + b"".join(plte) + iend, "no IDAT"),
+        (signature + ihdr + body + png_chunk(b"IEND", PLANT_TEXT), "IEND with a body"),
+        (
+            signature + png_chunk(b"IHDR", header + PLANT_TEXT) + body + iend,
+            "IHDR with bytes past its fields",
+        ),
+    ]
+    for at, value, what in (
+        (0, bytes(4), "IHDR width zero"),
+        (4, b"\x80\x00\x00\x00", "IHDR height past the range"),
+        (8, b"\x03", "IHDR depth not one its color type pairs with"),
+        (9, b"\x05", "IHDR color type not a defined one"),
+        (10, b"\x01", "IHDR compression not zero"),
+        (11, b"\x01", "IHDR filter not zero"),
+        (12, b"\x02", "IHDR interlace not a defined one"),
+    ):
+        bent = header[:at] + value + header[at + len(value) :]
+        out.append((signature + png_chunk(b"IHDR", bent) + body + iend, what))
+    deep = header[:8] + b"\x10\x03" + header[10:]
+    long = png_chunk(b"PLTE", (PLANT_TEXT * 3)[:9] * 3)
+    out.append(
+        (
+            signature + png_chunk(b"IHDR", deep) + long + idat + iend,
+            "palette with a 16-bit depth",
+        )
+    )
+    if header[9] == 3:
+        out.append((signature + ihdr + idat + iend, "palette image with no PLTE"))
+    for at, name in ((8, "IHDR"), (len(data) - 12, "IEND")):
+        bent = data[: at + 8 + (13 if name == "IHDR" else 0)] + b"plnt"
+        out.append((bent + data[len(bent) :], f"{name} CRC not its own"))
+    gamma = png_chunk(b"gAMA", SRGB_GAMMA)[:-4] + b"plnt"
+    out.append((data[:33] + gamma + data[33:], "gAMA CRC not its own"))
+    return out
+
+
 def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
     """GIF blocks each admitted alone, planted with a reserved or unused field not zero."""
     if len(data) < 13:
@@ -581,6 +629,7 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
         profile = png_chunk(b"iCCP", b"icc\x00\x00" + zlib.compress(PLANT_TEXT))
         out.append((data[:33] + profile + data[33:], "iCCP not a known profile"))
         out += png_field_plants(data, parts)
+        out += png_structure_plants(data, parts)
     elif kind == "gif":
         parts, _ = gate.gif_parts(data)
         comment = b"\x21\xfe" + bytes((len(PLANT_TEXT),)) + PLANT_TEXT + b"\x00"

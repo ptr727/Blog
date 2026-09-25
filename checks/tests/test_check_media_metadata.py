@@ -53,6 +53,10 @@ def png_with(chunk: bytes) -> bytes:
     return data[:33] + chunk + data[33:]
 
 
+def span(data: bytes, name: bytes) -> tuple[int, int]:
+    return next((s, e) for c, s, e in gate.png_parts(data)[0] if c == name)
+
+
 def truecolor_png(chunks: bytes) -> bytes:
     ihdr = fuzz.png_chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
     idat = fuzz.png_chunk(b"IDAT", zlib.compress(bytes(4)))
@@ -266,6 +270,59 @@ class FreeValues(unittest.TestCase):
             gate.scan(data), {"PNG PLTE fields not values its format defines"}
         )
         self.assert_restated(data, truecolor_png(color_key))
+
+    def test_png_missing_critical_chunk_is_refused(self) -> None:
+        data = fuzz.png_fixture()
+        signature, ihdr, end = data[:8], data[8:33], data[-12:]
+        idat = data[slice(*span(data, b"IDAT"))]
+        palette = fuzz.palette_png_fixture()
+        first, last = span(palette, b"PLTE")
+        for problem, bent in (
+            ("PNG without IHDR", signature + idat + end),
+            ("PNG IHDR not the first chunk", signature + idat + ihdr + end),
+            ("PNG without IDAT", signature + ihdr + end),
+            ("PNG palette image without PLTE", palette[:first] + palette[last:]),
+        ):
+            self.assertIn(problem, gate.scan(bent))
+            self.assertIsNone(normalizer.normalize_bytes(bent))
+
+    def test_png_header_out_of_its_values_is_refused(self) -> None:
+        good = struct.pack(">IIBBBBB", 1, 1, 8, 0, 0, 0, 0)
+        interlaced = good[:12] + b"\x01"
+        for header in (
+            good[:8] + b"\x10\x03" + good[10:],
+            good[:8] + b"\x08\x05" + good[10:],
+            good[:10] + b"\x01" + good[11:],
+            good[:11] + b"\x01" + good[12:],
+            good[:12] + b"\x02",
+            bytes(4) + good[4:],
+            good + b"\x00",
+        ):
+            data = fuzz.png_fixture()
+            bent = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:]
+            self.assertIn(
+                "PNG IHDR fields not values its format defines", gate.scan(bent)
+            )
+            self.assertIsNone(normalizer.normalize_bytes(bent))
+        data = fuzz.png_fixture()
+        self.assertEqual(
+            gate.scan(data[:8] + fuzz.png_chunk(b"IHDR", interlaced) + data[33:]), set()
+        )
+
+    def test_png_end_with_a_body_is_emptied(self) -> None:
+        data = fuzz.png_fixture()
+        self.assert_restated(data[:-12] + fuzz.png_chunk(b"IEND", b"\x00"), data)
+
+    def test_png_chunk_whose_crc_is_not_its_own_is_dropped_or_refused(self) -> None:
+        data = fuzz.png_fixture()
+        self.assert_restated(data[:-4] + bytes(4), data)
+        start, end = span(data, b"gAMA")
+        bent = data[: end - 4] + bytes(4) + data[end:]
+        self.assert_restated(bent, data[:start] + data[end:])
+        end = span(data, b"IHDR")[1]
+        bent = data[: end - 4] + bytes(4) + data[end:]
+        self.assertIn("PNG IHDR CRC not its chunk's", gate.scan(bent))
+        self.assertIsNone(normalizer.normalize_bytes(bent))
 
     def test_gif_unused_control_fields_are_zeroed(self) -> None:
         data = fuzz.gif_fixture()
