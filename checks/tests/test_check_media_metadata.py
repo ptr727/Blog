@@ -271,11 +271,10 @@ class FreeValues(unittest.TestCase):
         )
         self.assert_restated(data, truecolor_png(color_key))
 
-    def test_png_refused_already_is_not_inflated_as_well(self) -> None:
+    def test_png_refused_for_its_structure_is_not_inflated(self) -> None:
         data = fuzz.png_fixture()
         signature, ihdr, end = data[:8], data[8:33], data[-12:]
         idat = data[slice(*span(data, b"IDAT"))]
-        gamma = data[slice(*span(data, b"gAMA"))]
         palette = fuzz.palette_png_fixture()
         plte = palette[slice(*span(palette, b"PLTE"))]
         twice = palette.replace(plte, plte * 2)
@@ -284,11 +283,18 @@ class FreeValues(unittest.TestCase):
                 gate.scan(signature + idat + ihdr + end),
                 {"PNG IHDR not the first chunk"},
             )
-            self.assertEqual(
-                gate.scan(data.replace(gamma, gamma * 2)), {"PNG repeated gAMA chunk"}
-            )
             self.assertIsNone(normalizer.normalize_bytes(twice))
         inflate.assert_not_called()
+        # A stream fault beside a droppable chunk is still named, since it is why the normalizer refuses.
+        start, end = span(data, b"IDAT")
+        cut = fuzz.png_chunk(b"IDAT", data[start + 8 : end - 8])
+        text = fuzz.png_chunk(b"tEXt", b"Comment\x00planted")
+        bent = data[:start] + cut + text + data[end:]
+        self.assertEqual(
+            gate.scan(bent),
+            {"PNG tEXt chunk", "PNG IDAT stream cut off before its end"},
+        )
+        self.assertIsNone(normalizer.normalize_bytes(bent))
 
     def test_png_missing_critical_chunk_is_refused(self) -> None:
         data = fuzz.png_fixture()
