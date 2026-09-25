@@ -56,7 +56,7 @@ def normalize_png(data: bytes) -> bytes | None:
     So is a single PLTE in a truecolor image, which only suggests a palette.
     An IEND holding bytes or a wrong CRC is written empty, with its own CRC.
     An ancillary chunk whose CRC is not its own is dropped, as libpng drops it, and a critical one is refused.
-    An eXIf or APNG chunk refused below is refused whatever its CRC, since a decoder that fails a bad CRC never drops it.
+    An eXIf or APNG chunk refused below is refused whatever its CRC, since dropping it would change how the picture turns or moves.
     A file is refused where `gate.png_structure` names a missing or misplaced critical chunk, where it holds two PLTE chunks, which libpng fails the picture on, or an APNG control or frame chunk, since dropping those would leave the default image alone, or where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.png_parts(data)
