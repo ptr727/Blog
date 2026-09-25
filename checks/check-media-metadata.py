@@ -797,7 +797,9 @@ def png_crc_known(data: bytes, start: int, end: int) -> bool:
 def png_structure(names: list[bytes], header: tuple[int, int] | None) -> set[str]:
     """What keeps a PNG from holding the critical chunks a decoder needs to draw it, in their order."""
     out = set()
-    if names[:1] != [b"IHDR"]:
+    if b"IHDR" not in names:
+        out.add("PNG without IHDR")
+    elif names[0] != b"IHDR":
         out.add("PNG IHDR not the first chunk")
     if b"IDAT" not in names:
         out.add("PNG without IDAT")

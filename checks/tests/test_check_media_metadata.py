@@ -278,7 +278,7 @@ class FreeValues(unittest.TestCase):
         palette = fuzz.palette_png_fixture()
         first, last = span(palette, b"PLTE")
         for problem, bent in (
-            ("PNG IHDR not the first chunk", signature + idat + end),
+            ("PNG without IHDR", signature + idat + end),
             ("PNG IHDR not the first chunk", signature + idat + ihdr + end),
             ("PNG without IDAT", signature + ihdr + end),
             ("PNG palette image without PLTE", palette[:first] + palette[last:]),
