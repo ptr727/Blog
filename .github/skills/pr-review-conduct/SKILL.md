@@ -2,22 +2,20 @@
 name: pr-review-conduct
 description: >-
   Governs opening, driving, and merging a pull request review loop in a ptr727/ProjectTemplate
-  fleet repo: requesting a review after a push, triaging findings (including suppressed
-  low-confidence ones), replying and resolving threads, and deciding whether a PR is actually
-  mergeable. Use this whenever about to open a PR, immediately after creating one, about to merge
-  a PR, enable auto-merge, ask the maintainer for merge permission, push a fix and move on without
-  re-checking review state, or judge a PR "green" or "clean" from CI or mergeStateStatus alone.
-  Triggers even when the request sounds routine, such as "open a PR," "merge this," or "it's all
-  green, go ahead," because PR creation starts the review loop and mergeStateStatus: CLEAN
-  can go clean once checks pass and every known thread is resolved, while still saying nothing
-  about whether the review that resolved those threads covered the current head SHA, read the
-  full diff, or left a suppressed low-confidence finding, which opens no thread at all,
-  unanswered. Also triggers when a review loop looks stuck
-  (no review landing, findings that keep reappearing) or when deciding a finding is real, false,
-  deferred, or a deliberate decline, or when a reviewer looks missing or skipped.
-  Provider-specific mechanics are implemented by
-  scripts/pr_review.py and bootstrapped by .github/copilot-instructions.md. This skill is the
-  contract those surfaces implement, not a replacement for them.
+  fleet repo: requesting a review after a push, triaging findings, replying and resolving threads,
+  and deciding whether a PR is actually mergeable. Use this whenever about to open a PR,
+  immediately after creating one, about to merge a PR, enable auto-merge, ask the maintainer for
+  merge permission, push a fix and move on without re-checking review state, or judge a PR "green"
+  or "clean" from CI or mergeStateStatus alone. Triggers even when the request sounds routine,
+  such as "open a PR," "merge this," or "it's all green, go ahead," because mergeStateStatus:
+  CLEAN can go clean once checks pass and every known thread is resolved, while still saying
+  nothing about whether the review covered the current head SHA, read the full diff, or left a
+  suppressed low-confidence finding, which opens no thread at all, unanswered. Also triggers when
+  a review loop looks stuck (no review landing, findings that keep reappearing) or when deciding a
+  finding is real, false, deferred, or a deliberate decline, or when a reviewer looks missing or
+  skipped. This skill is the contract that `scripts/pr_review.py`, `drive-pr`, and
+  `merge-and-release` implement: running the loop hands-off is `drive-pr` and merging main is
+  `merge-and-release`, each winning for its own action while this skill still binds the gate.
 ---
 
 # PR Review Conduct
@@ -174,10 +172,10 @@ Run `local-strict-review` against the branch's current diff before every push th
 1. Push changes to the PR branch and open the pull request when it does not exist.
 2. Run `scripts/pr_review.py status <number> --repo <owner>/<repo>` once in the foreground and read its output.
 3. Re-request a review for the **current head SHA**. Auto-trigger is unreliable, so request it
-   explicitly (mechanics in the Copilot runbook, `.github/copilot-instructions.md`), which step 4's
-   `wait` also does on its own, though it skips the request where a review already covers the head,
-   where the answer came outside a formal review, and where it detects drift. The UI is a fallback
-   only.
+   explicitly, which step 4's `wait` is what does, though it skips the request where a review
+   already covers the head, where the answer came outside a formal review, where it detects
+   drift, and where something is already in the request set, which is the condition the recovery
+   below clears. Requesting in the pull request UI is the maintainer's route rather than this loop's.
 4. Run a bounded `scripts/pr_review.py wait <number> --repo <owner>/<repo>` in a background process and read its terminal output.
    A completed review raising **no findings** is a valid terminal outcome, so do not re-trigger it
    or read silence as a missing review. A review whose body says it declined to review is the one
@@ -189,7 +187,7 @@ Run `local-strict-review` against the branch's current diff before every push th
    reviewer could check for itself, per outcome 2 below.
 8. Re-run the loop after every fix push until the checks are green and no finding remains open.
 
-The review effort setting is user-controlled. The workflow never selects or changes it. `status` reports `effort=lite`, `effort=balanced`, or `effort=max` when the completed review exposes that metadata, lowercased, and names an inherited setting apart from a chosen one in a separate `effort_source=default|explicit` field, both reading `unknown` when no effort line parses. Missing effort metadata reports `unknown` and does not change coverage or completion. A pending effort-labeled request can complete without a `copilot_work_started` timeline event, so absence of that event never proves the request is abandoned. The bounded timeout reports `PENDING` when no review or terminal answer arrives. After a timeout with `requested=yes`, rerun `wait` for another bounded interval by default because the request may still be active. If the maintainer directs a retry, remove Copilot in the pull request UI, add it again, and rerun `wait`. This recovery replaces only the review request and never changes the effort setting.
+The review effort setting is user-controlled. The workflow never selects or changes it. `status` reports `effort=lite`, `effort=balanced`, or `effort=max` when the completed review exposes that metadata, lowercased, and names an inherited setting apart from a chosen one in a separate `effort_source=default|explicit` field, both reading `unknown` when no effort line parses. Missing effort metadata reports `unknown` and does not change coverage or completion. A pending effort-labeled request can complete without a `copilot_work_started` timeline event, so absence of that event never proves the request is abandoned. The bounded timeout reports `PENDING` when no review or terminal answer arrives. `requested=yes` reports that the request was accepted rather than that a round is coming. An accepted request can sit unpicked, printing the same digest as one about to be served, so a driver reading that field as progress is waiting on evidence it does not hold. After a timeout carrying it, rerun `wait` for another bounded interval by default, because the request may still be active. Where a second bounded wait times out as well, read the pending set, and clear it only where no human or team reviewer is requested alongside the bot, because the clear replaces that set rather than adding to it and nothing restores a request it drops. A stall on a pull request that has a human or team reviewer requested goes to the maintainer instead, and so does one still pending after the wait that follows a clear. The clear leaves the next `wait` nothing outstanding to defer to, so that run requests afresh, and its own auto-request line is what says so, since `wait` reads the reviewer's node id out of the repository's recent reviews and polls without requesting where it finds none. The hub's `docs/pr-reviewer-reference.md` carries the mutation, and an agent seat can run it, where removing and re-adding the reviewer in the pull request UI is a step only the maintainer can take. This recovery replaces only the review request and never changes the effort setting.
 
 Drive to green, a review confirmed on the latest head SHA and every actionable finding closed,
 then apply the Merge Gate above. **Never exit this PR-hosted loop early.** Its pre-push
@@ -303,5 +301,5 @@ shapes in one call. `wait` requests and polls in-process. `comment` posts a PR-c
 answer after it reads the PR node ID. `reply` answers a thread by matching the finding's own
 words instead of a line number a fix push can move, and resolves it only when `--resolve` is
 given. The repository's
-`.github/copilot-instructions.md` bootstraps Copilot into the `code-review` skill and its stable
+`.github/copilot-instructions.md` bootstraps Copilot into the `fleet-code-review` skill and its stable
 coverage marker. Do not reconstruct the API operations by hand.
