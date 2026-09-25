@@ -265,6 +265,22 @@ class FreeValues(unittest.TestCase):
         self.assertIn("GIF aspect ratio not zero", gate.scan(bent))
         self.assert_restated(bent, data)
 
+    def test_gif_unused_descriptor_fields_are_zeroed(self) -> None:
+        data = fuzz.gif_fixture()
+        at = data.index(b"\x2c") + 9
+        for bent in (
+            b"GIF87a" + data[6:],
+            data[:10] + b"\xf8" + data[11:],
+            data[:at] + b"\x3f" + data[at + 1 :],
+        ):
+            self.assert_restated(bent, data)
+
+    def test_gif_unread_global_table_is_dropped(self) -> None:
+        data = fuzz.gif_fixture()
+        at = data.index(b"\x2c") + 9
+        local = data[:at] + b"\x80" + bytes(6) + data[at + 1 :]
+        self.assert_restated(local, data[:10] + bytes(3) + local[19:])
+
     def test_webp_background_is_zeroed_and_loop_count_kept(self) -> None:
         data = fuzz.animated_webp_fixture()
         at = data.index(b"ANIM") + 8

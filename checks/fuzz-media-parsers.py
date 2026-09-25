@@ -267,7 +267,7 @@ def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
         local = bytearray(data)
         for name, start, _ in reversed(parts):
             if name == "image" and not data[start + 9] & 0x80:
-                local[start + 9] |= 0x80
+                local[start + 9] = data[start + 9] & 0x40 | 0x80
                 local[start + 10 : start + 10] = bytes(6)
         out.append((bytes(local), "global color table no image reads"))
     out.append((b"GIF87a" + data[6:], "version not 89a"))
