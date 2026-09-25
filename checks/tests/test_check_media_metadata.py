@@ -246,12 +246,12 @@ class FreeValues(unittest.TestCase):
         self.assertIsNone(normalizer.normalize_bytes(data))
 
     def test_png_suggested_palette_goes_after_its_transparency(self) -> None:
-        opaque = fuzz.png_chunk(b"tRNS", bytes(6))
-        data = truecolor_png(opaque + fuzz.png_chunk(b"PLTE", bytes(6)))
+        color_key = fuzz.png_chunk(b"tRNS", bytes(6))
+        data = truecolor_png(color_key + fuzz.png_chunk(b"PLTE", bytes(6)))
         self.assertEqual(
             gate.scan(data), {"PNG PLTE fields not values its format defines"}
         )
-        self.assert_restated(data, truecolor_png(opaque))
+        self.assert_restated(data, truecolor_png(color_key))
 
     def test_gif_unused_control_fields_are_zeroed(self) -> None:
         data = fuzz.gif_fixture()
