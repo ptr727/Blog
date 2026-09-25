@@ -59,6 +59,7 @@ normalizer = load("normalizer", REPO / "scripts" / "normalize-media.py")
 PLANT_TEXT = b"planted"
 
 # What a plant may declare the normalizer does with it, where a plant declares nothing either passes.
+# A plant may also declare the exact bytes of its rewrite.
 REFUSED = "refused"
 REWRITTEN = "rewritten"
 
@@ -240,7 +241,9 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
         # A truecolor color key may precede a suggested palette, so only the palette goes.
         key = png_chunk(b"tRNS", bytes(6))
         variant = bare[:33] + key + suggested + bare[33:]
-        out.append((variant, "tRNS before a suggested PLTE", REWRITTEN))
+        out.append(
+            (variant, "tRNS before a suggested PLTE", bare[:33] + key + bare[33:])
+        )
     # A palette after the picture data is one a decoder does not read.
     late = [data[s:e] for c, s, e in parts if c == b"PLTE"][:1] or [
         png_chunk(b"PLTE", PLANT_TEXT * 3)
@@ -693,9 +696,11 @@ def plants(kind: str, data: bytes) -> list[tuple]:
     elif kind == "png":
         parts, _ = gate.png_parts(data)
         text = png_chunk(b"tEXt", b"Comment\x00" + PLANT_TEXT)
-        out += at_boundaries(data, parts[1:], text, "tEXt")
+        texts = at_boundaries(data, parts[1:], text, "tEXt")
+        out += [(variant, what, REWRITTEN) for variant, what in texts]
         profile = png_chunk(b"iCCP", b"icc\x00\x00" + zlib.compress(PLANT_TEXT))
-        out.append((data[:33] + profile + data[33:], "iCCP not a known profile"))
+        variant = data[:33] + profile + data[33:]
+        out.append((variant, "iCCP not a known profile", REFUSED))
         out += png_field_plants(data, parts)
         out += png_structure_plants(data, parts)
     elif kind == "gif":
@@ -1052,7 +1057,11 @@ def check_variant(report: Report, kind: str, data: bytes, where: str) -> None:
 
 
 def check_plant(
-    report: Report, kind: str, data: bytes, where: str, expect: str | None = None
+    report: Report,
+    kind: str,
+    data: bytes,
+    where: str,
+    expect: str | bytes | None = None,
 ) -> None:
     report.cases += 1
     found, raised = attempt(lambda: gate.scan(data))
@@ -1069,8 +1078,12 @@ def check_plant(
     rewritten = isinstance(new, bytes) and bool(new)
     if expect == REFUSED and rewritten:
         report.fail("4 normalizer rewrote a plant it should refuse", kind, what, where)
-    elif expect == REWRITTEN and not rewritten:
+    elif expect not in (None, REFUSED) and not rewritten:
         report.fail("4 normalizer refused a plant it should rewrite", kind, what, where)
+    elif isinstance(expect, bytes) and rewritten and new != expect:
+        report.fail(
+            "4 normalizer rewrote a plant other than declared", kind, what, where
+        )
     if isinstance(new, bytes) and PLANT_TEXT in new:
         report.fail("4 normalizer kept planted metadata", kind, what, where)
     elif rewritten:
@@ -1080,6 +1093,13 @@ def check_plant(
         elif again:
             detail = ", ".join(sorted(again))
             report.fail("2 normalizer output rejected", kind, detail, where)
+        payloads, raised = attempt(
+            lambda: (normalizer.pixel_payload(data), normalizer.pixel_payload(new))
+        )
+        if raised:
+            report.fail("3 payload extraction raised", kind, raised, where)
+        elif payloads[0] is not None and payloads[0] != payloads[1]:
+            report.fail("3 normalizer changed the payload", kind, what, where)
 
 
 def check_clean(report: Report, kind: str, data: bytes, where: str) -> None:
