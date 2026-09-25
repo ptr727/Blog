@@ -286,10 +286,10 @@ class FreeValues(unittest.TestCase):
             self.assertIsNone(normalizer.normalize_bytes(twice))
         inflate.assert_not_called()
         # A stream fault beside a droppable chunk is still named, since it is why the normalizer refuses.
-        start, end = span(data, b"IDAT")
-        cut = fuzz.png_chunk(b"IDAT", data[start + 8 : end - 8])
+        start, stop = span(data, b"IDAT")
+        cut = fuzz.png_chunk(b"IDAT", data[start + 8 : stop - 8])
         text = fuzz.png_chunk(b"tEXt", b"Comment\x00planted")
-        bent = data[:start] + cut + text + data[end:]
+        bent = data[:start] + cut + text + data[stop:]
         self.assertEqual(
             gate.scan(bent),
             {"PNG tEXt chunk", "PNG IDAT stream cut off before its end"},
