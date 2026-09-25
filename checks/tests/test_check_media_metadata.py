@@ -53,6 +53,13 @@ def png_with(chunk: bytes) -> bytes:
     return data[:33] + chunk + data[33:]
 
 
+def truecolor_png(chunks: bytes) -> bytes:
+    ihdr = fuzz.png_chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
+    idat = fuzz.png_chunk(b"IDAT", zlib.compress(bytes(4)))
+    end = fuzz.png_chunk(b"IEND", b"")
+    return b"\x89PNG\r\n\x1a\n" + ihdr + chunks + idat + end
+
+
 def iccp(name: bytes, stream: bytes) -> bytes:
     return fuzz.png_chunk(b"iCCP", name + b"\x00\x00" + stream)
 
@@ -232,17 +239,31 @@ class FreeValues(unittest.TestCase):
         self.assertIn("PNG repeated gAMA chunk", gate.scan(data))
         self.assertIsNone(normalizer.normalize_bytes(data))
 
+    def test_png_repeated_palette_is_refused(self) -> None:
+        palette = fuzz.png_chunk(b"PLTE", bytes(6))
+        data = truecolor_png(palette * 2)
+        self.assertIn("PNG repeated PLTE chunk", gate.scan(data))
+        self.assertIsNone(normalizer.normalize_bytes(data))
+
+    def test_png_suggested_palette_goes_after_its_transparency(self) -> None:
+        opaque = fuzz.png_chunk(b"tRNS", bytes(6))
+        data = truecolor_png(opaque + fuzz.png_chunk(b"PLTE", bytes(6)))
+        self.assertEqual(
+            gate.scan(data), {"PNG PLTE fields not values its format defines"}
+        )
+        self.assert_restated(data, truecolor_png(opaque))
+
     def test_gif_unused_control_fields_are_zeroed(self) -> None:
         data = fuzz.gif_fixture()
         at = data.index(b"\x21\xf9") + 3
         bent = data[:at] + b"\xe0" + data[at + 1 : at + 3] + b"\x05" + data[at + 4 :]
         self.assert_restated(bent, data)
 
-    def test_gif_aspect_ratio_is_refused(self) -> None:
+    def test_gif_aspect_ratio_is_zeroed(self) -> None:
         data = fuzz.gif_fixture()
-        data = data[:12] + b"\x31" + data[13:]
-        self.assertIn("GIF aspect ratio not zero", gate.scan(data))
-        self.assertIsNone(normalizer.normalize_bytes(data))
+        bent = data[:12] + b"\x31" + data[13:]
+        self.assertIn("GIF aspect ratio not zero", gate.scan(bent))
+        self.assert_restated(bent, data)
 
     def test_webp_background_is_zeroed_and_loop_count_kept(self) -> None:
         data = fuzz.animated_webp_fixture()
