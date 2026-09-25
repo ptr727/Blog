@@ -269,6 +269,7 @@ def normalize_gif(data: bytes) -> bytes | None:
 
     A graphic control block's reserved bits and unused transparent index are written as zero.
     So are the screen and image descriptor fields no browser draws by, and a global table no image reads is dropped.
+    The version is written as 89a.
     """
     parts, problems = gate.gif_parts(data)
     if problems - gate.TRAILING:
