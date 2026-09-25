@@ -245,6 +245,20 @@ class FreeValues(unittest.TestCase):
         self.assertIn("PNG repeated PLTE chunk", gate.scan(data))
         self.assertIsNone(normalizer.normalize_bytes(data))
 
+    def test_png_animation_is_refused(self) -> None:
+        data = fuzz.png_fixture()
+        control = fuzz.png_chunk(b"acTL", struct.pack(">II", 1, 0))
+        frame = fuzz.png_chunk(b"fdAT", bytes(4))
+        header = struct.pack(">IIIIIHHBB", 0, 1, 1, 0, 0, 1, 1, 0, 0)
+        region = fuzz.png_chunk(b"fcTL", header)
+        for chunk, bent in (
+            (b"acTL", png_with(control)),
+            (b"fcTL", png_with(region)),
+            (b"fdAT", data[:-12] + frame + data[-12:]),
+        ):
+            self.assertIn(f"PNG {chunk.decode()} chunk", gate.scan(bent))
+            self.assertIsNone(normalizer.normalize_bytes(bent))
+
     def test_png_suggested_palette_goes_after_its_transparency(self) -> None:
         color_key = fuzz.png_chunk(b"tRNS", bytes(6))
         data = truecolor_png(color_key + fuzz.png_chunk(b"PLTE", bytes(6)))
