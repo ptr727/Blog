@@ -54,7 +54,8 @@ def normalize_png(data: bytes) -> bytes | None:
     A known profile in a body that is not pinned is re-emitted in the one canonical body.
     An sBIT or bKGD out of its one value, out of place, or repeated, is dropped, since no browser draws by either.
     So is a single PLTE in a truecolor image, which only suggests a palette.
-    An IEND holding bytes is written empty, since a decoder reads none of them.
+    An IEND holding bytes or a wrong CRC is written empty, with its own CRC.
+    Any other ancillary chunk whose CRC is not its own is dropped, as a decoder drops it, and a critical one is refused.
     A file is refused where `gate.png_structure` names a missing or misplaced critical chunk, where it holds two PLTE chunks, which libpng fails the picture on, or an APNG control or frame chunk, since dropping those would leave the default image alone, or where `exif_orientation` refuses its Exif Orientation, or where that Orientation turns the picture.
     """
     parts, problems = gate.png_parts(data)
@@ -79,6 +80,10 @@ def normalize_png(data: bytes) -> bytes | None:
             return None
         if chunk == b"IEND":
             out += png_chunk(chunk, b"")
+            continue
+        if not gate.png_crc_known(data, start, end):
+            if not chunk[0] & 0x20:
+                return None
             continue
         if chunk not in gate.PNG_ALLOWED:
             if not chunk[0] & 0x20:

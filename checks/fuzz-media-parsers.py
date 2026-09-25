@@ -282,6 +282,11 @@ def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
     )
     if header[9] == 3:
         out.append((signature + ihdr + idat + iend, "palette image with no PLTE"))
+    for at, name in ((8, "IHDR"), (len(data) - 12, "IEND")):
+        bent = data[: at + 8 + (13 if name == "IHDR" else 0)] + b"plnt"
+        out.append((bent + data[len(bent) :], f"{name} CRC not its own"))
+    gamma = png_chunk(b"gAMA", SRGB_GAMMA)[:-4] + b"plnt"
+    out.append((data[:33] + gamma + data[33:], "gAMA CRC not its own"))
     return out
 
 

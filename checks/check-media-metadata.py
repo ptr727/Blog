@@ -788,11 +788,14 @@ def png_misplaced(names: list[bytes], color: int) -> set[int]:
     }
 
 
-def png_structure(names: list[bytes], header: tuple[int, int] | None) -> set[str]:
-    """What keeps a PNG from holding the critical chunks a decoder needs to draw it.
+def png_crc_known(data: bytes, start: int, end: int) -> bool:
+    """Whether a chunk's CRC is its own, since a decoder drops or fails a chunk whose CRC is not."""
+    crc = zlib.crc32(data[start + 4 : end - 4]) & 0xFFFFFFFF
+    return data[end - 4 : end] == struct.pack(">I", crc)
 
-    A file no decoder draws holds every one of its bytes free, so each of these is refused.
-    """
+
+def png_structure(names: list[bytes], header: tuple[int, int] | None) -> set[str]:
+    """What keeps a PNG from holding the critical chunks a decoder needs to draw it, in their order."""
     out = set()
     if names[:1] != [b"IHDR"]:
         out.add("PNG IHDR not the first chunk")
@@ -820,6 +823,8 @@ def scan_png(data: bytes) -> set[str]:
         body = data[start + 8 : end - 4]
         if at in misplaced:
             out.add(f"PNG {name} chunk out of place")
+        if not png_crc_known(data, start, end):
+            out.add(f"PNG {name} CRC not its chunk's")
         if chunk not in PNG_ALLOWED:
             out.add(f"PNG {name} chunk")
         elif chunk == b"iCCP":

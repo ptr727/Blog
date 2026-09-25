@@ -308,6 +308,14 @@ class FreeValues(unittest.TestCase):
         data = fuzz.png_fixture()
         self.assert_restated(data[:-12] + fuzz.png_chunk(b"IEND", b"\x00"), data)
 
+    def test_png_chunk_whose_crc_is_not_its_own_is_dropped_or_refused(self) -> None:
+        data = fuzz.png_fixture()
+        self.assert_restated(data[:-4] + bytes(4), data)
+        self.assert_restated(data[:45] + bytes(4) + data[49:], data[:33] + data[49:])
+        bent = data[:29] + bytes(4) + data[33:]
+        self.assertIn("PNG IHDR CRC not its chunk's", gate.scan(bent))
+        self.assertIsNone(normalizer.normalize_bytes(bent))
+
     def test_gif_unused_control_fields_are_zeroed(self) -> None:
         data = fuzz.gif_fixture()
         at = data.index(b"\x21\xf9") + 3
