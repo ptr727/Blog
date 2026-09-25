@@ -58,8 +58,8 @@ normalizer = load("normalizer", REPO / "scripts" / "normalize-media.py")
 # A comment segment, chunk, block or atom holding nothing, so no allowlist can admit it.
 PLANT_TEXT = b"planted"
 
-# What a plant may declare the normalizer does with it, where a plant declares nothing either passes.
-# A plant may also declare the exact bytes of its rewrite.
+# What a plant may declare the normalizer does with it, or the exact bytes of its rewrite.
+# A plant that declares nothing passes whether the normalizer refuses or rewrites it.
 REFUSED = "refused"
 REWRITTEN = "rewritten"
 
@@ -1113,6 +1113,8 @@ def check_clean(report: Report, kind: str, data: bytes, where: str) -> None:
     new, raised = attempt(lambda: normalizer.normalize_bytes(data))
     if raised:
         report.fail("2 normalizer raised", kind, raised, where)
+    elif not isinstance(new, bytes) or not new:
+        report.fail("7 normalizer refused a clean plant", kind, what, where)
     elif new != data:
         report.fail("7 normalizer changed a clean plant", kind, what, where)
 
