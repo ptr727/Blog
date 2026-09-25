@@ -245,14 +245,14 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str | b
             (variant, "tRNS before a suggested PLTE", bare[:33] + key + bare[33:])
         )
     # A palette after the picture data is one a decoder does not read.
-    late = [data[s:e] for c, s, e in parts if c == b"PLTE"][:1] or [
+    palettes = [data[s:e] for c, s, e in parts if c == b"PLTE"][:1] or [
         png_chunk(b"PLTE", PLANT_TEXT * 3)
     ]
     moved = bare[:8] + b"".join(
         data[s:e] for c, s, e in parts if c in (b"IHDR", b"IDAT")
     )
     after = REFUSED if color == 3 else suggestion
-    out.append((moved + late[0] + bare[-12:], "PLTE after IDAT", after))
+    out.append((moved + palettes[0] + bare[-12:], "PLTE after IDAT", after))
     # An APNG frame is refused, so a still decoder never reads a default image the gate alone passed.
     control = png_chunk(b"acTL", struct.pack(">II", 1, 0))
     frame = png_chunk(b"fdAT", struct.pack(">I", 0) + PLANT_TEXT)
@@ -304,13 +304,13 @@ def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str
     plte = [data[s:e] for c, s, e in parts if c == b"PLTE"]
     body = b"".join(data[s:e] for c, s, e in parts if c in (b"PLTE", b"IDAT"))
     ended = png_chunk(b"IEND", PLANT_TEXT)
-    long = png_chunk(b"IHDR", header + PLANT_TEXT)
+    padded = png_chunk(b"IHDR", header + PLANT_TEXT)
     out = [
         (signature + idat + iend, "no IHDR", REFUSED),
         (signature + idat + ihdr + iend, "IHDR not first", REFUSED),
         (signature + ihdr + b"".join(plte) + iend, "no IDAT", REFUSED),
         (signature + ihdr + body + ended, "IEND with a body", REWRITTEN),
-        (signature + long + body + iend, "IHDR with bytes past its fields", REFUSED),
+        (signature + padded + body + iend, "IHDR with bytes past its fields", REFUSED),
     ]
     for at, value, what in (
         (0, bytes(4), "IHDR width zero"),
@@ -324,10 +324,10 @@ def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str
         bent = header[:at] + value + header[at + len(value) :]
         out.append((signature + png_chunk(b"IHDR", bent) + body + iend, what, REFUSED))
     deep = header[:8] + b"\x10\x03" + header[10:]
-    long = png_chunk(b"PLTE", (PLANT_TEXT * 3)[:9] * 3)
+    wide = png_chunk(b"PLTE", (PLANT_TEXT * 3)[:9] * 3)
     out.append(
         (
-            signature + png_chunk(b"IHDR", deep) + long + idat + iend,
+            signature + png_chunk(b"IHDR", deep) + wide + idat + iend,
             "palette with a 16-bit depth",
             REFUSED,
         )
