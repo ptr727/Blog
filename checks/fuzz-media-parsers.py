@@ -13,9 +13,11 @@ The properties, each checked on every variant:
 2. The normalizer never raises, and never returns a file its own scanner rejects.
 3. The normalizer returns nothing, or a file whose picture payload is unchanged.
 4. Planted metadata is always reported.
+   A plant that declares a refusal is refused, and one that declares a rewrite is rewritten.
 5. The archive walk never raises on a damaged archive.
 6. The normalizer refuses a picture its Exif turns, or returns one turned the same way.
    Where decoders disagree on the turn, it refuses.
+7. A clean plant, holding only values the gate admits, is reported by nothing and left unchanged.
 
 Seeds are constructed fixtures plus a sample of the carried media, read in memory and
 never written anywhere. The run is deterministic for a given seed and file list, and
@@ -55,6 +57,11 @@ normalizer = load("normalizer", REPO / "scripts" / "normalize-media.py")
 
 # A comment segment, chunk, block or atom holding nothing, so no allowlist can admit it.
 PLANT_TEXT = b"planted"
+
+# What a plant may declare the normalizer does with it, or the exact bytes of its rewrite.
+# A plant that declares nothing passes whether the normalizer refuses or rewrites it.
+REFUSED = "refused"
+REWRITTEN = "rewritten"
 
 
 def jpeg_segment(marker: int, body: bytes) -> bytes:
@@ -161,7 +168,7 @@ SRGB_GAMMA = struct.pack(">I", 45455)
 SQUARE = struct.pack(">IIB", 3779, 3779, 1)
 
 
-def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
+def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str | bytes]]:
     """Ancillary PNG chunks each admitted alone, planted out of their values or more than once.
 
     A plant goes into a seed with no ancillary chunks, so that repetition cannot report it.
@@ -176,41 +183,44 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
     background = PNG_BACKGROUND.get(color, 2)
     palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
     alpha = {0: b"pla", 2: PLANT_TEXT, 3: bytes(palette + 1)}.get(color, b"pl")
+    # A palette no browser draws by goes, and one in a grayscale image is refused.
+    suggestion = REWRITTEN if color in (2, 6) else REFUSED
     planted = [
-        (b"gAMA", b"plnt", "gAMA not the sRGB gamma"),
-        (b"gAMA", SRGB_GAMMA + PLANT_TEXT, "gAMA with bytes past its fields"),
-        (b"cHRM", (PLANT_TEXT * 5)[:32], "cHRM not the sRGB primaries"),
-        (b"sRGB", b"p", "sRGB intent not a known intent"),
-        (b"pHYs", SQUARE[:4] + b"plnt\x01", "pHYs density not square"),
-        (b"pHYs", SQUARE[:8] + b"p", "pHYs unit not a known unit"),
-        (b"pHYs", SQUARE + PLANT_TEXT, "pHYs with bytes past its fields"),
-        (b"sBIT", b"p" * significant, "sBIT not the full depth"),
-        (b"bKGD", b"p" * background, "bKGD not zero"),
-        (b"hIST", b"pl", "hIST chunk"),
-        (b"tRNS", alpha, "tRNS not in its shape"),
+        (b"gAMA", b"plnt", "gAMA not the sRGB gamma", REFUSED),
+        (b"gAMA", SRGB_GAMMA + PLANT_TEXT, "gAMA with bytes past its fields", REFUSED),
+        (b"cHRM", (PLANT_TEXT * 5)[:32], "cHRM not the sRGB primaries", REFUSED),
+        (b"sRGB", b"p", "sRGB intent not a known intent", REFUSED),
+        (b"pHYs", SQUARE[:4] + b"plnt\x01", "pHYs density not square", REFUSED),
+        (b"pHYs", SQUARE[:8] + b"p", "pHYs unit not a known unit", REFUSED),
+        (b"pHYs", SQUARE + PLANT_TEXT, "pHYs with bytes past its fields", REFUSED),
+        (b"sBIT", b"p" * significant, "sBIT not the full depth", REWRITTEN),
+        (b"bKGD", b"p" * background, "bKGD not zero", REWRITTEN),
+        (b"hIST", b"pl", "hIST chunk", REWRITTEN),
+        (b"tRNS", alpha, "tRNS not in its shape", REFUSED),
     ]
     if color == 0 and depth < 16:
-        planted.append((b"tRNS", b"\xff\xff", "tRNS gray past its depth"))
+        planted.append((b"tRNS", b"\xff\xff", "tRNS gray past its depth", REFUSED))
     out = [
-        (bare[:33] + png_chunk(chunk, body) + bare[33:], what)
-        for chunk, body, what in planted
+        (bare[:33] + png_chunk(chunk, body) + bare[33:], what, expect)
+        for chunk, body, what, expect in planted
     ]
     full = bytes((8 if color == 3 else depth,)) * significant
-    for chunk, body in (
-        (b"gAMA", SRGB_GAMMA),
-        (b"sRGB", b"\x00"),
-        (b"pHYs", SQUARE),
-        (b"sBIT", full),
-        (b"bKGD", bytes(background)),
+    for chunk, body, expect in (
+        (b"gAMA", SRGB_GAMMA, REFUSED),
+        (b"sRGB", b"\x00", REFUSED),
+        (b"pHYs", SQUARE, REFUSED),
+        (b"sBIT", full, REWRITTEN),
+        (b"bKGD", bytes(background), REWRITTEN),
     ):
         twice = png_chunk(chunk, body) * 2
-        out.append((bare[:33] + twice + bare[33:], f"repeated {chunk.decode()}"))
+        variant = bare[:33] + twice + bare[33:]
+        out.append((variant, f"repeated {chunk.decode()}", expect))
     # A decoder passes over a chunk out of its place, so its bytes are free there.
     late = png_chunk(b"gAMA", SRGB_GAMMA)
-    out.append((bare[:-12] + late + bare[-12:], "gAMA after IDAT"))
+    out.append((bare[:-12] + late + bare[-12:], "gAMA after IDAT", REFUSED))
     if palette:
         early = png_chunk(b"tRNS", bytes(1))
-        out.append((bare[:33] + early + bare[33:], "tRNS before PLTE"))
+        out.append((bare[:33] + early + bare[33:], "tRNS before PLTE", REFUSED))
     # A palette entry no pixel can address, and a palette no browser draws by, each hold free bytes.
     if color == 3 and depth <= 8:
         entries = (1 << depth) + 1
@@ -220,25 +230,116 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
             for c, s, e in parts
             if c in (b"IHDR", b"PLTE", b"IDAT", b"IEND")
         )
-        out.append((head, "PLTE longer than the bit depth addresses"))
+        out.append((head, "PLTE longer than the bit depth addresses", REFUSED))
     elif color != 3:
         suggested = png_chunk(b"PLTE", PLANT_TEXT * 3)
+        variant = bare[:33] + suggested + bare[33:]
+        out.append((variant, "PLTE in a color type that draws none", suggestion))
+        # A second palette fails the picture in libpng, so dropping both would draw one it did not.
+        out.append((bare[:33] + suggested * 2 + bare[33:], "two PLTE", REFUSED))
+    if color == 2:
+        # A truecolor color key may precede a suggested palette, so only the palette goes.
+        key = png_chunk(b"tRNS", bytes(6))
+        variant = bare[:33] + key + suggested + bare[33:]
         out.append(
-            (bare[:33] + suggested + bare[33:], "PLTE in a color type that draws none")
+            (variant, "tRNS before a suggested PLTE", bare[:33] + key + bare[33:])
         )
     # A palette after the picture data is one a decoder does not read.
-    late = [data[s:e] for c, s, e in parts if c == b"PLTE"][:1] or [
+    palettes = [data[s:e] for c, s, e in parts if c == b"PLTE"][:1] or [
         png_chunk(b"PLTE", PLANT_TEXT * 3)
     ]
     moved = bare[:8] + b"".join(
         data[s:e] for c, s, e in parts if c in (b"IHDR", b"IDAT")
     )
-    out.append((moved + late[0] + bare[-12:], "PLTE after IDAT"))
+    after = REFUSED if color == 3 else suggestion
+    out.append((moved + palettes[0] + bare[-12:], "PLTE after IDAT", after))
     # An APNG frame is refused, so a still decoder never reads a default image the gate alone passed.
     control = png_chunk(b"acTL", struct.pack(">II", 1, 0))
     frame = png_chunk(b"fdAT", struct.pack(">I", 0) + PLANT_TEXT)
-    out.append((bare[:33] + control + bare[33:], "acTL chunk"))
-    out.append((bare[:-12] + frame + bare[-12:], "fdAT with no acTL"))
+    out.append((bare[:33] + control + bare[33:], "acTL chunk", REFUSED))
+    out.append((bare[:-12] + frame + bare[-12:], "fdAT with no acTL", REFUSED))
+    return out
+
+
+def png_clean_plants(data: bytes, parts: list) -> list[tuple[bytes, str]]:
+    """Ancillary PNG chunks each holding a value writers use, which the gate passes and the normalizer keeps."""
+    if len(data) < 33:
+        return []
+    bare = data[:8] + b"".join(
+        data[s:e] for c, s, e in parts if c in (b"IHDR", b"PLTE", b"IDAT", b"IEND")
+    )
+    depth, color = data[24], data[25]
+    palette = sum(e - s - 12 for c, s, e in parts if c == b"PLTE") // 3
+    full = bytes((8 if color == 3 else depth,)) * PNG_SIGNIFICANT.get(color, 1)
+    kept = [
+        *((b"sRGB", bytes((intent,))) for intent in range(4)),
+        *((b"cHRM", primaries) for primaries in sorted(gate.PNG_PRIMARIES)),
+        (b"gAMA", SRGB_GAMMA),
+        (b"pHYs", SQUARE),
+        (b"pHYs", struct.pack(">IIB", 72, 72, 0)),
+        (b"sBIT", full),
+        (b"bKGD", bytes(PNG_BACKGROUND.get(color, 2))),
+    ]
+    if color in (0, 2):
+        kept.append((b"tRNS", bytes(2 if color == 0 else 6)))
+    elif color == 3 and palette:
+        kept.append((b"tRNS", bytes(palette)))
+    at = 33 + sum(e - s for c, s, e in parts if c == b"PLTE") if color == 3 else 33
+    out = []
+    for chunk, body in kept:
+        # Transparency and background follow a palette, and every other chunk goes first.
+        place = at if chunk in (b"tRNS", b"bKGD") else 33
+        variant = bare[:place] + png_chunk(chunk, body) + bare[place:]
+        out.append((variant, f"{chunk.decode()} {body.hex()}"))
+    return out
+
+
+def png_structure_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str]]:
+    """PNGs missing or bending a critical chunk a decoder needs, so no browser draws them and every byte is free."""
+    if len(data) < 33:
+        return []
+    signature, ihdr, iend = data[:8], data[8:33], data[-12:]
+    header = ihdr[8:21]
+    idat = png_chunk(b"IDAT", zlib.compress(PLANT_TEXT))
+    plte = [data[s:e] for c, s, e in parts if c == b"PLTE"]
+    body = b"".join(data[s:e] for c, s, e in parts if c in (b"PLTE", b"IDAT"))
+    ended = png_chunk(b"IEND", PLANT_TEXT)
+    padded = png_chunk(b"IHDR", header + PLANT_TEXT)
+    out = [
+        (signature + idat + iend, "no IHDR", REFUSED),
+        (signature + idat + ihdr + iend, "IHDR not first", REFUSED),
+        (signature + ihdr + b"".join(plte) + iend, "no IDAT", REFUSED),
+        (signature + ihdr + body + ended, "IEND with a body", REWRITTEN),
+        (signature + padded + body + iend, "IHDR with bytes past its fields", REFUSED),
+    ]
+    for at, value, what in (
+        (0, bytes(4), "IHDR width zero"),
+        (4, b"\x80\x00\x00\x00", "IHDR height past the range"),
+        (8, b"\x03", "IHDR depth not one its color type pairs with"),
+        (9, b"\x05", "IHDR color type not a defined one"),
+        (10, b"\x01", "IHDR compression not zero"),
+        (11, b"\x01", "IHDR filter not zero"),
+        (12, b"\x02", "IHDR interlace not a defined one"),
+    ):
+        bent = header[:at] + value + header[at + len(value) :]
+        out.append((signature + png_chunk(b"IHDR", bent) + body + iend, what, REFUSED))
+    deep = header[:8] + b"\x10\x03" + header[10:]
+    wide = png_chunk(b"PLTE", (PLANT_TEXT * 3)[:9] * 3)
+    out.append(
+        (
+            signature + png_chunk(b"IHDR", deep) + wide + idat + iend,
+            "palette with a 16-bit depth",
+            REFUSED,
+        )
+    )
+    if header[9] == 3:
+        variant = signature + ihdr + idat + iend
+        out.append((variant, "palette image with no PLTE", REFUSED))
+    for at, name, expect in ((8, "IHDR", REFUSED), (len(data) - 12, "IEND", REWRITTEN)):
+        bent = data[: at + 8 + (13 if name == "IHDR" else 0)] + b"plnt"
+        out.append((bent + data[len(bent) :], f"{name} CRC not its own", expect))
+    gamma = png_chunk(b"gAMA", SRGB_GAMMA)[:-4] + b"plnt"
+    out.append((data[:33] + gamma + data[33:], "gAMA CRC not its own", REWRITTEN))
     return out
 
 
@@ -383,6 +484,17 @@ def png_fixture() -> bytes:
     )
 
 
+def truecolor_png_fixture() -> bytes:
+    ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
+    idat = zlib.compress(bytes(4))
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + png_chunk(b"IHDR", ihdr)
+        + png_chunk(b"IDAT", idat)
+        + png_chunk(b"IEND", b"")
+    )
+
+
 def palette_png_fixture() -> bytes:
     ihdr = struct.pack(">IIBBBBB", 1, 1, 1, 3, 0, 0, 0)
     idat = zlib.compress(b"\x00\x00")
@@ -521,13 +633,20 @@ def at_boundaries(
     return [(data[:o] + piece + data[o:], f"{what} at {o}") for o in offsets]
 
 
-def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
+def clean_plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
+    """Variants holding only values the gate admits, which it has to pass and the normalizer keep."""
+    if kind == "png":
+        return png_clean_plants(data, gate.png_parts(data)[0])
+    return []
+
+
+def plants(kind: str, data: bytes) -> list[tuple]:
     """Variants holding metadata a decoder reads, which the scanner has to report.
 
     A seed's own elements are where a decoder looks for the next one, so a piece planted
     before any of them, between two scans included, is one the decoder reads.
     """
-    out: list[tuple[bytes, str]] = []
+    out: list[tuple] = []
     if kind == "jpeg":
         parts, _ = gate.jpeg_parts(data)
         comment = jpeg_segment(0xFE, PLANT_TEXT)
@@ -577,10 +696,13 @@ def plants(kind: str, data: bytes) -> list[tuple[bytes, str]]:
     elif kind == "png":
         parts, _ = gate.png_parts(data)
         text = png_chunk(b"tEXt", b"Comment\x00" + PLANT_TEXT)
-        out += at_boundaries(data, parts[1:], text, "tEXt")
+        texts = at_boundaries(data, parts[1:], text, "tEXt")
+        out += [(variant, what, REWRITTEN) for variant, what in texts]
         profile = png_chunk(b"iCCP", b"icc\x00\x00" + zlib.compress(PLANT_TEXT))
-        out.append((data[:33] + profile + data[33:], "iCCP not a known profile"))
+        variant = data[:33] + profile + data[33:]
+        out.append((variant, "iCCP not a known profile", REFUSED))
         out += png_field_plants(data, parts)
+        out += png_structure_plants(data, parts)
     elif kind == "gif":
         parts, _ = gate.gif_parts(data)
         comment = b"\x21\xfe" + bytes((len(PLANT_TEXT),)) + PLANT_TEXT + b"\x00"
@@ -934,27 +1056,66 @@ def check_variant(report: Report, kind: str, data: bytes, where: str) -> None:
         report.fail("3 normalizer changed the payload", kind, "", where)
 
 
-def check_plant(report: Report, kind: str, data: bytes, where: str) -> None:
+def check_plant(
+    report: Report,
+    kind: str,
+    data: bytes,
+    where: str,
+    expect: str | bytes | None = None,
+) -> None:
     report.cases += 1
     found, raised = attempt(lambda: gate.scan(data))
+    what = re.sub(r" at \d+$", "", where.split(": ", 1)[-1])
     if raised:
         report.fail("1 scanner raised", kind, raised, where)
-        return
-    what = re.sub(r" at \d+$", "", where.split(": ", 1)[-1])
-    if not found:
+    elif not found:
         report.fail("4 planted metadata passed", kind, what, where)
     new, raised = attempt(lambda: normalizer.normalize_bytes(data))
     if raised:
         report.fail("2 normalizer raised", kind, raised, where)
-    elif isinstance(new, bytes) and PLANT_TEXT in new:
+        return
+    rewritten = isinstance(new, bytes) and bool(new)
+    if expect == REFUSED and rewritten:
+        report.fail("4 normalizer rewrote a plant it should refuse", kind, what, where)
+    elif expect not in (None, REFUSED) and not rewritten:
+        report.fail("4 normalizer refused a plant it should rewrite", kind, what, where)
+    elif isinstance(expect, bytes) and rewritten and new != expect:
+        report.fail(
+            "4 normalizer rewrote a plant other than declared", kind, what, where
+        )
+    if isinstance(new, bytes) and PLANT_TEXT in new:
         report.fail("4 normalizer kept planted metadata", kind, what, where)
-    elif isinstance(new, bytes) and new:
+    elif rewritten:
         again, raised = attempt(lambda: gate.scan(new))
         if raised:
             report.fail("1 scanner raised on normalized output", kind, raised, where)
         elif again:
             detail = ", ".join(sorted(again))
             report.fail("2 normalizer output rejected", kind, detail, where)
+        payloads, raised = attempt(
+            lambda: (normalizer.pixel_payload(data), normalizer.pixel_payload(new))
+        )
+        if raised:
+            report.fail("3 payload extraction raised", kind, raised, where)
+        elif payloads[0] is not None and payloads[0] != payloads[1]:
+            report.fail("3 normalizer changed the payload", kind, what, where)
+
+
+def check_clean(report: Report, kind: str, data: bytes, where: str) -> None:
+    report.cases += 1
+    what = where.split(": ", 1)[-1]
+    found, raised = attempt(lambda: gate.scan(data))
+    if raised:
+        report.fail("1 scanner raised", kind, raised, where)
+    elif found:
+        report.fail("7 clean plant reported", kind, ", ".join(sorted(found)), where)
+    new, raised = attempt(lambda: normalizer.normalize_bytes(data))
+    if raised:
+        report.fail("2 normalizer raised", kind, raised, where)
+    elif not isinstance(new, bytes) or not new:
+        report.fail("7 normalizer refused a clean plant", kind, what, where)
+    elif new != data:
+        report.fail("7 normalizer changed a clean plant", kind, what, where)
 
 
 def check_turn(
@@ -1065,6 +1226,7 @@ def main() -> int:
         ("fixture:jpeg-dated", dated_jpeg_fixture()),
         ("fixture:png", png_fixture()),
         ("fixture:png-palette", palette_png_fixture()),
+        ("fixture:png-truecolor", truecolor_png_fixture()),
         ("fixture:gif", gif_fixture()),
         ("fixture:webp", webp_fixture()),
         ("fixture:webp-animated", animated_webp_fixture()),
@@ -1099,8 +1261,13 @@ def main() -> int:
         turns, raised = attempt(functools.partial(turned, kind, data))
         if raised:
             report.fail("0 variants not built", kind, f"turned {raised}", label)
-        for variant, what in planted or []:
-            check_plant(report, kind, variant, f"{label}: {what}")
+        for variant, what, *expect in planted or []:
+            check_plant(report, kind, variant, f"{label}: {what}", *expect)
+        kept, raised = attempt(functools.partial(clean_plants, kind, data))
+        if raised:
+            report.fail("0 variants not built", kind, f"clean {raised}", label)
+        for variant, what in kept or []:
+            check_clean(report, kind, variant, f"{label}: {what}")
         for variant, what, shown in turns or []:
             check_turn(report, kind, variant, f"{label}: {what}", shown)
         for _ in range(args.cases):
