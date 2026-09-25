@@ -920,9 +920,7 @@ def scan_png(data: bytes) -> set[str]:
     parts, out = png_parts(data)
     names = [bytes(chunk) for chunk, _, _ in parts]
     header = png_header(data, parts)
-    structure = png_structure(names, header)
-    # Picture data around a missing or misplaced critical chunk is refused already, so it is not inflated as well.
-    out |= structure or png_stream(data, parts)
+    out |= png_structure(names, header)
     out |= {
         f"PNG repeated {once.decode()} chunk"
         for once in PNG_ONCE
@@ -943,7 +941,8 @@ def scan_png(data: bytes) -> set[str]:
             out |= png_icc_problems(body)
         elif not png_field_known(chunk, body, header, palette):
             out.add(f"PNG {name} fields not values its format defines")
-    return out
+    # A file refused already is not inflated as well, since the inflate is the costliest read here.
+    return out or png_stream(data, parts)
 
 
 def gif_blocks_end(data: bytes, j: int) -> int:

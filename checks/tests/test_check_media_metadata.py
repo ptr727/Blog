@@ -271,15 +271,23 @@ class FreeValues(unittest.TestCase):
         )
         self.assert_restated(data, truecolor_png(color_key))
 
-    def test_png_structure_refused_is_not_inflated_as_well(self) -> None:
+    def test_png_refused_already_is_not_inflated_as_well(self) -> None:
         data = fuzz.png_fixture()
         signature, ihdr, end = data[:8], data[8:33], data[-12:]
         idat = data[slice(*span(data, b"IDAT"))]
+        gamma = data[slice(*span(data, b"gAMA"))]
+        palette = fuzz.palette_png_fixture()
+        plte = palette[slice(*span(palette, b"PLTE"))]
+        twice = palette.replace(plte, plte * 2)
         with mock.patch.object(gate.zlib, "decompressobj") as inflate:
             self.assertEqual(
                 gate.scan(signature + idat + ihdr + end),
                 {"PNG IHDR not the first chunk"},
             )
+            self.assertEqual(
+                gate.scan(data.replace(gamma, gamma * 2)), {"PNG repeated gAMA chunk"}
+            )
+            self.assertIsNone(normalizer.normalize_bytes(twice))
         inflate.assert_not_called()
 
     def test_png_missing_critical_chunk_is_refused(self) -> None:

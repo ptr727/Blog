@@ -64,7 +64,7 @@ def normalize_png(data: bytes) -> bytes | None:
         return None
     header = gate.png_header(data, parts)
     names = [bytes(c) for c, _, _ in parts]
-    if gate.png_structure(names, header) or gate.png_stream(data, parts):
+    if gate.png_structure(names, header):
         return None
     if names.count(b"PLTE") > 1:
         # A second palette fails the whole picture in libpng, so dropping both would draw one the original did not.
@@ -106,6 +106,9 @@ def normalize_png(data: bytes) -> bytes | None:
             out += png_chunk(chunk, gate.png_icc_body(profile))
         else:
             out += data[start:end]
+    # Every other refusal comes first, since the inflate is the costliest read here.
+    if gate.png_stream(data, parts):
+        return None
     return bytes(out)
 
 
