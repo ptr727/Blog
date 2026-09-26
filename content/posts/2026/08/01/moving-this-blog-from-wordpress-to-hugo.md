@@ -12,6 +12,7 @@ tags:
 - github
 - caddy
 - migration
+discussions: https://github.com/ptr727/Blog/discussions
 ---
 This blog has been quiet since May 2024, and it was still costing about $140 a year to sit there. That is a silly amount to pay for a site nobody was updating, so I moved it: the content is now a [Hugo](https://gohugo.io/) static site, the source lives on GitHub, CI builds and verifies it, and [Caddy](https://caddyserver.com/) serves it from a small VPS.
 
@@ -270,4 +271,4 @@ For the money, marginally. For everything else, yes. The content is now plain ma
 
 The one thing I would tell anyone starting this: **the migration is not the content, it is the URLs.** Budget your time accordingly. Converting 108 posts was the easy afternoon. Finding the 1,245 addresses this site is supposed to answer, and proving it still answers them, was the actual work.
 
-The source for all of this, including the redirect rules and the URL contract, is [on GitHub](https://github.com/ptr727/Blog). If you want to discuss any of it, the repo has Discussions enabled, which is also why this post has no comment box below it.
+The source for all of this, including the redirect rules and the URL contract, is [on GitHub](https://github.com/ptr727/Blog).

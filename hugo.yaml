@@ -43,7 +43,8 @@ params:
   showCodeCopyButtons: true
   showPostNavLinks: true
   hideFooter: false
-  # Read-only archive, with no comments, sharing, or interaction of any kind.
+  # No comment box or share buttons.
+  # A post may opt in to a GitHub Discussions link by setting a `discussions` URL, and the archive sets none.
   comments: false
   showShareButtons: false
   assets:
