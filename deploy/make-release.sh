@@ -64,7 +64,7 @@ fi
 
 # This script installs to a local path, so a remote environment's DEPLOY_ROOT would be built here.
 # The guard is on the fallback rather than the variable.
-# An explicit first argument names a local path and is always honoured, which is what CI passes.
+# An explicit first argument names a local path and is always honored, which is what CI passes.
 ROOT_ARG="${1:-}"
 if [ -z "$ROOT_ARG" ] && [ -n "${DEPLOY_SSH_HOST:-}" ]; then
 	echo "$ENV_FILE names DEPLOY_SSH_HOST=$DEPLOY_SSH_HOST, so its DEPLOY_ROOT is a path on that" >&2

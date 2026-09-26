@@ -124,7 +124,7 @@ open the auth gate:
 | `SITE_AUTH_TOKEN_ID` | Resource access token id, sent as the `P-Access-Token-Id` header. |
 | `SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
 
-Set both or neither; half a pair is rejected as the typo it is. They go to curl through a
+Set both or neither. Half a pair is rejected as the typo it is. They go to curl through a
 mode-`600` config file rather than as `-H` arguments, which keeps the credential out of the
 `ps` output of one request per URL in the contract, and is also the only form that survives the `export -f` the
 parallel checks run under. The token is sent to the base URL's own origin and to nothing else,
@@ -211,7 +211,7 @@ value would otherwise reach production unnoticed. `SITE_ENV` defaults to `unset`
 choice.** The two failure directions are not symmetric:
 
 - A **staging** container missing the value is still behind its auth gate, so nothing reaches it
-  to index. The header is the second line of defence there, not the first.
+  to index. The header is the second line of defense there, not the first.
 - A **production** container that picked up `noindex` would deindex the site silently, and this
   site's entire migration exists to preserve sixteen years of search ranking. Recovery is
   measured in weeks of recrawling.
@@ -233,7 +233,7 @@ subnets differ, so any literal in the bundle is wrong on one of them.
 
 **Trusting a range means believing `X-Forwarded-For` from anything inside it**, so the range is a
 security boundary, and it should be no wider than what can actually reach the port. Three
-behaviours, all verified:
+behaviors, all verified:
 
 | `TRUSTED_PROXIES` | Result |
 | --- | --- |
@@ -245,7 +245,7 @@ The default exists so a host that forgets the variable keeps working. It is not 
 everywhere: **it is only correct where a proxy is the only thing that can reach Caddy.** Where the
 port is reachable directly, RFC1918 makes every device on the network a trusted proxy, and anything
 there can forge the client address in the access log. `TRUSTED_PROXIES=` (present, blank) is the
-right answer there, because a client that is not a proxy has no forwarded header worth honouring.
+right answer there, because a client that is not a proxy has no forwarded header worth honoring.
 
 Binding the port to `127.0.0.1` does **not** make direct access impossible. `docker-proxy` SNATs
 host-originated traffic to the bridge gateway, which is itself inside RFC1918 and therefore inside
