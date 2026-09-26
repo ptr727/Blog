@@ -30,8 +30,8 @@ def env(name: str) -> str:
     return v
 
 
-# The capture, never this script's directory. Both outputs below are capture artifacts and
-# must not be able to land in the repository's checks/, whose lists are append-only.
+# The capture, never this script's directory.
+# Both outputs below are capture artifacts and must not be able to land in the repository's checks/, whose lists are append-only.
 ROOT = Path(env("CAPTURE_ROOT"))
 BASE = env("CAPTURE_SOURCE_URL")
 UA = {"User-Agent": "Mozilla/5.0 (compatible; blog-migration-audit/1.0)"}
@@ -49,14 +49,12 @@ rows = [
 ]
 status = {r[2]: (int(r[1]), r[3] if len(r) > 3 else "") for r in rows}
 
-# The author archive and its pagination are served but linked from nowhere, and on a
-# single-author blog they duplicate the home archive exactly. Verified live: /page/11/
-# is the last one.
+# The author archive and its pagination are served but linked from nowhere, and on a single-author blog they duplicate the home archive exactly.
+# Verified live: /page/11/ is the last one.
 #
-# Optional, and skipped loudly rather than silently. An account slug is not this
-# repository's to carry, and a run without it produces a list short by the author URLs
-# rather than a wrong one. Silence would be indistinguishable from a site that never
-# served them.
+# Optional, and skipped loudly rather than silently.
+# An account slug is not this repository's to carry, and a run without it produces a list short by the author URLs rather than a wrong one.
+# Silence would be indistinguishable from a site that never served them.
 AUTHOR_SLUG = os.environ.get("CAPTURE_AUTHOR_SLUG", "")
 if AUTHOR_SLUG:
     for i in range(2, 12):
@@ -96,9 +94,8 @@ for url, (code, _loc) in sorted(status.items()):
         redirect.append(url)
         reason["author archive (single author, duplicates home)"] += 1
     elif DATE.match(url) or DATE_PAGED.match(url):
-        # Decision (2026-07-29): Hugo has no built-in year/month archive, and these are
-        # absent from the sitemap and linked from nowhere on the live site. Building them
-        # would be the only custom templating in the migration, for URLs nothing points at.
+        # Decision (2026-07-29): Hugo has no built-in year/month archive, and these are absent from the sitemap and linked from nowhere on the live site.
+        # Building them would be the only custom templating in the migration, for URLs nothing points at.
         # One Caddy pattern rule sends them home instead.
         redirect.append(url)
         reason["date archive -> / (no Hugo equivalent, unlinked)"] += 1

@@ -37,11 +37,11 @@ def env(name: str) -> str:
 
 
 API = env("CAPTURE_SOURCE_API")
-# Written into the capture, never beside this script. Anchoring on __file__ would put the
-# inventory inside the repository the moment this file moved into it, which it now has.
+# Written into the capture, never beside this script.
+# Anchoring on __file__ would put the inventory inside the repository the moment this file moved into it, which it now has.
 OUT = Path(env("CAPTURE_ROOT")) / "inventory"
 
-# src/href targets that are media rather than navigation.
+# Media targets in `src`/`href`, not navigation.
 MEDIA_EXT = re.compile(
     r"\.(?:jpe?g|png|gif|webp|avif|svg|ico|bmp|tiff?|mp4|m4v|mov|webm|mp3|m4a|wav|ogg|pdf|zip|7z|txt|csv|xlsx?|docx?)"
     r"(?:[?#]|$)",
