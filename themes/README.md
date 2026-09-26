@@ -35,6 +35,8 @@ Two files did carry edits, in extension points the theme documents for the purpo
 
 The two belong together: the font the CSS selects is the font the partial loads. Neither is a fork of theme logic, and moving them changed no rendered byte.
 
+A third override was added later rather than moved out of the tree. [`layouts/_partials/extend_post_content.html`](../layouts/_partials/extend_post_content.html) replaces the theme's empty `layouts/_partials/extend_post_content.html`, which the theme's single-page template calls after the post body. It renders a GitHub Discussions link for a post that sets a `discussions` URL in its front matter, and nothing for any other post.
+
 Separately, `layouts/` at the repository root also overrides two theme templates, for the reason recorded in [`TODO.md`](../TODO.md): PaperMod uses APIs Hugo deprecated in 0.158, and `--panicOnWarning` would otherwise fail on the theme rather than on content. Those are a workaround for upstream lag rather than site customization, which is why they are not in the table above. Whether they are still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
 
 ## Customization points

@@ -226,6 +226,6 @@ That is the part I would emphasize to anyone thinking about this kind of project
 
 ## The playbook
 
-Doing each step by hand and then automating it produced more than a working component. It produced a written playbook for reverse engineering a BLE device with an agent doing the driving. The playbook sets out what the human does and what the agent does, then works in phases: static analysis of the APK, live validation from the laptop, and passive sniffing only when a write or OTA command has to be decoded. It opens with a generic version of the prompt above, which is enough to start the whole run against a different device.
+Doing each step by hand and then automating it produced more than a working component. It produced a written playbook for reverse engineering a BLE device with an agent doing the driving. The playbook sets out what the human does and what the agent does, then works in phases: static analysis of the APK, live validation from the laptop, and passive sniffing only when a write or OTA command has to be decoded. It ends with a generic version of the prompt above, which is enough to start the whole run against a different device.
 
 The [playbook](https://github.com/ptr727/ESPHome-Config/blob/main/easystart/BLE-RE-PLAYBOOK.md) lives [on GitHub](https://github.com/ptr727/ESPHome-Config/tree/main/easystart) next to the protocol documentation, the ESPHome component, and the monitor.
