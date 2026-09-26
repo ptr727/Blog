@@ -12,6 +12,7 @@ tags:
 - hvac
 - reverse-engineering
 - claude
+discussions: https://github.com/ptr727/ESPHome-Config/discussions
 ---
 I have [Micro-Air EasyStart](https://www.microair.net/products/easystart-flex-home-ac-soft-starter) soft starters installed on both my HVAC compressors. I installed them in the summer of 2023, after I started getting frequent brownouts whenever a compressor started. The brownouts came from a combination of low supply voltage, later addressed by my electricity provider, and rising neighborhood demand. Older homes are being torn down and replaced with much larger ones, so panels are going from 80 A to 400 A. Every year more homes add AC and electric car chargers.
 
@@ -194,46 +195,15 @@ That diagnosis was guesswork until I added a signal-strength sensor, using ESPHo
 
 ## The part that rebooted my ESP32
 
-With the component deployed, the device started rebooting. Not always, and not predictably. Sometimes instead of rebooting it would connect, report itself subscribed, and then simply never receive a notification.
+With the component deployed, the device started rebooting at random. Other times it would connect, report itself subscribed, and never receive a notification. Both turned out to be the same race in ESPHome's `ble_client`. It released the peer's discovered services, which frees Bluedroid's GATT database, while a notification registration was still in flight. Whether the chip asserted or silently lost its subscription came down to timing. A single `ble_client.disconnect` action anywhere in a configuration happens to suppress that release, which is why the bug had stayed hidden.
 
-Two symptoms, same firmware, same peer, no pattern I could see:
-
-```text
-[12:17:50][D][ble_client:056]: All clients established, services released
-[12:17:50]assert failed: list_end list.c:272 (list != NULL)
-[12:17:50]rst:0xc (RTC_SW_CPU_RST),boot:0x2b (SPI_FAST_FLASH_BOOT)
-```
-
-```text
-[11:49:40][D][ble_client:056]: All clients established, services released
-[11:49:40][W][esp32_ble_client:224]: [0] esp_ble_gattc_get_descr_by_char_handle error, status=10
-```
-
-Status 10 is `ESP_GATT_NOT_FOUND`. The Client Characteristic Configuration Descriptor (CCCD) never gets written, so no notification ever arrives, while the node believes it is subscribed. That is the worse of the two, because a reboot at least announces itself.
-
-I left a device capturing serial for 80 minutes. In that window there were **five service releases and five races: four silent, one panic.** Only the consequence varied. The ordering was wrong every single time.
-
-The cause turned out to be in ESPHome itself, and it takes three things happening together:
-
-1. `ble_client` releases the peer's discovered services inside the same event dispatch that told the nodes about the event, as soon as every node reports `ESTABLISHED`.
-2. That release calls `esp_ble_gattc_cache_clean()`, which frees Bluedroid's GATT database, not just ESPHome's copy of it.
-3. `esp_ble_gattc_register_for_notify()` is asynchronous. A node that reports `ESTABLISHED` while its own registration is still in flight lets the release run first. When the registration event finally arrives, the handler walks a database that has been freed.
-
-Bluedroid then either returns `ESP_GATT_NOT_FOUND` or asserts on the freed list and aborts the chip. Same bug, two outcomes, and which one you get is timing.
-
-The reason this is not a famous bug is the genuinely interesting part. Several of the stock `ble_client` automation nodes register themselves and then never report `ESTABLISHED` at all. That pins the "all nodes established" test false forever, which suppresses the release entirely. Suppressing it hides the crash and leaks the memory the release existed to reclaim. **A single `ble_client.disconnect` action anywhere in a configuration is enough to hide this.** Keen-coffee's implementation of the same hardware is protected twice over by exactly that accident, and pays the leak instead.
-
-So I wrote a reproduction: about sixty lines carrying no protocol knowledge, whose only job is to report `ESTABLISHED` one line too early. A config drives it, forcing reconnects with a `lambda` rather than the disconnect action, because the action would have masked the very thing under test.
-
-Then I filed it, with the capture, the decoded backtrace, and the reduced case: [esphome/esphome#17921](https://github.com/esphome/esphome/issues/17921). Two fixes went with it. [#17919](https://github.com/esphome/esphome/pull/17919) holds the release while a registration is outstanding and guards the lookup, and it merged on July 30, shipping in 2026.8.0. [#17920](https://github.com/esphome/esphome/pull/17920) fixes the nodes that never report `ESTABLISHED`. It was deliberately held in draft until the first had landed, because restoring the release would otherwise have re-exposed those configurations to the crash. It merged on September 8 and shipped in 2026.9.0.
-
-My own component is fixed by moving one line. It reports `ESTABLISHED` inside the registration event, after checking that the registration succeeded, instead of four lines earlier. That was always the correct thing to do. It is still a workaround, and worth saying so plainly. Obeying an unwritten rule is not the same as the rule being enforced, and the penalty for not knowing it was a reboot.
+I filed it with an 80-minute serial capture and a reduced reproduction as [esphome/esphome#17921](https://github.com/esphome/esphome/issues/17921). The fixes shipped in ESPHome 2026.8.0 ([#17919](https://github.com/esphome/esphome/pull/17919)) and 2026.9.0 ([#17920](https://github.com/esphome/esphome/pull/17920)). My own component also avoids it by reporting `ESTABLISHED` only after its registration succeeds, which was always the correct order.
 
 ## Physical installation
 
 I used an [Unexpected Maker ProS3D](https://esp32s3.com/pros3d.html), an ESP32-S3 board running ESPHome as the BLE proxy, connected over Wi-Fi. I like the ProS3D because its internal or external antenna is selectable in software. It sits in a [TICON Outdoor Enclosure](https://link.amazon/B03yMJFKS) on one of the compressors. That is close enough to the other compressor to get a good BLE signal from both. A [PoE Texas in-wall USB-C PSU](https://link.amazon/B01XETxce) rated for 240 VAC powers it from the compressor's 240 VAC supply line.
 
-When I bought my EasyStarts, the installation instructions allowed an outdoor install without any additional protection. They now recommend an enclosure, and I can see why, because the wiring inside the EasyStart's clear enclosure is fading. I applied BDF NSN70 heat-rejecting window film over both clear lids to help protect the components from heat and UV damage.
+When I bought my EasyStarts, the installation instructions allowed an outdoor install without any additional protection. They now recommend an enclosure, and I can see why. The wiring inside the EasyStart's clear enclosure is already fading. That means sunlight is getting through the clear lid, and UV damage to the wire insulation and the electronics will follow. I applied BDF NSN70 heat-rejecting window film over both clear lids to help protect the components from heat and UV damage.
 
 {{< gallery cols="2" >}}
 {{< figure src="/media/2026/09/easystart-ble-proxy-enclosure-inside.jpg" alt="Inside the outdoor enclosure: the ProS3D board with its external antenna lead, beside the in-wall USB-C power supply" >}}
@@ -254,12 +224,8 @@ It drove the whole thing: `adb`, `apktool`, `jadx`, the grepping, the byte layou
 
 That is the part I would emphasize to anyone thinking about this kind of project. **The barrier to reverse engineering a device was never the difficulty. It was the tedium**, and the tedium is the part that is now cheap. The judgment still has to come from somewhere. I decided to confirm the swapped characteristics against real hardware rather than trust the convention. I decided an 80-minute capture was the evidence the upstream issue needed, and decided not to touch the OTA commands. But the ratio of what I decided to what I would have had to type is not close.
 
-## Was it worth it
+## The playbook
 
-For the telemetry, yes. Per-compressor power now feeds the Home Assistant energy dashboard, next to whole-home usage and solar generation, and I use it.
+Doing each step by hand and then automating it produced more than a working component. It produced a written playbook for reverse engineering a BLE device with an agent doing the driving. The playbook sets out what the human does and what the agent does, then works in phases: static analysis of the APK, live validation from the laptop, and passive sniffing only when a write or OTA command has to be decoded. It ends with a generic version of the prompt above, which is enough to start the whole run against a different device.
 
-For everything else, also yes. I have a repeatable method written down. I also found a real defect in a widely deployed project, and it is fixed upstream for everyone. And I learned that the thing I had assumed was hard was mostly just tedious.
-
-The method generalized, which was the point of writing it down. The next target is a [Goodnature](https://www.goodnature.com/) A24 rat trap, which is a much smaller problem. The community reckons it broadcasts its kill count in the advertisement, so if that still holds it needs no connection and no APK at all. Capture the advertisement first, and only reach for the decompiler if that comes up empty.
-
-The protocol, the ESPHome component, the monitor, and the full byte-level documentation are [on GitHub](https://github.com/ptr727/ESPHome-Config/tree/main/easystart). If you want to discuss any of it, the repo has Discussions enabled, which is also why this post has no comment box below it.
+The [playbook](https://github.com/ptr727/ESPHome-Config/blob/main/easystart/BLE-RE-PLAYBOOK.md) lives [on GitHub](https://github.com/ptr727/ESPHome-Config/tree/main/easystart) next to the protocol documentation, the ESPHome component, and the monitor.

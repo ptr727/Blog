@@ -26,14 +26,15 @@ git -C /tmp/papermod checkout 154d006e0182dfc7da38008323976b02e6bfab4a
 diff -r --exclude=.git /tmp/papermod themes/PaperMod
 ```
 
-Two files did carry edits, in extension points the theme documents for the purpose. They now live outside the vendored tree, where Hugo resolves a project's own `assets/` and `layouts/` ahead of the theme's:
+Two files did carry edits, in extension points the theme documents for the purpose. They now live outside the vendored tree, where Hugo resolves a project's own `assets/` and `layouts/` ahead of the theme's, and a third override has joined them since:
 
 | Customization | Now at | Replaces the theme's |
 | --- | --- | --- |
 | Lexend body font, and the `gallery` and `gallery-cols-*` rules the gallery shortcode needs | [`assets/css/extended/custom.css`](../assets/css/extended/custom.css) | `assets/css/extended/blank.css`, an empty slot the theme's head partial globs for |
 | Google Fonts preconnect and stylesheet links for Lexend | [`layouts/_partials/extend_head.html`](../layouts/_partials/extend_head.html) | `layouts/_partials/extend_head.html`, an empty partial the theme's head partial calls |
+| GitHub Discussions link for a post that sets a `discussions` URL in its front matter | [`layouts/_partials/extend_post_content.html`](../layouts/_partials/extend_post_content.html) | `layouts/_partials/extend_post_content.html`, an empty partial the theme's single-page template calls after the post body |
 
-The two belong together: the font the CSS selects is the font the partial loads. Neither is a fork of theme logic, and moving them changed no rendered byte.
+The first two belong together: the font the CSS selects is the font the partial loads. Neither is a fork of theme logic, and moving them changed no rendered byte. The third was added later rather than moved out of the tree, and it renders nothing on a post that sets no `discussions` URL, which is every archive post.
 
 Separately, `layouts/` at the repository root also overrides two theme templates, for the reason recorded in [`TODO.md`](../TODO.md): PaperMod uses APIs Hugo deprecated in 0.158, and `--panicOnWarning` would otherwise fail on the theme rather than on content. Those are a workaround for upstream lag rather than site customization, which is why they are not in the table above. Whether they are still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
 
