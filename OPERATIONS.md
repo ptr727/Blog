@@ -4,15 +4,15 @@ How this site is built, released, served, and rolled back. [`GOVERNANCE.md`](./G
 
 ## Current State: Before the DNS Cutover
 
-**The public address still serves the old WordPress site.** Until the maintainer cuts over the DNS records, `blog.insanegenius.com` answers from WordPress.com, and nothing this repository builds, releases, or deploys appears there. A change that is merged to `main`, released, and deployed to production is visible only in these places:
+**The public address still serves the old WordPress site.** Until the maintainer cuts over the DNS records, `blog.insanegenius.com` answers from WordPress.com, and nothing this repository builds, releases, or deploys appears there. Its builds are only ever visible in these places, and each one shows a change only after its own deploy:
 
-- The VPS production site at `blog.insanegenius.net`, the interim name `SITE_BASE_URL` holds for the `production` environment.
-- The VPS staging site at `blog.vps.insanegenius.net`, behind the auth gate.
-- The two local mirrors on the maintainer's homelab.
+- The VPS production site at `blog.insanegenius.net`, the interim name `SITE_BASE_URL` holds for the `production` environment, updated by `deploy-site.yml` with `environment=production`.
+- The VPS staging site at `blog.vps.insanegenius.net`, behind the auth gate, updated by `deploy-site.yml` with `environment=staging`.
+- The two local mirrors on the maintainer's homelab, updated only by `make-release.sh` from the maintainer's machine.
 
 So verify a production deploy against `blog.insanegenius.net`. A `404` from `blog.insanegenius.com` for a post this repository added is the old site answering, not a failed deploy.
 
-This section describes the state before the cutover, and it is rewritten when the cutover happens, together with the `Production` row under [Environments](#environments).
+This section describes the state before the cutover, and it is rewritten when the cutover happens, together with the `Production` row under [Environments](#environments) and the pre-cutover line at the top of [`README.md`](./README.md) and [`HISTORY.md`](./HISTORY.md).
 
 ## Local Verification
 
