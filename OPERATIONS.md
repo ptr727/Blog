@@ -6,7 +6,7 @@ How this site is built, released, served, and rolled back. [`GOVERNANCE.md`](./G
 
 **The public address still serves the old WordPress site.** Until the maintainer cuts over the DNS records, `blog.insanegenius.com` answers from WordPress.com, and nothing this repository builds, releases, or deploys appears there. Its builds are only ever visible in these places, and each one shows a change only after its own deploy:
 
-- The VPS production site at `blog.insanegenius.net`, the interim name `SITE_BASE_URL` holds for the `production` environment, updated by `deploy-site.yml` with `environment=production`.
+- The VPS production site at `blog.insanegenius.net`, whose interim `SITE_BASE_URL` for the `production` environment is `https://blog.insanegenius.net/`, updated by `deploy-site.yml` with `environment=production`.
 - The VPS staging site at `blog.vps.insanegenius.net`, behind the auth gate, updated by `deploy-site.yml` with `environment=staging`.
 - The two local mirrors on the maintainer's homelab, updated only by `make-release.sh` from the maintainer's machine.
 
