@@ -2,6 +2,18 @@
 
 How this site is built, released, served, and rolled back. [`GOVERNANCE.md`](./GOVERNANCE.md) holds the cross-cutting rules and [`WORKFLOW.md`](./WORKFLOW.md) the CI contract. This file is the operational procedure, and it is the one to read before touching a server.
 
+## Current State: Before the DNS Cutover
+
+**The public address still serves the old WordPress site.** Until the maintainer cuts over the DNS records, `blog.insanegenius.com` answers from WordPress.com, and nothing this repository builds, releases, or deploys appears there. A change that is merged to `main`, released, and deployed to production is visible only in these places:
+
+- The VPS production site at `blog.insanegenius.net`, the interim name `SITE_BASE_URL` holds for the `production` environment.
+- The VPS staging site at `blog.vps.insanegenius.net`, behind the auth gate.
+- The two local mirrors on the maintainer's homelab.
+
+So verify a production deploy against `blog.insanegenius.net`. A `404` from `blog.insanegenius.com` for a post this repository added is the old site answering, not a failed deploy.
+
+This section describes the state before the cutover, and it is rewritten when the cutover happens, together with the `Production` row under [Environments](#environments).
+
 ## Local Verification
 
 What verifying a change here requires, including the half a pipeline cannot reach.
@@ -310,7 +322,7 @@ Four environments, in two pairs. Each pair is one publish site and one staging s
 | Local publish mirror | a private hostname, set in `~/.secrets/Blog.local.production.env` | Traefik, on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
 | Local staging mirror | a second private hostname, set in `~/.secrets/Blog.local.staging.env` | Traefik | Proves that two environments on one host stay independent, before that matters on a server. |
 | Staging | `blog.vps.insanegenius.net`, behind the auth gate, set in `~/.secrets/Blog.vps.staging.env` | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
-| Production | `blog.insanegenius.com`, set in `~/.secrets/Blog.vps.production.env` | Pangolin | The public site. |
+| Production | `blog.insanegenius.net` until the DNS cutover, then `blog.insanegenius.com`, set in `~/.secrets/Blog.vps.production.env` | Pangolin | The public site after the cutover. Until then `blog.insanegenius.com` still serves WordPress, per [Current State](#current-state-before-the-dns-cutover). |
 
 The local mirrors are not staging. They run the same bundle against the same web server, so they catch a broken redirect or a bad permission for free, but they exercise none of the routing, authentication, or certificate machinery that only exists on the VPS. Passing locally says the artifact is right. It says nothing about whether the server in front of it is.
 
