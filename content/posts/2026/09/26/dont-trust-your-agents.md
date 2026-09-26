@@ -22,7 +22,7 @@ I created each of these projects with my then "state of the art" tooling. That m
 
 ## Why the manual process failed
 
-I called my template repo the "hub", and referred to my downstream repos as the "fleet".
+I called my template repo, [ProjectTemplate](https://github.com/ptr727/ProjectTemplate), the "hub", and referred to my downstream repos as the "fleet".
 
 Creating a new project was easy: new repo, copy project, rename, and ready. Keeping all the repos in sync was not so easy. When I made a change to a hub project, I had to manually port the change to the fleet. Sometimes I worked in a fleet repo and made what should now become the "state of the art" change. Then I had to manually port the change to the hub, and then port the same change to the rest of the fleet.
 
@@ -62,7 +62,7 @@ And sometimes a guess reached something real:
 
 > I made a mistake: `upgrade.sh` has no `--help`, so my check actually started a maintenance pass against the live Docker stacks, twice. I'm checking the damage now.
 
-Then one day the agent told me, like they do when they screw up, that it had posted a comment in somebody else's repo. On July 19, 2026, an unattended session was working through Copilot review comments on one of my own PRs. Instead of reading the review thread's ID from a query, it built the GraphQL reply by hand, with a node ID it made up. It fired the reply with its output suppressed, as a throwaway it assumed would harmlessly fail.
+Then one day the agent told me, like they do when they screw up, that it had posted a comment in somebody else's repo. An unattended session was working through Copilot review comments on one of my own PRs. Instead of reading the review thread's ID from a query, it built the GraphQL reply by hand, with a node ID it made up. It fired the reply with its output suppressed, as a throwaway it assumed would harmlessly fail.
 
 It did not fail. GitHub node IDs are encoded database keys, not random tokens, so the made-up ID resolved to a real review thread on a stranger's PR. My account posted a reply there with the body `placeholder`. The write succeeded under my own credentials, because my `gh` login can write to any repo I can reach. The [incident write-up](https://github.com/ptr727/ProjectTemplate/issues/364) is in the hub.
 
@@ -99,7 +99,7 @@ The installer registers the hook in `~/.claude/settings.json`, together with a p
 }
 ```
 
-The hook fires whatever permission mode the session is in, including an autonomous session, which is how the first incident happened. The agents do still try. The difference is that now the hook says no, and the agent reads the refusal:
+The hook fires whatever permission mode the session is in, including [auto mode](https://code.claude.com/docs/en/permission-modes), which is how the first incident happened. The agents do still try. The difference is that now the hook says no, and the agent reads the refusal:
 
 > The guard is right, I suppressed a write's output. Redoing without it.
 
@@ -107,7 +107,7 @@ I did have Codex and Copilot review the code, to avoid the classic "we investiga
 
 ## And then my server rebooted
 
-I've gotten in the habit of leaving several agents running overnight in [herdr](https://herdr.dev). They use worktrees for concurrent work on the same repo, and my unattended handoff skill has them fix any open issues that do not require my input.
+I've gotten in the habit of leaving several agents running overnight in [herdr](https://herdr.dev). They use worktrees for concurrent work on the same repo, and my [unattended handoff skill](https://github.com/ptr727/ProjectTemplate/blob/main/.agents/skills/unattended-handoff/SKILL.md) has them fix any open issues that do not require my input.
 
 This morning something was wrong: the server had rebooted. A bit of investigation found that one of the subagents had written a probe script with a shim named `jq`. The shim called the real tool with `command jq`. That skips shell functions and aliases, but not the `PATH` lookup, so the shim called itself, forever. The agent's cleanup `pkill` pattern matched nothing, and it moved on.
 
@@ -133,10 +133,14 @@ It is not finished. Each nested agent session gets fresh ceilings of its own, so
 
 ## Instructions are only guidelines
 
-The auto mode classifier and the default [sandbox](https://code.claude.com/docs/en/sandboxing) are not good enough on their own. The classifier judges whether an action looks risky, and a guessed ID or a runaway probe looks like routine work. The sandbox limits what files and network hosts a command can reach. It does not cap processes, and a write to a stranger's repo goes to the same GitHub API as a write to my own.
+The auto mode classifier and the default [sandbox](https://code.claude.com/docs/en/sandboxing) are not good enough on their own. The auto mode classifier judges whether an action looks risky, and a guessed ID or a runaway probe looks like routine work. The sandbox limits what files and network hosts a command can reach. It does not cap processes, and a write to a stranger's repo goes to the same GitHub API as a write to my own.
 
 Instructions alone are only guidelines, not enforcement. Every incident here happened under rules the agent had already read. None was fixed by writing the rule more clearly.
 
-Hooks do enforce, but they are a complex and cumbersome way to get there. The write guard is over 4,500 lines of Python, most of it parsing shell commands to decide what a command is actually about to do. Each hook needs its own tests, its own installer, and a version for every agent. Use a hook only where the bad outcome is truly detrimental, the failure recurs after the rule was read, and the command shape can be decided without judgment.
+Hooks do enforce, but they are a complex and cumbersome way to get there. The write guard is over 4,500 lines of Python, most of it parsing shell commands to decide what a command is actually about to do. Each hook needs its own tests and its own installer. The guard code also has to be written again for every agent, since each agent has its own hook API, or none. So far I have only written guard code for Claude Code. Codex and OpenCode get the same rules as guidelines, and nothing enforces them. Use a hook only where the bad outcome is truly detrimental, the failure recurs after the rule was read, and the command shape can be decided without judgment.
 
-The rules, skills, and hooks are all in my [hub repo](https://github.com/ptr727/ProjectTemplate), and the hooks and their spec are under [`host-setup/agent-safety`](https://github.com/ptr727/ProjectTemplate/blob/main/host-setup/agent-safety/README.md).
+The rules, skills, and hooks are all in my hub repo, and the hooks and their spec are under `host-setup/agent-safety`.
+
+My agents treat instructions the way Captain Barbossa treats the pirate's code, in [Pirates of the Caribbean: The Curse of the Black Pearl](https://www.imdb.com/title/tt0325980/quotes/):
+
+> First, your return to shore was not part of our negotiations nor our agreement so I must do nothing. And secondly, you must be a pirate for the pirate's code to apply and you're not. And thirdly, the code is more what you'd call guidelines than actual rules. Welcome aboard the Black Pearl, Miss Turner.
