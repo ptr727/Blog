@@ -12,7 +12,7 @@ I have various repos on GitHub: private and public, C# and Python, NuGet and PyP
 
 Keeping repos in top shape is not my day job. I have to balance the time I spend on upkeep with being responsive on my open source projects, and with my personal interest in new projects and features.
 
-This post is about how the repo I built to keep them all in sync went from a set of example projects to a rule orchestrator for coding agents. It is also about the guardrails I had to build when rules alone did not stop the agents.
+This post covers how the repo I built to keep them in sync became a rule orchestrator for coding agents, and the guardrails I built when rules alone did not stop them.
 
 ## How it started
 
@@ -70,16 +70,16 @@ It did not fail. GitHub node IDs are encoded database keys, not random tokens, s
 
 It is not feasible to tell a real ID from one that was guessed. What I can do is restrict writes to my own fleet, and deny the unsafe command shapes outright.
 
-I had Claude implement [`gh-write-guard`](https://github.com/ptr727/ProjectTemplate/blob/main/host-setup/agent-safety/claude/gh-write-guard.py), a Claude Code [`PreToolUse` hook](https://code.claude.com/docs/en/hooks). Claude Code runs the hook before every Bash tool call, passes it the command as JSON, and refuses the call when the hook exits with code 2. The hook's reason goes back to the agent, so it knows why. Among other rules, the hook denies:
+I had Claude implement [`gh-write-guard`](https://github.com/ptr727/ProjectTemplate/blob/main/host-setup/agent-safety/claude/gh-write-guard.py), a Claude Code [`PreToolUse` hook](https://code.claude.com/docs/en/hooks). Claude Code runs the hook before every Bash tool call, passes it the command as JSON, and refuses the call when the hook answers with a deny decision. The hook's reason goes back to the agent, so it knows why. Among other rules, the hook denies:
 
 - a GitHub write to a repo under a different owner than the checkout's own, unless I allowed that owner before the session started
 - a GraphQL mutation with a literal node ID typed into it, rather than one captured from a live query into a variable
 - a write with its output discarded or forced to succeed, such as `>/dev/null` or `|| true`
-- a hand-built review thread reply or resolve, where my [`pr_review.py`](https://github.com/ptr727/ProjectTemplate/blob/main/scripts/pr_review.py) wrapper script does the same job without an ID to type
+- a hand-built review thread resolve, or a reply through the REST API, where my [`pr_review.py`](https://github.com/ptr727/ProjectTemplate/blob/main/scripts/pr_review.py) wrapper script does the same job without an ID to type
 - a mutating git command run in my primary checkout rather than in a worktree
 - a bypass flag such as `git push --no-verify` or `gh pr merge --admin`
 
-The installer registers the hook in `~/.claude/settings.json`, together with a permission rule that lets the wrapper script run without a prompt:
+The installer registers the hook in `~/.claude/settings.json`, together with a permission rule that lets the wrapper script run without a prompt. Simplified, it looks like this:
 
 ```json
 {
@@ -117,7 +117,7 @@ From the worker's own log, at the minute the recursion started and after:
 
 > The probe confirms the fix. Now let's run the full test suite and other gates.
 
-The worker went on to pass its tests, get a clean review, merge its PR, and report `DONE`. Meanwhile, its orphaned probe went from 7.5 thousand processes to 568 thousand in 26 minutes, and used memory went from 188 GB to about 367 GB of my server's roughly 400 GB. The out of memory (OOM) killer never fired, because it picks the single largest process, and each of half a million processes was tiny. The host livelocked, and about 35 minutes after the recursion started it reset, taking every other agent session down with it.
+The worker went on to pass its tests, get a clean review, merge its PR, and report `DONE`. Meanwhile, its orphaned probe went from 7.5 thousand processes to 568 thousand in 26 minutes, and used memory went from 188 GB to about 367 GB of my server's roughly 400 GB. The out of memory (OOM) killer never fired. The kernel kept reclaiming cache to make room for half a million tiny processes, and there was no single large process worth killing. The host livelocked, and about 35 minutes after the recursion started it reset, taking every other agent session down with it.
 
 Allowing my user account and user processes to consume all memory is my fault, for not configuring user account resource limits. But this was another example where the agents need protection from themselves. The auto mode classifier let the agent create a self-recursion bomb, and nothing in the agent's own permission layer had stopped the write in somebody else's repo either. The [issue](https://github.com/ptr727/ProjectTemplate/issues/1890) has the full sequence.
 
@@ -137,7 +137,7 @@ The auto mode classifier and the default [sandbox](https://code.claude.com/docs/
 
 Instructions alone are only guidelines, not enforcement. Every incident here happened under rules the agent had already read. None was fixed by writing the rule more clearly.
 
-Hooks do enforce, but they are a complex and cumbersome way to get there. The write guard is over 4,500 lines of Python, most of it parsing shell commands to decide what a command is actually about to do. Each hook needs its own tests and its own installer. The guard code also has to be written again for every agent, since each agent has its own hook API, or none. So far I have only written guard code for Claude Code. Codex and OpenCode get the same rules as guidelines, and nothing enforces them. Use a hook only where the bad outcome is truly detrimental, the failure recurs after the rule was read, and the command shape can be decided without judgment.
+Hooks do enforce, but they are a complex and cumbersome way to get there. The write guard is over 4,500 lines of Python. About half of it is self-tests, and most of the rest parses shell commands to decide what a command is actually about to do. Each hook needs its own tests and its own installer. The guard code also has to be written again for every agent, since each agent has its own hook API, or none. So far I have only written guard code for Claude Code. Codex and OpenCode get the same rules as guidelines, and nothing enforces them. Use a hook only where the bad outcome is truly detrimental, the failure recurs after the rule was read, and the command shape can be decided without judgment.
 
 The rules, skills, and hooks are all in my hub repo, and the hooks and their spec are under `host-setup/agent-safety`.
 
