@@ -61,7 +61,8 @@ if [ -z "${CHECK_TAG:-}" ]; then
 	fi
 fi
 # Validated before it is written, because this lands in a curl config file and a curl config file is a list of options rather than a list of headers.
-# A value carrying a newline ends the header line and starts a new directive, so an override could add an option nobody typed; a value carrying a double quote ends the quoted string with the same result.
+# A value carrying a newline ends the header line and starts a new directive, so an override could add an option nobody typed.
+# A value carrying a double quote ends the quoted string with the same result.
 # Neither is a legal HTTP header value either, so refusing both loses nothing.
 #
 # The shape is enforced and not merely described, because the whole value of provenance over a boolean is that the log can be grouped by source, and `select(.tag | startswith("github/"))` is only reliable if every tag actually has a source half.
@@ -130,7 +131,8 @@ fi
 
 # Assembled once here rather than per request, since it is the same for every call.
 # The check tag is unconditional and the token is not, which is why they are two files rather than one.
-# Every request should be attributable; only a same-origin request may carry the credential, and folding them together would make the tag inherit that restriction for no reason, or the token lose it, depending on which way it was folded.
+# Every request should be attributable.
+# Only a same-origin request may carry the credential, and folding them together would make the tag inherit that restriction for no reason, or the token lose it, depending on which way it was folded.
 AUTH=(-K "$CHECKRC")
 [ -n "$CURLRC" ] && AUTH+=(-K "$CURLRC")
 
@@ -181,7 +183,8 @@ check_media() {
 	# It still fails closed either way, since curl writes 000 for http_code on a transport error, measured against a refused connection, a DNS failure and a timeout.
 	# What the status buys is a message that says which of the two happened, rather than leaving a reader to infer it from a bare 000.
 	# The `content_type` field stays LAST in this format.
-	# `read` assigns the whole remainder of the line to its final variable, which is what lets a value containing spaces survive intact; a field added after it would be swallowed into the type instead.
+	# `read` assigns the whole remainder of the line to its final variable, which is what lets a value containing spaces survive intact.
+	# A field added after it would be swallowed into the type instead.
 	local out rc=0
 	out=$(curl -s -o /dev/null \
 		-w '%{http_code} %{size_download} %{content_type}\n' \

@@ -2,7 +2,8 @@
 Site styles, bundled into the theme's stylesheet.
 
 PaperMod's head partial concatenates `resources.Match "css/extended/*.css"` across the union of this project's `assets/` and the theme's, so a file here is picked up by the same glob that finds the theme's own `extended/blank.css` placeholder.
-Concatenation is in path order, which puts this file last; upstream's placeholder carries no rules, so nothing here depends on that ordering.
+Concatenation is in path order, which puts this file last.
+Upstream's placeholder carries no rules, so nothing here depends on that ordering.
 
 These rules lived in the theme's placeholder until they were moved out.
 Keeping them here is what leaves `themes/PaperMod/` byte identical to its upstream commit, so an update is a directory replace with nothing to reapply.

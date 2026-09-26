@@ -177,8 +177,9 @@ def main():
     print("Verifying against the live site:")
     res = verify(cand)
 
-    # An attachment page is /YYYY/MM/DD/post/attachment/ - a WordPress-ism with no Hugo equivalent.
-    # The image itself stays at its wp-content path; the page redirects home to its parent post.
+    # An attachment page is /YYYY/MM/DD/post/attachment/, a WordPress-ism with no Hugo equivalent.
+    # The image itself stays at its wp-content path.
+    # The page redirects home to its parent post.
     # Per-post /feed/ endpoints get the same treatment.
     attach = re.compile(r"^/\d{4}/\d{2}/\d{2}/[^/]+/[^/]+/$")
     feed = re.compile(r"/feed/$")

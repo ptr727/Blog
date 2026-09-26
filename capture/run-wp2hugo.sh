@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Convert the WordPress export to Hugo.
-# Media is downloaded here because that is what drives absolute->relative URL rewriting, but the bytes are replaced afterwards from the official media tar - WordPress.com serves optimized derivatives over HTTP for some images, one of them at a fraction of the original's dimensions.
+# Media is downloaded here because that is what drives absolute->relative URL rewriting, but the bytes are replaced afterwards from the official media tar.
+# WordPress.com serves optimized derivatives over HTTP for some images, one of them at a fraction of the original's dimensions.
 #
 # The export is chosen by build-redirects.py --print-export rather than by a glob here, so the conversion and the redirect maps are provably built from the same file.
 # An account holds several exports and a media-only one carries the attachments and no posts, and converting that one yields a site that builds and is empty.

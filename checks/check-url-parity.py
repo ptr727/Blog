@@ -223,13 +223,13 @@ def check_orphans(public, refs):
                 continue
             carried += 1
             # `linked` holds URL paths, which are always forward-slashed, so a native separator here would match nothing and report every carried file as an orphan.
-            # The check_render call normalizes for the same reason.
+            # The check_render function normalizes for the same reason.
             rel = str(path.relative_to(public)).replace("\\", "/")
             if rel not in linked:
                 orphaned.append(rel)
     orphaned.sort()
     # No media at all is a broken build, not progress.
-    # Left to the comparison below it reads as zero orphans, which is fewer than the baseline, and the advice would be to lower ORPHANED_MEDIA to 0 - a gate talking the reader into switching it off.
+    # Left to the comparison below it reads as zero orphans, which is fewer than the baseline, and the advice would be to lower ORPHANED_MEDIA to 0, a gate talking the reader into switching it off.
     if carried == 0:
         print("orphans: no media files in the built site - the output is incomplete or mislocated")
         return ["public/media and public/external are both absent or empty"]
@@ -280,7 +280,8 @@ class GalleryScan(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.findings = []
         self.saw_gallery = False
-        # None outside a gallery; otherwise the number of elements open within the current one, so zero means the parser is looking at a direct child.
+        # None outside a gallery.
+        # Otherwise the number of elements open within the current one, so zero means the parser is looking at a direct child.
         self.depth = None
 
     def handle_starttag(self, tag, attrs):

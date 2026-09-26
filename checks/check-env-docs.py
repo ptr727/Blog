@@ -60,8 +60,7 @@ HUB_HOSTED_ENVIRONMENT_VALUES = {
 }
 
 # Names that look like configuration to the patterns above but are not.
-# ENVIRONMENT and RELEASE_ID are computed inside the workflow and passed down, and
-# GITHUB_* is the runner's own namespace.
+# ENVIRONMENT and RELEASE_ID are computed inside the workflow and passed down, and GITHUB_* is the runner's own namespace.
 IGNORE = {"ENVIRONMENT", "RELEASE_ID", "SSH_TRANSPORT"}
 
 DECL = re.compile(r"^([A-Z][A-Z0-9_]*)=", re.MULTILINE)
