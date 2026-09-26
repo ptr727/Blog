@@ -37,8 +37,8 @@ def env(name: str) -> str:
 
 
 API = env("CAPTURE_SOURCE_API")
-# Written into the capture, never beside this script. Anchoring on __file__ would put the
-# inventory inside the repository the moment this file moved into it, which it now has.
+# Written into the capture, never beside this script.
+# Anchoring on __file__ would put the inventory inside the repository the moment this file moved into it, which it now has.
 OUT = Path(env("CAPTURE_ROOT")) / "inventory"
 
 # Media targets in `src`/`href`, not navigation.

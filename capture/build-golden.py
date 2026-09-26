@@ -44,9 +44,8 @@ def env(name: str) -> str:
 BASE = env("CAPTURE_SOURCE_URL")
 API = env("CAPTURE_SOURCE_API")
 PER_PAGE = 10  # measured against the old platform: the post count paginated to /page/11/
-# The capture, never this script's directory. Both outputs below are capture artifacts and
-# must not be able to land in the repository's checks/, whose lists are append-only and are
-# grown by hand from a log finding rather than regenerated.
+# The capture, never this script's directory.
+# Both outputs below are capture artifacts and must not be able to land in the repository's checks/, whose lists are append-only and are grown by hand from a log finding rather than regenerated.
 ROOT = Path(env("CAPTURE_ROOT"))
 UA = {"User-Agent": "Mozilla/5.0 (compatible; blog-migration-audit/1.0)"}
 
@@ -75,8 +74,7 @@ def build_candidates():
 
     # 1. Crawl
     log = (ROOT / "crawl" / "spider.log").read_text(encoding="utf-8", errors="replace")
-    # Built from CAPTURE_SOURCE_URL rather than written in, so the pattern and the site the
-    # crawl actually ran against cannot drift apart.
+    # Built from CAPTURE_SOURCE_URL rather than written in, so the pattern and the site the crawl actually ran against cannot drift apart.
     crawled = {norm(u) for u in re.findall(re.escape(BASE) + r"[^\s]*", log)}
     cand |= {u for u in crawled if not u.startswith("/wp-content/")}
     print(f"  crawl:      {len(crawled)} paths")
@@ -179,9 +177,9 @@ def main():
     print("Verifying against the live site:")
     res = verify(cand)
 
-    # An attachment page is /YYYY/MM/DD/post/attachment/ - a WordPress-ism with no Hugo
-    # equivalent. The image itself stays at its wp-content path; the page redirects home
-    # to its parent post. Per-post /feed/ endpoints get the same treatment.
+    # An attachment page is /YYYY/MM/DD/post/attachment/ - a WordPress-ism with no Hugo equivalent.
+    # The image itself stays at its wp-content path; the page redirects home to its parent post.
+    # Per-post /feed/ endpoints get the same treatment.
     attach = re.compile(r"^/\d{4}/\d{2}/\d{2}/[^/]+/[^/]+/$")
     feed = re.compile(r"/feed/$")
 

@@ -33,13 +33,12 @@ DOC = REPO / "ENVIRONMENT.md"
 # The one template, whose keys are the declared configuration surface.
 TEMPLATES = [REPO / ".secrets" / "example.env"]
 
-# Workflow references. `vars.X` and `secrets.X` are the GitHub Environment surface, and a
-# value added there is exactly as undocumented as one added to a template.
+# Workflow references.
+# `vars.X` and `secrets.X` are the GitHub Environment surface, and a value added there is exactly as undocumented as one added to a template.
 WORKFLOWS = sorted((REPO / ".github" / "workflows").glob("*.yml"))
 
-# Set per invocation rather than stored, so they appear in no template and would otherwise
-# be invisible to this check. Listed here because the doc has a table for them, and a knob
-# nobody documented is the same failure as an undocumented file value.
+# Set per invocation rather than stored, so they appear in no template and would otherwise be invisible to this check.
+# Listed here because the doc has a table for them, and a knob nobody documented is the same failure as an undocumented file value.
 KNOBS = {
     "ENV_FILE",
     "REQUIRE_BROTLI",
@@ -68,12 +67,10 @@ IGNORE = {"ENVIRONMENT", "RELEASE_ID", "SSH_TRANSPORT"}
 DECL = re.compile(r"^([A-Z][A-Z0-9_]*)=", re.MULTILINE)
 COMMENTED_DECL = re.compile(r"^#\s*([A-Z][A-Z0-9_]*)=", re.MULTILINE)
 GH_REF = re.compile(r"\b(?:vars|secrets)\.([A-Z][A-Z0-9_]*)\b")
-# A row is `| `NAME` | ...`, and the backticks are what separate a described value from a
-# mention of one in a sentence. The trailing `=value` is optional because a knob is
-# documented as REQUIRE_BROTLI=1, which names the value that switches it on.
+# A row is `| `NAME` | ...`, and the backticks are what separate a described value from a mention of one in a sentence.
+# The trailing `=value` is optional because a knob is documented as REQUIRE_BROTLI=1, which names the value that switches it on.
 DOC_ROW = re.compile(r"^\|\s*`([A-Z][A-Z0-9_]*)(?:=[^`]*)?`", re.MULTILINE)
-# Values the doc names in prose rather than in a table row, which is how the three
-# commented-out template keys and the two bot secrets are covered.
+# Values the doc names in prose rather than in a table row, which is how the three commented-out template keys and the two bot secrets are covered.
 DOC_INLINE = re.compile(r"`([A-Z][A-Z0-9_]{2,})(?:=[^`]*)?`")
 
 
@@ -100,8 +97,7 @@ def main() -> int:
         rel = path.relative_to(REPO).as_posix()
         for name in DECL.findall(text):
             note(name, rel)
-        # A commented-out key is still a declared value: it documents the shape a
-        # deployment has to supply from somewhere else.
+        # A commented-out key is still a declared value: it documents the shape a deployment has to supply from somewhere else.
         for name in COMMENTED_DECL.findall(text):
             note(name, rel)
 
@@ -117,8 +113,7 @@ def main() -> int:
         note(name, "read by the hub-hosted deploy-site-task.yml")
 
     undocumented = sorted(n for n in declared if n not in documented_any)
-    # Only table rows count as "described", so a value the doc merely mentions in passing
-    # is not treated as having a description it can be removed against.
+    # Only table rows count as "described", so a value the doc merely mentions in passing is not treated as having a description it can be removed against.
     unused = sorted(n for n in documented_rows if n not in declared)
 
     for name in undocumented:

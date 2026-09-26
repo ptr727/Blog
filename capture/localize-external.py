@@ -41,9 +41,8 @@ MAGIC = [
     (b"GIF89a", ".gif"),
     (b"BM", ".bmp"),
 ]
-# RIFF is a container, not a format: WAV and AVI share the header. Matching it alone would
-# accept a sound file as an image, which is precisely the failure the magic-byte check
-# exists to prevent, so WEBP is confirmed at bytes 8 to 12 in sniff() below.
+# RIFF is a container, not a format: WAV and AVI share the header.
+# Matching it alone would accept a sound file as an image, which is precisely the failure the magic-byte check exists to prevent, so WEBP is confirmed at bytes 8 to 12 in sniff() below.
 
 
 def capture_root() -> pathlib.Path:
@@ -102,10 +101,10 @@ def fetch(url: str, depth: int = 0):
     if ext:
         return body, ext
 
-    # Not an image. If it is Google's `-h` wrapper page, it names the real image.
-    # A wrapper page is HTML, and HTML does not reliably start with <html>. A doctype, a
-    # comment or leading whitespace are all ordinary, and requiring the tag meant a wrapper
-    # that opened with <!doctype html> was reported as "not an image" rather than followed.
+    # Not an image.
+    # If it is Google's `-h` wrapper page, it names the real image.
+    # A wrapper page is HTML, and HTML does not reliably start with <html>.
+    # A doctype, a comment or leading whitespace are all ordinary, and requiring the tag meant a wrapper that opened with <!doctype html> was reported as "not an image" rather than followed.
     head = body.lstrip()[:64].lower()
     if depth == 0 and (head.startswith(b"<html") or head.startswith(b"<!doctype html")):
         m = IMG_IN_WRAPPER.search(body)
@@ -155,9 +154,8 @@ def main(site: pathlib.Path, apply: bool):
                 p.write_text(t, encoding="utf-8")
                 rewritten += 1
         print(f"\ncontent files rewritten: {rewritten}")
-        # Anchored on the capture, not walked up from the site. The old relative form
-        # assumed the site sat exactly two levels down, which is true of a wp2hugo output
-        # directory and false of any copy taken somewhere else to work on.
+        # Anchored on the capture, not walked up from the site.
+        # The old relative form assumed the site sat exactly two levels down, which is true of a wp2hugo output directory and false of any copy taken somewhere else to work on.
         inv = capture_root() / "inventory"
         inv.mkdir(parents=True, exist_ok=True)
         (inv / "external-media-map.tsv").write_text(
@@ -167,9 +165,8 @@ def main(site: pathlib.Path, apply: bool):
 
     print("\nAPPLIED" if apply else "\nDRY RUN - pass --apply")
     if failures:
-        # Non-zero in both modes. An image that cannot be fetched is a reference this site
-        # would keep pointing at someone else's server, which is the dependency this script
-        # exists to remove, so a partial run must not read as a success to whatever ran it.
+        # Non-zero in both modes.
+        # An image that cannot be fetched is a reference this site would keep pointing at someone else's server, which is the dependency this script exists to remove, so a partial run must not read as a success to whatever ran it.
         # A dry run counts too: what fails to fetch now fails to fetch under --apply.
         print(f"\nUNRESOLVED ({len(failures)}):")
         for u, why in failures[:20]:

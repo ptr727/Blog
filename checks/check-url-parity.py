@@ -24,26 +24,19 @@ FLOORS = {
 CHECKS = pathlib.Path(__file__).resolve().parent
 
 # Media carried by the import that no built page links to.
-# The other two media checks run outward from a reference and cannot see these: a legacy URL
-# resolving proves an inbound link still lands, and a reference resolving proves it names a real
-# file. Neither asks whether anything points at a given file, so an image the conversion dropped
-# from a page stays reachable by URL, invisible on the site, and green in both directions.
-# It opened at 120, of which 17 were conversion losses restored from the captured live site and 5
-# were never orphans at all, being referenced only by an absolute URL this check could not read.
-# The 98 that remain are adjudicated rather than unknown: 97 were uploaded to the old platform's
-# media library and never placed on any published page, and one is that platform's site icon,
-# superseded by the favicon set at the static root. Nothing here is a conversion loss, and no image
-# the old site served from its own uploads went unimported. checks/README.md carries the method.
-# The count is exact rather than a bound, so whatever lowers it lowers this in the same change and
-# slack can never accumulate for a later regression to hide in.
+# The other two media checks run outward from a reference and cannot see these: a legacy URL resolving proves an inbound link still lands, and a reference resolving proves it names a real file.
+# Neither asks whether anything points at a given file, so an image the conversion dropped from a page stays reachable by URL, invisible on the site, and green in both directions.
+# It opened at 120, of which 17 were conversion losses restored from the captured live site and 5 were never orphans at all, being referenced only by an absolute URL this check could not read.
+# The 98 that remain are adjudicated rather than unknown: 97 were uploaded to the old platform's media library and never placed on any published page, and one is that platform's site icon, superseded by the favicon set at the static root.
+# Nothing here is a conversion loss, and no image the old site served from its own uploads went unimported.
+# The method is carried by checks/README.md.
+# The count is exact rather than a bound, so whatever lowers it lowers this in the same change and slack can never accumulate for a later regression to hide in.
 ORPHANED_MEDIA = 98
 
-# Every check above returns a list, and the shared summary called all of them "missing". That is
-# what a URL that did not build is, and it is not what a stray node inside a gallery is: those are
-# present, which is the whole complaint. The default stays "missing" so a check added later reads
-# the way the older ones do unless it says otherwise, and it needs no pair because it is already
-# count-neutral. A count is always printed beside the noun, so the pair is (singular, plural) and
-# "1 stray nodes" was the reason for making it a pair rather than a string.
+# Every check above returns a list, and the shared summary called all of them "missing".
+# That is what a URL that did not build is, and it is not what a stray node inside a gallery is: those are present, which is the whole complaint.
+# The default stays "missing" so a check added later reads the way the older ones do unless it says otherwise, and it needs no pair because it is already count-neutral.
+# A count is always printed beside the noun, so the pair is (singular, plural) and "1 stray nodes" was the reason for making it a pair rather than a string.
 FAILURE_NOUN = {"gallery": ("stray node", "stray nodes"), "robots": ("problem", "problems")}
 
 
@@ -123,8 +116,7 @@ def check_robots(public):
     robots = public / "robots.txt"
     if not robots.is_file():
         # Naming one cause as the cause sends a reader to check a setting that is already correct.
-        # enableRobotsTXT is the likely one and a partial build or the wrong output directory reach
-        # the same state, which is the same reason the orphan messages name both of their causes.
+        # The likely one is enableRobotsTXT, and a partial build or the wrong output directory reach the same state, which is the same reason the orphan messages name both of their causes.
         print("robots : missing")
         return [
             f"{robots} does not exist - likely enableRobotsTXT is unset in hugo.yaml, "
@@ -132,9 +124,8 @@ def check_robots(public):
         ]
 
     origin = site_origin(public)
-    # errors="replace" rather than strict, or invalid UTF-8 raises out of the whole parity run and a
-    # gate that exists to report a bad robots.txt stack-traces on one instead. A committed
-    # static/robots.txt is the file most likely to carry it, and it is the case this check is for.
+    # This uses errors="replace" rather than strict, or invalid UTF-8 raises out of the whole parity run and a gate that exists to report a bad robots.txt stack-traces on one instead.
+    # A committed static/robots.txt is the file most likely to carry it, and it is the case this check is for.
     text = robots.read_text(encoding="utf-8", errors="replace")
     advertised = re.findall(r"(?mi)^\s*Sitemap:\s*(\S+)\s*$", text)
     if not advertised:
@@ -146,8 +137,8 @@ def check_robots(public):
         print(f"robots : built, {len(wrong)} Sitemap line(s) naming another origin")
         return [f"{u} (this build's origin is {origin})" for u in wrong]
 
-    # The summary is printed after the last assertion rather than before it, or the missing-sitemap
-    # case reads as a pass on the line above its own failure. Every branch here prints exactly once.
+    # The summary is printed after the last assertion rather than before it, or the missing-sitemap case reads as a pass on the line above its own failure.
+    # Every branch here prints exactly once.
     unbuilt = [u for u in advertised if not (public / u[len(origin) + 1 :]).is_file()]
     if unbuilt:
         print(f"robots : built, {len(unbuilt)} advertised sitemap(s) not built")
@@ -170,8 +161,8 @@ def site_origin(public):
     text = home.read_text(encoding="utf-8", errors="ignore")
     found = re.search(r'rel=["\']?canonical["\']?\s+href=["\']?(https?://[^/"\'>\s]+)', text)
     if not found:
-        # Without the origin, every absolute reference reads as external and the orphan count
-        # inflates by exactly the pages that use one. Guessing would be worse than stopping.
+        # Without the origin, every absolute reference reads as external and the orphan count inflates by exactly the pages that use one.
+        # Guessing would be worse than stopping.
         sys.exit("FAIL: no canonical link on the home page - cannot determine the site's own origin")
     return found.group(1)
 
@@ -186,9 +177,8 @@ def collect_refs(public):
     # Matching only the quoted form checks a fraction of the references and calls it a pass.
     quoted = re.compile(r'(?:src|href|srcset)="(/(?:media|external)/[^"]+)"')
     bare = re.compile(r"(?:src|href|srcset)=(/(?:media|external)/[^\s\"'>]+)")
-    # Hugo writes an absolute URL wherever a template resolves one against the base, which the
-    # entry-cover images on every list page do. Read as external, those files look linked from
-    # nowhere while being displayed, and a broken one is never checked at all.
+    # Hugo writes an absolute URL wherever a template resolves one against the base, which the entry-cover images on every list page do.
+    # Read as external, those files look linked from nowhere while being displayed, and a broken one is never checked at all.
     absolute = re.compile(re.escape(site_origin(public)) + r'(/(?:media|external)/[^\s"\'>]+)')
     refs = set()
     for page in public.rglob("*.html"):
@@ -232,26 +222,24 @@ def check_orphans(public, refs):
             if not path.is_file():
                 continue
             carried += 1
-            # `linked` holds URL paths, which are always forward-slashed, so a native separator
-            # here would match nothing and report every carried file as an orphan. check_render
-            # normalizes for the same reason.
+            # `linked` holds URL paths, which are always forward-slashed, so a native separator here would match nothing and report every carried file as an orphan.
+            # The check_render call normalizes for the same reason.
             rel = str(path.relative_to(public)).replace("\\", "/")
             if rel not in linked:
                 orphaned.append(rel)
     orphaned.sort()
-    # No media at all is a broken build, not progress. Left to the comparison below it reads as
-    # zero orphans, which is fewer than the baseline, and the advice would be to lower
-    # ORPHANED_MEDIA to 0 - a gate talking the reader into switching it off.
+    # No media at all is a broken build, not progress.
+    # Left to the comparison below it reads as zero orphans, which is fewer than the baseline, and the advice would be to lower ORPHANED_MEDIA to 0 - a gate talking the reader into switching it off.
     if carried == 0:
         print("orphans: no media files in the built site - the output is incomplete or mislocated")
         return ["public/media and public/external are both absent or empty"]
     print(f"orphans: {len(orphaned)} of {carried} carried media files are linked from no page")
     if len(orphaned) == ORPHANED_MEDIA:
         return []
-    # The explanation is printed rather than returned, so the caller's count stays the orphan
-    # count. A diagnostic carried in the failure list would make the reported total one too many.
-    # A count is all this can observe, and two causes reach each direction. Naming one of them
-    # would send a reader looking for a page that never changed.
+    # The explanation is printed rather than returned, so the caller's count stays the orphan count.
+    # A diagnostic carried in the failure list would make the reported total one too many.
+    # A count is all this can observe, and two causes reach each direction.
+    # Naming one of them would send a reader looking for a page that never changed.
     if len(orphaned) > ORPHANED_MEDIA:
         print(f"         expected {ORPHANED_MEDIA} - a page stopped linking media, or unlinked media was added")
         return orphaned
@@ -278,24 +266,21 @@ class GalleryScan(HTMLParser):
     has thought of yet, which is how the third of the three was found after the first two.
     """
 
-    # A void element never closes, so counting it as an open tag desynchronizes the depth for the
-    # rest of the document and every later gallery reads as containing whatever follows it.
+    # A void element never closes, so counting it as an open tag desynchronizes the depth for the rest of the document and every later gallery reads as containing whatever follows it.
     VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input",
             "link", "meta", "param", "source", "track", "wbr"}
     ALLOWED = {"figure", "figcaption"}
 
-    # There is deliberately no handle_startendtag override. HTMLParser's own implementation
-    # forwards a self-closing tag to handle_starttag and then handle_endtag, so `<br/>`, `<br />`
-    # and `<img/>` are already reported and already leave the depth balanced. Adding an override
-    # to "support" them is what would break it, by counting a pair the base class already splits.
+    # There is deliberately no handle_startendtag override.
+    # HTMLParser's own implementation forwards a self-closing tag to handle_starttag and then handle_endtag, so `<br/>`, `<br />` and `<img/>` are already reported and already leave the depth balanced.
+    # Adding an override to "support" them is what would break it, by counting a pair the base class already splits.
     # Verified on those three spellings and on a self-closing non-void `<figure/>`.
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.findings = []
         self.saw_gallery = False
-        # None outside a gallery; otherwise the number of elements open within the current one,
-        # so zero means the parser is looking at a direct child.
+        # None outside a gallery; otherwise the number of elements open within the current one, so zero means the parser is looking at a direct child.
         self.depth = None
 
     def handle_starttag(self, tag, attrs):
@@ -336,19 +321,15 @@ def check_galleries(public):
     findings, pages = [], 0
     for path in sorted(public.rglob("index.html")):
         html = path.read_text(encoding="utf-8", errors="replace")
-        # Cheap reject first, since parsing every built page costs far more than one substring
-        # test and galleries appear on a handful of them. The test is the bare word rather than
-        # `class="gallery`, because minification drops the quotes around a value that does not
-        # need them and says nothing about class order, so the quoted form skips a page whose
-        # markup is merely spelled differently and the gate passes vacuously. This form cannot:
-        # the parser below requires the class token `gallery`, so a page it would find always
-        # contains this string. Matching a page that only mentions the word costs one parse.
+        # Cheap reject first, since parsing every built page costs far more than one substring test and galleries appear on a handful of them.
+        # The test is the bare word rather than `class="gallery`, because minification drops the quotes around a value that does not need them and says nothing about class order, so the quoted form skips a page whose markup is merely spelled differently and the gate passes vacuously.
+        # This form cannot: the parser below requires the class token `gallery`, so a page it would find always contains this string.
+        # Matching a page that only mentions the word costs one parse.
         if "gallery" not in html:
             continue
         scan = GalleryScan()
         scan.feed(html)
-        # Counted from what the parser actually found rather than from the reject above, so the
-        # reported number stays "pages carrying a gallery" and not "pages the word appears on".
+        # Counted from what the parser actually found rather than from the reject above, so the reported number stays "pages carrying a gallery" and not "pages the word appears on".
         if not scan.saw_gallery:
             continue
         pages += 1

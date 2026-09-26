@@ -19,8 +19,8 @@ usage() {
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# The release upstream replaced `git whatchanged` with `git log`. Anything older restores
-# nothing and exits 0, so this is the floor rather than a preference.
+# The release upstream replaced `git whatchanged` with `git log`.
+# Anything older restores nothing and exits 0, so this is the floor rather than a preference.
 MTIME_MIN=2025.08
 
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
