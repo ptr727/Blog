@@ -17,9 +17,7 @@ import xml.etree.ElementTree as ET
 
 NS = {"wp": "http://wordpress.org/export/1.2/"}
 
-# Anchored on the repository rather than on this file's own directory, because the two
-# lists below live in checks/ and the maps in deploy/maps/, and neither follows this
-# script if it moves again.
+# Anchored on the repository rather than on this file's own directory, because the two lists below live in checks/ and the maps in deploy/maps/, and neither follows this script if it moves again.
 REPO = pathlib.Path(__file__).resolve().parent.parent
 CHECKS = REPO / "checks"
 
@@ -29,12 +27,10 @@ CHECKS = REPO / "checks"
 BLOGGER_SLUG_LIMIT = 40
 
 # A one-segment URL naming a file the site serves at the root, rather than a page slug.
-# The resolver below reads these as unresolvable attachment slugs and sends them to the home
-# page, which is the right answer for a slug nothing claims and the wrong one for a file that
-# exists: /robots.txt/ should reach /robots.txt. Named here rather than hand-edited into the
-# generated map, because the map is rewritten from the capture and a hand edit does not survive.
-# /osd.xml/ stays out deliberately. It was the old platform's OpenSearch description and this
-# site emits no such file, so the home page remains the honest destination for it.
+# The resolver below reads these as unresolvable attachment slugs and sends them to the home page, which is the right answer for a slug nothing claims and the wrong one for a file that exists: /robots.txt/ should reach /robots.txt.
+# Named here rather than hand-edited into the generated map, because the map is rewritten from the capture and a hand edit does not survive.
+# /osd.xml/ stays out deliberately.
+# It was the old platform's OpenSearch description and this site emits no such file, so the home page remains the honest destination for it.
 WELL_KNOWN = {"/robots.txt/": "/robots.txt"}
 
 
@@ -66,19 +62,15 @@ def write_map(path, pairs):
 
 
 def main(argv):
-    # CAPTURE_ROOT is the default and an argument wins over it, the same shape DEPLOY_ROOT
-    # uses. Unset and unsupplied is refused rather than guessed: a wrong-but-plausible
-    # capture yields maps that are empty and indistinguishable from working ones.
-    # --print-export names the selected export and writes nothing. run-wp2hugo.sh calls it
-    # rather than reimplementing the choice, so the conversion and the maps are provably
-    # built from the same file. A shell reimplementation cannot match this anyway: the test
-    # is that ONE item carries both post_type=post and status=publish, and two greps over a
-    # whole file would accept a media-only export that happens to contain both words.
+    # CAPTURE_ROOT is the default and an argument wins over it, the same shape DEPLOY_ROOT uses.
+    # Unset and unsupplied is refused rather than guessed: a wrong-but-plausible capture yields maps that are empty and indistinguishable from working ones.
+    # --print-export names the selected export and writes nothing.
+    # The run-wp2hugo.sh script calls it rather than reimplementing the choice, so the conversion and the maps are provably built from the same file.
+    # A shell reimplementation cannot match this anyway: the test is that ONE item carries both post_type=post and status=publish, and two greps over a whole file would accept a media-only export that happens to contain both words.
     args = [a for a in argv[1:] if a != "--print-export"]
     print_export = "--print-export" in argv[1:]
-    # An unknown option is refused rather than taken as a path. Without this, `--help` is
-    # read as a capture directory and the run fails with "no export XML found under --help",
-    # which sends the reader looking for a missing file rather than a mistyped flag.
+    # An unknown option is refused rather than taken as a path.
+    # Without this, `--help` is read as a capture directory and the run fails with "no export XML found under --help", which sends the reader looking for a missing file rather than a mistyped flag.
     unknown = [a for a in args if a.startswith("-")]
     if unknown:
         print(f"unknown option: {unknown[0]}", file=sys.stderr)

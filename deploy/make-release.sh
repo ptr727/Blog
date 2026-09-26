@@ -19,8 +19,8 @@ usage() {
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# The release upstream replaced `git whatchanged` with `git log`. Anything older restores
-# nothing and exits 0, so this is the floor rather than a preference.
+# The release upstream replaced `git whatchanged` with `git log`.
+# Anything older restores nothing and exits 0, so this is the floor rather than a preference.
 MTIME_MIN=2025.08
 
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
@@ -271,8 +271,7 @@ install -m 644 "$REPO/deploy/Caddyfile" "$STAGE/Caddyfile"
 # Stamp the release into the config it ships with, so a response names the rules answering.
 # A stale config otherwise passes the URL contract against rules that were never shipped.
 # Asserted before substituting, because sed reports success when it matches nothing.
-# A Caddyfile that lost the placeholder would otherwise ship unstamped, and the live check would
-# then blame a dead config watcher for a bundle that never carried a release id.
+# A Caddyfile that lost the placeholder would otherwise ship unstamped, and the live check would then blame a dead config watcher for a bundle that never carried a release id.
 if ! grep -q "@@RELEASE@@" "$REPO/deploy/Caddyfile"; then
 	echo "deploy/Caddyfile carries no @@RELEASE@@ placeholder to stamp" >&2
 	exit 1
