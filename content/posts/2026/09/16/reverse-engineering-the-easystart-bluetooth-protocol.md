@@ -12,6 +12,7 @@ tags:
 - hvac
 - reverse-engineering
 - claude
+discussions: https://github.com/ptr727/ESPHome-Config/discussions
 ---
 I have [Micro-Air EasyStart](https://www.microair.net/products/easystart-flex-home-ac-soft-starter) soft starters installed on both my HVAC compressors. I installed them in the summer of 2023, after I started getting frequent brownouts whenever a compressor started. The brownouts came from a combination of low supply voltage, later addressed by my electricity provider, and rising neighborhood demand. Older homes are being torn down and replaced with much larger ones, so panels are going from 80 A to 400 A. Every year more homes add AC and electric car chargers.
 
@@ -227,4 +228,4 @@ That is the part I would emphasize to anyone thinking about this kind of project
 
 Doing each step by hand and then automating it produced more than a working component. It produced a written playbook for reverse engineering a BLE device with an agent doing the driving. The playbook sets out what the human does and what the agent does, then works in phases: static analysis of the APK, live validation from the laptop, and passive sniffing only when a write or OTA command has to be decoded. It opens with a generic version of the prompt above, which is enough to start the whole run against a different device.
 
-The [playbook](https://github.com/ptr727/ESPHome-Config/blob/main/easystart/BLE-RE-PLAYBOOK.md) lives [on GitHub](https://github.com/ptr727/ESPHome-Config/tree/main/easystart) next to the protocol documentation, the ESPHome component, and the monitor. If you want to discuss any of it, the repo has Discussions enabled, which is also why this post has no comment box below it.
+The [playbook](https://github.com/ptr727/ESPHome-Config/blob/main/easystart/BLE-RE-PLAYBOOK.md) lives [on GitHub](https://github.com/ptr727/ESPHome-Config/tree/main/easystart) next to the protocol documentation, the ESPHome component, and the monitor.

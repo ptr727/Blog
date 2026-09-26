@@ -1,0 +1,14 @@
+{{- /* Post content custom area start */ -}}
+{{- /*     Insert any custom code after post content - it will appear after the post body, before the footer. */ -}}
+{{- /*     Can be overwritten by partial with the same name in the global layouts. */ -}}
+{{- /* Post content custom area end */ -}}
+{{- /* */ -}}
+{{- /* This file is that override. */ -}}
+{{- /* A post opts in by setting `discussions` in its front matter to a GitHub Discussions URL. */ -}}
+{{- /* The archive sets none, so it stays read-only with no interaction of any kind. */ -}}
+
+{{- with .Params.discussions }}
+<div class="post-content">
+  <p>Questions or comments? Start a thread in <a href="{{ . }}">GitHub Discussions</a>.</p>
+</div>
+{{- end }}
