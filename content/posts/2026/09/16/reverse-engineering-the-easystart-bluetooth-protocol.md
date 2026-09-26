@@ -202,7 +202,7 @@ I filed it with an 80-minute serial capture and a reduced reproduction as [espho
 
 I used an [Unexpected Maker ProS3D](https://esp32s3.com/pros3d.html), an ESP32-S3 board running ESPHome as the BLE proxy, connected over Wi-Fi. I like the ProS3D because its internal or external antenna is selectable in software. It sits in a [TICON Outdoor Enclosure](https://link.amazon/B03yMJFKS) on one of the compressors. That is close enough to the other compressor to get a good BLE signal from both. A [PoE Texas in-wall USB-C PSU](https://link.amazon/B01XETxce) rated for 240 VAC powers it from the compressor's 240 VAC supply line.
 
-When I bought my EasyStarts, the installation instructions allowed an outdoor install without any additional protection. They now recommend an enclosure, and I can see why. The wiring inside the EasyStart's clear enclosure is already fading, a sign that UV exposure will eventually damage what is inside. I applied BDF NSN70 heat-rejecting window film over both clear lids to help protect the components from heat and UV damage.
+When I bought my EasyStarts, the installation instructions allowed an outdoor install without any additional protection. They now recommend an enclosure, and I can see why. The wiring inside the EasyStart's clear enclosure is already fading. That means sunlight is getting through the clear lid, and UV damage to the wire insulation and the electronics will follow. I applied BDF NSN70 heat-rejecting window film over both clear lids to help protect the components from heat and UV damage.
 
 {{< gallery cols="2" >}}
 {{< figure src="/media/2026/09/easystart-ble-proxy-enclosure-inside.jpg" alt="Inside the outdoor enclosure: the ProS3D board with its external antenna lead, beside the in-wall USB-C power supply" >}}
