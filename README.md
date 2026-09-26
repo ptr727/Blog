@@ -2,7 +2,7 @@
 
 Pieter Viljoen's blog, and the tooling that builds, verifies, and deploys it.
 
-The live blog is hosted at [blog.insanegenius.com][blog-link].
+The blog's public address is [blog.insanegenius.com][blog-link]. Until its DNS records are cut over, that address still serves the old WordPress site, and the site this repository builds is served at `blog.insanegenius.net`.
 
 ## Build and Distribution <!-- omit from toc -->
 
@@ -111,7 +111,7 @@ Most of the contract is not pages, though. It is redirects, and a redirect is th
 
 **3. Deploy to staging.** A dispatched workflow builds the commit, uploads the release, flips the symlink, and runs the same live gate from CI against the running site. The local mirror proves the artifact, and staging proves the infrastructure that exists only on the server: routing, TLS, the deploy key, and its confined transport. Staging keeps its authentication gate on and the check presents a token, so a byte-identical copy of the public site is never exposed to a crawler. A human then reads it.
 
-**4. Promote, and deploy production.** `develop` merges into `main` through a pull request, and production is a second dispatch that accepts `main` alone. The same gate runs a third time, against the public address and with no token, and a human reads the result.
+**4. Promote, and deploy production.** `develop` merges into `main` through a pull request, and production is a second dispatch that accepts `main` alone. The same gate runs a third time, against the production `SITE_BASE_URL` and with no token, and a human reads the result.
 
 Each branch feeds one environment:
 
