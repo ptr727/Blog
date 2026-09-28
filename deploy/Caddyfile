@@ -147,6 +147,12 @@ http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {
 		precompressed br gzip
 	}
 
+	# A single-page site has nowhere better to send a stray path than the page itself.
+	handle_errors {
+		rewrite * /index.html
+		file_server
+	}
+
 	log {
 		output stdout
 		format console

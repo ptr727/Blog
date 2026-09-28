@@ -1,6 +1,6 @@
 # viljoen.family
 
-The single-page genealogy site for the Viljoen family, served at `viljoen.family` from the blog's release bundle. See [OPERATIONS.md][operations] "viljoen.family" for how it ships and which hostnames reach it. This file is not shipped.
+The single-page genealogy site for the Viljoen family, served at `viljoen.family` from the blog's release bundle. See [OPERATIONS.md][operations] "The Family Site" for how it ships and which hostnames reach it. This file is not shipped.
 
 ## Contents
 
