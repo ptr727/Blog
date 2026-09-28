@@ -41,7 +41,7 @@ This is the numbering of the de Villiers/Pama *Geslagsregister van die ou Kaapse
 - A grandchild appends a segment: `b3c4` is the fourth child of `b3`.
 - A full path concatenates every segment, for example `b3c4d2`. It needs no separator, because each letter starts a new segment.
 
-The sources disagree on the first generation, as "Still to Verify" below records. The page follows the reading above.
+The sources agree that the progenitor's children are the `b` generation. They differ on whether the progenitor carries a number, as "Still to Verify" records.
 
 **Signs.** The page uses the signs below. They are this site's convention, and no source this file cites confirms them as the South African registers' own set. The Dutch convention the sources describe differs for died, where it writes `+`.
 
@@ -80,7 +80,7 @@ Three other systems exist, and none of them suits a tree drawing:
 
 No cited source gives a form for successive marriages or for divorce. This site's choice is `m. (1)` and `m. (2)` for successive marriages, and `div.` for divorce.
 
-**Dates.** GEDCOM stores a date as day, month, and year, for example `19 MAY 1682`, with `ABT`, `BEF`, or `AFT` in front for an approximate date. The page displays that order in title case, `19 May 1682`. It writes the qualifiers as the English abbreviations: `ca. 1680`, `bef. 1700`, `aft. 1690`.
+**Dates.** GEDCOM stores a date as day, month, and year, for example `19 MAY 1682`, with `ABT`, `BEF`, or `AFT` in front for an approximate date. The international notation would display that order in title case, `19 May 1682`. It would write the qualifiers as the English abbreviations: `ca. 1680`, `bef. 1700`, `aft. 1690`.
 
 **Symbols, as an alternative to abbreviations.** Continental genealogy writes events as symbols. Three of those below are in the Unicode Miscellaneous Symbols block. They suit a compact card, but a reader must learn them from the legend.
 
@@ -118,8 +118,7 @@ A switch also changes three things on the page besides the cards:
 
 These South African details are not confirmed by any source this file cites. Check them against the Familieregister before relying on them:
 
-- **The first generation.** One source numbers the progenitor's children `b1`, `b2`, and so on. Another writes `a1`, `a2` for them, as in `a1b2c4`.
-- **Several progenitors.** How a register numbers two progenitors of the same surname.
+- **The progenitor's own number.** One source writes a bare `a`. Another numbers the progenitor and his siblings `a1`, `a2`, `a3`, as in `a1b2c4`. The page writes `a`.
 - **The sign set.** Whether the registers use `*`, `~`, `x`, and the dagger, and which sign marks a burial.
 - **Successive marriages.** Whether `x1` and `x2` are the register's form.
 - **Dates.** Whether the punctuation is `dd.mm.yyyy` or `dd/mm/yyyy`.
