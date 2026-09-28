@@ -10,6 +10,7 @@ The single-page genealogy site for the Viljoen family, served at `viljoen.family
 - [Page Design](#page-design)
 - [How the Tree Is Drawn](#how-the-tree-is-drawn)
 - [Facts on the Page and Their Sources](#facts-on-the-page-and-their-sources)
+- [Languages](#languages)
 - [Local Preview](#local-preview)
 - [Ideas Not Yet Done](#ideas-not-yet-done)
 
@@ -17,7 +18,10 @@ The single-page genealogy site for the Viljoen family, served at `viljoen.family
 
 | File | What it is |
 | --- | --- |
-| `index.html` | The whole page, with inline CSS and the inline tree-drawing script |
+| `index.html` | The English page, served at `/` and `/en/` |
+| `af/index.html` | The Afrikaans page, served at `/af/` |
+| `site.css` | The styles both pages share |
+| `site.js` | The tree-drawing script both pages share |
 | `crest.svg` | The full achievement (crest, helm, mantling, shield, name scroll), viewBox 336x418 |
 | `favicon.svg` | The shield alone, cut from `crest.svg` |
 | `apple-touch-icon.png` | 180x180, `favicon.svg` on parchment |
@@ -50,7 +54,7 @@ The arms derive from the French family Villon de Varennes, whose crest was a gol
 - **Frame:** a 2.5px red border plus an inner 1px gold rule (`.frame::before`) with rounded corners and four gold corner flourishes (`#corner` symbol). A negative margin on the masthead equals the frame's top margin (128px, or 96px on phones). That puts the top border behind the mantling, so change both values together.
 - **Paper texture:** an inline SVG `feTurbulence` noise data URI plus a radial vignette on `html`.
 - **Divider:** a simplified Huguenot cross (a Maltese cross with fleur points, balls on the tips, and a hanging dove), the `#huguenot-cross` symbol.
-- **CSP:** the policy in `deploy/Caddyfile` allows `'unsafe-inline'` for scripts and styles because both are inline. Moving them to `site.css` and `site.js` lets the policy drop it. Test in a browser after any CSP change, because a blocked script fails silently and the tree simply does not draw.
+- **CSP:** the policy in `deploy/Caddyfile` allows only `'self'` for scripts, since the one script is `site.js`. Styles keep `'unsafe-inline'` for the `style` attributes and the `<style>` block the script writes into the tree's SVG. Test in a browser after any CSP change, because a blocked script fails silently and the tree simply does not draw.
 - **Browser support:** the page uses `color-mix()`. Older browsers lose some tints, and the layout is unaffected.
 
 ## How the Tree Is Drawn
@@ -62,7 +66,7 @@ The tree is a stamboom. The children form the crown, and the stamouers card sits
 - **Numbering and signs:** SAG de Villiers/Pama numbering (`a`, `b1` to `b6`, `b3c4`). The signs are `*` born, `~` baptized, `x` married (`x1`, `x2` for successive marriages), and a dagger for died. Each is an HTML entity inside `<abbr title>`, hidden from screen readers. On the cards a visually hidden word stands in for the sign. The legend under the tree already spells each word out, so its signs carry no hidden word. Dates use the SAG `dd.mm.yyyy` form.
 - **Living people:** none are published. Only people born before about 1925 are shown.
 
-The script at the bottom of `index.html` measures the couple card, the soil band, the child cards, and the stubs, then fills `svg.branches` inside `.tree`:
+`site.js` measures the couple card, the soil band, the child cards, and the stubs, then fills `svg.branches` inside `.tree`:
 
 - Each limb is a cubic Bezier drawn as a filled shape that tapers from width `w0` to `w1` (`limb()`), not as a stroke.
 - Leaves sprout at chosen positions along a limb, alternating sides (`leaves()`). The pattern is fixed rather than random, so every redraw looks the same. About one leaf in five is gold.
@@ -85,15 +89,23 @@ The script at the bottom of `index.html` measures the couple card, the soil band
 - **Still to verify** against the Familiebond's Familieregister (4 volumes, about 2,000 pages): all of the above. That includes the claim that the Viljoen name was carried forward through Henning and Johannes.
 - **MyHeritage and Geni** returned nothing to automated fetches, and their content has not been reviewed.
 
+## Languages
+
+The page exists in English and Afrikaans, as two HTML files that share `site.css`, `site.js`, and every image.
+
+- **Choosing the language.** Caddy redirects `/` to `/af/` when Afrikaans is the browser's first `Accept-Language`, and sends `Vary: Accept-Language`. The `/en/` and `/af/` addresses never redirect, so a visitor's choice holds.
+- **The switch.** A link in the corner, or under the crest on phones, leads to the other language's explicit address. Both pages carry `hreflang` alternates and their own canonical URL.
+- **Keeping them in step.** `af/index.html` is a translation of `index.html` with the same markup. A change to one page's structure goes into the other in the same commit. The CSS names the one string it carries, the "Viljoen line" badge, per language with `:lang(af)`.
+- **Mixed text.** English left on the Afrikaans page, such as the blazon and the English site names, carries `lang="en"`.
+
 ## Local Preview
 
-Serve the directory with any static server, for example `python3 -m http.server 8765 --bind 127.0.0.1 --directory sites/viljoen.family`. A phone viewport (375px) shows no horizontal overflow and no console errors.
+Serve the directory with any static server, for example `python3 -m http.server 8765 --bind 127.0.0.1 --directory sites/viljoen.family`. A phone viewport (375px) shows no horizontal overflow and no console errors. A static server serves `/af/` directly. The language redirect, the `/en/` address the Afrikaans switch links to, and the CSP need Caddy.
 
 ## Ideas Not Yet Done
 
 - Self-hosted fonts instead of Google Fonts, for privacy and a shorter CSP.
 - The c generation on the tree, starting with the Henning and Johannes lines, in place of the stubs.
-- An Afrikaans version of the page, or a language toggle (headings already carry Afrikaans subtitles).
 - A contact line or a Familiebond membership link in the footer.
 
 <!-- Local files -->
