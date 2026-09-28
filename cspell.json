@@ -24,6 +24,7 @@
     "codegen",
     "cutover",
     "dependabot",
+    "exif",
     "goldmark",
     "insanegenius",
     "nbgv",
