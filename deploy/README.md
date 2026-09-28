@@ -259,7 +259,9 @@ The family site block answers its two public names, written into the bundle. A l
 own name is private, so it comes from the container instead, as `FAMILY_SITE_ADDRESS`, which the
 Caddyfile appends to the block's address list. The VPS containers leave it unset.
 
-**The value is a whole site address, `http://<name>:8080`, never a bare hostname.** Writing the
+**The value is a whole site address, `http://<name>:8080`, never a bare hostname.** The scheme
+and port are the container's own listener, whatever the proxy serves readers. `https://` fails
+the way a malformed list does, and a missing port opens a stray `:80` listener. Writing the
 variable inside an address instead, as `http://{$FAMILY_SITE_HOST}:8080`, would be the obvious
 shape and is the dangerous one. An empty value there leaves `http://:8080`, a catch-all, and
 the family page then answers every hostname, the blog's included. A compose file forwarding a
