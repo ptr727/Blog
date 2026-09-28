@@ -8,11 +8,13 @@ tags:
 - claude
 - github
 ---
+Written rules did not stop my coding agents from posting in a stranger's GitHub repo or taking down my server, so I added hooks and resource limits that enforce what the rules could not.
+
+<!--more-->
+
 I have various repos on GitHub: private and public, C# and Python, NuGet and PyPI packages, CLI tools, Docker containers, configuration, utilities, and docs. In my typical engineering mindset I always try to improve with every iteration. For me this means I want to go back and apply a new style or pattern to my other repos.
 
 Keeping repos in top shape is not my day job. I have to balance the time I spend on upkeep with being responsive on my open source projects, and with my personal interest in new projects and features.
-
-This post covers how the repo I built to keep them in sync became a rule orchestrator for coding agents, and the guardrails I built when rules alone did not stop them.
 
 ## How it started
 
@@ -78,6 +80,7 @@ I had Claude implement [`gh-write-guard`](https://github.com/ptr727/ProjectTempl
 - a hand-built review thread resolve, or a reply through the REST API, where my [`pr_review.py`](https://github.com/ptr727/ProjectTemplate/blob/main/scripts/pr_review.py) wrapper script does the same job without an ID to type
 - a mutating git command run in my primary checkout rather than in a worktree
 - a bypass flag such as `git push --no-verify` or `gh pr merge --admin`
+- a shell wait loop that sleeps with no timeout or counter, which would outlive the agent that wrote it
 
 The installer registers the hook in `~/.claude/settings.json`, together with a permission rule that lets the wrapper script run without a prompt. Simplified, it looks like this:
 
@@ -125,11 +128,31 @@ Allowing my user account and user processes to consume all memory is my fault, f
 
 The write guard reads command text, and it could not have caught this one. The recursion lived in a script file that the command only named.
 
-So instead of judging what a command says, [`tool-containment.py`](https://github.com/ptr727/ProjectTemplate/blob/develop/host-setup/agent-safety/claude/tool-containment.py) bounds what any command can do. Claude Code's [`CLAUDE_CODE_SHELL_PREFIX`](https://code.claude.com/docs/en/env-vars) setting names a program that wraps every shell command the agent runs. The prefix runs each Bash tool call in its own [`systemd-run --user --scope`](https://www.freedesktop.org/software/systemd/man/latest/systemd-run.html), with a [`TasksMax`](https://www.freedesktop.org/software/systemd/man/latest/systemd.resource-control.html) of 8192 processes and a `MemoryMax` of 25% of RAM. A recursive fan-out then fails fast at the ceiling, instead of growing silently. The limits belong to the scope, so they still hold when the harness moves a timed-out command into the background.
+So instead of judging what a command says, [`tool-containment.py`](https://github.com/ptr727/ProjectTemplate/blob/main/host-setup/agent-safety/claude/tool-containment.py) bounds what any command can do. Claude Code's [`CLAUDE_CODE_SHELL_PREFIX`](https://code.claude.com/docs/en/env-vars) setting names a program that wraps every shell command the agent runs. The prefix runs each Bash tool call in its own [`systemd-run --user --scope`](https://www.freedesktop.org/software/systemd/man/latest/systemd-run.html) control group (cgroup). The scope gets a [`TasksMax`](https://www.freedesktop.org/software/systemd/man/latest/systemd.resource-control.html) of 8192 processes and a `MemoryMax` of 25% of RAM. Its `MemorySwapMax` is zero, so a runaway at the memory ceiling is killed instead of pushing the host into swap. A recursive fan-out then fails fast at the ceiling, instead of growing silently. The limits belong to the scope, so they still hold when the harness moves a timed-out command into the background.
 
-A `SessionEnd` hook stops any scope the session left behind and reports what it held. When I ran the original shim under a 64-task ceiling, it failed at once with `fork: Resource temporarily unavailable`, and nothing survived. The cost is about 35 ms per tool call. The [PR](https://github.com/ptr727/ProjectTemplate/pull/1900) has the design decisions, including why a `PreToolUse` rewrite of the command did not work.
+A `SessionEnd` hook, [`stray-process-sweep.py`](https://github.com/ptr727/ProjectTemplate/blob/main/host-setup/agent-safety/claude/stray-process-sweep.py), stops any scope the session left behind and reports what it held. It also reports, but never kills, any process still descended from the session that runs outside those scopes, and hands me the `kill` line. When I ran the original shim under a 64-task ceiling, it failed at once with `fork: Resource temporarily unavailable`, and nothing survived. The cost is about 35 ms per tool call. The [PR](https://github.com/ptr727/ProjectTemplate/pull/1900) has the design decisions, including why a `PreToolUse` rewrite of the command did not work.
 
-It is not finished. Each nested agent session gets fresh ceilings of its own, so a chain of agents calling agents has no total cap, and that is [the next gap](https://github.com/ptr727/ProjectTemplate/issues/1903). Capping my user slice on the host itself is tracked separately, and it is the fix I should have had in place from the start.
+It is not finished. Each nested agent session gets fresh ceilings of its own, so a chain of agents calling agents has no total cap, and that is [the next gap](https://github.com/ptr727/ProjectTemplate/issues/1903). Containment also needs a systemd user manager, so where there is none, such as on macOS, a tool call runs uncontained.
+
+## Capping the host, not just the agent
+
+Per-command scopes only cover commands an agent runs through Claude Code. A script I start by hand, a cron job, or an agent without a hook would still run with no limit. The fix I should have had in place from the start is on the host itself, and it applies to any process, not just an agent's.
+
+On a Linux host that runs systemd, every login session sits under a `user-<UID>.slice` cgroup. By default that slice gets a task limit of a third of the kernel's thread maximum, and no memory limit at all. My host runs [Proxmox VE](https://www.proxmox.com/en/products/proxmox-virtual-environment/overview), which caps its virtual machines and containers, but a session on the host itself only got those defaults. A drop-in for the `user-.slice` template applies to every user's slice. Each account gets its own ceilings, and every session of that account shares them:
+
+```ini
+# /etc/systemd/system/user-.slice.d/50-limits.conf
+[Slice]
+TasksMax=2%
+MemoryHigh=60%
+MemoryMax=70%
+```
+
+systemd resolves the percentages against the host's own RAM and task limit, so the file does not change when the hardware does. On my host, `TasksMax=2%` is about 57 thousand tasks, against a normal peak of about 1.3 thousand. A fork past that fails inside the slice, and the runaway stops instead of the host. Past `MemoryHigh` the slice is throttled through memory reclaim before anything is killed, which keeps the host responsive. Past `MemoryMax` the kernel's OOM killer acts inside the slice only, so the rest of the host keeps running.
+
+A drop-in only reaches a slice when it starts, so the install script also applies the values to slices that are already running with `systemctl set-property --runtime`. It then reads `pids.max`, `memory.high`, and `memory.max` back from `/sys/fs/cgroup` rather than trusting what systemd says it set. The same script sets `kernel.panic` so a panicked host reboots after ten seconds instead of hanging. It also adds [Netdata](https://www.netdata.cloud) alarms on the process count and on memory pressure, because the stock alarms either could not fire on this host or fired about 30 minutes into the incident.
+
+The two layers are complementary. The per-command scope stops one agent's runaway early, with a clear error the agent can read. The slice limit is the backstop for everything else running under my account, agent or not.
 
 ## Instructions are only guidelines
 
