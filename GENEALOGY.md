@@ -33,31 +33,32 @@ Date precision is one of exact, year only, about, before, or after. Keep the dat
 
 ## South African Notation (de Villiers/Pama)
 
-This is the notation of the de Villiers/Pama *Geslagsregister van die ou Kaapse families* and the registers that follow it. Afrikaans-speaking genealogy uses it, so it is the one Viljoen readers recognize.
+This is the numbering of the de Villiers/Pama *Geslagsregister van die ou Kaapse families* and the registers that follow it. Afrikaans-speaking genealogy uses it, so it is the one Viljoen readers recognize.
 
 **Numbering.** Each generation takes the next letter, and each person a number for their birth order within their parents' children.
 
 - The progenitor (stamvader) is `a`. His children are `b1`, `b2`, and so on.
 - A grandchild appends a segment: `b3c4` is the fourth child of `b3`.
 - A full path concatenates every segment, for example `b3c4d2`. It needs no separator, because each letter starts a new segment.
-- Where one register holds several progenitors of the same surname, they are `a1`, `a2`, and so on. A path then starts with the progenitor's number, for example `a1b2c4`. The page has one progenitor, so it writes a bare `a`.
 
-**Signs.**
+The sources disagree on the first generation, as "Still to Verify" below records. The page follows the reading above.
+
+**Signs.** The page uses the signs below. They are this site's convention, and no source this file cites confirms them as the South African registers' own set. The Dutch convention the sources describe differs for died, where it writes `+`.
 
 | Event | Sign | HTML | Example |
 | --- | --- | --- | --- |
-| Born | `*` | `&ast;` | `* 19.05.1682` |
+| Born | `*` | `&ast;` | `* 01.02.1700` |
 | Baptized | `~` | `&#126;` | `~ 19.05.1682 Cape Town` |
 | Married | `x` | plain letter | `x 1707 Margaretha de Savoye` |
 | Married, first and second | `x1`, `x2` | plain letters | `x1 1702 Hercule du Preez` |
 | Died | dagger | `&dagger;` | `&dagger; 1720` |
-| Buried | still to verify | | |
+| Buried | not yet chosen | | |
 
-**Dates.** Dates take the form `dd.mm.yyyy`, for example `19.05.1682`. A year-only date is the bare year.
+**Dates.** The page writes dates as `dd.mm.yyyy`, for example `19.05.1682`, and a year-only date as the bare year.
 
 ## International Notation
 
-No single international standard exists. The conventions below are the ones English-language genealogy and the GEDCOM exchange format use most. Each one maps one to one onto the South African notation.
+No single international standard exists. The conventions below are the ones English-language genealogy and the GEDCOM exchange format use most. Each maps onto the South African notation wherever both define the event.
 
 **Numbering: d'Aboville.** Each generation appends the child's birth-order number, separated by a period. The progenitor is `1`, and his third child is `1.3`. That child's fourth child is `1.3.4`. It maps segment for segment onto de Villiers/Pama, and a tenth child is simply `.10`.
 
@@ -65,23 +66,23 @@ Three other systems exist, and none of them suits a tree drawing:
 
 - **Register (NEHGS) and NGSQ (Record)** are the two main styles for a printed descendant book. They number people consecutively through the book rather than by lineage path, so a number says nothing about where the person sits in the tree.
 - **Henry** is d'Aboville without the periods, so it needs letter substitutes past the ninth child.
-- **Ahnentafel** numbers ancestors rather than descendants (the subject is 1, a father is 2n, a mother 2n+1). It suits a pedigree chart, not this tree.
+- **Ahnentafel** numbers ancestors rather than descendants. The subject is 1, and a person numbered n has father 2n and mother 2n+1. It suits a pedigree chart, not this tree.
 
 **Event abbreviations.**
 
 | Event | Abbreviation | Example |
 | --- | --- | --- |
-| Born | `b.` | `b. 19 May 1682` |
+| Born | `b.` | `b. 1 Feb 1700` |
 | Baptized | `bp.` | `bp. 19 May 1682, Cape Town` |
 | Married | `m.` | `m. 1707 Margaretha de Savoye` |
-| Married, first and second | `m. (1)`, `m. (2)` | `m. (1) 1702 Hercule du Preez` |
-| Divorced | `div.` | `div. 1730` |
 | Died | `d.` | `d. 1720` |
 | Buried | `bur.` | `bur. 1720, Stellenbosch` |
 
-**Dates.** Dates take the GEDCOM display form, day, abbreviated month, and year: `19 May 1682`. A qualifier comes first: `abt. 1680`, `bef. 1700`, `aft. 1690`.
+No cited source gives a form for successive marriages or for divorce. This site's choice is `m. (1)` and `m. (2)` for successive marriages, and `div.` for divorce.
 
-**Symbols, as an alternative to abbreviations.** Continental genealogy writes events as symbols, most of them in the Unicode Miscellaneous Symbols block. They suit a compact card, but a reader must learn them from the legend.
+**Dates.** GEDCOM stores a date as day, month, and year, for example `19 MAY 1682`, with `ABT`, `BEF`, or `AFT` in front for an approximate date. The page displays that order in title case, `19 May 1682`. It writes the qualifiers as the English abbreviations: `ca. 1680`, `bef. 1700`, `aft. 1690`.
+
+**Symbols, as an alternative to abbreviations.** Continental genealogy writes events as symbols. Three of those below are in the Unicode Miscellaneous Symbols block. They suit a compact card, but a reader must learn them from the legend.
 
 | Event | Code point | HTML |
 | --- | --- | --- |
@@ -101,10 +102,10 @@ Check these symbols against the page fonts before using them. Cormorant Garamond
 | Progenitor | `a` | `1` |
 | Third child | `b3` | `1.3` |
 | Fourth child of the third child | `b3c4` | `1.3.4` |
-| Second progenitor in one register | `a2` | `2` |
 | Baptism | `~ 19.05.1682 Cape Town` | `bp. 19 May 1682, Cape Town` |
 | Second marriage | `x2 1722 Christian Maasdorp` | `m. (2) 1722 Christian Maasdorp` |
 | Death | `&dagger; 1720` | `d. 1720` |
+| Divorce | no sign | `div. 1730` |
 | Year-only date | `1707` | `1707` |
 
 A switch also changes three things on the page besides the cards:
@@ -117,20 +118,22 @@ A switch also changes three things on the page besides the cards:
 
 These South African details are not confirmed by any source this file cites. Check them against the Familieregister before relying on them:
 
-- the sign for buried,
-- whether the date punctuation is `dd.mm.yyyy` or `dd/mm/yyyy`,
-- whether `x1` and `x2` are the register's form for successive marriages,
-- what `sv` and `dv` abbreviate in the register, since one source reads `sv` as *seun van* (son of) and another as *stamvader*,
-- the Afrikaans event words (*gebore*, *gedoop*, *getroud*, *oorlede*, *begrawe*), if the Afrikaans page uses words rather than signs.
+- **The first generation.** One source numbers the progenitor's children `b1`, `b2`, and so on. Another writes `a1`, `a2` for them, as in `a1b2c4`.
+- **Several progenitors.** How a register numbers two progenitors of the same surname.
+- **The sign set.** Whether the registers use `*`, `~`, `x`, and the dagger, and which sign marks a burial.
+- **Successive marriages.** Whether `x1` and `x2` are the register's form.
+- **Dates.** Whether the punctuation is `dd.mm.yyyy` or `dd/mm/yyyy`.
+- **`sv` and `dv`.** One source reads `sv` as *seun van* (son of) and another as *stamvader*.
+- **Afrikaans event words.** *Gebore*, *gedoop*, *getroud*, *oorlede*, and *begrawe*, if the Afrikaans page uses words rather than signs.
 
 ## Sources
 
 - [Genealogical numbering systems][wikipedia-numbering], which covers de Villiers/Pama, d'Aboville, Henry, Register, NGSQ, and Ahnentafel.
-- [The de Villiers/Pama numbering system][legacy-pama], which covers the letter-and-number segments, birth order, and the `a1` form for several progenitors.
+- [The de Villiers/Pama numbering system][legacy-pama], which covers the letter-and-number segments and birth order.
 - [Genealogy symbols][tamura-symbols], which gives the Unicode code points for the continental symbols.
-- [Genealogical abbreviations][myheritage-abbreviations], the English event abbreviations.
-- [FamilySearch GEDCOM 7][gedcom7], the event tags and the date form.
-- [Genealogie symbolen en afkortingen][wazamar-symbols], the Dutch sign set that Cape genealogy inherits.
+- [Genealogical abbreviations][myheritage-abbreviations], the English event abbreviations and date qualifiers.
+- [FamilySearch GEDCOM 7][gedcom7], the event tags and the stored date form.
+- [Genealogie symbolen en afkortingen][wazamar-symbols], a Dutch sign set, for comparison.
 
 <!-- Local files -->
 [family-site]: ./sites/viljoen.family/
