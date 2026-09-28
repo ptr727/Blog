@@ -14,7 +14,7 @@ tags:
 - claude
 discussions: https://github.com/ptr727/ESPHome-Config/discussions
 ---
-I decoded the Bluetooth protocol of my Micro-Air EasyStart soft starters from the vendor's Android app, with a lot of help from Claude Code, and now read their compressor data into Home Assistant through ESPHome.
+I decoded the Bluetooth protocol of my Micro-Air EasyStart soft starters from the vendor's Android app, with help from Claude Code, and now read their compressor data into Home Assistant through ESPHome.
 
 <!--more-->
 
@@ -22,7 +22,7 @@ I have [Micro-Air EasyStart](https://www.microair.net/products/easystart-flex-ho
 
 The EasyStart modules have built-in Bluetooth Low Energy (BLE), and the vendor's phone app shows live current, line frequency, peak startup current, and a start counter. I monitor whole-home power usage and solar generation in [Home Assistant](https://www.home-assistant.io/). I wanted to use the BLE data for more granular AC power usage reporting, without installing additional current monitors in my panel. I reached out to Micro-Air, but they would not share the protocol. At the time I could not find anyone else who had decoded the protocol, and I lost interest.
 
-In the meantime I had been watching [Matt Brown's YouTube channel](https://www.youtube.com/@mattbrwn) on reverse engineering and Internet of Things (IoT) hacking. [ESPHome](https://esphome.io/) had also made BLE device support much easier. With renewed motivation I set out to reverse engineer the BLE protocol myself, or rather, myself with a lot of automation and decoding help from [Claude Code](https://claude.com/claude-code). This post walks through pulling the protocol out of the vendor's Android app and checking the decode against the live module. It ends with the result running in Home Assistant through ESPHome.
+In the meantime I had been watching [Matt Brown's YouTube channel](https://www.youtube.com/@mattbrwn) on reverse engineering and Internet of Things (IoT) hacking. [ESPHome](https://esphome.io/) had also made BLE device support much easier. With renewed motivation I set out to reverse engineer the BLE protocol myself, or rather, myself with a lot of automation and decoding help from [Claude Code](https://claude.com/claude-code).
 
 ## The app already has the protocol in it
 

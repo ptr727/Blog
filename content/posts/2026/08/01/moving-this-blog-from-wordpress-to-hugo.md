@@ -14,7 +14,7 @@ tags:
 - migration
 discussions: https://github.com/ptr727/Blog/discussions
 ---
-I moved this blog from WordPress to a Hugo static site, and the real work was not converting the posts but keeping sixteen years of inbound links working.
+I moved this blog from WordPress to a Hugo static site, and the real work was not converting the posts but keeping every inbound link since 2008 working.
 
 <!--more-->
 
@@ -253,7 +253,7 @@ Two things I would do again:
 
 ## Your original photos know where you live
 
-Keeping the originals from the export tar had a cost I did not see at first. **206 of the images held GPS coordinates that located my house to about a meter**, along with camera bearing and altitude. Once the files sit in a public repository, anyone can read that metadata.
+A few weeks after the move, I found that keeping the originals from the export tar had a cost. **206 files held GPS coordinates that located my house to about a meter**, along with camera bearing and altitude. Once the files sit in a public repository, anyone can read that metadata.
 
 So personal data became a gate too. A normalizer strips every image down to what it needs to render: its dimensions, a standard color profile, and a JPEG's orientation and capture time. Location, device, and authorship are not on that list, so they go without anyone having to think of them. The strip is lossless, and it refuses a file it cannot clean unambiguously rather than guessing. CI then fails the build on any image carrying anything else, including inside a zip.
 

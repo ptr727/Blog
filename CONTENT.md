@@ -159,7 +159,7 @@ Treat that as a judgment about the archive, never as a precedent for a new post.
 - **`##` carries the spine, `###` only for genuinely nested steps.** The migration post uses `###` for numbered procedure steps inside one section and nowhere else.
 - **A heading states a finding rather than labeling a topic.** "Your export is not a complete copy of your media" beats "Media". Sentence case, no trailing question mark.
 - **No hand-written table of contents.** The theme generates one from the headings.
-- **A one-sentence lede opens a post, followed by `<!--more-->`.** It says what the post covers and stands on its own, since it is the text the post list shows under the title, and it becomes the page's meta description and social card. Two unheaded paragraphs follow it: the concrete situation, and what the post is really about.
+- **A one-sentence lede opens a post, followed by `<!--more-->`.** It says what the post covers and stands on its own. The post list shows it under the title, and it becomes the page's meta description and social card. It carries no links, since the list and the meta description drop them, so a name's first link is in the body. The unheaded paragraphs after it give the concrete situation and what the post is really about.
 - **Every fenced code block carries a language tag**, so highlighting picks the right lexer instead of guessing.
 
 ## Voice
