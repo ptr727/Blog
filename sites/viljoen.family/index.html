@@ -174,6 +174,7 @@
   .child h3 { margin: 0; font: 700 1.4rem/1.1 "Cormorant Garamond", serif; color: var(--ink); }
   .child p { margin: 6px 0 0; font-size: .92rem; line-height: 1.35; color: var(--ink-soft); }
   .child p.spouse { font-style: italic; }
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   abbr[title] { text-decoration: none; cursor: help; font-style: normal; font-weight: 500; color: var(--red-deep); }
   .line .child { border: 1.5px solid var(--red); }
   .line .child::after {
@@ -206,7 +207,7 @@
     color: var(--ink-soft);
   }
   .legend { font-size: 1rem; }
-  .legend span { white-space: nowrap; padding: 0 .5em; }
+  .legend > span { white-space: nowrap; padding: 0 .5em; }
   .tree-note { margin-top: 10px; font-style: italic; font-size: 1rem; }
 
   /* ---------- Divider (Huguenot cross) ---------- */
@@ -261,6 +262,9 @@
   }
 
   /* ---------- Narrow screens: the tree becomes a single descending line ---------- */
+  @media (max-width: 1100px) {
+    .stub { padding: 2px 8px 3px; font-size: .8rem; }
+  }
   @media (max-width: 900px) {
     .jump {
       display: block;
@@ -324,7 +328,7 @@
 
   <section class="tree" aria-labelledby="stamouers">
     <svg class="branches" aria-hidden="true"></svg>
-    <a class="jump" href="#stamouers">Stamouers &darr;</a>
+    <a class="jump" href="#stamouers">Stamouers <span aria-hidden="true">&darr;</span></a>
 
     <ol class="stamboom">
       <li class="gen-a">
@@ -332,7 +336,7 @@
           <p class="eyebrow"><span class="code">a</span> &middot; Stamouers &middot; The founding couple</p>
           <h2 id="stamouers"><span class="nm">Fran&ccedil;ois Villion</span> <span class="x">&amp;</span> <span class="nm">Cornelia Campenaar</span></h2>
           <p class="meta">of Clermont, France &middot; of Middelburg, the Netherlands<br>
-            <abbr title="married">x</abbr> 1676 at the Cape of Good Hope</p>
+            <abbr title="married"><span aria-hidden="true">x</span><span class="vh">married</span></abbr> 1676 at the Cape of Good Hope</p>
         </div>
         <div class="soil" aria-hidden="true"><span>Clermont</span><span>Middelburg</span></div>
 
@@ -340,52 +344,52 @@
           <li>
             <div class="child">
               <span class="code">b1</span><h3>Pieter</h3>
-              <p><abbr title="baptized">&#126;</abbr> 07.02.1677 Cape Town</p>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 07.02.1677 Cape Town</p>
               <p class="spouse">never married</p>
             </div>
           </li>
           <li>
             <div class="child">
               <span class="code">b2</span><h3>Anna</h3>
-              <p><abbr title="baptized">&#126;</abbr> 19.05.1678 Cape Town</p>
-              <p class="spouse"><abbr title="married">x</abbr> 09.12.1691 Heinrich Venter</p>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 19.05.1678 Cape Town</p>
+              <p class="spouse"><abbr title="married"><span aria-hidden="true">x</span><span class="vh">married</span></abbr> 09.12.1691 Heinrich Venter</p>
             </div>
           </li>
           <li class="line">
             <div class="child">
               <span class="code">b3</span><h3>Henning</h3>
-              <p><abbr title="baptized">&#126;</abbr> 19.05.1682 Cape Town</p>
-              <p class="spouse"><abbr title="married">x</abbr> 1707 Margaretha de Savoye</p>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 19.05.1682 Cape Town</p>
+              <p class="spouse"><abbr title="married"><span aria-hidden="true">x</span><span class="vh">married</span></abbr> 1707 Margaretha de Savoye</p>
             </div>
             <p class="stub"><span class="code">c</span> generation to follow</p>
           </li>
           <li class="line">
             <div class="child">
               <span class="code">b4</span><h3>Johannes</h3>
-              <p><abbr title="baptized">&#126;</abbr> 24.09.1684 Cape Town</p>
-              <p class="spouse"><abbr title="married">x</abbr> 14.08.1708 Catharina Snyman</p>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 24.09.1684 Cape Town</p>
+              <p class="spouse"><abbr title="married"><span aria-hidden="true">x</span><span class="vh">married</span></abbr> 14.08.1708 Catharina Snyman</p>
             </div>
             <p class="stub"><span class="code">c</span> generation to follow</p>
           </li>
           <li>
             <div class="child">
               <span class="code">b5</span><h3>Cornelia</h3>
-              <p><abbr title="baptized">&#126;</abbr> 13.10.1686 Stellenbosch</p>
-              <p class="spouse"><abbr title="married, first">x1</abbr> 1702 Hercule du Preez, <abbr title="married, second">x2</abbr> 1722 Christian Maasdorp</p>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 13.10.1686 Stellenbosch</p>
+              <p class="spouse"><abbr title="married, first"><span aria-hidden="true">x1</span><span class="vh">married, first</span></abbr> 1702 Hercule du Preez, <abbr title="married, second"><span aria-hidden="true">x2</span><span class="vh">married, second</span></abbr> 1722 Christian Maasdorp</p>
             </div>
           </li>
           <li>
             <div class="child">
               <span class="code">b6</span><h3>Francina</h3>
-              <p><abbr title="baptized">&#126;</abbr> 24.04.1689 Stellenbosch</p>
-              <p class="spouse"><abbr title="married">x</abbr> Jacob Cloete</p>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 24.04.1689 Stellenbosch</p>
+              <p class="spouse"><abbr title="married"><span aria-hidden="true">x</span><span class="vh">married</span></abbr> Jacob Cloete</p>
             </div>
           </li>
         </ol>
       </li>
     </ol>
 
-    <p class="legend"><span><abbr title="born">&ast;</abbr> born</span> <span><abbr title="baptized">&#126;</abbr> baptized</span> <span><abbr title="married">x</abbr> married, x1 and x2 for a first and second marriage</span> <span><abbr title="died">&dagger;</abbr> died</span></p>
+    <p class="legend"><span><abbr title="born"><span aria-hidden="true">&ast;</span></abbr> born</span> <span><abbr title="baptized"><span aria-hidden="true">&#126;</span></abbr> baptized</span> <span><abbr title="married"><span aria-hidden="true">x</span></abbr> married, x1 and x2 for a first and second marriage</span> <span><abbr title="died"><span aria-hidden="true">&dagger;</span></abbr> died</span></p>
     <p class="tree-note">Numbered in the South African de Villiers/Pama system: a is the stamvader, b1 to b6 his children, and b3c4 the fourth child of b3. The Viljoen name was carried forward through the lines of Henning and Johannes. Dates come from published descendant lists and are still to be verified against the Familiebond's Familieregister.</p>
   </section>
 

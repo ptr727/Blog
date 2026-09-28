@@ -58,8 +58,8 @@ The tree is a stamboom. The children form the crown, the stamouers card sits at 
 
 - **Markup:** the DOM is in genealogical order, as nested `<ol>`: `li.gen-a` holds the couple card, the soil band, and `ol.gen-b` with one `li` per child. CSS `order` puts the children above the couple, so the tree reads upward while the source and a screen reader read from the progenitor down.
 - **Name-carrying lines:** `li.line` marks b3 and b4. Their cards take the red border and "Viljoen line" badge, their limbs are thicker, and a "c generation to follow" stub continues each one.
-- **Numbering and signs:** SAG de Villiers/Pama numbering (`a`, `b1` to `b6`, `b3c4`). The signs are `*` born, `~` baptized, `x` married (`x1`, `x2` for successive marriages), and a dagger for died. Each is an HTML entity inside `<abbr title>`, explained by the legend under the tree. Dates use the SAG `dd.mm.yyyy` form.
-- **Living people:** none are published. A line stops at births before about 1925.
+- **Numbering and signs:** SAG de Villiers/Pama numbering (`a`, `b1` to `b6`, `b3c4`). The signs are `*` born, `~` baptized, `x` married (`x1`, `x2` for successive marriages), and a dagger for died. Each is an HTML entity inside `<abbr title>`, hidden from screen readers, which read a visually hidden word instead. The legend under the tree explains them. Dates use the SAG `dd.mm.yyyy` form.
+- **Living people:** none are published. Only people born before about 1925 are shown.
 
 The script at the bottom of `index.html` measures the couple card, the soil band, the child cards, and the stubs, then fills `svg.branches` inside `.tree`:
 
