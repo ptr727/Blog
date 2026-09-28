@@ -2,7 +2,7 @@
 
 How the family site in [`sites/viljoen.family/`][family-site] writes a line of descent. It holds two notations, the South African one and an international one. Any agent or author adding people to the page renders them from this file.
 
-The page renders one notation at a time, and it currently renders the South African one. Switching means re-rendering every person, the legend, and the numbering note from the mapping below. Nothing on the page is notation-neutral, so the switch is a full re-render rather than a CSS change.
+The page renders one notation at a time, and it currently renders the South African one. Switching means re-rendering every person from the mapping below, together with the page elements its checklist names. Nothing on the page is notation-neutral, so the switch is a full re-render rather than a CSS change.
 
 ## The Data Behind Every Person
 
