@@ -150,7 +150,7 @@ http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {
 		path /
 		header_regexp Accept-Language `(?i)^\s*af(-[a-z0-9]+)*\s*(,|$|;\s*q\s*=\s*(1|0?\.0*[1-9]))`
 	}
-	header / Vary Accept-Language
+	header / +Vary Accept-Language
 	redir @af_first /af/{?query} 302
 	redir /en /en/ 308
 	redir /af /af/ 308
