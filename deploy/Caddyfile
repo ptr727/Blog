@@ -124,3 +124,31 @@
 		format console
 	}
 }
+
+# The family genealogy site shares this listener, and the Host header the proxy forwards selects it.
+# Its staging name sits under the wildcard that already covers the blog's staging host.
+http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {
+	root * /srv/blog/current/family
+
+	header {
+		X-Blog-Env "{$SITE_ENV:unset}"
+		X-Robots-Tag "{$SITE_ROBOTS:index, follow}"
+		X-Blog-Release "@@RELEASE@@"
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:"
+	}
+
+	@svg path *.svg
+	header @svg Cache-Control "public, max-age=604800"
+
+	file_server {
+		precompressed br gzip
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
