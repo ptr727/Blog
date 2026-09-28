@@ -447,8 +447,8 @@ A second site block in `deploy/Caddyfile` serves it on the same port, selected b
 | --- | --- | --- |
 | `viljoen.family` | The production container, through its own proxy resource with auth off and an HTTP-01 certificate | The host, plus a DNS-only record at Cloudflare |
 | `viljoen.vps.insanegenius.net` | The staging container, behind the auth gate, under the existing `*.vps` wildcard | The host |
-| A private hostname, set as `FAMILY_SITE_ADDRESS` on the local publish mirror's container | The local publish mirror, through Traefik | The host, plus a local DNS record |
-| A second private hostname, set as `FAMILY_SITE_ADDRESS` on the local staging mirror's container | The local staging mirror, through Traefik | The host, plus a local DNS record |
+| A private hostname, set as `FAMILY_SITE_ADDRESS=http://<name>:8080` on the local publish mirror's container | The local publish mirror, through Traefik | The host, plus a local DNS record |
+| A second private hostname, set the same way on the local staging mirror's container | The local staging mirror, through Traefik | The host, plus a local DNS record |
 | `www.viljoen.family`, and `viljoen.com`, `viljoen.net`, `viljoen.org` with their `www` names | A Cloudflare redirect rule, 301 to `https://viljoen.family` with the path and query kept | Cloudflare, never reaching the VPS |
 
 The `viljoen.family` record stays DNS-only because the proxy's certificate resolver uses the HTTP-01 challenge, which a proxied record would intercept. The redirecting names are proxied, so Cloudflare terminates them and the VPS holds one certificate. Only the A and AAAA records change on those zones, and `viljoen.com`'s mail records stay as they are.

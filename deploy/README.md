@@ -264,13 +264,14 @@ variable inside an address instead, as `http://{$FAMILY_SITE_HOST}:8080`, would 
 shape and is the dangerous one. An empty value there leaves `http://:8080`, a catch-all, and
 the family page then answers every hostname, the blog's included. A compose file forwarding a
 variable its `.env` lacks passes exactly that empty value. For the same reason, write the
-address out whole, and never build it from a host variable. Five behaviors, all verified:
+address out whole, and never build it from a host variable. Six behaviors, all verified:
 
 | `FAMILY_SITE_ADDRESS` | Result |
 | --- | --- |
 | unset, or set but empty | the block keeps its two public names, and the blog is unaffected |
 | `http://<name>:8080` | `<name>` also serves the family page, language routing included |
-| several addresses, comma-separated | each name serves the family page |
+| several addresses, each comma followed by a space | each name serves the family page |
+| a comma with no space after it, or a trailing comma | Caddy refuses the whole config, so the blog fails with it |
 | a bare `<name>` | a stray `:443` listener in the container, and `<name>` still serves the blog |
 | `http://:8080`, from a host variable left empty | the family page answers every hostname, and the live check's preflight still passes |
 
