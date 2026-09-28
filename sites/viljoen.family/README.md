@@ -100,7 +100,7 @@ The page exists in English and Afrikaans, as two HTML files that share `site.css
 
 ## Local Preview
 
-Serve the directory with any static server, for example `python3 -m http.server 8765 --bind 127.0.0.1 --directory sites/viljoen.family`. A phone viewport (375px) shows no horizontal overflow and no console errors. A static server serves `/af/` directly, but the language redirect and the CSP need Caddy.
+Serve the directory with any static server, for example `python3 -m http.server 8765 --bind 127.0.0.1 --directory sites/viljoen.family`. A phone viewport (375px) shows no horizontal overflow and no console errors. A static server serves `/af/` directly. The language redirect, the `/en/` address the Afrikaans switch links to, and the CSP need Caddy.
 
 ## Ideas Not Yet Done
 

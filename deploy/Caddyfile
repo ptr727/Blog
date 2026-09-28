@@ -142,14 +142,16 @@ http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {
 
 	@svg path *.svg
 	header @svg Cache-Control "public, max-age=604800"
+	@code path *.css *.js
+	header @code Cache-Control "no-cache"
 
 	# The root follows the browser's first language, and /en/ and /af/ never redirect, so the language switch always holds.
 	@af_first {
 		path /
-		header_regexp Accept-Language `^\s*af(-[A-Za-z0-9]+)?\s*(;|,|$)`
+		header_regexp Accept-Language `(?i)^\s*af(-[a-z0-9]+)*\s*(,|$|;\s*q\s*=\s*(1|0?\.0*[1-9]))`
 	}
 	header / Vary Accept-Language
-	redir @af_first /af/ 302
+	redir @af_first /af/{?query} 302
 	redir /en /en/ 308
 	redir /af /af/ 308
 	rewrite /en/ /index.html
@@ -160,9 +162,18 @@ http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {
 
 	# A single-page site has nowhere better to send a stray path than the page itself.
 	handle_errors {
-		rewrite * /index.html
-		file_server {
-			precompressed br gzip
+		@af_page path /af/*
+		handle @af_page {
+			rewrite * /af/index.html
+			file_server {
+				precompressed br gzip
+			}
+		}
+		handle {
+			rewrite * /index.html
+			file_server {
+				precompressed br gzip
+			}
 		}
 	}
 
