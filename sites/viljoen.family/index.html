@@ -94,16 +94,23 @@
   }
 
   /* ---------- Family tree ---------- */
-  .tree { position: relative; padding-top: 70px; }
+  .tree { position: relative; padding-top: 48px; }
   .tree > svg.branches {
     position: absolute; left: 0; top: 0;
     overflow: visible;
     pointer-events: none;
   }
-  .couple, .child { position: relative; z-index: 1; }
+  .jump { display: none; }
+  .stamboom, .gen-b { list-style: none; margin: 0; padding: 0; }
+  .gen-a { display: flex; flex-direction: column; }
+  .gen-a > .gen-b { order: 1; }
+  .gen-a > .couple { order: 2; }
+  .gen-a > .soil { order: 3; }
+  .couple, .child, .stub { position: relative; z-index: 1; }
   .couple {
+    width: 100%;
     max-width: 620px;
-    margin: 0 auto;
+    margin: 170px auto 0;
     padding: 20px 28px 18px;
     text-align: center;
     background: var(--paper-card);
@@ -126,14 +133,29 @@
   .couple h2 .nm { white-space: nowrap; }
   .couple p.meta { margin: 8px 0 0; font-size: 1rem; color: var(--ink-soft); line-height: 1.45; }
 
-  .children {
-    list-style: none;
-    margin: 120px 0 0;
-    padding: 0;
+  .soil {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 84px;
+    margin-top: 34px;
+    padding: 0 8% 12px;
+    border-radius: 50% 50% 18px 18px / 26px 26px 18px 18px;
+    background: linear-gradient(to bottom, color-mix(in srgb, var(--bark) 14%, transparent), color-mix(in srgb, var(--bark) 34%, transparent));
+    font: italic 600 1.05rem/1.2 "Cormorant Garamond", serif;
+    letter-spacing: .08em;
+    color: var(--bark-dark);
+  }
+
+  .gen-b {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 14px;
+    align-items: end;
   }
+  .gen-b > li { display: flex; flex-direction: column; }
+  .gen-b > li > .child { order: 2; }
+  .gen-b > li > .stub { order: 1; }
   .child {
     padding: 14px 12px 12px;
     text-align: center;
@@ -142,7 +164,7 @@
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(70, 40, 10, .1);
   }
-  .child .code {
+  .code {
     display: inline-block;
     margin-bottom: 2px;
     font: italic 500 .85rem/1 "Cormorant Garamond", serif;
@@ -152,8 +174,10 @@
   .child h3 { margin: 0; font: 700 1.4rem/1.1 "Cormorant Garamond", serif; color: var(--ink); }
   .child p { margin: 6px 0 0; font-size: .92rem; line-height: 1.35; color: var(--ink-soft); }
   .child p.spouse { font-style: italic; }
-  .child.line { border: 1.5px solid var(--red); }
-  .child.line::after {
+  .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  abbr[title] { text-decoration: none; cursor: help; font-style: normal; font-weight: 500; color: var(--red-deep); }
+  .line .child { border: 1.5px solid var(--red); }
+  .line .child::after {
     content: "Viljoen line";
     display: block;
     margin: 8px auto 0;
@@ -164,13 +188,27 @@
     background: var(--red);
     border-radius: 999px;
   }
-  .tree-note {
-    max-width: 620px;
-    margin: 26px auto 0;
+  .stub {
+    align-self: center;
+    margin: 0 0 54px;
+    padding: 2px 12px 3px;
+    font: italic 500 .9rem/1.3 "Cormorant Garamond", serif;
+    color: var(--leaf-dark);
+    background: var(--paper-card);
+    border: 1px dashed var(--leaf);
+    border-radius: 999px;
     text-align: center;
-    font-style: italic;
+    white-space: nowrap;
+  }
+  .legend, .tree-note {
+    max-width: 680px;
+    margin: 22px auto 0;
+    text-align: center;
     color: var(--ink-soft);
   }
+  .legend { font-size: 1rem; }
+  .legend > span { white-space: nowrap; padding: 0 .5em; }
+  .tree-note { margin-top: 10px; font-style: italic; font-size: 1rem; }
 
   /* ---------- Divider (Huguenot cross) ---------- */
   .divider {
@@ -223,19 +261,26 @@
     color: var(--ink-soft);
   }
 
+  @media (max-width: 1100px) {
+    .stub { padding: 2px 8px 3px; font-size: .8rem; }
+  }
+
   /* ---------- Narrow screens: the tree becomes a single descending line ---------- */
   @media (max-width: 900px) {
-    .children {
-      grid-template-columns: 1fr;
-      max-width: 480px;
-      margin: 56px auto 0;
-      padding-left: 46px;
-      gap: 14px;
+    .jump {
+      display: block;
+      width: max-content;
+      margin: 0 auto 18px;
+      font: italic 500 1.05rem/1.3 "Cormorant Garamond", serif;
     }
+    .gen-b, .gen-a > .couple, .soil { width: min(100%, 526px); margin-left: auto; margin-right: auto; }
+    .gen-b { grid-template-columns: 1fr; gap: 14px; padding-left: 46px; }
+    .gen-a > .couple { margin-top: 48px; }
+    .gen-b > li > .stub { order: 3; align-self: flex-start; margin: 6px 0 0; }
     .child { text-align: left; padding: 12px 16px; }
     .child h3 { display: inline; }
     .child .code { margin-right: 6px; }
-    .child.line::after { margin: 8px 0 0; }
+    .line .child::after { margin: 8px 0 0; }
     .story { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; }
   }
   @media (max-width: 520px) {
@@ -248,7 +293,8 @@
     .corner.tl, .corner.bl { left: 12px; } .corner.tr, .corner.br { right: 12px; }
     .ribbon { height: 52px; margin-top: -26px; }
     .ribbon h1 { padding-top: 8px; }
-    .tree { padding-top: 54px; }
+    .tree { padding-top: 40px; }
+    .soil { padding: 0 4% 10px; font-size: .95rem; }
     .couple { padding: 16px 16px 14px; }
   }
 </style>
@@ -283,48 +329,69 @@
 
   <section class="tree" aria-labelledby="stamouers">
     <svg class="branches" aria-hidden="true"></svg>
+    <a class="jump" href="#stamouers">Stamouers <span aria-hidden="true">&darr;</span></a>
 
-    <div class="couple" id="couple">
-      <p class="eyebrow">Stamouers &middot; The founding couple</p>
-      <h2 id="stamouers"><span class="nm">Fran&ccedil;ois Villion</span> <span class="x">&amp;</span> <span class="nm">Cornelia Campenaar</span></h2>
-      <p class="meta">of Clermont, France &middot; of Middelburg, the Netherlands<br>
-        married at the Cape of Good Hope, 1676</p>
-    </div>
+    <ol class="stamboom">
+      <li class="gen-a">
+        <div class="couple" id="couple">
+          <p class="eyebrow"><span class="code">a</span> &middot; Stamouers &middot; The founding couple</p>
+          <h2 id="stamouers"><span class="nm">Fran&ccedil;ois Villion</span> <span class="x">&amp;</span> <span class="nm">Cornelia Campenaar</span></h2>
+          <p class="meta">of Clermont, France &middot; of Middelburg, the Netherlands<br>
+            <abbr title="married"><span aria-hidden="true">x</span><span class="vh">married</span></abbr> 1676 at the Cape of Good Hope</p>
+        </div>
+        <div class="soil" aria-hidden="true"><span>Clermont</span><span>Middelburg</span></div>
 
-    <ol class="children" aria-label="Their six children">
-      <li class="child">
-        <span class="code">b1</span><h3>Pieter</h3>
-        <p>bapt. 1677, Cape Town</p>
-        <p class="spouse">never married</p>
-      </li>
-      <li class="child">
-        <span class="code">b2</span><h3>Anna</h3>
-        <p>bapt. 1678, Cape Town</p>
-        <p class="spouse">m. 1691 Heinrich Venter</p>
-      </li>
-      <li class="child line">
-        <span class="code">b3</span><h3>Henning</h3>
-        <p>bapt. 1682, Cape Town</p>
-        <p class="spouse">m. 1707 Margaretha de Savoye</p>
-      </li>
-      <li class="child line">
-        <span class="code">b4</span><h3>Johannes</h3>
-        <p>bapt. 1684, Cape Town</p>
-        <p class="spouse">m. 1708 Catharina Snyman</p>
-      </li>
-      <li class="child">
-        <span class="code">b5</span><h3>Cornelia</h3>
-        <p>bapt. 1686, Stellenbosch</p>
-        <p class="spouse">m. 1702 Hercule du Preez, m. 1722 Christian Maasdorp</p>
-      </li>
-      <li class="child">
-        <span class="code">b6</span><h3>Francina</h3>
-        <p>bapt. 1689, Stellenbosch</p>
-        <p class="spouse">m. Jacob Cloete</p>
+        <ol class="gen-b" aria-label="Their six children">
+          <li>
+            <div class="child">
+              <span class="code">b1</span><h3>Pieter</h3>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 07.02.1677 Cape Town</p>
+              <p class="spouse">never married</p>
+            </div>
+          </li>
+          <li>
+            <div class="child">
+              <span class="code">b2</span><h3>Anna</h3>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 19.05.1678 Cape Town</p>
+              <p class="spouse"><abbr title="married"><span aria-hidden="true">x</span><span class="vh">married</span></abbr> 09.12.1691 Heinrich Venter</p>
+            </div>
+          </li>
+          <li class="line">
+            <div class="child">
+              <span class="code">b3</span><h3>Henning</h3>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 19.05.1682 Cape Town</p>
+              <p class="spouse"><abbr title="married"><span aria-hidden="true">x</span><span class="vh">married</span></abbr> 1707 Margaretha de Savoye</p>
+            </div>
+            <p class="stub"><span class="code">c</span> generation to follow</p>
+          </li>
+          <li class="line">
+            <div class="child">
+              <span class="code">b4</span><h3>Johannes</h3>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 24.09.1684 Cape Town</p>
+              <p class="spouse"><abbr title="married"><span aria-hidden="true">x</span><span class="vh">married</span></abbr> 14.08.1708 Catharina Snyman</p>
+            </div>
+            <p class="stub"><span class="code">c</span> generation to follow</p>
+          </li>
+          <li>
+            <div class="child">
+              <span class="code">b5</span><h3>Cornelia</h3>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 13.10.1686 Stellenbosch</p>
+              <p class="spouse"><abbr title="married, first"><span aria-hidden="true">x1</span><span class="vh">married, first</span></abbr> 1702 Hercule du Preez, <abbr title="married, second"><span aria-hidden="true">x2</span><span class="vh">married, second</span></abbr> 1722 Christian Maasdorp</p>
+            </div>
+          </li>
+          <li>
+            <div class="child">
+              <span class="code">b6</span><h3>Francina</h3>
+              <p><abbr title="baptized"><span aria-hidden="true">&#126;</span><span class="vh">baptized</span></abbr> 24.04.1689 Stellenbosch</p>
+              <p class="spouse"><abbr title="married"><span aria-hidden="true">x</span><span class="vh">married</span></abbr> Jacob Cloete</p>
+            </div>
+          </li>
+        </ol>
       </li>
     </ol>
 
-    <p class="tree-note">The Viljoen name was carried forward through the lines of Henning and Johannes.</p>
+    <p class="legend"><span><abbr title="born"><span aria-hidden="true">&ast;</span></abbr> born</span> <span><abbr title="baptized"><span aria-hidden="true">&#126;</span></abbr> baptized</span> <span><abbr title="married"><span aria-hidden="true">x</span></abbr> married, x1 and x2 for a first and second marriage</span> <span><abbr title="died"><span aria-hidden="true">&dagger;</span></abbr> died</span></p>
+    <p class="tree-note">Numbered in the South African de Villiers/Pama system: a is the stamvader, b1 to b6 his children, and b3c4 the fourth child of b3. The Viljoen name was carried forward through the lines of Henning and Johannes. Dates come from published descendant lists and are still to be verified against the Familiebond's Familieregister.</p>
   </section>
 
   <div class="divider" aria-hidden="true">
@@ -402,9 +469,9 @@
     const NS = "http://www.w3.org/2000/svg";
     const tree = document.querySelector(".tree");
     const svg = tree.querySelector("svg.branches");
-    const ribbon = document.querySelector(".ribbon");
     const couple = document.getElementById("couple");
-    const kids = [...tree.querySelectorAll(".child")];
+    const soil = tree.querySelector(".soil");
+    const items = [...tree.querySelectorAll(".gen-b > li")];
 
     function box(el) {
       const t = tree.getBoundingClientRect(), r = el.getBoundingClientRect();
@@ -469,45 +536,57 @@
         <style>
           .limb { fill: #5b3f27; stroke: #3a2716; stroke-width: .8; }
           .trunk .limb { fill: url(#barkGrad); }
+          .root { fill: #4a3220; }
           .leaf { fill: #6f7d3a; stroke: #4f5a26; stroke-width: .7; }
           .leaf.dark { fill: #58652c; }
           .leaf.gold { fill: #c79a3a; stroke: #8a6420; }
         </style>`;
 
-      const rb = box(ribbon), cp = box(couple);
-      const trunkTop = [rb.cx, rb.b - 14], trunkBot = [cp.cx, cp.t + 6];
-      const h = trunkBot[1] - trunkTop[1];
-      const trunk = document.createElementNS(NS, "g");
-      trunk.setAttribute("class", "trunk");
-      const tp = [trunkTop, [trunkTop[0] - 8, trunkTop[1] + h * .35], [trunkBot[0] + 8, trunkTop[1] + h * .65], trunkBot];
-      trunk.appendChild(limb(tp, 22, 16));
-      svg.appendChild(trunk);
-      svg.appendChild(leaves(tp, [.35, .5, .62], 16, 1));
+      const cp = box(couple), so = box(soil);
+      const k = items.map(li => ({ c: box(li.querySelector(".child")), line: li.classList.contains("line"),
+                                   stub: li.querySelector(".stub") && box(li.querySelector(".stub")) }));
+      const stacked = k.length > 1 && k[1].c.t > k[0].c.b - 2;
 
-      const k = kids.map(box);
-      const stacked = k.length > 1 && k[1].t > k[0].b - 2;
+      [-2, -1, 0, 1, 2, -1.5, 1.5].forEach((j, i) => {
+        const main = i < 5, sx = cp.cx + j * 22, sy = cp.b - 8;
+        const ex = cp.cx + j * (so.r - so.l) / (main ? 9 : 6), ey = so.t + (so.b - so.t) * (main ? .55 + (i % 2) * .25 : .4);
+        const p = [[sx, sy], [sx + j * 4, sy + (ey - sy) * .5], [ex - j * 10, ey - (ey - sy) * .3], [ex, ey]];
+        const r = limb(p, main ? 11 - Math.abs(j) * 2 : 4, 1.2);
+        r.setAttribute("class", "limb root");
+        svg.appendChild(r);
+      });
 
       if (!stacked) {
-        const y0 = cp.b - 6;
-        k.forEach((c, i) => {
-          const sx = cp.cx + (i - (k.length - 1) / 2) * 16;
-          const ex = c.cx, ey = c.t + 4, dy = ey - y0;
-          const p = [[sx, y0], [sx, y0 + dy * .6], [ex, ey - dy * .7], [ex, ey]];
-          svg.appendChild(limb(p, 12, 4));
-          svg.appendChild(leaves(p, [.3, .45, .6, .74], 14, i));
+        const kb = Math.max(...k.map(x => x.c.b)), gap = cp.t - kb, forkY = cp.t - gap * .32;
+        const trunk = document.createElementNS(NS, "g");
+        trunk.setAttribute("class", "trunk");
+        const tp = [[cp.cx, cp.t + 8], [cp.cx + 6, cp.t - gap * .12], [cp.cx - 6, forkY + gap * .1], [cp.cx, forkY]];
+        trunk.appendChild(limb(tp, 30, 24));
+        svg.appendChild(trunk);
+        k.forEach((x, i) => {
+          const sx = cp.cx + (i - (k.length - 1) / 2) * 7, sy = forkY + 6;
+          const ex = x.c.cx, ey = x.c.b - 4, dy = sy - ey;
+          const p = [[sx, sy], [sx, sy - dy * .55], [ex, ey + dy * .6], [ex, ey]];
+          svg.appendChild(limb(p, x.line ? 17 : 11, x.line ? 8 : 4));
+          svg.appendChild(leaves(p, [.4, .55, .7, .84], 14, i));
+          if (x.stub) {
+            const q = [[x.c.cx, x.c.t + 4], [x.c.cx, x.c.t - 20], [x.stub.cx, x.stub.b + 20], [x.stub.cx, x.stub.b - 2]];
+            svg.appendChild(limb(q, 8, 4));
+            svg.appendChild(leaves(q, [.35, .7], 12, i + 1));
+          }
         });
       } else {
-        const gx = k[0].l - 24;
-        const y0 = cp.b - 6, yEnd = k[k.length - 1].cy;
-        const stem = [[cp.cx, y0], [cp.cx, y0 + 40], [gx, k[0].t - 30], [gx, k[0].t + 10]];
-        svg.appendChild(limb(stem, 13, 10));
-        const down = [[gx, k[0].t + 10], [gx - 4, k[0].t + (yEnd - k[0].t) * .4], [gx + 4, k[0].t + (yEnd - k[0].t) * .7], [gx, yEnd]];
-        svg.appendChild(limb(down, 10, 5));
-        svg.appendChild(leaves(stem, [.45, .7], 14, 2));
-        k.forEach((c, i) => {
-          const sy = c.cy - 16;
-          const p = [[gx, sy], [gx + 10, sy + 4], [c.l - 12, c.cy], [c.l + 2, c.cy]];
-          svg.appendChild(limb(p, 6, 3));
+        const gx = k[0].c.l - 24, top = k[0].c.cy;
+        const trunk = document.createElementNS(NS, "g");
+        trunk.setAttribute("class", "trunk");
+        const tp = [[gx, cp.t + 10], [gx - 5, cp.t - (cp.t - top) * .35], [gx + 5, cp.t - (cp.t - top) * .7], [gx, top]];
+        trunk.appendChild(limb(tp, 18, 7));
+        svg.appendChild(trunk);
+        svg.appendChild(leaves(tp, [.15, .5], 14, 2));
+        k.forEach((x, i) => {
+          const sy = x.c.cy + 16;
+          const p = [[gx, sy], [gx + 10, sy - 4], [x.c.l - 12, x.c.cy], [x.c.l + 2, x.c.cy]];
+          svg.appendChild(limb(p, x.line ? 9 : 6, x.line ? 5 : 3));
           svg.appendChild(leaves(p, [.45], 11, i));
         });
       }

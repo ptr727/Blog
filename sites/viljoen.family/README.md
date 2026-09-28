@@ -54,12 +54,20 @@ The drawing in `crest.svg` is an original rendering of that blazon:
 
 ## How the Tree Is Drawn
 
-The script at the bottom of `index.html` measures the ribbon, the couple card, and the child cards, then fills `svg.branches` inside `.tree`:
+The tree is a stamboom. The children form the crown, and the stamouers card sits at the base of the trunk. Roots reach into a soil band labeled Clermont and Middelburg.
+
+- **Markup:** the DOM is in genealogical order, as nested `<ol>`. `li.gen-a` holds the couple card, the soil band, and `ol.gen-b`, which has one `li` per child. CSS `order` puts the children above the couple, so the tree reads upward. The source and a screen reader still read from the progenitor down.
+- **Name-carrying lines:** `li.line` marks b3 and b4. Their cards take the red border and "Viljoen line" badge, their limbs are thicker, and a "c generation to follow" stub continues each one.
+- **Numbering and signs:** SAG de Villiers/Pama numbering (`a`, `b1` to `b6`, `b3c4`). The signs are `*` born, `~` baptized, `x` married (`x1`, `x2` for successive marriages), and a dagger for died. Each is an HTML entity inside `<abbr title>`, hidden from screen readers. On the cards a visually hidden word stands in for the sign. The legend under the tree already spells each word out, so its signs carry no hidden word. Dates use the SAG `dd.mm.yyyy` form.
+- **Living people:** none are published. Only people born before about 1925 are shown.
+
+The script at the bottom of `index.html` measures the couple card, the soil band, the child cards, and the stubs, then fills `svg.branches` inside `.tree`:
 
 - Each limb is a cubic Bezier drawn as a filled shape that tapers from width `w0` to `w1` (`limb()`), not as a stroke.
 - Leaves sprout at chosen positions along a limb, alternating sides (`leaves()`). The pattern is fixed rather than random, so every redraw looks the same. About one leaf in five is gold.
-- **Wide layout** (six cards in a row): a trunk runs from the ribbon to the couple, then one S-curve branch runs to each child.
-- **Stacked layout** (900px wide or less): the cards form a column. The script draws a stem down the left gutter, with a twig into each card.
+- **Roots:** seven tapering roots run from the bottom of the couple card into the soil band, in both layouts.
+- **Wide layout** (six cards in a row): a trunk rises from the couple card to a fork. One S-curve branch runs from there to the bottom of each child card. A short limb continues from each name-carrying card to its stub.
+- **Stacked layout** (900px wide or less): the cards form a column. The trunk rises up the left gutter from the couple card, with a twig into each card. A "Stamouers" jump link at the top leads to the couple card, which sits below the children.
 - It redraws on resize, on load, when the fonts finish loading, and through a `ResizeObserver`. With JavaScript off the page still reads correctly, without branches.
 
 ## Facts on the Page and Their Sources
@@ -84,7 +92,7 @@ Serve the directory with any static server, for example `python3 -m http.server 
 
 - A PNG render of the crest and a 1200x630 Open Graph image with `og:` meta tags, so shared links show the crest.
 - Self-hosted fonts instead of Google Fonts, for privacy and a shorter CSP.
-- A second generation on the tree, starting with the Henning and Johannes lines.
+- The c generation on the tree, starting with the Henning and Johannes lines, in place of the stubs.
 - An Afrikaans version of the page, or a language toggle (headings already carry Afrikaans subtitles).
 - A contact line or a Familiebond membership link in the footer.
 - `apple-touch-icon.png` (180x180), rendered from `favicon.svg`.
