@@ -18,8 +18,10 @@ The single-page genealogy site for the Viljoen family, served at `viljoen.family
 | File | What it is |
 | --- | --- |
 | `index.html` | The whole page, with inline CSS and the inline tree-drawing script |
-| `crest.svg` | The full achievement (crest, helm, mantling, shield), hand-written SVG, viewBox 400x440 |
-| `favicon.svg` | The shield alone |
+| `crest.svg` | The full achievement (crest, helm, mantling, shield, name scroll), viewBox 336x418 |
+| `favicon.svg` | The shield alone, cut from `crest.svg` |
+| `apple-touch-icon.png` | 180x180, `favicon.svg` on parchment |
+| `og-image.png` | 1200x630 Open Graph image, the crest beside the page title |
 
 Every file in this directory except this README ships to the bundle's `family/` tree.
 
@@ -33,19 +35,18 @@ The blazon, from the Viljoen Family Website crest page ([hugenoot.org.za][hugeno
 
 The arms derive from the French family Villon de Varennes, whose crest was a golden mural crown. At the 1976 Viljoen Festival the Viljoen Familiebond voted to replace it with the golden wings. Wikipedia's image shows only the shield, helm, and mantling, with no crest, and captions the arms "unregistered". The page therefore describes them as the family's arms and makes no claim of official registration.
 
-The drawing in `crest.svg` is an original rendering of that blazon:
+`crest.svg` is a vector redrawing of the family's crest as Prof. Christo Viljoen shows it ([Viljoen Familie][viljoen-familie]). The pair of folded wings is drawn in profile, so one wing shows. It matches that image's 336x418 size, so the two overlay directly for comparison.
 
-- The helm is an esquire's closed helm in profile.
-- The wreath has six twists, alternating Or and Gules.
-- The mantling is one side (`#mantle`) mirrored with `translate(400,0) scale(-1,1)`.
-- The wings are one wing (`#wing`) mirrored with `translate(404,0) scale(-1,1)`.
-- The saltire is two stroked lines clipped to the shield. Darker 44px strokes under 38px gold strokes give the edge line and a clean crossing.
-- The SVG carries no text. The "Viljoen" ribbon is HTML, so the name stays a real `<h1>`.
+- Each part is a named group: `mantling-gold`, `mantling-red`, `mantling-stems`, `shield`, `helmet`, `wing`, `torse`, `name-scroll`, and `viljoen-lettering`.
+- Each side of the mantling is one group mirrored with `translate(342 0) scale(-1 1)`.
+- The saltire is one filled path clipped to `#shield-outline`.
+- The lettering is vector paths rather than `<text>`, so it renders the same without the font. The page's `<h1>` is visually hidden text, so the name stays a real heading.
+- `favicon.svg` reuses the shield outline and saltire paths. `apple-touch-icon.png` and `og-image.png` are Chromium renders, and they carry no metadata chunks.
 
 ## Page Design
 
 - **Palette:** parchment `#f4ead3`, cards `#fbf5e4`, red `#9e1b22`, gold `#b8862b`, bark `#5b3f27`, leaf `#6f7d3a`, all CSS variables in `:root`.
-- **Fonts (Google Fonts):** IM Fell English SC for the name on the ribbon, Cormorant Garamond for headings, EB Garamond for body text.
+- **Fonts (Google Fonts):** Cormorant Garamond for headings, EB Garamond for body text.
 - **Frame:** a 2.5px red border plus an inner 1px gold rule (`.frame::before`) with rounded corners and four gold corner flourishes (`#corner` symbol). A negative margin on the masthead equals the frame's top margin (128px, or 96px on phones). That puts the top border behind the mantling, so change both values together.
 - **Paper texture:** an inline SVG `feTurbulence` noise data URI plus a radial vignette on `html`.
 - **Divider:** a simplified Huguenot cross (a Maltese cross with fleur points, balls on the tips, and a hanging dove), the `#huguenot-cross` symbol.
@@ -90,12 +91,10 @@ Serve the directory with any static server, for example `python3 -m http.server 
 
 ## Ideas Not Yet Done
 
-- A PNG render of the crest and a 1200x630 Open Graph image with `og:` meta tags, so shared links show the crest.
 - Self-hosted fonts instead of Google Fonts, for privacy and a shorter CSP.
 - The c generation on the tree, starting with the Henning and Johannes lines, in place of the stubs.
 - An Afrikaans version of the page, or a language toggle (headings already carry Afrikaans subtitles).
 - A contact line or a Familiebond membership link in the footer.
-- `apple-touch-icon.png` (180x180), rendered from `favicon.svg`.
 
 <!-- Local files -->
 [operations]: ../../OPERATIONS.md
@@ -104,4 +103,5 @@ Serve the directory with any static server, for example `python3 -m http.server 
 [hugenoot-crest]: https://hugenoot.org.za/Viljoen/crest.htm
 [hugenoot-viljoen]: https://hugenoot.org.za/Viljoen/
 [oocities-descend]: https://www.oocities.org/viljoen_family/descend.htm
+[viljoen-familie]: https://hcv625.wixsite.com/viljoen
 [wikipedia-viljoen]: https://en.wikipedia.org/wiki/Viljoen
