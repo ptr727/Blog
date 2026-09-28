@@ -93,7 +93,7 @@ Serve the directory with any static server, for example `python3 -m http.server 
 [operations]: ../../OPERATIONS.md
 
 <!-- External links -->
-[hugenoot-crest]: http://www.hugenoot.org.za/Viljoen/crest.htm
-[hugenoot-viljoen]: http://www.hugenoot.org.za/Viljoen/
+[hugenoot-crest]: https://hugenoot.org.za/Viljoen/crest.htm
+[hugenoot-viljoen]: https://hugenoot.org.za/Viljoen/
 [oocities-descend]: https://www.oocities.org/viljoen_family/descend.htm
 [wikipedia-viljoen]: https://en.wikipedia.org/wiki/Viljoen
