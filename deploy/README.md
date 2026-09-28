@@ -271,7 +271,7 @@ address out whole, and never build it from a host variable. Six behaviors, all v
 | unset, or set but empty | the block keeps its two public names, and the blog is unaffected |
 | `http://<name>:8080` | `<name>` also serves the family page, language routing included |
 | several addresses, each comma followed by a space | each name serves the family page |
-| a comma with no space after it, or a trailing comma | Caddy refuses the whole config, so the blog fails with it |
+| a comma with no space after it, or a trailing comma | Caddy refuses the config. A running container keeps its old config, and the live check reports a stale release. The next restart takes the blog down |
 | a bare `<name>` | a stray `:443` listener in the container, and `<name>` still serves the blog |
 | `http://:8080`, from a host variable left empty | the family page answers every hostname, and the live check's preflight still passes |
 
