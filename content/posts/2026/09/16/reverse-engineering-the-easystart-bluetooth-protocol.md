@@ -14,6 +14,10 @@ tags:
 - claude
 discussions: https://github.com/ptr727/ESPHome-Config/discussions
 ---
+I decoded the Bluetooth protocol of my Micro-Air EasyStart soft starters from the vendor's Android app, with a lot of help from Claude Code, and now read their compressor data into Home Assistant through ESPHome.
+
+<!--more-->
+
 I have [Micro-Air EasyStart](https://www.microair.net/products/easystart-flex-home-ac-soft-starter) soft starters installed on both my HVAC compressors. I installed them in the summer of 2023, after I started getting frequent brownouts whenever a compressor started. The brownouts came from a combination of low supply voltage, later addressed by my electricity provider, and rising neighborhood demand. Older homes are being torn down and replaced with much larger ones, so panels are going from 80 A to 400 A. Every year more homes add AC and electric car chargers.
 
 The EasyStart modules have built-in Bluetooth Low Energy (BLE), and the vendor's phone app shows live current, line frequency, peak startup current, and a start counter. I monitor whole-home power usage and solar generation in [Home Assistant](https://www.home-assistant.io/). I wanted to use the BLE data for more granular AC power usage reporting, without installing additional current monitors in my panel. I reached out to Micro-Air, but they would not share the protocol. At the time I could not find anyone else who had decoded the protocol, and I lost interest.

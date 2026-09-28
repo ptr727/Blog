@@ -14,11 +14,13 @@ tags:
 - migration
 discussions: https://github.com/ptr727/Blog/discussions
 ---
+I moved this blog from WordPress to a Hugo static site, and the real work was not converting the posts but keeping sixteen years of inbound links working.
+
+<!--more-->
+
 This blog has been quiet since May 2024, and it was still costing about $140 a year to sit there. That is a silly amount to pay for a site nobody was updating, so I moved it: the content is now a [Hugo](https://gohugo.io/) static site, the source lives on GitHub, CI builds and verifies it, and [Caddy](https://caddyserver.com/) serves it from a small VPS.
 
 The interesting part of this migration was not Hugo. Converting the posts took an afternoon. The interesting part was that this blog has been at the same domain since 2008 across **three** platforms, and each platform left its own URL shapes behind. Getting the content across is easy. Not breaking sixteen years of inbound links is the actual job.
-
-This post is about what that took, and about the things that silently went wrong and only showed up because I went looking.
 
 ## This is the second time I have done this
 
@@ -248,6 +250,16 @@ Two things I would do again:
 **Put a length floor on every list-driven check.** A gate that reads a list of URLs and checks each one passes perfectly if the list is truncated to nothing. Mine assert a minimum count, and I proved it by cutting the list to 50 entries that all existed. Without the floor, that passes.
 
 **Demonstrate each gate failing before trusting it.** I deleted a post and confirmed the parity check failed. I deleted one media file and confirmed the media and asset checks failed separately. I pointed a redirect map entry at a page that does not exist and confirmed the live check caught it. A gate that has only ever passed is indistinguishable from one that checks nothing.
+
+## Your original photos know where you live
+
+Keeping the originals from the export tar had a cost I did not see at first. **206 of the images held GPS coordinates that located my house to about a meter**, along with camera bearing and altitude. Once the files sit in a public repository, anyone can read that metadata.
+
+So personal data became a gate too. A normalizer strips every image down to what it needs to render: its dimensions, a standard color profile, and a JPEG's orientation and capture time. Location, device, and authorship are not on that list, so they go without anyone having to think of them. The strip is lossless, and it refuses a file it cannot clean unambiguously rather than guessing. CI then fails the build on any image carrying anything else, including inside a zip.
+
+Metadata is only half of it. A house number, a face, or a license plate is in the pixels, so those get a flat opaque fill, never a blur, which can be reversed for a short string. The fills on old images are declared in a manifest and checked by hash, so a restored original fails the build. A third check reads the text of every new post for email addresses, hardware addresses, public IP addresses, coordinates, and phone numbers. It reports the file, the line, and the kind of finding, but never the value, so the CI log does not publish what it caught.
+
+All three run on every pull request, next to the URL checks. How it works in detail is in the [repository README](https://github.com/ptr727/Blog/blob/main/README.md).
 
 ## Do not do this by hand
 
