@@ -6,9 +6,19 @@
 <title>The Viljoen Family</title>
 <meta name="description" content="The Viljoen family of South Africa, descendants of the Huguenot Fran&ccedil;ois Villion and Cornelia Campenaar, married at the Cape of Good Hope in 1676.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://viljoen.family/">
+<meta property="og:title" content="The Viljoen Family">
+<meta property="og:description" content="The Viljoen family of South Africa, descendants of the Huguenot Fran&ccedil;ois Villion and Cornelia Campenaar, married at the Cape of Good Hope in 1676.">
+<meta property="og:image" content="https://viljoen.family/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Viljoen coat of arms beside the words The Viljoen Family">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
     --paper: #f4ead3;
@@ -67,7 +77,7 @@
   .corner.bl { bottom: 18px; left: 18px; transform: scaleY(-1); }
   .corner.br { bottom: 18px; right: 18px; transform: scale(-1, -1); }
 
-  /* ---------- Crest and name ribbon ---------- */
+  /* ---------- Crest ---------- */
   .masthead {
     position: relative;
     margin: -128px auto 0;
@@ -76,22 +86,6 @@
     z-index: 1;
   }
   .crest { display: block; width: 100%; height: auto; filter: drop-shadow(0 3px 4px rgba(60, 30, 10, .25)); }
-  .ribbon {
-    position: relative;
-    margin: -34px auto 0;
-    width: 118%;
-    left: -9%;
-    height: 64px;
-  }
-  .ribbon svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-  .ribbon h1 {
-    position: relative;
-    margin: 0;
-    padding-top: 9px;
-    font: 400 clamp(1.9rem, 6vw, 2.5rem)/1 "IM Fell English SC", "Cormorant Garamond", serif;
-    letter-spacing: .12em;
-    color: var(--red-deep);
-  }
 
   /* ---------- Family tree ---------- */
   .tree { position: relative; padding-top: 48px; }
@@ -291,8 +285,6 @@
     .corner { width: 30px; height: 30px; }
     .corner.tl, .corner.tr { top: 12px; } .corner.bl, .corner.br { bottom: 12px; }
     .corner.tl, .corner.bl { left: 12px; } .corner.tr, .corner.br { right: 12px; }
-    .ribbon { height: 52px; margin-top: -26px; }
-    .ribbon h1 { padding-top: 8px; }
     .tree { padding-top: 40px; }
     .soil { padding: 0 4% 10px; font-size: .95rem; }
     .couple { padding: 16px 16px 14px; }
@@ -308,23 +300,9 @@
   <svg class="corner br" viewBox="0 0 46 46" aria-hidden="true"><use href="#corner"/></svg>
 
   <header class="masthead">
-    <img class="crest" src="/crest.svg" width="400" height="440"
-         alt="The Viljoen coat of arms: a gold saltire on a red shield, beneath a helm crested with a pair of gold eagle's wings, with red and gold mantling">
-    <div class="ribbon">
-      <svg viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="rib" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#fdf6e3"/><stop offset="1" stop-color="#ead9b0"/>
-          </linearGradient>
-        </defs>
-        <path d="M34,18 L2,20 L16,38 L2,56 L44,54 Z" fill="#d8c18d" stroke="#8a6420" stroke-width="1.2"/>
-        <path d="M366,18 L398,20 L384,38 L398,56 L356,54 Z" fill="#d8c18d" stroke="#8a6420" stroke-width="1.2"/>
-        <path d="M34,18 L44,10 L44,54 L34,46 Z" fill="#a98545"/>
-        <path d="M366,18 L356,10 L356,54 L366,46 Z" fill="#a98545"/>
-        <path d="M44,10 C140,2 260,2 356,10 L356,54 C260,46 140,46 44,54 Z" fill="url(#rib)" stroke="#8a6420" stroke-width="1.4"/>
-      </svg>
-      <h1>Viljoen</h1>
-    </div>
+    <img class="crest" src="/crest.svg" width="336" height="418"
+         alt="The Viljoen coat of arms: a gold saltire on a red shield, beneath a helm crested with a pair of gold eagle's wings seen in profile, with red and gold mantling and a scroll reading Viljoen">
+    <h1 class="vh">Viljoen</h1>
   </header>
 
   <section class="tree" aria-labelledby="stamouers">
