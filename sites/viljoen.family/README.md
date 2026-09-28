@@ -66,12 +66,12 @@ The script at the bottom of `index.html` measures the ribbon, the couple card, a
 
 - **Francois Villion:** a Huguenot from Clermont, France, who arrived at the Cape in 1671 ([Wikipedia][wikipedia-viljoen]). He married Cornelia Campenaar of Middelburg, Netherlands, at the Cape in 1676 ([hugenoot.org.za][hugenoot-viljoen]). They farmed near Stellenbosch.
 - **The six children** ([Descendants of Francois Villion][oocities-descend], which shows baptism years only):
-  - b1 Pieter: baptised Cape Town 1677-02-07, never married
-  - b2 Anna: baptised Cape Town 1678-05-19, married 1691-12-09 Heinrich Venter
-  - b3 Henning: baptised Cape Town 1682-05-19, married 1707 Margaretha de Savoye. She was the daughter of Jacques de Savoye and Marie Madeleine le Clercq, who arrived in 1688 on the Oosterland.
-  - b4 Johannes: baptised Cape Town 1684-09-24, married 1708-08-14 Catharina Snyman
-  - b5 Cornelia: baptised Stellenbosch 1686-10-13, married 1702 Hercule du Preez, then 1722 Christian Maasdorp
-  - b6 Francina: baptised Stellenbosch 1689-04-24, married Jacob Cloete
+  - b1 Pieter: baptized Cape Town 1677-02-07, never married
+  - b2 Anna: baptized Cape Town 1678-05-19, married 1691-12-09 Heinrich Venter
+  - b3 Henning: baptized Cape Town 1682-05-19, married 1707 Margaretha de Savoye. She was the daughter of Jacques de Savoye and Marie Madeleine le Clercq, who arrived in 1688 on the Oosterland.
+  - b4 Johannes: baptized Cape Town 1684-09-24, married 1708-08-14 Catharina Snyman
+  - b5 Cornelia: baptized Stellenbosch 1686-10-13, married 1702 Hercule du Preez, then 1722 Christian Maasdorp
+  - b6 Francina: baptized Stellenbosch 1689-04-24, married Jacob Cloete
 - **Next generation**, not yet on the page: Henning b3c4 married Susanna Durand and had 12 children. Johannes b4c2 married Aletta Olivier and had 8 children.
 - **Still to verify** against the Familiebond's Familieregister (4 volumes, about 2,000 pages): all of the above. That includes the claim that the Viljoen name was carried forward through Henning and Johannes.
 - **MyHeritage and Geni** returned nothing to automated fetches, and their content has not been reviewed.
