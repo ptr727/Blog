@@ -211,15 +211,23 @@ echo "==> precompressing"
 have_brotli=0
 if command -v brotli >/dev/null; then have_brotli=1; fi
 
+drop_unless_smaller() {
+	if [ "$(wc -c <"$1")" -ge "$(wc -c <"$2")" ]; then
+		rm -f -- "$1"
+	fi
+}
+
 precompress() {
 	find "$1" -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' \
 		-o -name '*.svg' -o -name '*.xml' -o -name '*.json' -o -name '*.txt' \) -print0 |
 		while IFS= read -r -d '' f; do
 			gzip -9 -k -f "$f"
+			drop_unless_smaller "$f.gz" "$f"
 			# A false test as the last command in a loop body exits the loop non-zero, and pipefail then ends the script.
 			# The if form is required here because this branch exists to tolerate a missing binary.
 			if [ "$have_brotli" = 1 ]; then
 				brotli -q 11 -k -f "$f"
+				drop_unless_smaller "$f.br" "$f"
 			fi
 		done
 }
