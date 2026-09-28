@@ -1,6 +1,6 @@
 # Deploy
 
-How the site is built, released, and served. The release is a **self-contained bundle** carrying the site, the Caddyfile, and the redirect maps together, so a rollback reverts the redirect rules and the content they refer to as one unit.
+How the site is built, released, and served. The release is a **self-contained bundle** carrying the site, the Caddyfile, the redirect maps, and the family site together. A rollback therefore reverts the redirect rules and the content they refer to as one unit.
 
 ## Required tools
 
@@ -261,6 +261,7 @@ that too and has to be excluded deliberately.
     site/        the built site, precompressed
     Caddyfile    the redirect rules
     maps/        p-ids, slugs, blogger, labels, terms
+    family/      the viljoen.family page, precompressed
 ```
 
 ## How the redirects are expressed

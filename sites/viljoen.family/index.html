@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Viljoen Family</title>
+<meta name="description" content="The Viljoen family of South Africa, descendants of the Huguenot Fran&ccedil;ois Villion and Cornelia Campenaar, married at the Cape of Good Hope in 1676.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4ead3;
+    --paper-card: #fbf5e4;
+    --ink: #2e2217;
+    --ink-soft: #5e4c39;
+    --red: #9e1b22;
+    --red-deep: #6e1016;
+    --gold: #b8862b;
+    --gold-light: #e2b34a;
+    --bark: #5b3f27;
+    --bark-dark: #3a2716;
+    --leaf: #6f7d3a;
+    --leaf-dark: #4f5a26;
+    --paper-tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: var(--paper-tex), radial-gradient(ellipse at 50% 30%, #f7efdc 0%, var(--paper) 55%, #e6d5ae 100%) fixed;
+    background-color: var(--paper);
+  }
+  body {
+    margin: 0;
+    padding: 0 clamp(10px, 3vw, 28px) 28px;
+    color: var(--ink);
+    font: 400 1.125rem/1.6 "EB Garamond", Garamond, "Times New Roman", serif;
+  }
+  a { color: var(--red); text-decoration-color: color-mix(in srgb, var(--red) 40%, transparent); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: currentColor; }
+
+  /* ---------- Page frame: double rule, rounded, hung from the crest ---------- */
+  .frame {
+    position: relative;
+    max-width: 1180px;
+    margin: 128px auto 0;
+    padding: 0 clamp(18px, 4vw, 60px) 40px;
+    border: 2.5px solid var(--red);
+    border-radius: 40px;
+  }
+  .frame::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid var(--gold);
+    border-radius: 33px;
+    pointer-events: none;
+  }
+  .corner {
+    position: absolute;
+    width: 46px; height: 46px;
+    color: var(--gold);
+    pointer-events: none;
+  }
+  .corner.tl { top: 18px; left: 18px; }
+  .corner.tr { top: 18px; right: 18px; transform: scaleX(-1); }
+  .corner.bl { bottom: 18px; left: 18px; transform: scaleY(-1); }
+  .corner.br { bottom: 18px; right: 18px; transform: scale(-1, -1); }
+
+  /* ---------- Crest and name ribbon ---------- */
+  .masthead {
+    position: relative;
+    margin: -128px auto 0;
+    width: min(340px, 78vw);
+    text-align: center;
+    z-index: 1;
+  }
+  .crest { display: block; width: 100%; height: auto; filter: drop-shadow(0 3px 4px rgba(60, 30, 10, .25)); }
+  .ribbon {
+    position: relative;
+    margin: -34px auto 0;
+    width: 118%;
+    left: -9%;
+    height: 64px;
+  }
+  .ribbon svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .ribbon h1 {
+    position: relative;
+    margin: 0;
+    padding-top: 9px;
+    font: 400 clamp(1.9rem, 6vw, 2.5rem)/1 "IM Fell English SC", "Cormorant Garamond", serif;
+    letter-spacing: .12em;
+    color: var(--red-deep);
+  }
+
+  /* ---------- Family tree ---------- */
+  .tree { position: relative; padding-top: 70px; }
+  .tree > svg.branches {
+    position: absolute; left: 0; top: 0;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .couple, .child { position: relative; z-index: 1; }
+  .couple {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 20px 28px 18px;
+    text-align: center;
+    background: var(--paper-card);
+    border: 1.5px solid var(--gold);
+    border-radius: 18px;
+    box-shadow: 0 0 0 5px var(--paper-card), 0 0 0 6px color-mix(in srgb, var(--gold) 55%, transparent), 0 8px 22px rgba(70, 40, 10, .14);
+  }
+  .eyebrow {
+    margin: 0 0 4px;
+    font: italic 500 1rem/1.3 "Cormorant Garamond", serif;
+    letter-spacing: .06em;
+    color: var(--ink-soft);
+  }
+  .couple h2 {
+    margin: 0;
+    font: 600 clamp(1.5rem, 3.6vw, 2rem)/1.15 "Cormorant Garamond", serif;
+    color: var(--red-deep);
+  }
+  .couple h2 .x { font-weight: 500; color: var(--gold); padding: 0 .15em; }
+  .couple h2 .nm { white-space: nowrap; }
+  .couple p.meta { margin: 8px 0 0; font-size: 1rem; color: var(--ink-soft); line-height: 1.45; }
+
+  .children {
+    list-style: none;
+    margin: 120px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .child {
+    padding: 14px 12px 12px;
+    text-align: center;
+    background: var(--paper-card);
+    border: 1px solid color-mix(in srgb, var(--gold) 70%, transparent);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(70, 40, 10, .1);
+  }
+  .child .code {
+    display: inline-block;
+    margin-bottom: 2px;
+    font: italic 500 .85rem/1 "Cormorant Garamond", serif;
+    color: var(--gold);
+    letter-spacing: .05em;
+  }
+  .child h3 { margin: 0; font: 700 1.4rem/1.1 "Cormorant Garamond", serif; color: var(--ink); }
+  .child p { margin: 6px 0 0; font-size: .92rem; line-height: 1.35; color: var(--ink-soft); }
+  .child p.spouse { font-style: italic; }
+  .child.line { border: 1.5px solid var(--red); }
+  .child.line::after {
+    content: "Viljoen line";
+    display: block;
+    margin: 8px auto 0;
+    width: max-content;
+    padding: 1px 10px 2px;
+    font: italic 500 .8rem/1.3 "Cormorant Garamond", serif;
+    color: var(--paper-card);
+    background: var(--red);
+    border-radius: 999px;
+  }
+  .tree-note {
+    max-width: 620px;
+    margin: 26px auto 0;
+    text-align: center;
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Divider (Huguenot cross) ---------- */
+  .divider {
+    display: flex; align-items: center; gap: 16px;
+    max-width: 520px;
+    margin: 52px auto 40px;
+    color: var(--gold);
+  }
+  .divider::before, .divider::after {
+    content: ""; flex: 1; height: 1px;
+    background: linear-gradient(to var(--dir, right), transparent, var(--gold));
+  }
+  .divider::after { --dir: left; }
+  .divider svg { width: 46px; height: 58px; flex: none; }
+
+  /* ---------- Story sections ---------- */
+  .story {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(24px, 4vw, 48px);
+  }
+  .story h2 {
+    margin: 0 0 10px;
+    font: 600 1.7rem/1.1 "Cormorant Garamond", serif;
+    color: var(--red-deep);
+  }
+  .story h2 small {
+    display: block;
+    font: italic 500 1rem/1.4 "Cormorant Garamond", serif;
+    color: var(--gold);
+    letter-spacing: .04em;
+  }
+  .story p { margin: 0 0 12px; }
+  .blazon {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--gold);
+    background: color-mix(in srgb, var(--paper-card) 70%, transparent);
+    font-style: italic;
+  }
+  .links { list-style: none; margin: 0; padding: 0; }
+  .links li { padding: 7px 0; border-bottom: 1px dotted color-mix(in srgb, var(--gold) 60%, transparent); }
+  .links li:last-child { border-bottom: 0; }
+  .links span { display: block; font-size: .92rem; color: var(--ink-soft); line-height: 1.35; }
+
+  footer {
+    margin-top: 44px;
+    text-align: center;
+    font: italic 500 1rem/1.5 "Cormorant Garamond", serif;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Narrow screens: the tree becomes a single descending line ---------- */
+  @media (max-width: 900px) {
+    .children {
+      grid-template-columns: 1fr;
+      max-width: 480px;
+      margin: 56px auto 0;
+      padding-left: 46px;
+      gap: 14px;
+    }
+    .child { text-align: left; padding: 12px 16px; }
+    .child h3 { display: inline; }
+    .child .code { margin-right: 6px; }
+    .child.line::after { margin: 8px 0 0; }
+    .story { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; }
+  }
+  @media (max-width: 520px) {
+    body { font-size: 1.0625rem; }
+    .frame { margin-top: 96px; border-radius: 26px; }
+    .frame::before { inset: 5px; border-radius: 21px; }
+    .masthead { margin-top: -96px; }
+    .corner { width: 30px; height: 30px; }
+    .corner.tl, .corner.tr { top: 12px; } .corner.bl, .corner.br { bottom: 12px; }
+    .corner.tl, .corner.bl { left: 12px; } .corner.tr, .corner.br { right: 12px; }
+    .ribbon { height: 52px; margin-top: -26px; }
+    .ribbon h1 { padding-top: 8px; }
+    .tree { padding-top: 54px; }
+    .couple { padding: 16px 16px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <svg class="corner tl" viewBox="0 0 46 46" aria-hidden="true"><use href="#corner"/></svg>
+  <svg class="corner tr" viewBox="0 0 46 46" aria-hidden="true"><use href="#corner"/></svg>
+  <svg class="corner bl" viewBox="0 0 46 46" aria-hidden="true"><use href="#corner"/></svg>
+  <svg class="corner br" viewBox="0 0 46 46" aria-hidden="true"><use href="#corner"/></svg>
+
+  <header class="masthead">
+    <img class="crest" src="/crest.svg" width="400" height="440"
+         alt="The Viljoen coat of arms: a gold saltire on a red shield, beneath a helm crested with a pair of gold eagle's wings, with red and gold mantling">
+    <div class="ribbon">
+      <svg viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="rib" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fdf6e3"/><stop offset="1" stop-color="#ead9b0"/>
+          </linearGradient>
+        </defs>
+        <path d="M34,18 L2,20 L16,38 L2,56 L44,54 Z" fill="#d8c18d" stroke="#8a6420" stroke-width="1.2"/>
+        <path d="M366,18 L398,20 L384,38 L398,56 L356,54 Z" fill="#d8c18d" stroke="#8a6420" stroke-width="1.2"/>
+        <path d="M34,18 L44,10 L44,54 L34,46 Z" fill="#a98545"/>
+        <path d="M366,18 L356,10 L356,54 L366,46 Z" fill="#a98545"/>
+        <path d="M44,10 C140,2 260,2 356,10 L356,54 C260,46 140,46 44,54 Z" fill="url(#rib)" stroke="#8a6420" stroke-width="1.4"/>
+      </svg>
+      <h1>Viljoen</h1>
+    </div>
+  </header>
+
+  <section class="tree" aria-labelledby="stamouers">
+    <svg class="branches" aria-hidden="true"></svg>
+
+    <div class="couple" id="couple">
+      <p class="eyebrow">Stamouers &middot; The founding couple</p>
+      <h2 id="stamouers"><span class="nm">Fran&ccedil;ois Villion</span> <span class="x">&amp;</span> <span class="nm">Cornelia Campenaar</span></h2>
+      <p class="meta">of Clermont, France &middot; of Middelburg, the Netherlands<br>
+        married at the Cape of Good Hope, 1676</p>
+    </div>
+
+    <ol class="children" aria-label="Their six children">
+      <li class="child">
+        <span class="code">b1</span><h3>Pieter</h3>
+        <p>bapt. 1677, Cape Town</p>
+        <p class="spouse">never married</p>
+      </li>
+      <li class="child">
+        <span class="code">b2</span><h3>Anna</h3>
+        <p>bapt. 1678, Cape Town</p>
+        <p class="spouse">m. 1691 Heinrich Venter</p>
+      </li>
+      <li class="child line">
+        <span class="code">b3</span><h3>Henning</h3>
+        <p>bapt. 1682, Cape Town</p>
+        <p class="spouse">m. 1707 Margaretha de Savoye</p>
+      </li>
+      <li class="child line">
+        <span class="code">b4</span><h3>Johannes</h3>
+        <p>bapt. 1684, Cape Town</p>
+        <p class="spouse">m. 1708 Catharina Snyman</p>
+      </li>
+      <li class="child">
+        <span class="code">b5</span><h3>Cornelia</h3>
+        <p>bapt. 1686, Stellenbosch</p>
+        <p class="spouse">m. 1702 Hercule du Preez, m. 1722 Christian Maasdorp</p>
+      </li>
+      <li class="child">
+        <span class="code">b6</span><h3>Francina</h3>
+        <p>bapt. 1689, Stellenbosch</p>
+        <p class="spouse">m. Jacob Cloete</p>
+      </li>
+    </ol>
+
+    <p class="tree-note">The Viljoen name was carried forward through the lines of Henning and Johannes.</p>
+  </section>
+
+  <div class="divider" aria-hidden="true">
+    <svg viewBox="-24 -26 48 60"><use href="#huguenot-cross"/></svg>
+  </div>
+
+  <main class="story">
+    <article>
+      <h2>Origins<small>Oorsprong</small></h2>
+      <p>The Viljoens of South Africa descend from Fran&ccedil;ois Villion, a French Huguenot from Clermont who reached the Cape of Good Hope in 1671, well before the main Huguenot settlement of 1688.</p>
+      <p>In 1676 he married Cornelia Campenaar of Middelburg in the Netherlands, and the couple farmed near Stellenbosch. Their six children were baptized in Cape Town and Stellenbosch between 1677 and 1689, and over the generations the French name Villion settled into its Afrikaans form, Viljoen.</p>
+    </article>
+
+    <article>
+      <h2>The Arms<small>Die familiewapen</small></h2>
+      <p class="blazon">Gules, a saltire Or. Mantling Or and Gules. Crest: a pair of eagle's wings folded Or.</p>
+      <p>A gold St Andrew's cross on red, derived from the arms of the French family Villon de Varennes. Their crest was a golden mural crown. At the Viljoen Festival of 1976 the Viljoen Familiebond voted to replace it with the pair of golden eagle's wings shown above.</p>
+    </article>
+
+    <article>
+      <h2>Further reading<small>Verdere leesstof</small></h2>
+      <ul class="links">
+        <li><a href="https://hugenoot.org.za/Viljoen/">Viljoen Family Website</a><span>Genealogy, the arms, and the Viljoen Familiebond</span></li>
+        <li><a href="https://www.facebook.com/Viljoenfamilie/about">Viljoen Familiebond</a><span>The family association on Facebook</span></li>
+        <li><a href="https://huguenotsociety.org.za/">Huguenot Society of South Africa</a><span>The Huguenot Memorial Museum and Monument, Franschhoek</span></li>
+        <li><a href="https://www.oocities.org/viljoen_family/descend.htm">Descendants of Fran&ccedil;ois Villion</a><span>The first generations, with baptism and marriage dates</span></li>
+        <li><a href="https://hcv625.wixsite.com/viljoen">Viljoen Familie</a><span>Stamouers, early generations and Huguenot heritage</span></li>
+        <li><a href="https://www.myheritage.com/site-27656022/viljoen-familie-webwerf">Viljoen Familie Webwerf</a><span>Family site and tree on MyHeritage</span></li>
+        <li><a href="https://www.geni.com/surnames/viljoen">Viljoen on Geni</a><span>Surname profiles and the shared world tree</span></li>
+        <li><a href="https://en.wikipedia.org/wiki/Viljoen">Viljoen on Wikipedia</a><span>The surname and notable Viljoens</span></li>
+      </ul>
+    </article>
+  </main>
+
+  <footer>viljoen.family</footer>
+</div>
+
+<!-- Shared ornaments -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Corner flourish, drawn for the top-left corner -->
+    <g id="corner" fill="none" stroke="currentColor" stroke-linecap="round">
+      <path d="M4,42 C4,18 18,4 42,4" stroke-width="1.6"/>
+      <path d="M12,40 C12,24 24,12 40,12" stroke-width="1"/>
+      <path d="M12,12 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" fill="currentColor" stroke="none"/>
+      <path d="M20,20 C26,14 34,16 34,22 C34,27 28,28 27,24" stroke-width="1.2"/>
+    </g>
+
+    <!-- Huguenot cross: a Maltese cross with fleurs-de-lis between the arms and a descending dove -->
+    <g id="huguenot-cross" fill="currentColor">
+      <g id="hc-arm">
+        <path d="M0,-2 L-8,-20 L0,-15 L8,-20 Z"/>
+        <circle cx="-8" cy="-20.5" r="1.6"/><circle cx="8" cy="-20.5" r="1.6"/>
+      </g>
+      <use href="#hc-arm" transform="rotate(90)"/>
+      <use href="#hc-arm" transform="rotate(180)"/>
+      <use href="#hc-arm" transform="rotate(270)"/>
+      <g id="hc-fleur">
+        <path d="M0,-6 C1.6,-8.5 1.6,-11 0,-13 C-1.6,-11 -1.6,-8.5 0,-6 Z" transform="rotate(45)"/>
+      </g>
+      <use href="#hc-fleur" transform="rotate(90)"/>
+      <use href="#hc-fleur" transform="rotate(180)"/>
+      <use href="#hc-fleur" transform="rotate(270)"/>
+      <!-- The dove hangs below the cross, wings spread -->
+      <path d="M0,22 C-3,21 -6,23 -11,21 C-7,25 -4,26 -1.5,26 L-2,31 L0,29.5 L2,31 L1.5,26 C4,26 7,25 11,21 C6,23 3,21 0,22 Z"/>
+      <path d="M0,20 L0,22" stroke="currentColor" stroke-width="1"/>
+    </g>
+  </defs>
+</svg>
+
+<script>
+  // Branches are measured from the rendered cards, so any layout the CSS produces gets a matching tree.
+  // Stacked cards on narrow screens get a stem down the left gutter instead of a fan.
+  (function () {
+    const NS = "http://www.w3.org/2000/svg";
+    const tree = document.querySelector(".tree");
+    const svg = tree.querySelector("svg.branches");
+    const ribbon = document.querySelector(".ribbon");
+    const couple = document.getElementById("couple");
+    const kids = [...tree.querySelectorAll(".child")];
+
+    function box(el) {
+      const t = tree.getBoundingClientRect(), r = el.getBoundingClientRect();
+      return { l: r.left - t.left, r: r.right - t.left, t: r.top - t.top, b: r.bottom - t.top,
+               cx: (r.left + r.right) / 2 - t.left, cy: (r.top + r.bottom) / 2 - t.top };
+    }
+
+    function bez(p, t) {
+      const u = 1 - t;
+      return [0, 1].map(i => u*u*u*p[0][i] + 3*u*u*t*p[1][i] + 3*u*t*t*p[2][i] + t*t*t*p[3][i]);
+    }
+    function tangent(p, t) {
+      const u = 1 - t;
+      return [0, 1].map(i => 3*u*u*(p[1][i]-p[0][i]) + 6*u*t*(p[2][i]-p[1][i]) + 3*t*t*(p[3][i]-p[2][i]));
+    }
+
+    // A cubic Bezier drawn as a filled shape whose width tapers from w0 to w1.
+    function limb(p, w0, w1) {
+      const left = [], right = [], n = 36;
+      for (let i = 0; i <= n; i++) {
+        const t = i / n, [x, y] = bez(p, t);
+        let [dx, dy] = tangent(p, t);
+        const len = Math.hypot(dx, dy) || 1;
+        const w = (w0 + (w1 - w0) * t) / 2;
+        const nx = -dy / len * w, ny = dx / len * w;
+        left.push(`${(x + nx).toFixed(1)},${(y + ny).toFixed(1)}`);
+        right.push(`${(x - nx).toFixed(1)},${(y - ny).toFixed(1)}`);
+      }
+      const el = document.createElementNS(NS, "path");
+      el.setAttribute("d", `M${left.join("L")}L${right.reverse().join("L")}Z`);
+      el.setAttribute("class", "limb");
+      return el;
+    }
+
+    // Leaves sprout from a limb at the given positions, alternating sides.
+    function leaves(p, ts, size, seed) {
+      const g = document.createElementNS(NS, "g");
+      ts.forEach((t, i) => {
+        const [x, y] = bez(p, t), [dx, dy] = tangent(p, t);
+        const side = (i + seed) % 2 ? 1 : -1;
+        const ang = Math.atan2(dy, dx) * 180 / Math.PI + side * (50 + (i * 17 + seed * 11) % 25);
+        const s = size * (0.8 + ((i * 7 + seed * 5) % 5) / 10);
+        const leaf = document.createElementNS(NS, "path");
+        leaf.setAttribute("d", `M0,0 C${s*.3},${-s*.32} ${s*.75},${-s*.3} ${s},0 C${s*.75},${s*.3} ${s*.3},${s*.32} 0,0Z M${s*.12},0 L${s*.85},0`);
+        leaf.setAttribute("transform", `translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${ang.toFixed(1)})`);
+        leaf.setAttribute("class", (i + seed) % 5 === 0 ? "leaf gold" : (i % 2 ? "leaf" : "leaf dark"));
+        g.appendChild(leaf);
+      });
+      return g;
+    }
+
+    function draw() {
+      const t = tree.getBoundingClientRect();
+      svg.setAttribute("width", t.width);
+      svg.setAttribute("height", t.height);
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="barkGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#3a2716"/><stop offset=".45" stop-color="#6e4d30"/><stop offset="1" stop-color="#3a2716"/>
+          </linearGradient>
+        </defs>
+        <style>
+          .limb { fill: #5b3f27; stroke: #3a2716; stroke-width: .8; }
+          .trunk .limb { fill: url(#barkGrad); }
+          .leaf { fill: #6f7d3a; stroke: #4f5a26; stroke-width: .7; }
+          .leaf.dark { fill: #58652c; }
+          .leaf.gold { fill: #c79a3a; stroke: #8a6420; }
+        </style>`;
+
+      const rb = box(ribbon), cp = box(couple);
+      const trunkTop = [rb.cx, rb.b - 14], trunkBot = [cp.cx, cp.t + 6];
+      const h = trunkBot[1] - trunkTop[1];
+      const trunk = document.createElementNS(NS, "g");
+      trunk.setAttribute("class", "trunk");
+      const tp = [trunkTop, [trunkTop[0] - 8, trunkTop[1] + h * .35], [trunkBot[0] + 8, trunkTop[1] + h * .65], trunkBot];
+      trunk.appendChild(limb(tp, 22, 16));
+      svg.appendChild(trunk);
+      svg.appendChild(leaves(tp, [.35, .5, .62], 16, 1));
+
+      const k = kids.map(box);
+      const stacked = k.length > 1 && k[1].t > k[0].b - 2;
+
+      if (!stacked) {
+        const y0 = cp.b - 6;
+        k.forEach((c, i) => {
+          const sx = cp.cx + (i - (k.length - 1) / 2) * 16;
+          const ex = c.cx, ey = c.t + 4, dy = ey - y0;
+          const p = [[sx, y0], [sx, y0 + dy * .6], [ex, ey - dy * .7], [ex, ey]];
+          svg.appendChild(limb(p, 12, 4));
+          svg.appendChild(leaves(p, [.3, .45, .6, .74], 14, i));
+        });
+      } else {
+        const gx = k[0].l - 24;
+        const y0 = cp.b - 6, yEnd = k[k.length - 1].cy;
+        const stem = [[cp.cx, y0], [cp.cx, y0 + 40], [gx, k[0].t - 30], [gx, k[0].t + 10]];
+        svg.appendChild(limb(stem, 13, 10));
+        const down = [[gx, k[0].t + 10], [gx - 4, k[0].t + (yEnd - k[0].t) * .4], [gx + 4, k[0].t + (yEnd - k[0].t) * .7], [gx, yEnd]];
+        svg.appendChild(limb(down, 10, 5));
+        svg.appendChild(leaves(stem, [.45, .7], 14, 2));
+        k.forEach((c, i) => {
+          const sy = c.cy - 16;
+          const p = [[gx, sy], [gx + 10, sy + 4], [c.l - 12, c.cy], [c.l + 2, c.cy]];
+          svg.appendChild(limb(p, 6, 3));
+          svg.appendChild(leaves(p, [.45], 11, i));
+        });
+      }
+    }
+
+    let queued = false;
+    function schedule() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => { queued = false; draw(); });
+    }
+    addEventListener("resize", schedule);
+    addEventListener("load", schedule);
+    if (document.fonts) document.fonts.ready.then(schedule);
+    if ("ResizeObserver" in window) new ResizeObserver(schedule).observe(tree);
+    schedule();
+  })();
+</script>
+</body>
+</html>

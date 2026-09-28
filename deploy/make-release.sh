@@ -211,16 +211,19 @@ echo "==> precompressing"
 have_brotli=0
 if command -v brotli >/dev/null; then have_brotli=1; fi
 
-find public -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' \
-	-o -name '*.svg' -o -name '*.xml' -o -name '*.json' -o -name '*.txt' \) -print0 |
-	while IFS= read -r -d '' f; do
-		gzip -9 -k -f "$f"
-		# A false test as the last command in a loop body exits the loop non-zero, and pipefail then ends the script.
-		# The if form is required here because this branch exists to tolerate a missing binary.
-		if [ "$have_brotli" = 1 ]; then
-			brotli -q 11 -k -f "$f"
-		fi
-	done
+precompress() {
+	find "$1" -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' \
+		-o -name '*.svg' -o -name '*.xml' -o -name '*.json' -o -name '*.txt' \) -print0 |
+		while IFS= read -r -d '' f; do
+			gzip -9 -k -f "$f"
+			# A false test as the last command in a loop body exits the loop non-zero, and pipefail then ends the script.
+			# The if form is required here because this branch exists to tolerate a missing binary.
+			if [ "$have_brotli" = 1 ]; then
+				brotli -q 11 -k -f "$f"
+			fi
+		done
+}
+precompress public
 
 n_gz=$(find public -name '*.gz' | wc -l)
 n_br=$(find public -name '*.br' | wc -l)
@@ -268,6 +271,16 @@ rsync -a --no-g --chmod=D2755,F644 --delete "${LINK_SITE[@]}" public/ "$STAGE/si
 rsync -a --no-g --chmod=D2755,F644 --delete "${LINK_MAPS[@]}" "$REPO/deploy/maps/" "$STAGE/maps/"
 install -m 644 "$REPO/deploy/Caddyfile" "$STAGE/Caddyfile"
 
+# The family site is served by its own host block in the Caddyfile, from this tree.
+# It is a few small files, so it is copied whole rather than hard-linked.
+rsync -a --no-g --chmod=D2755,F644 --delete --exclude README.md "$REPO/sites/viljoen.family/" "$STAGE/family/"
+precompress "$STAGE/family"
+# The rsync above succeeds on an empty source, and the host block would then serve nothing.
+if [ ! -f "$STAGE/family/index.html" ]; then
+	echo "family site has no index.html, so viljoen.family would serve nothing" >&2
+	exit 1
+fi
+
 # Stamp the release into the config it ships with, so a response names the rules answering.
 # A stale config otherwise passes the URL contract against rules that were never shipped.
 # Asserted before substituting, because sed reports success when it matches nothing.
@@ -284,8 +297,8 @@ fi
 
 # --chmod and --no-g govern only the files rsync newly transfers.
 # A file supplied by --link-dest keeps its original inode's mode, so the result is inspected rather than assumed.
-bad_files=$(find "$STAGE/site" "$STAGE/maps" -type f ! -perm -o=r | head -20)
-bad_dirs=$(find "$STAGE/site" "$STAGE/maps" -type d ! -perm -o=x | head -20)
+bad_files=$(find "$STAGE/site" "$STAGE/maps" "$STAGE/family" -type f ! -perm -o=r | head -20)
+bad_dirs=$(find "$STAGE/site" "$STAGE/maps" "$STAGE/family" -type d ! -perm -o=x | head -20)
 if [ -n "$bad_files" ] || [ -n "$bad_dirs" ]; then
 	echo "release is not world-readable, so Caddy would 403 on these paths:" >&2
 	# Each value holds many lines, and the substitution prefixes every one of them.
