@@ -1,6 +1,6 @@
 # viljoen.family
 
-The single-page genealogy site for the Viljoen family, served at `viljoen.family` from the blog's release bundle. See [OPERATIONS.md][operations] "The Family Site" for how it ships and which hostnames reach it. This file is not shipped.
+The single-page genealogy site for the Viljoen family, served at `viljoen.family` from the blog's release bundle. See [OPERATIONS.md][operations] "The Family Site" for how it ships and which hostnames reach it. [GENEALOGY.md][genealogy] holds the two lineage notations the page can render and the mapping between them. This file is not shipped.
 
 ## Contents
 
@@ -97,6 +97,7 @@ Serve the directory with any static server, for example `python3 -m http.server 
 - A contact line or a Familiebond membership link in the footer.
 
 <!-- Local files -->
+[genealogy]: ../../GENEALOGY.md
 [operations]: ../../OPERATIONS.md
 
 <!-- External links -->
