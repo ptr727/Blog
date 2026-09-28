@@ -441,14 +441,14 @@ The bundle also carries `viljoen.family`, a single static page whose source is [
 
 A second site block in `deploy/Caddyfile` serves it on the same port, selected by the `Host` header the proxy forwards. Any other hostname falls through to the blog's `:8080` block, so the blog's redirects never answer on the family host. The family block carries its own security headers and CSP, and answers a missing path with the page itself at a `404` status. It also routes the page's two languages: `/` redirects to `/af/` for a browser whose first language is Afrikaans, while `/en/` and `/af/` never redirect. A local mirror adds its private name from a container variable, per [`deploy/README.md`](./deploy/README.md#serving-the-family-site-on-a-local-name).
 
-**A rollback to a release older than the family block drops it.** Every hostname then reaches the blog block, so `viljoen.family` serves the blog, indexable on production, until a release carrying the block is live again.
+**A rollback to a release older than the family block drops it.** Every hostname then reaches the blog block, so `viljoen.family` serves the blog, indexable on production, until a release carrying the block is live again. A local mirror rolled back to a release that predates `FAMILY_SITE_ADDRESS` loses its private family name the same way, which then serves the blog.
 
 | Hostname | Reaches | Owned by |
 | --- | --- | --- |
 | `viljoen.family` | The production container, through its own proxy resource with auth off and an HTTP-01 certificate | The host, plus a DNS-only record at Cloudflare |
 | `viljoen.vps.insanegenius.net` | The staging container, behind the auth gate, under the existing `*.vps` wildcard | The host |
-| A private hostname, set as `FAMILY_SITE_ADDRESS` on the `mirror-production` container | The local publish mirror, through Traefik | The host, plus a local DNS record |
-| A second private hostname, set as `FAMILY_SITE_ADDRESS` on the `mirror-staging` container | The local staging mirror, through Traefik | The host, plus a local DNS record |
+| A private hostname, set as `FAMILY_SITE_ADDRESS` on the local publish mirror's container | The local publish mirror, through Traefik | The host, plus a local DNS record |
+| A second private hostname, set as `FAMILY_SITE_ADDRESS` on the local staging mirror's container | The local staging mirror, through Traefik | The host, plus a local DNS record |
 | `www.viljoen.family`, and `viljoen.com`, `viljoen.net`, `viljoen.org` with their `www` names | A Cloudflare redirect rule, 301 to `https://viljoen.family` with the path and query kept | Cloudflare, never reaching the VPS |
 
 The `viljoen.family` record stays DNS-only because the proxy's certificate resolver uses the HTTP-01 challenge, which a proxied record would intercept. The redirecting names are proxied, so Cloudflare terminates them and the VPS holds one certificate. Only the A and AAAA records change on those zones, and `viljoen.com`'s mail records stay as they are.

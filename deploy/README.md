@@ -263,7 +263,8 @@ Caddyfile appends to the block's address list. The VPS containers leave it unset
 variable inside an address instead, as `http://{$FAMILY_SITE_HOST}:8080`, would be the obvious
 shape and is the dangerous one. An empty value there leaves `http://:8080`, a catch-all, and
 the family page then answers every hostname, the blog's included. A compose file forwarding a
-variable its `.env` lacks passes exactly that empty value. Four behaviors, all verified:
+variable its `.env` lacks passes exactly that empty value. For the same reason, write the
+address out whole, and never build it from a host variable. Five behaviors, all verified:
 
 | `FAMILY_SITE_ADDRESS` | Result |
 | --- | --- |
@@ -271,9 +272,10 @@ variable its `.env` lacks passes exactly that empty value. Four behaviors, all v
 | `http://<name>:8080` | `<name>` also serves the family page, language routing included |
 | several addresses, comma-separated | each name serves the family page |
 | a bare `<name>` | a stray `:443` listener in the container, and `<name>` still serves the blog |
+| `http://:8080`, from a host variable left empty | the family page answers every hostname, and the live check's preflight still passes |
 
-The proxy in front has to route the name to the same container and port as the mirror's blog
-name, and forward `Host` and `Accept-Language` unchanged.
+The proxy in front routes the name to the same container and port as the mirror's blog name.
+It forwards `Host` and `Accept-Language` unchanged.
 
 ## Layout
 
