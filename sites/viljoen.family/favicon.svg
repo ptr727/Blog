@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="80 172 182 182">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="79 171 184 184">
   <defs>
     <path id="s" d="M92 178 H250 V309 C250 327 243 332 225 335 C202 338 184 340 170 352 C156 340 138 339 117 335 C98 332 92 326 92 311 Z"/>
     <clipPath id="c"><use href="#s"/></clipPath>

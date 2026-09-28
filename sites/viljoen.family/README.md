@@ -37,9 +37,9 @@ The arms derive from the French family Villon de Varennes, whose crest was a gol
 
 `crest.svg` is a vector redrawing of the family's crest as Prof. Christo Viljoen shows it ([Viljoen Familie][viljoen-familie]). The pair of folded wings is drawn in profile, so one wing shows. It matches that image's 336x418 size, so the two overlay directly for comparison.
 
-- Each part is a named group: `mantling-gold`, `mantling-red`, `mantling-stems`, `shield`, `helmet`, `wing`, `torse`, `name-scroll`, and `viljoen-lettering`.
+- Each part is a named group: `mantling-gold`, `mantling-red`, `mantling-stems`, `mantling-joins`, `shield`, `helmet`, `wing`, `torse`, `name-scroll`, and `viljoen-lettering`.
 - Each side of the mantling is one group mirrored with `translate(342 0) scale(-1 1)`.
-- The saltire is one filled path clipped to `#shield-outline`.
+- The saltire is one filled path clipped to `#shield-clip`, which is built from `#shield-outline`.
 - The lettering is vector paths rather than `<text>`, so it renders the same without the font. The page's `<h1>` is visually hidden text, so the name stays a real heading.
 - `favicon.svg` reuses the shield outline and saltire paths. `apple-touch-icon.png` and `og-image.png` are Chromium renders, and they carry no metadata chunks.
 
