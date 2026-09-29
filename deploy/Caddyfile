@@ -127,7 +127,8 @@
 
 # The family genealogy site shares this listener, and the Host header the proxy forwards selects it.
 # Its staging name sits under the wildcard that already covers the blog's staging host.
-http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {
+# A local mirror adds its own name as a whole address, since an empty host inside a written address matches every host.
+http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {$FAMILY_SITE_ADDRESS} {
 	root * /srv/blog/current/family
 
 	header {

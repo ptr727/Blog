@@ -46,9 +46,10 @@ neither. Seven facts are the whole contract:
    [Reloading without a restart](#reloading-without-a-restart).
 6. The release tree is world-readable and world-traversable, so any uid can serve it.
 7. The container sets `SITE_ENV` and `SITE_ROBOTS`, which the bundle stamps on every response
-   as `X-Blog-Env` and `X-Robots-Tag`, and `TRUSTED_PROXIES`. See
-   [Identifying the environment](#identifying-the-environment) and
-   [Trusting the proxy](#trusting-the-proxy).
+   as `X-Blog-Env` and `X-Robots-Tag`, and `TRUSTED_PROXIES`. A local mirror also sets
+   `FAMILY_SITE_ADDRESS`. See [Identifying the environment](#identifying-the-environment),
+   [Trusting the proxy](#trusting-the-proxy), and
+   [Serving the family site on a local name](#serving-the-family-site-on-a-local-name).
 
 ## Building a release
 
@@ -251,6 +252,33 @@ Binding the port to `127.0.0.1` does **not** make direct access impossible. `doc
 host-originated traffic to the bridge gateway, which is itself inside RFC1918 and therefore inside
 the default. Narrowing to the container subnet does not fix it either, since the gateway sits inside
 that too and has to be excluded deliberately.
+
+## Serving the family site on a local name
+
+The family site block answers its two public names, written into the bundle. A local mirror's
+own name is private, so it comes from the container instead, as `FAMILY_SITE_ADDRESS`, which the
+Caddyfile appends to the block's address list. The VPS containers leave it unset.
+
+**The value is a whole site address, `http://<name>:8080`, never a bare hostname.** The scheme
+and port are the container's own listener, whatever the proxy serves readers. `https://` fails
+the way a malformed list does, and a missing port opens a stray `:80` listener. Writing the
+variable inside an address instead, as `http://{$FAMILY_SITE_HOST}:8080`, would be the obvious
+shape and is the dangerous one. An empty value there leaves `http://:8080`, a catch-all, and
+the family page then answers every hostname, the blog's included. A compose file forwarding a
+variable its `.env` lacks passes exactly that empty value. For the same reason, write the
+address out whole, and never build it from a host variable. Six behaviors, all verified:
+
+| `FAMILY_SITE_ADDRESS` | Result |
+| --- | --- |
+| unset, or set but empty | the block keeps its two public names, and the blog is unaffected |
+| `http://<name>:8080` | `<name>` also serves the family page, language routing included |
+| several addresses, each comma followed by a space | each name serves the family page |
+| a comma with no space after it, or a trailing comma | Caddy refuses the config. A running container keeps its old config, and the live check reports a stale release. The next restart takes the blog down |
+| a bare `<name>` | a stray `:443` listener in the container, and `<name>` still serves the blog |
+| `http://:8080`, from a host variable left empty | the family page answers every hostname, and the live check's preflight still passes |
+
+The proxy in front routes the name to the same container and port as the mirror's blog name.
+It forwards `Host` and `Accept-Language` unchanged.
 
 ## Layout
 
