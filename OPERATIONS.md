@@ -316,7 +316,7 @@ The family site's staging host sits behind a gate of its own. A Pangolin token o
 | `FAMILY_SITE_AUTH_TOKEN_ID` | `P-Access-Token-Id` |
 | `FAMILY_SITE_AUTH_TOKEN` | `P-Access-Token` |
 
-The family token is created with Pangolin's session persistence off. The check sends both headers on every request and keeps no cookie, so a persisted session would only hand a cookie to nobody. The token never goes in the `p_token` query parameter. Pangolin answers that form with a redirect and a session cookie rather than the page, and the proxy's access log records the query. The family pair gets neither the preflight nor redirect following. Its three pages are requested after the URL contract. A wrong family token therefore surfaces at the end of the run, as a `302` on each page. The deploy workflow receives only the blog's pair and does not run this part. The family check runs from `~/.secrets/Blog.vps.staging.env`.
+The family token is created with Pangolin's session persistence off. The check sends both headers on every request and keeps no cookie, so a persisted session would only hand a cookie to nobody. The token never goes in the `p_token` query parameter. Pangolin answers that form with a redirect and a session cookie rather than the page, and the proxy's access log records the query. The family pair gets neither the preflight nor redirect following. Its three pages are requested after the URL contract. A wrong family token therefore surfaces at the end of the run, as a `302` on each page. The deploy workflow receives only the blog's pair and does not run this part. The family check runs from any environment file that sets `FAMILY_SITE_BASE_URL`, VPS staging's among them.
 
 ## Configuration Layout
 

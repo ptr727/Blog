@@ -106,9 +106,9 @@ echo "==> tagging requests X-Blog-Check: $CHECK_TAG"
 # A resource access token opens the proxy's auth gate.
 # It goes into a curl config file because bash cannot export an array to the parallel checks.
 # A command line is also world-readable in ps output, and every request would carry it.
-# Prints the file's path, or nothing for a public site that sets neither half of the pair.
+# Sets the variable named by the third argument to the file's path, and leaves it empty for a public site that sets neither half of the pair.
 token_rc() {
-	local id_name="$1" token_name="$2" name rc
+	local id_name="$1" token_name="$2" rc_name="$3" name
 	if [ -n "${!id_name:-}" ] && [ -n "${!token_name:-}" ]; then
 		# Same hazard as CHECK_TAG above and the same reason, but a narrower rule, because the grammar of a credential is the issuer's to define and not this script's.
 		# Only the characters that break out of a quoted config line are refused, and none is legal in an HTTP header value, so a token containing one is a paste accident rather than a token.
@@ -124,11 +124,11 @@ token_rc() {
 				;;
 			esac
 		done
-		rc="$(mktemp)"
-		chmod 600 "$rc"
+		# Assigned before the token is written, so the exit trap can always find the file.
+		printf -v "$rc_name" '%s' "$(mktemp)"
+		chmod 600 "${!rc_name}"
 		printf 'header = "P-Access-Token-Id: %s"\nheader = "P-Access-Token: %s"\n' \
-			"${!id_name}" "${!token_name}" >"$rc"
-		printf '%s' "$rc"
+			"${!id_name}" "${!token_name}" >"${!rc_name}"
 	elif [ -n "${!id_name:-}" ] || [ -n "${!token_name:-}" ]; then
 		# Half a credential is a typo rather than a choice, and it would otherwise fail as an outage.
 		echo "FAIL set both $id_name and $token_name, or neither" >&2
@@ -136,13 +136,13 @@ token_rc() {
 	fi
 }
 
-CURLRC=$(token_rc SITE_AUTH_TOKEN_ID SITE_AUTH_TOKEN) || exit 2
+token_rc SITE_AUTH_TOKEN_ID SITE_AUTH_TOKEN CURLRC || exit 2
 [ -n "$CURLRC" ] && echo "==> sending a Pangolin access token"
 
 # A token opens exactly one proxy resource, so the family host needs a pair of its own.
 FAMILY_BASE="${FAMILY_SITE_BASE_URL:-}"
 FAMILY_BASE="${FAMILY_BASE%/}"
-FAMILY_CURLRC=$(token_rc FAMILY_SITE_AUTH_TOKEN_ID FAMILY_SITE_AUTH_TOKEN) || exit 2
+token_rc FAMILY_SITE_AUTH_TOKEN_ID FAMILY_SITE_AUTH_TOKEN FAMILY_CURLRC || exit 2
 if [ -n "$FAMILY_CURLRC" ] && [ -z "$FAMILY_BASE" ]; then
 	echo "FAIL FAMILY_SITE_AUTH_TOKEN_ID and FAMILY_SITE_AUTH_TOKEN are set, but FAMILY_SITE_BASE_URL is not" >&2
 	exit 2

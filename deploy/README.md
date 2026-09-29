@@ -117,8 +117,8 @@ that reason.
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
 | `NO_LINK_DEST=1` | Full copy instead of hard-linking from the previous release. |
 
-`checks/check-live-urls.sh` reads eight more, and none of them reaches `make-release.sh`. Two
-open the auth gate:
+`checks/check-live-urls.sh` reads its own variables, and none of them reaches `make-release.sh`.
+Two open the auth gate:
 
 | Variable | Effect |
 | --- | --- |
@@ -150,9 +150,10 @@ The last three check the family site, whose host is a proxy resource of its own:
 
 The family pair follows the same rules as the blog's, and goes to the family origin alone. A
 token opens exactly one proxy resource, so the blog's pair cannot open the family host. The
-check requests `/`, `/en/`, and `/af/` and asserts each page's `<title>`, because `X-Blog-Env`
-is the same on both hostnames and a hostname the family block does not name falls through to the
-blog with a `200`.
+check requests `/`, `/en/`, and `/af/` after the URL contract and asserts each page's `<title>`,
+since a hostname the family block does not name falls through to the blog with a `200`. Where
+`EXPECT_SITE_ENV` is set, each page's `X-Blog-Env` must match it too, because the family host is
+a proxy rule of its own. A family failure is recorded with the rest rather than stopping the run.
 
 ## Reloading without a restart
 
