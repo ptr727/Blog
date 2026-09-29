@@ -133,7 +133,7 @@ http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {$FAMILY_SI
 
 	header {
 		X-Blog-Env "{$SITE_ENV:unset}"
-		X-Robots-Tag "{$SITE_ROBOTS:index, follow}"
+		X-Robots-Tag "{$FAMILY_SITE_ROBOTS:index, follow}"
 		X-Blog-Release "@@RELEASE@@"
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options "nosniff"

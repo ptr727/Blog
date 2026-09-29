@@ -361,7 +361,9 @@ if [ -n "${EXPECT_RELEASE:-}" ]; then
 		echo "         Anything that broke 'current' even briefly, including a test, does this." >&2
 		echo "         Only a container restart re-arms it." >&2
 		echo "     Run by hand, first rule out a wrong EXPECT_RELEASE. A VPS deploy names its" >&2
-		echo "     release after its run rather than a commit, so pass the id its build logged." >&2
+		echo "     release after its run rather than a commit, so pass the id the Deploy site" >&2
+		echo "     job logged, which ends in the run id and attempt. The Validate sources job" >&2
+		echo "     logs a bare timestamp first, and that id never matches." >&2
 		exit 1
 	fi
 	echo "==> rules from release $got_release${waited:+ (after ${waited}s)}"
