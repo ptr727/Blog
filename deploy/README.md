@@ -217,9 +217,10 @@ stays the same everywhere and still rolls back as one unit:
 | `SITE_ROBOTS` | `X-Robots-Tag` on the blog | `index, follow` or `noindex, nofollow` |
 | `FAMILY_SITE_ROBOTS` | `X-Robots-Tag` on the family site | `index, follow` or `noindex, nofollow` |
 
-Both headers are emitted at site level, outside the `route` block, which is what puts them on the error
-path as well. Verified on all three response classes: `200` from `file_server`, `301` from a
-`redir`, and `404` through `handle_errors`.
+Both headers are emitted at site level in each block, outside the blog's `route` block, which is
+what puts them on the error path as well. Verified on the blog's `200` from `file_server`, `301`
+from a `redir`, and `404` through `handle_errors`, and on the family site's `200`, its `302` and
+`308` redirects, and its `404`.
 
 **Each variable carries a default, because an unset `{$VAR}` is silent.** It expands to an empty header
 rather than an error, and `caddy validate` still reports a valid configuration, so a missing
