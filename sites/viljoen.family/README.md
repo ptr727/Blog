@@ -51,6 +51,7 @@ The arms derive from the French family Villon de Varennes, whose crest was a gol
 
 - **Palette:** parchment `#f4ead3`, cards `#fbf5e4`, red `#9e1b22`, gold `#b8862b`, bark `#5b3f27`, leaf `#6f7d3a`, all CSS variables in `:root`.
 - **Fonts (Google Fonts):** Cormorant Garamond for headings, EB Garamond for body text.
+- **Type scale:** the root size grows with the viewport from 16px up to 20px, and the frame, masthead, and couple card widths are in `rem`, so on a wide screen the whole page scales up rather than leaving the text small in a narrow column. No text sits below `1rem` except the "Viljoen line" badge and the stub on mid-width screens (`.95rem`). Cormorant Garamond has a smaller x-height than EB Garamond, so its italic secondary lines run about an eighth larger than the EB Garamond lines beside them.
 - **Frame:** a 2.5px red border plus an inner 1px gold rule (`.frame::before`) with rounded corners and four gold corner flourishes (`#corner` symbol). A negative margin on the masthead equals the frame's top margin (128px, or 96px on phones). That puts the top border behind the mantling, so change both values together.
 - **Paper texture:** an inline SVG `feTurbulence` noise data URI plus a radial vignette on `html`.
 - **Divider:** a simplified Huguenot cross (a Maltese cross with fleur points, balls on the tips, and a hanging dove), the `#huguenot-cross` symbol.
@@ -72,7 +73,7 @@ The tree is a stamboom. The children form the crown, and the stamouers card sits
 - Leaves sprout at chosen positions along a limb, alternating sides (`leaves()`). The pattern is fixed rather than random, so every redraw looks the same. About one leaf in five is gold.
 - **Roots:** seven tapering roots run from the bottom of the couple card into the soil band, in both layouts.
 - **Wide layout** (six cards in a row): a trunk rises from the couple card to a fork. One S-curve branch runs from there to the bottom of each child card. A short limb continues from each name-carrying card to its stub.
-- **Stacked layout** (900px wide or less): the cards form a column. The trunk rises up the left gutter from the couple card, with a twig into each card. A "Stamouers" jump link at the top leads to the couple card, which sits below the children.
+- **Stacked layout** (1000px wide or less): the cards form a column. The trunk rises up the left gutter from the couple card, with a twig into each card. A "Stamouers" jump link at the top leads to the couple card, which sits below the children.
 - It redraws on resize, on load, when the fonts finish loading, and through a `ResizeObserver`. With JavaScript off the page still reads correctly, without branches.
 
 ## Facts on the Page and Their Sources
