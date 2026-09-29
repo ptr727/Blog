@@ -284,10 +284,12 @@ install -m 644 "$REPO/deploy/Caddyfile" "$STAGE/Caddyfile"
 rsync -a --no-g --chmod=D2755,F644 --delete --exclude README.md "$REPO/sites/viljoen.family/" "$STAGE/family/"
 precompress "$STAGE/family"
 # The rsync above succeeds on an empty source, and the host block would then serve nothing.
-if [ ! -f "$STAGE/family/index.html" ]; then
-	echo "family site has no index.html, so viljoen.family would serve nothing" >&2
-	exit 1
-fi
+for page in index.html af/index.html; do
+	if [ ! -f "$STAGE/family/$page" ]; then
+		echo "family site has no $page, which the Caddyfile serves" >&2
+		exit 1
+	fi
+done
 
 # Stamp the release into the config it ships with, so a response names the rules answering.
 # A stale config otherwise passes the URL contract against rules that were never shipped.
