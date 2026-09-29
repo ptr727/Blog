@@ -124,11 +124,13 @@ token_rc() {
 				;;
 			esac
 		done
-		# Assigned before the token is written, so the exit trap can always find the file.
+		# Assigned before the token is written, so no file holding a token escapes the exit trap.
 		printf -v "$rc_name" '%s' "$(mktemp)"
 		chmod 600 "${!rc_name}"
+		# A backslash is legal in a header, but curl reads it as an escape inside a quoted config value, so it is doubled rather than refused.
+		local id_value="${!id_name}" token_value="${!token_name}"
 		printf 'header = "P-Access-Token-Id: %s"\nheader = "P-Access-Token: %s"\n' \
-			"${!id_name}" "${!token_name}" >"${!rc_name}"
+			"${id_value//\\/\\\\}" "${token_value//\\/\\\\}" >"${!rc_name}"
 	elif [ -n "${!id_name:-}" ] || [ -n "${!token_name:-}" ]; then
 		# Half a credential is a typo rather than a choice, and it would otherwise fail as an outage.
 		echo "FAIL set both $id_name and $token_name, or neither" >&2
