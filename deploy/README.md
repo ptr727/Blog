@@ -1,6 +1,6 @@
 # Deploy
 
-How the site is built, released, and served. The release is a **self-contained bundle** carrying the site, the Caddyfile, and the redirect maps together, so a rollback reverts the redirect rules and the content they refer to as one unit.
+How the site is built, released, and served. The release is a **self-contained bundle** carrying the site, the Caddyfile, the redirect maps, and the family site together. A rollback therefore reverts the redirect rules and the content they refer to as one unit.
 
 ## Required tools
 
@@ -46,9 +46,10 @@ neither. Seven facts are the whole contract:
    [Reloading without a restart](#reloading-without-a-restart).
 6. The release tree is world-readable and world-traversable, so any uid can serve it.
 7. The container sets `SITE_ENV` and `SITE_ROBOTS`, which the bundle stamps on every response
-   as `X-Blog-Env` and `X-Robots-Tag`, and `TRUSTED_PROXIES`. See
-   [Identifying the environment](#identifying-the-environment) and
-   [Trusting the proxy](#trusting-the-proxy).
+   as `X-Blog-Env` and `X-Robots-Tag`, and `TRUSTED_PROXIES`. A local mirror also sets
+   `FAMILY_SITE_ADDRESS`. See [Identifying the environment](#identifying-the-environment),
+   [Trusting the proxy](#trusting-the-proxy), and
+   [Serving the family site on a local name](#serving-the-family-site-on-a-local-name).
 
 ## Building a release
 
@@ -116,15 +117,16 @@ that reason.
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
 | `NO_LINK_DEST=1` | Full copy instead of hard-linking from the previous release. |
 
-`checks/check-live-urls.sh` reads five more, and none of them reaches `make-release.sh`. Two
-open the auth gate:
+`checks/check-live-urls.sh` reads its own variables, and none of them reaches `make-release.sh`.
+Two open the auth gate:
 
 | Variable | Effect |
 | --- | --- |
 | `SITE_AUTH_TOKEN_ID` | Resource access token id, sent as the `P-Access-Token-Id` header. |
 | `SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
 
-Set both or neither. Half a pair is rejected as the typo it is. They go to curl through a
+Set both or neither. Half a pair is rejected as the typo it is, and a pair is refused unless
+the base URL starts with a lowercase `https://`. They go to curl through a
 mode-`600` config file rather than as `-H` arguments, which keeps the credential out of the
 `ps` output of one request per URL in the contract, and is also the only form that survives the `export -f` the
 parallel checks run under. The token is sent to the base URL's own origin and to nothing else,
@@ -138,6 +140,21 @@ the preflight before a single URL is requested:
 | `EXPECT_SITE_ENV` | Asserts the environment that answered, read from `X-Blog-Env`. |
 | `EXPECT_RELEASE` | Asserts the release whose rules answered, read from `X-Blog-Release`. |
 | `RELOAD_TIMEOUT` | Seconds to wait for that release to become live. Default 30. |
+
+Three more check the family site, whose host is a proxy resource of its own:
+
+| Variable | Effect |
+| --- | --- |
+| `FAMILY_SITE_BASE_URL` | The family site's base URL. Unset, the family site is not checked, and a family pair set without it is refused. |
+| `FAMILY_SITE_AUTH_TOKEN_ID` | The family resource's access token id, sent as `P-Access-Token-Id`. |
+| `FAMILY_SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
+
+The family pair follows the same rules as the blog's, and goes to the family origin alone. A
+token opens exactly one proxy resource, so the blog's pair cannot open the family host. The
+check requests `/`, `/en/`, and `/af/` after the URL contract and asserts each page's `<title>`,
+since a hostname the family block does not name falls through to the blog with a `200`. Where
+`EXPECT_SITE_ENV` is set, each page's `X-Blog-Env` must match it too, because the family host is
+a proxy rule of its own. A family failure is recorded with the rest rather than stopping the run.
 
 ## Reloading without a restart
 
@@ -252,6 +269,33 @@ host-originated traffic to the bridge gateway, which is itself inside RFC1918 an
 the default. Narrowing to the container subnet does not fix it either, since the gateway sits inside
 that too and has to be excluded deliberately.
 
+## Serving the family site on a local name
+
+The family site block answers its two public names, written into the bundle. A local mirror's
+own name is private, so it comes from the container instead, as `FAMILY_SITE_ADDRESS`, which the
+Caddyfile appends to the block's address list. The VPS containers leave it unset.
+
+**The value is a whole site address, `http://<name>:8080`, never a bare hostname.** The scheme
+and port are the container's own listener, whatever the proxy serves readers. `https://` fails
+the way a malformed list does, and a missing port opens a stray `:80` listener. Writing the
+variable inside an address instead, as `http://{$FAMILY_SITE_HOST}:8080`, would be the obvious
+shape and is the dangerous one. An empty value there leaves `http://:8080`, a catch-all, and
+the family page then answers every hostname, the blog's included. A compose file forwarding a
+variable its `.env` lacks passes exactly that empty value. For the same reason, write the
+address out whole, and never build it from a host variable. Six behaviors, all verified:
+
+| `FAMILY_SITE_ADDRESS` | Result |
+| --- | --- |
+| unset, or set but empty | the block keeps its two public names, and the blog is unaffected |
+| `http://<name>:8080` | `<name>` also serves the family page, language routing included |
+| several addresses, each comma followed by a space | each name serves the family page |
+| a comma with no space after it, or a trailing comma | Caddy refuses the config. A running container keeps its old config, and the live check reports a stale release. The next restart takes the blog down |
+| a bare `<name>` | a stray `:443` listener in the container, and `<name>` still serves the blog |
+| `http://:8080`, from a host variable left empty | the family page answers every hostname, and the live check's preflight still passes |
+
+The proxy in front routes the name to the same container and port as the mirror's blog name.
+It forwards `Host` and `Accept-Language` unchanged.
+
 ## Layout
 
 ```text
@@ -261,6 +305,7 @@ that too and has to be excluded deliberately.
     site/        the built site, precompressed
     Caddyfile    the redirect rules
     maps/        p-ids, slugs, blogger, labels, terms
+    family/      the viljoen.family page, precompressed
 ```
 
 ## How the redirects are expressed

@@ -1,8 +1,10 @@
-# Blog <!-- omit from toc -->
+# Blog
 
 Pieter Viljoen's blog, and the tooling that builds, verifies, and deploys it.
 
-The blog's public address is [blog.insanegenius.com][blog-link]. Until its DNS records are cut over, that address still serves the old WordPress site, and the site this repository builds is served at `blog.insanegenius.net`.
+The blog's public address is [blog.insanegenius.com][blog-link].
+
+> Until its DNS records are cut over, that address still serves the old WordPress site, and the site this repository builds is served at `blog.insanegenius.net`.
 
 ## Build and Distribution <!-- omit from toc -->
 
@@ -25,9 +27,7 @@ The blog's public address is [blog.insanegenius.com][blog-link]. Until its DNS r
 
 **Summary**:
 
-- First public release. The content, media, URL contract, and deploy tooling are published as a repository for the first time.
-- The URL contract is committed ground truth and gated in CI: 328 addresses that must render, 917 that must redirect, and 778 legacy image URLs that must resolve.
-- The site is not yet serving its public address. This release is the source and its pipeline, not the cutover.
+- The blog moved from WordPress to a Hugo site built and verified by GitHub Actions and served by Caddy. The public address cuts over separately.
 
 See [Release History][history] for complete release notes and older versions.
 
@@ -36,6 +36,8 @@ See [Release History][history] for complete release notes and older versions.
 - [Overview](#overview)
 - [Migration from WordPress](#migration-from-wordpress)
 - [How a Change Reaches the Site](#how-a-change-reaches-the-site)
+  - [Keeping Personal Data Off the Site](#keeping-personal-data-off-the-site)
+  - [What Happens While the Site Runs](#what-happens-while-the-site-runs)
 - [Configuration](#configuration)
 - [Questions or Issues](#questions-or-issues)
 - [Development Environment Setup](#development-environment-setup)
@@ -123,7 +125,17 @@ flowchart LR
   main -.->|manual dispatch| prod["production site"]
 ```
 
-### What Happens While the Site Runs <!-- omit from toc -->
+### Keeping Personal Data Off the Site
+
+A post is public the moment it deploys, and a photo or a pasted configuration can carry more than its author meant to publish. Three gates keep personal data out. Each runs in this repository's validate action on every pull request, under the required status check, so a finding blocks the merge.
+
+- **Image metadata.** Before an image is committed, its author runs [`scripts/normalize-media.py`][normalize-media], which strips it to an allowlist of what it needs to render. That is its dimensions, a pinned color profile, and on a JPEG its orientation. A JPEG keeps its capture time only when nothing else in its Exif fails the gate. Location, device, and authorship are not on the list, so they go without anyone having to name them. The removal is lossless, and a file it cannot clean unambiguously is refused rather than guessed at. [`checks/check-media-metadata.py`][check-media-metadata] is the gate, and it fails the build on anything left over, including inside a `.zip`.
+- **Redactions.** A house number, a face, or a serial number is covered with a flat opaque fill, never a blur. A fill on an image already published is declared in [`checks/media-redactions.json`][media-redactions] and applied by a script. [`checks/check-media-redactions.py`][check-media-redactions] fails when a redacted file no longer matches its recorded hash, which is how a quietly restored original is caught.
+- **Text.** [`checks/check-text-pii.py`][check-text-pii] reads every page and post under `content/` outside the imported archive years, front matter and code blocks included. It reports email addresses, hardware addresses, public IP addresses, coordinates, street addresses, and phone numbers. It also reports a URL that carries coordinates or names one specific sensor or station. A finding names the file, the line, and the class, never the value, so the CI log does not republish it. A value a post prints on purpose is declared in an allow file with a reason, and an entry that stops matching fails the gate.
+
+A fuzzer feeds the metadata parsers malformed images in the same action, because the carried tree is all well formed and would never exercise a refusal. What no gate can judge, whether a picture locates the home or identifies a person, is the checklist in [CONTENT.md][content].
+
+### What Happens While the Site Runs
 
 Publishing is half of it. The other half runs on its own cadence, because the contract proves only the addresses someone wrote down.
 
@@ -220,6 +232,9 @@ Licensed under the [MIT License][license]\
 
 [capture]: ./capture/
 [capture-readme]: ./capture/README.md
+[check-media-metadata]: ./checks/check-media-metadata.py
+[check-media-redactions]: ./checks/check-media-redactions.py
+[check-text-pii]: ./checks/check-text-pii.py
 [checks]: ./checks/
 [content]: ./CONTENT.md
 [deploy]: ./deploy/
@@ -229,7 +244,9 @@ Licensed under the [MIT License][license]\
 [history]: ./HISTORY.md
 [hugo-config]: ./hugo.yaml
 [license]: ./LICENSE
+[media-redactions]: ./checks/media-redactions.json
 [migration-post]: ./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md
+[normalize-media]: ./scripts/normalize-media.py
 [operations]: ./OPERATIONS.md
 [workflow]: ./WORKFLOW.md
 

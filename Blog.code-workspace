@@ -1,6 +1,3 @@
-// Standard workspace fragment carried by every fleet repo (catalog/snippets/vscode/base.jsonc,
-// https://github.com/ptr727/ProjectTemplate/blob/main/catalog/snippets/vscode/README.md).
-// This repo ships no dotnet/python/docker target, so it carries base.jsonc only.
 {
     "folders": [{ "path": "." }],
     "settings": {
@@ -13,14 +10,10 @@
     },
     "extensions": {
         "recommendations": [
-            "anthropic.claude-code",
-            "arahata.linter-actionlint",
             "davidanson.vscode-markdownlint",
             "editorconfig.editorconfig",
             "fanaticpythoner.better-todo-tree",
-            "github.vscode-github-actions",
             "streetsidesoftware.code-spell-checker",
-            "timonwong.shellcheck",
             "yzhang.markdown-all-in-one"
         ]
     }

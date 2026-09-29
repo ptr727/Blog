@@ -1,0 +1,283 @@
+:root {
+  --paper: #f4ead3;
+  --paper-card: #fbf5e4;
+  --ink: #2e2217;
+  --ink-soft: #5e4c39;
+  --red: #9e1b22;
+  --red-deep: #6e1016;
+  --gold: #b8862b;
+  --gold-light: #e2b34a;
+  --bark: #5b3f27;
+  --bark-dark: #3a2716;
+  --leaf: #6f7d3a;
+  --leaf-dark: #4f5a26;
+  --crest-drop: min(8rem, 29.36vw);
+  --paper-tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+* { box-sizing: border-box; }
+html {
+  font-size: clamp(100%, calc(.75rem + .35vw), 125%);
+  background: var(--paper-tex), radial-gradient(ellipse at 50% 30%, #f7efdc 0%, var(--paper) 55%, #e6d5ae 100%) fixed;
+  background-color: var(--paper);
+}
+body {
+  margin: 0;
+  padding: 0 clamp(10px, 3vw, 28px) 28px;
+  color: var(--ink);
+  font: 400 1.125rem/1.6 "EB Garamond", Garamond, "Times New Roman", serif;
+}
+a { color: var(--red); text-decoration-color: color-mix(in srgb, var(--red) 40%, transparent); text-underline-offset: 3px; }
+a:hover { text-decoration-color: currentColor; }
+
+/* ---------- Page frame: double rule, rounded, hung from the crest ---------- */
+.frame {
+  position: relative;
+  max-width: 73.75rem;
+  margin: var(--crest-drop) auto 0;
+  padding: 0 clamp(18px, 4vw, 60px) 40px;
+  border: 2.5px solid var(--red);
+  border-radius: 40px;
+}
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid var(--gold);
+  border-radius: 33px;
+  pointer-events: none;
+}
+.corner {
+  position: absolute;
+  width: 46px; height: 46px;
+  color: var(--gold);
+  pointer-events: none;
+}
+.corner.tl { top: 18px; left: 18px; }
+.corner.tr { top: 18px; right: 18px; transform: scaleX(-1); }
+.corner.bl { bottom: 18px; left: 18px; transform: scaleY(-1); }
+.corner.br { bottom: 18px; right: 18px; transform: scale(-1, -1); }
+
+/* ---------- Crest ---------- */
+.masthead {
+  position: relative;
+  margin: calc(-1 * var(--crest-drop)) auto 0;
+  width: min(21.25rem, 78vw);
+  text-align: center;
+  z-index: 1;
+}
+.crest { display: block; width: 100%; height: auto; filter: drop-shadow(0 3px 4px rgba(60, 30, 10, .25)); }
+
+/* ---------- Family tree ---------- */
+.tree { position: relative; padding-top: 48px; }
+.tree > svg.branches {
+  position: absolute; left: 0; top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.jump { display: none; }
+.stamboom, .gen-b { list-style: none; margin: 0; padding: 0; }
+.gen-a { display: flex; flex-direction: column; }
+.gen-a > .gen-b { order: 1; }
+.gen-a > .couple { order: 2; }
+.gen-a > .soil { order: 3; }
+.couple, .child, .stub { position: relative; z-index: 1; }
+.couple {
+  width: 100%;
+  max-width: 38.75rem;
+  margin: 10.625rem auto 0;
+  padding: 20px 28px 18px;
+  text-align: center;
+  background: var(--paper-card);
+  border: 1.5px solid var(--gold);
+  border-radius: 18px;
+  box-shadow: 0 0 0 5px var(--paper-card), 0 0 0 6px color-mix(in srgb, var(--gold) 55%, transparent), 0 8px 22px rgba(70, 40, 10, .14);
+}
+.eyebrow {
+  margin: 0 0 4px;
+  font: italic 500 1.125rem/1.3 "Cormorant Garamond", serif;
+  letter-spacing: .06em;
+  color: var(--ink-soft);
+}
+.couple h2 {
+  margin: 0;
+  font: 600 clamp(1.5rem, 3.6vw, 2rem)/1.15 "Cormorant Garamond", serif;
+  color: var(--red-deep);
+}
+.couple h2 .x { font-weight: 500; color: var(--gold); padding: 0 .15em; }
+.couple h2 .nm { white-space: nowrap; }
+.couple p.meta { margin: 8px 0 0; font-size: 1.0625rem; color: var(--ink-soft); line-height: 1.45; }
+
+.soil {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: 5.25rem;
+  margin-top: 2.125rem;
+  padding: 0 8% 12px;
+  border-radius: 50% 50% 18px 18px / 26px 26px 18px 18px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--bark) 14%, transparent), color-mix(in srgb, var(--bark) 34%, transparent));
+  font: italic 600 1.05rem/1.2 "Cormorant Garamond", serif;
+  letter-spacing: .08em;
+  color: var(--bark-dark);
+}
+
+.gen-b {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+.gen-b > li { display: flex; flex-direction: column; }
+.gen-b > li > .child { order: 2; }
+.gen-b > li > .stub { order: 1; }
+.child {
+  padding: 14px 12px 12px;
+  text-align: center;
+  background: var(--paper-card);
+  border: 1px solid color-mix(in srgb, var(--gold) 70%, transparent);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(70, 40, 10, .1);
+}
+.code {
+  display: inline-block;
+  margin-bottom: 2px;
+  font: italic 500 1rem/1 "Cormorant Garamond", serif;
+  color: var(--gold);
+  letter-spacing: .05em;
+}
+.child h3 { margin: 0; font: 700 1.4rem/1.1 "Cormorant Garamond", serif; color: var(--ink); }
+.child p { margin: 6px 0 0; font-size: 1rem; line-height: 1.35; color: var(--ink-soft); }
+.child p.spouse { font-style: italic; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+abbr[title] { text-decoration: none; cursor: help; font-style: normal; font-weight: 500; color: var(--red-deep); }
+.line .child { border: 1.5px solid var(--red); }
+.line .child::after {
+  content: "Viljoen line";
+  display: block;
+  margin: 8px auto 0;
+  width: max-content;
+  padding: 1px 10px 2px;
+  font: italic 500 .95rem/1.3 "Cormorant Garamond", serif;
+  color: var(--paper-card);
+  background: var(--red);
+  border-radius: 999px;
+}
+.stub {
+  align-self: center;
+  margin: 0 0 3.375rem;
+  padding: 2px 12px 3px;
+  font: italic 500 1.05rem/1.3 "Cormorant Garamond", serif;
+  color: var(--leaf-dark);
+  background: var(--paper-card);
+  border: 1px dashed var(--leaf);
+  border-radius: 999px;
+  text-align: center;
+  max-width: 100%;
+}
+.legend, .tree-note {
+  max-width: 42.5rem;
+  margin: 22px auto 0;
+  text-align: center;
+  color: var(--ink-soft);
+}
+.legend { font-size: 1.0625rem; }
+.legend > span { display: inline-block; padding: 0 .5em; }
+.tree-note { margin-top: 10px; font-style: italic; font-size: 1.0625rem; }
+
+/* ---------- Divider (Huguenot cross) ---------- */
+.divider {
+  display: flex; align-items: center; gap: 16px;
+  max-width: 520px;
+  margin: 52px auto 40px;
+  color: var(--gold);
+}
+.divider::before, .divider::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(to var(--dir, right), transparent, var(--gold));
+}
+.divider::after { --dir: left; }
+.divider svg { width: 46px; height: 58px; flex: none; }
+
+/* ---------- Story sections ---------- */
+.story {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(24px, 4vw, 48px);
+}
+.story h2 {
+  margin: 0 0 10px;
+  font: 600 1.7rem/1.1 "Cormorant Garamond", serif;
+  color: var(--red-deep);
+}
+.story h2 small {
+  display: block;
+  font: italic 500 1.125rem/1.4 "Cormorant Garamond", serif;
+  color: var(--gold);
+  letter-spacing: .04em;
+}
+.story p { margin: 0 0 12px; }
+.blazon {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--gold);
+  background: color-mix(in srgb, var(--paper-card) 70%, transparent);
+  font-style: italic;
+}
+.links { list-style: none; margin: 0; padding: 0; }
+.links li { padding: 7px 0; border-bottom: 1px dotted color-mix(in srgb, var(--gold) 60%, transparent); }
+.links li:last-child { border-bottom: 0; }
+.links span { display: block; font-size: 1rem; color: var(--ink-soft); line-height: 1.35; }
+
+footer {
+  margin-top: 44px;
+  text-align: center;
+  font: italic 500 1.125rem/1.5 "Cormorant Garamond", serif;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 68.75em) {
+  .stub { padding: 2px 8px 3px; font-size: .95rem; }
+}
+
+/* ---------- Narrow screens: the tree becomes a single descending line ---------- */
+@media (max-width: 62.5em) {
+  .jump {
+    display: block;
+    width: max-content;
+    margin: 0 auto 18px;
+    font: italic 500 1.05rem/1.3 "Cormorant Garamond", serif;
+  }
+  .gen-b, .gen-a > .couple, .soil { width: min(100%, 32.875rem); margin-left: auto; margin-right: auto; }
+  .gen-b { grid-template-columns: 1fr; gap: 14px; padding-left: 2.875rem; }
+  .gen-a > .couple { margin-top: 3rem; }
+  .gen-b > li > .stub { order: 3; align-self: flex-start; margin: 6px 0 0; }
+  .child { text-align: left; padding: 12px 16px; }
+  .child h3 { display: inline; }
+  .child .code { margin-right: 6px; }
+  .line .child::after { margin: 8px 0 0; }
+  .story { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; }
+}
+@media (max-width: 32.5em) {
+  :root { --crest-drop: min(6rem, 22.02vw); }
+  body { font-size: 1.0625rem; }
+  .frame { border-radius: 26px; }
+  .frame::before { inset: 5px; border-radius: 21px; }
+  .corner { width: 30px; height: 30px; }
+  .corner.tl, .corner.tr { top: 12px; } .corner.bl, .corner.br { bottom: 12px; }
+  .corner.tl, .corner.bl { left: 12px; } .corner.tr, .corner.br { right: 12px; }
+  .tree { padding-top: 40px; }
+  .soil { padding: 0 4% 10px; font-size: 1rem; }
+  .couple { padding: 16px 16px 14px; }
+}
+
+.lang {
+  position: absolute;
+  top: 22px;
+  right: 76px;
+  z-index: 2;
+  font: italic 500 1.05rem/1.3 "Cormorant Garamond", serif;
+}
+:lang(af) .line .child::after { content: "Viljoen-lyn"; }
+@media (max-width: 41.25em) {
+  .lang { position: static; margin: 10px 0 0; text-align: center; font-size: 1rem; }
+}
