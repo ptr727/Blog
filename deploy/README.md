@@ -70,7 +70,7 @@ live on the host, in `~/.secrets/`, never in this checkout. CI passes them expli
 keeps a pipeline run self-describing:
 
 ```sh
-SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
+SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> <release-id>
 ```
 
 **That command-prefix form is CI-only.** A local run whose default environment file exists sources it after the command-prefix assignment and overwrites it, since `set -a` overwrites a value the caller exported first. Locally, select the environment through `ENV_FILE` instead, per the table below.

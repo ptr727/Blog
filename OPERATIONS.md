@@ -80,17 +80,15 @@ The procedures that change what the servers are serving. Read [Local Verificatio
 ### Deploying
 
 ```sh
-set -e
-RELEASE="$(git rev-parse --short HEAD)"
-SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> "$RELEASE"
-EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh <base-url>
+SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> <release-id>
+EXPECT_RELEASE=<release-id> checks/check-live-urls.sh <base-url>
 ```
 
 The deploy root and the base URL are the only host-specific values. A local run reads them from a file under `~/.secrets/`, one per environment, copied from [`.secrets/example.env`](./.secrets/example.env), and CI passes both explicitly. The real files live on the host, never in this checkout.
 
 **The command-prefix form above is CI-only.** A local run whose default environment file exists sources it after the command-prefix assignment and overwrites it, since `set -a` overwrites a value the caller exported first. Locally, select the environment through `ENV_FILE` instead, as the two examples earlier in this section do.
 
-**A VPS release is named by its deploy run, never by a commit.** The hub's deploy task names each release `<UTC yyyymmdd-HHMMSS>-<run id>-<run attempt>` and verifies the site against that id itself. To check a VPS site by hand afterwards, pass that id as `EXPECT_RELEASE`. Read it from the deploy run's `Resolve release id step`, or from the site's `X-Blog-Release` header. A short SHA there never matches, so the check waits out its timeout and fails.
+**A VPS release is named by its deploy run, never by a commit.** The hub's deploy task names each release `<UTC yyyymmdd-HHMMSS>-<run id>-<run attempt>` and verifies the site against that id itself. To check a VPS site by hand afterwards, pass that id as `EXPECT_RELEASE`. Read it from the deploy run's build log, where `make-release.sh` prints `==> installing release <id>`. Never copy it from the site's `X-Blog-Release` header, since a stale config still serves the previous id and the check would then pass against it. A short SHA never matches, so the check waits out its timeout and fails.
 
 **Always set `SITE_BASE_URL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` internally, and the effective value is printed on every build for that reason.
 
