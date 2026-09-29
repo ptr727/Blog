@@ -45,8 +45,9 @@ neither. Seven facts are the whole contract:
 5. Caddy runs with **`--watch`**. This is not optional. See
    [Reloading without a restart](#reloading-without-a-restart).
 6. The release tree is world-readable and world-traversable, so any uid can serve it.
-7. The container sets `SITE_ENV` and `SITE_ROBOTS`, which the bundle stamps on every response
-   as `X-Blog-Env` and `X-Robots-Tag`, and `TRUSTED_PROXIES`. A local mirror also sets
+7. The container sets `SITE_ENV`, which the bundle stamps on every response as `X-Blog-Env`.
+   It sets `SITE_ROBOTS`, stamped as `X-Robots-Tag` on the blog, and `FAMILY_SITE_ROBOTS`, stamped
+   as `X-Robots-Tag` on the family site. It sets `TRUSTED_PROXIES`, and a local mirror also sets
    `FAMILY_SITE_ADDRESS`. See [Identifying the environment](#identifying-the-environment),
    [Trusting the proxy](#trusting-the-proxy), and
    [Serving the family site on a local name](#serving-the-family-site-on-a-local-name).
@@ -207,19 +208,21 @@ response says which one answered. A proxy rule aimed at the wrong container conn
 serves the wrong environment under the right hostname, returning a healthy `200`. That is a
 failure a reader reports before a monitor notices.
 
-The bundle stamps two headers for that, taking both values from the container so the artifact
+The bundle stamps two headers for that, taking all three values from the container so the artifact
 stays the same everywhere and still rolls back as one unit:
 
 | Container variable | Header | Values |
 | --- | --- | --- |
 | `SITE_ENV` | `X-Blog-Env` | `production`, `staging`, and the local mirrors |
-| `SITE_ROBOTS` | `X-Robots-Tag` | `index, follow` or `noindex, nofollow` |
+| `SITE_ROBOTS` | `X-Robots-Tag` on the blog | `index, follow` or `noindex, nofollow` |
+| `FAMILY_SITE_ROBOTS` | `X-Robots-Tag` on the family site | `index, follow` or `noindex, nofollow` |
 
-Both are emitted at site level, outside the `route` block, which is what puts them on the error
-path as well. Verified on all three response classes: `200` from `file_server`, `301` from a
-`redir`, and `404` through `handle_errors`.
+Both headers are emitted at site level in each block, outside the blog's `route` block, which is
+what puts them on the error path as well. Verified on the blog's `200` from `file_server`, `301`
+from a `redir`, and `404` through `handle_errors`, and on the family site's `200`, its `302` and
+`308` redirects, and its `404`.
 
-**Both carry a default, because an unset `{$VAR}` is silent.** It expands to an empty header
+**Each variable carries a default, because an unset `{$VAR}` is silent.** It expands to an empty header
 rather than an error, and `caddy validate` still reports a valid configuration, so a missing
 value would otherwise reach production unnoticed. `SITE_ENV` defaults to `unset`, which
 `EXPECT_SITE_ENV` then fails on.
@@ -236,8 +239,15 @@ choice.** The two failure directions are not symmetric:
 So the default is the value that is harmless on production, and `noindex` is reachable only by
 asking for it explicitly.
 
-`checks/check-live-urls.sh` asserts this when `EXPECT_SITE_ENV` is set, before it checks the
-contract, since checking the contract against the wrong environment proves nothing.
+`checks/check-live-urls.sh` asserts `X-Blog-Env` when `EXPECT_SITE_ENV` is set, before it checks
+the contract, since checking the contract against the wrong environment proves nothing.
+
+**The family site reads `FAMILY_SITE_ROBOTS` rather than `SITE_ROBOTS`**, with the same default for
+the same reason. The two sites reach production on different schedules: the blog serves under an
+interim hostname that duplicates the live blog until its cutover, while `viljoen.family` is the
+family site's final domain and duplicates nothing. One variable would hold both at the stricter
+value. Set both to `noindex, nofollow` on a staging container, since neither falls back to the other.
+No check reads `X-Robots-Tag`, so a missing value shows only in the served header.
 
 ## Trusting the proxy
 
