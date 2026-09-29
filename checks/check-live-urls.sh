@@ -39,8 +39,10 @@ done
 FAILED="$(mktemp)"
 CURLERR="$(mktemp)"
 CURLRC=""
+FAMILY_CURLRC=""
 CHECKRC="$(mktemp)"
-trap 'rm -f "$FAILED" "$CURLERR" "$CHECKRC" ${CURLRC:+"$CURLRC"}' EXIT
+FAMILY_BODY="$(mktemp)"
+trap 'rm -f "$FAILED" "$CURLERR" "$CHECKRC" "$FAMILY_BODY" ${CURLRC:+"$CURLRC"} ${FAMILY_CURLRC:+"$FAMILY_CURLRC"}' EXIT
 
 # Every request this script makes announces itself as synthetic, so the server's log can be filtered down to real visitors with one clause.
 # Agreed with the host side, whose Traefik captures the field and whose own `ci/smoke.sh` already sends `vps/smoke`.
@@ -103,29 +105,45 @@ echo "==> tagging requests X-Blog-Check: $CHECK_TAG"
 # A resource access token opens the proxy's auth gate.
 # It goes into a curl config file because bash cannot export an array to the parallel checks.
 # A command line is also world-readable in ps output, and every request would carry it.
-if [ -n "${SITE_AUTH_TOKEN_ID:-}" ] && [ -n "${SITE_AUTH_TOKEN:-}" ]; then
-	# Same hazard as CHECK_TAG above and the same reason, but a narrower rule, because the grammar of a credential is the issuer's to define and not this script's.
-	# Only the characters that break out of a quoted config line are refused, and none is legal in an HTTP header value, so a token containing one is a paste accident rather than a token.
-	# Reported without echoing the value, since it is a secret and the finding is its shape.
-	#
-	# Carriage return counts as a line ending here as much as newline does.
-	# Header injection is classically CRLF, and a lone CR is enough on its own, so refusing LF while allowing CR would leave the shape this guard exists for.
-	for name in SITE_AUTH_TOKEN_ID SITE_AUTH_TOKEN; do
-		case "${!name}" in
-		*'"'* | *$'\n'* | *$'\r'*)
-			echo "FAIL $name contains a quote, a newline, or a carriage return, none of which can appear in an HTTP header value" >&2
-			exit 2
-			;;
-		esac
-	done
-	CURLRC="$(mktemp)"
-	chmod 600 "$CURLRC"
-	printf 'header = "P-Access-Token-Id: %s"\nheader = "P-Access-Token: %s"\n' \
-		"$SITE_AUTH_TOKEN_ID" "$SITE_AUTH_TOKEN" >"$CURLRC"
-	echo "==> sending a Pangolin access token"
-elif [ -n "${SITE_AUTH_TOKEN_ID:-}" ] || [ -n "${SITE_AUTH_TOKEN:-}" ]; then
-	# Half a credential is a typo rather than a choice, and it would otherwise fail as an outage.
-	echo "FAIL set both SITE_AUTH_TOKEN_ID and SITE_AUTH_TOKEN, or neither" >&2
+# Prints the file's path, or nothing for a public site that sets neither half of the pair.
+token_rc() {
+	local id_name="$1" token_name="$2" name rc
+	if [ -n "${!id_name:-}" ] && [ -n "${!token_name:-}" ]; then
+		# Same hazard as CHECK_TAG above and the same reason, but a narrower rule, because the grammar of a credential is the issuer's to define and not this script's.
+		# Only the characters that break out of a quoted config line are refused, and none is legal in an HTTP header value, so a token containing one is a paste accident rather than a token.
+		# Reported without echoing the value, since it is a secret and the finding is its shape.
+		#
+		# Carriage return counts as a line ending here as much as newline does.
+		# Header injection is classically CRLF, and a lone CR is enough on its own, so refusing LF while allowing CR would leave the shape this guard exists for.
+		for name in "$id_name" "$token_name"; do
+			case "${!name}" in
+			*'"'* | *$'\n'* | *$'\r'*)
+				echo "FAIL $name contains a quote, a newline, or a carriage return, none of which can appear in an HTTP header value" >&2
+				return 2
+				;;
+			esac
+		done
+		rc="$(mktemp)"
+		chmod 600 "$rc"
+		printf 'header = "P-Access-Token-Id: %s"\nheader = "P-Access-Token: %s"\n' \
+			"${!id_name}" "${!token_name}" >"$rc"
+		printf '%s' "$rc"
+	elif [ -n "${!id_name:-}" ] || [ -n "${!token_name:-}" ]; then
+		# Half a credential is a typo rather than a choice, and it would otherwise fail as an outage.
+		echo "FAIL set both $id_name and $token_name, or neither" >&2
+		return 2
+	fi
+}
+
+CURLRC=$(token_rc SITE_AUTH_TOKEN_ID SITE_AUTH_TOKEN) || exit 2
+[ -n "$CURLRC" ] && echo "==> sending a Pangolin access token"
+
+# A token opens exactly one proxy resource, so the family host needs a pair of its own.
+FAMILY_BASE="${FAMILY_SITE_BASE_URL:-}"
+FAMILY_BASE="${FAMILY_BASE%/}"
+FAMILY_CURLRC=$(token_rc FAMILY_SITE_AUTH_TOKEN_ID FAMILY_SITE_AUTH_TOKEN) || exit 2
+if [ -n "$FAMILY_CURLRC" ] && [ -z "$FAMILY_BASE" ]; then
+	echo "FAIL FAMILY_SITE_AUTH_TOKEN_ID and FAMILY_SITE_AUTH_TOKEN are set, but FAMILY_SITE_BASE_URL is not" >&2
 	exit 2
 fi
 
@@ -344,16 +362,47 @@ n_media=$(grep -c . "$CHECKS/golden-media-live.txt")
 echo "==> checking $n_media media URLs that must be served as images"
 grep . "$CHECKS/golden-media-live.txt" | xargs -P "$PARALLEL" -I{} bash -c 'check_media "$@"' _ {}
 
+# X-Blog-Env cannot tell the family page from the blog, since one container answers both and an unknown host falls through to the blog with a 200.
+# The title can, and sending no Accept-Language keeps / from redirecting to /af/.
+n_family=0
+if [ -n "$FAMILY_BASE" ]; then
+	family_auth=(-K "$CHECKRC")
+	family_hint=", so check the family pair is valid for this resource"
+	if [ -n "$FAMILY_CURLRC" ]; then
+		family_auth+=(-K "$FAMILY_CURLRC")
+	else
+		family_hint=", and no family token was sent"
+	fi
+	echo "==> checking the family site at $FAMILY_BASE"
+	for page in "/|The Viljoen Family" "/en/|The Viljoen Family" "/af/|Die Viljoen-familie"; do
+		page_path="${page%%|*}"
+		title="${page#*|}"
+		n_family=$((n_family + 1))
+		if ! code=$(curl -sS -o "$FAMILY_BODY" -w '%{http_code}' --max-time 30 "${family_auth[@]}" "$FAMILY_BASE$page_path" 2>"$CURLERR"); then
+			echo "family $page_path could not be reached: $(head -1 "$CURLERR")" >>"$FAILED"
+		elif [ "$code" != "200" ]; then
+			# The gate answers a missing or wrong token by redirecting to its login page.
+			hint="$family_hint"
+			[ "$code" = "302" ] || hint=""
+			echo "family $page_path expected 200, got $code$hint" >>"$FAILED"
+		elif ! grep -qF "<title>$title</title>" "$FAMILY_BODY"; then
+			echo "family $page_path answered without the title '$title', so another site served it" >>"$FAILED"
+		fi
+	done
+else
+	echo "==> FAMILY_SITE_BASE_URL is unset, so the family site is not checked"
+fi
+
 # A count of zero exits non-zero, so a fallback that echoes would append a second zero.
 # Swallowing only the exit status keeps the printed count usable.
 failures=$(grep -c . "$FAILED" 2>/dev/null || true)
 if [ "$failures" -eq 0 ]; then
-	echo "PASS - $((n_render + n_redirect + n_media)) URLs honored"
+	echo "PASS - $((n_render + n_redirect + n_media + n_family)) URLs honored"
 	exit 0
 fi
 
 echo
-echo "FAIL - $failures of $((n_render + n_redirect + n_media)) URLs"
+echo "FAIL - $failures of $((n_render + n_redirect + n_media + n_family)) URLs"
 sort "$FAILED" | head -40
 [ "$failures" -gt 40 ] && echo "... and $((failures - 40)) more"
 exit 1

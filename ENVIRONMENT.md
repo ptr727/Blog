@@ -27,6 +27,9 @@ Held in `~/.secrets/Blog.<server>.<environment>.env`, one file per environment, 
 | `EXPECT_SITE_ENV` | the environment that must answer, compared against the `X-Blog-Env` header the bundle stamps | A proxy rule aimed at the wrong container returns a healthy 200 under the right hostname, so the check refuses to start rather than proving nothing. |
 | `SITE_AUTH_TOKEN_ID` | the resource access token's id, for an environment behind the auth gate | Set both or neither. Leave both unset for a site that is public. |
 | `SITE_AUTH_TOKEN` | the token itself | Read by `check-live-urls.sh`, sent as Pangolin's own `P-Access-Token` header. Staging keeps its gate on because it serves a byte-identical copy of the public site. |
+| `FAMILY_SITE_BASE_URL` | the family site's base URL in this environment | Read by `check-live-urls.sh`, which checks the family page there when it is set. Leave it unset until the family hostname reaches this environment, since the check fails on any other answer. |
+| `FAMILY_SITE_AUTH_TOKEN_ID` | the family resource's access token id, for a family site behind the auth gate | Set both or neither, and only with `FAMILY_SITE_BASE_URL`. A token opens exactly one proxy resource, so the blog's pair cannot open the family host. |
+| `FAMILY_SITE_AUTH_TOKEN` | the token itself | Sent as `P-Access-Token` to the family host and nowhere else. |
 | `CAPTURE_ROOT` | the provenance capture, holding the WordPress exports, the crawl of the old platform, and the inventories derived from it | Every script under [`capture/`](./capture/) reads beneath it, and all but one write there too. The exception is [`capture/build-redirects.py`](./capture/build-redirects.py), which writes the committed maps under `deploy/maps/` in this repository, and which also accepts the capture as a first argument that wins over this value. Environment-independent, so it belongs in the default file only. |
 | `CAPTURE_SOURCE_URL` | the old platform's base URL, the site the crawl and the URL verification ran against | **Not `SITE_BASE_URL`.** The two hold the same string after the cutover and mean different things, so merging them points a verification run at the new site while every check still passes. Environment-independent. |
 | `CAPTURE_SOURCE_API` | the old platform's REST API for that site, carrying its numeric site id | Read for the post and page bodies in **rendered** form, which is what expands shortcodes so a media reference is seen the way a reader's browser sees it. Environment-independent. |
@@ -51,6 +54,8 @@ Held on the `production` and `staging` environments. The deploy workflow reads n
 | `DEPLOY_SSH_PRIVATE_KEY` | secret | the deploy key, held behind an `rrsync` forced command |
 | `SITE_AUTH_TOKEN_ID` | secret | as above, for an environment behind the gate. Forwarded to `checks/check-live-urls.sh`, which reads this name directly |
 | `SITE_AUTH_TOKEN` | secret | as above, forwarded the same way |
+
+**The family site is checked from a local environment file only.** The deploy workflow's verify step receives `SITE_BASE_URL` and the blog's token pair and nothing else. A deploy therefore does not check the family host, and a family pair stored on a GitHub Environment reaches no step.
 
 **`SITE_BASE_URL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes. Its generic name is the hub's own `deploy-site-task.yml` interface, and it is also the one this repository's own scripts and `~/.secrets/Blog.*.env` files read: `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` in one place, since only Hugo requires that name.
 

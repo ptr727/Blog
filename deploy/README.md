@@ -117,7 +117,7 @@ that reason.
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
 | `NO_LINK_DEST=1` | Full copy instead of hard-linking from the previous release. |
 
-`checks/check-live-urls.sh` reads five more, and none of them reaches `make-release.sh`. Two
+`checks/check-live-urls.sh` reads eight more, and none of them reaches `make-release.sh`. Two
 open the auth gate:
 
 | Variable | Effect |
@@ -139,6 +139,20 @@ the preflight before a single URL is requested:
 | `EXPECT_SITE_ENV` | Asserts the environment that answered, read from `X-Blog-Env`. |
 | `EXPECT_RELEASE` | Asserts the release whose rules answered, read from `X-Blog-Release`. |
 | `RELOAD_TIMEOUT` | Seconds to wait for that release to become live. Default 30. |
+
+The last three check the family site, whose host is a proxy resource of its own:
+
+| Variable | Effect |
+| --- | --- |
+| `FAMILY_SITE_BASE_URL` | The family site's base URL. Unset, the family site is not checked. |
+| `FAMILY_SITE_AUTH_TOKEN_ID` | The family resource's access token id, sent as `P-Access-Token-Id`. |
+| `FAMILY_SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
+
+The family pair follows the same rules as the blog's, and goes to the family origin alone. A
+token opens exactly one proxy resource, so the blog's pair cannot open the family host. The
+check requests `/`, `/en/`, and `/af/` and asserts each page's `<title>`, because `X-Blog-Env`
+is the same on both hostnames and a hostname the family block does not name falls through to the
+blog with a `200`.
 
 ## Reloading without a restart
 

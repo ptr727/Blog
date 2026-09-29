@@ -303,6 +303,15 @@ The gate is the VPS staging environment's, so this is `~/.secrets/Blog.vps.stagi
 
 Set both or neither. Half a pair is a typo rather than a choice, and it is rejected as one rather than presented as a failing site.
 
+The family site's staging host sits behind a gate of its own. A Pangolin token opens exactly one resource, so the blog's pair gets the login page there. The same run checks the family site when `FAMILY_SITE_BASE_URL` is set, sending a second pair to that origin alone:
+
+| Variable | Header |
+| --- | --- |
+| `FAMILY_SITE_AUTH_TOKEN_ID` | `P-Access-Token-Id` |
+| `FAMILY_SITE_AUTH_TOKEN` | `P-Access-Token` |
+
+The family token is created with Pangolin's session persistence off. The check sends both headers on every request and keeps no cookie, so a persisted session would only hand a cookie to nobody. The token never goes in the `p_token` query parameter. Pangolin answers that form with a redirect and a session cookie rather than the page, and the proxy's access log records the query. The deploy workflow does not run this part, since it receives only the blog's pair, so the family check runs from `~/.secrets/Blog.vps.staging.env`.
+
 Three properties of how the credential is handled, each there for a reason worth keeping:
 
 - **It travels in a mode-`600` curl config file, not in `-H` arguments.** A command line is readable in `ps` for the life of the process, and this runs one per URL in the contract. The config file is also the only form that survives the `export -f` the parallel checks run under, because bash cannot export an array.
