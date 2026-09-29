@@ -43,25 +43,30 @@ Three more are named in the template but commented out, because CI resolves them
 
 ## The GitHub Environments
 
-Held on the `production` and `staging` environments. The deploy workflow reads no file.
+Every variable and secret this repository stores on GitHub, and the stores holding each. A store is a deployment environment, `repository` for the Actions repository store, or `dependabot` for the Dependabot secret store. The deploy workflow reads no file.
 
-| Value | Kind | Names |
-| --- | --- | --- |
-| `SITE_BASE_URL` | variable | the base URL, used twice: `.github/actions/deploy/action.yml` builds the site with it and points `check-live-urls.sh` at it |
-| `DEPLOY_SSH_HOST` | variable | the deploy endpoint |
-| `DEPLOY_SSH_USER` | variable | the confined deploy account |
-| `DEPLOY_SSH_KNOWN_HOSTS` | variable | the pinned host key. A variable rather than a secret, deliberately, since it is public by nature |
-| `DEPLOY_SSH_PRIVATE_KEY` | secret | the deploy key, held behind an `rrsync` forced command |
-| `SITE_AUTH_TOKEN_ID` | secret | as above, for an environment behind the gate. Forwarded to `checks/check-live-urls.sh`, which reads this name directly |
-| `SITE_AUTH_TOKEN` | secret | as above, forwarded the same way |
+| Value | Kind | Held on | Names |
+| --- | --- | --- | --- |
+| `SITE_BASE_URL` | variable | `staging`, `production` | the base URL, used twice: `.github/actions/deploy/action.yml` builds the site with it and points `check-live-urls.sh` at it |
+| `DEPLOY_SSH_HOST` | variable | `staging`, `production` | the deploy endpoint |
+| `DEPLOY_SSH_USER` | variable | `staging`, `production` | the confined deploy account |
+| `DEPLOY_SSH_KNOWN_HOSTS` | variable | `staging`, `production` | the pinned host key. A variable rather than a secret, deliberately, since it is public by nature |
+| `DEPLOY_SSH_PRIVATE_KEY` | secret | `staging`, `production` | the deploy key, held behind an `rrsync` forced command |
+| `SITE_AUTH_TOKEN_ID` | secret | `staging` | as above, for an environment behind the gate. Forwarded to `checks/check-live-urls.sh`, which reads this name directly |
+| `SITE_AUTH_TOKEN` | secret | `staging` | as above, forwarded the same way |
+| `FAMILY_SITE_BASE_URL` | variable | `staging` | the family site's base URL, as above. Production gains it once `viljoen.family` resolves to the VPS |
+| `FAMILY_SITE_AUTH_TOKEN_ID` | secret | `staging` | the family resource's token id, as above |
+| `FAMILY_SITE_AUTH_TOKEN` | secret | `staging` | the family resource's token, as above |
+| `CODEGEN_APP_CLIENT_ID` | secret | `repository`, `dependabot` | the merge bot's GitHub App client id, read by `merge-bot-pull-request.yml` |
+| `CODEGEN_APP_PRIVATE_KEY` | secret | `repository`, `dependabot` | the merge bot's GitHub App private key, read the same way |
 
-**The family site is checked from a local environment file only.** The deploy workflow's verify step receives `SITE_BASE_URL` and the blog's token pair, and no family variable. A deploy therefore does not check the family host, and a family pair stored on a GitHub Environment reaches no step.
+**[`checks/check-github-env.py`](./checks/check-github-env.py) compares this table against GitHub.** It reads the names every store holds, never a value. It reports a value missing from a store, held on a store the table does not name, or held as the wrong kind. Every environment GitHub has is read, so an environment the table never names must hold nothing. Run it after changing a value on GitHub or a row here. It needs a `gh` login that can administer the repository, since listing environment secrets requires that. A workflow's `GITHUB_TOKEN` cannot, so CI does not run it.
+
+**The family values on `staging` reach no deploy step.** The deploy workflow's verify step receives `SITE_BASE_URL` and the blog's token pair from the hub's deploy task, and no family variable. A deploy therefore does not check the family host, and the family check runs from a local environment file.
 
 **`SITE_BASE_URL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes. Its generic name is the hub's own `deploy-site-task.yml` interface, and it is also the one this repository's own scripts and `~/.secrets/Blog.*.env` files read: `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` in one place, since only Hugo requires that name.
 
 **A host rebuild regenerates the SSH host keys and the pinned value stops matching**, which fails every deploy closed and blocks the rollback path at the same moment a rebuild makes both matter. Replace `DEPLOY_SSH_KNOWN_HOSTS` on **both** environments before the first deploy after a rebuild.
-
-Two repository-level secrets are unrelated to deployment and exist for the merge bot: `CODEGEN_APP_CLIENT_ID` and `CODEGEN_APP_PRIVATE_KEY`.
 
 ## Per-invocation knobs
 
