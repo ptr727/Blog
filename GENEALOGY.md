@@ -11,7 +11,7 @@ Record these fields for a person before rendering them in either notation. They 
 | Field | Meaning | GEDCOM tag |
 | --- | --- | --- |
 | Lineage path | The birth-order position of each ancestor from the progenitor down, for example progenitor, 3rd child, 4th child | none |
-| Given names, surname | As spelled in the source, including an older spelling such as Villion | `NAME` |
+| Given names, surname | As spelled in the source, including an older spelling such as Vilion | `NAME` |
 | Birth | Date, date precision, place | `BIRT` |
 | Baptism | Date, date precision, place | `BAPM` or `CHR` |
 | Marriage | Its order (first, second), spouse, date, place | `MARR` |
