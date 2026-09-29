@@ -235,12 +235,12 @@ footer {
   color: var(--ink-soft);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 68.75em) {
   .stub { padding: 2px 8px 3px; font-size: .95rem; }
 }
 
 /* ---------- Narrow screens: the tree becomes a single descending line ---------- */
-@media (max-width: 1000px) {
+@media (max-width: 62.5em) {
   .jump {
     display: block;
     width: max-content;
