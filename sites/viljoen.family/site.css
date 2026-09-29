@@ -32,7 +32,7 @@ a:hover { text-decoration-color: currentColor; }
 .frame {
   position: relative;
   max-width: 73.75rem;
-  margin: 128px auto 0;
+  margin: 8rem auto 0;
   padding: 0 clamp(18px, 4vw, 60px) 40px;
   border: 2.5px solid var(--red);
   border-radius: 40px;
@@ -59,7 +59,7 @@ a:hover { text-decoration-color: currentColor; }
 /* ---------- Crest ---------- */
 .masthead {
   position: relative;
-  margin: -128px auto 0;
+  margin: -8rem auto 0;
   width: min(21.25rem, 78vw);
   text-align: center;
   z-index: 1;
@@ -171,7 +171,7 @@ abbr[title] { text-decoration: none; cursor: help; font-style: normal; font-weig
   border: 1px dashed var(--leaf);
   border-radius: 999px;
   text-align: center;
-  white-space: nowrap;
+  max-width: 100%;
 }
 .legend, .tree-note {
   max-width: 42.5rem;
@@ -258,14 +258,14 @@ footer {
 }
 @media (max-width: 520px) {
   body { font-size: 1.0625rem; }
-  .frame { margin-top: 96px; border-radius: 26px; }
+  .frame { margin-top: 6rem; border-radius: 26px; }
   .frame::before { inset: 5px; border-radius: 21px; }
-  .masthead { margin-top: -96px; }
+  .masthead { margin-top: -6rem; }
   .corner { width: 30px; height: 30px; }
   .corner.tl, .corner.tr { top: 12px; } .corner.bl, .corner.br { bottom: 12px; }
   .corner.tl, .corner.bl { left: 12px; } .corner.tr, .corner.br { right: 12px; }
   .tree { padding-top: 40px; }
-  .soil { padding: 0 4% 10px; font-size: .95rem; }
+  .soil { padding: 0 4% 10px; font-size: 1rem; }
   .couple { padding: 16px 16px 14px; }
 }
 
@@ -278,5 +278,5 @@ footer {
 }
 :lang(af) .line .child::after { content: "Viljoen-lyn"; }
 @media (max-width: 660px) {
-  .lang { position: static; margin: 10px 0 0; text-align: center; font-size: .95rem; }
+  .lang { position: static; margin: 10px 0 0; text-align: center; font-size: 1rem; }
 }
