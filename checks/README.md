@@ -15,7 +15,7 @@ The contract is enforced by two gates, because one cannot cover both halves:
 
 ## The two lists
 
-**`golden-urls.txt`, 328 URLs Hugo must render.** Missing any one is a hard CI failure.
+**`golden-urls.txt`, 327 URLs Hugo must render.** Missing any one is a hard CI failure.
 
 **Every count on this page describes the two lists, not the site.** The lists are the legacy contract, closed by the migration, so a new post adds a URL the parity gate reports as `additional URLs built (not a failure)` and changes nothing here. A count moves only when a log review finds a legacy address the crawl missed, which is a deliberate append.
 
@@ -27,12 +27,12 @@ The contract is enforced by two gates, because one cannot cover both halves:
 | Category pagination | 11 | `/category/<term>/page/N/` |
 | Home pagination | 10 | `/page/N/` |
 | Tag pagination | 4 | `/tag/<term>/page/N/` |
-| Pages | 2 | `/about/`, `/viljoen-family/` |
+| Pages | 1 | `/about/` |
 | Home | 1 | |
 
 The 180 tag archives are exactly the tags the migrated posts carry. Three further terms answer with an empty page and are redirects rather than renders: `brultech` and `phyn`, which no published post uses, and `review`, an empty tag that is also a 12-post category. Hugo generates a term page only where posts exist, which is why the render list is 180 tags rather than 183.
 
-**`redirect-urls.txt`, 917 URLs that must resolve but need not render.** These have no Hugo equivalent. Reproducing them would be absurd, and 404ing them discards real inbound links.
+**`redirect-urls.txt`, 918 URLs that must resolve but need not render.** These have no Hugo equivalent. Reproducing them would be absurd, and 404ing them discards real inbound links.
 
 | Shape | Count | Disposition |
 | --- | --- | --- |
@@ -49,8 +49,11 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Blogger static pages | 2 | `/p/<slug>.html` to `/<slug>/` |
 | Empty term archives | 3 | `brultech`, `phyn`, `review`, as above |
 | Site and section feeds | 3 | `/feed/`, `/about/feed/`, `/comments/feed/` |
+| Retired pages | 1 | `/viljoen-family/` to `https://viljoen.family/`, via `slugs.map` |
 
 An **attachment page** is the page the old platform generated per uploaded image, served at both `/YYYY/MM/DD/post/attachment/` and a bare `/attachment/`. That makes a one-segment URL ambiguous with a real page, and the sitemap resolves it: the sitemap lists exactly the posts and pages, so a one-segment URL absent from it is an attachment page. The images themselves keep their `wp-content/uploads/` paths and are covered separately by `golden-media-legacy.txt`.
+
+A **retired page** is one the site no longer renders because another site replaced it. Its URL moves from the render list to this one rather than leaving the contract, so it keeps answering.
 
 ## Legacy URL shapes worth knowing
 
@@ -138,6 +141,8 @@ The count is not a backlog. It opened at 120 and was adjudicated against the cap
 | 5 | never orphans, referenced only by an absolute URL the check could not read |
 | 97 | uploaded to the old platform's media library and never placed on a published page |
 | 1 | that platform's site icon, superseded by the favicon set at the static root |
+
+The 99th is the cover of `/viljoen-family/`, a page retired to another site, and it stays because its legacy URL is in the media contract.
 
 **No image the old site served from its own uploads went unimported**, and no conversion loss remains. Anything that raises the count from here is therefore new, which is what makes the exact constant worth keeping.
 

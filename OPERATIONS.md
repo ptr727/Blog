@@ -438,7 +438,7 @@ Ordering is load-bearing, so every redirect lives in a single `route` block. Out
 | Legacy media paths | One rule, mapping the old upload prefix onto the current media tree |
 | Blogger permalinks, pages, feed, and monthly archives | Rules plus `blogger.map` |
 | WordPress shortlinks | `p-ids.map`, keyed on the query string |
-| Bare attachment slugs | `slugs.map` |
+| Bare attachment slugs and retired pages | `slugs.map` |
 | Blogger label archives | `labels.map`, defaulting to the archive index |
 | Term archives the generator does not build | `terms.map` |
 
