@@ -19,7 +19,7 @@ Record these fields for a person before rendering them in either notation. They 
 | Death | Date, date precision, place | `DEAT` |
 | Burial | Date, place | `BURI` |
 | Name-carrying | Whether the surname continues through this line | none |
-| Source | Where each fact comes from, and whether it is verified against the Familieregister | `SOUR` |
+| Source | Where each fact comes from, the Familiebond's pages being the source of truth | `SOUR` |
 
 Date precision is one of exact, year only, about, before, or after. Keep the data date in ISO form (`1682-05-19`), and let the notation decide how it displays.
 
@@ -29,7 +29,7 @@ Date precision is one of exact, year only, about, before, or after. Keep the dat
 - **No living people.** A line stops at people born before about 1925. A later person does not appear, even as a count.
 - **Signs are accessible.** Each sign or abbreviation sits inside `<abbr title="...">`. The visible sign is `aria-hidden`, and a visually hidden word (class `vh`) follows it for screen readers. The legend spells each word out already, so its signs carry no hidden word.
 - **ASCII source.** A non-ASCII sign is written as an HTML entity or a numeric reference, never as the literal character.
-- **Unverified facts are marked.** A fact not yet checked against the Familiebond's Familieregister is still published, with the page note saying so.
+- **Facts follow the Familiebond.** Each fact is published as the Familiebond's pages state it, and the page note names that source. Where another source differs, the Familiebond's pages win.
 
 ## South African Notation (de Villiers/Pama)
 
@@ -50,7 +50,7 @@ The sources agree that the progenitor's children are the `b` generation. They di
 | Born | `*` | `&ast;` | `* 01.02.1700` |
 | Baptized | `~` | `&#126;` | `~ 19.05.1682 Cape Town` |
 | Married | `x` | plain letter | `x 1707 Margaretha de Savoye` |
-| Married, first and second | `x1`, `x2` | plain letters | `x1 1702 Hercule du Preez` |
+| Married, first and second | `x1`, `x2` | plain letters | `x1 1702 Hercul&eacute; du Preez` |
 | Died | dagger | `&dagger;` | `&dagger; 1720` |
 | Buried | not yet chosen | | |
 

@@ -39,7 +39,7 @@ The blazon, from Prof. H.C. Viljoen's coat-of-arms page, which also records the 
 
 The arms derive from the French family Villon de Varennes, whose crest was a golden mural crown. At the 1976 Viljoen Festival the Viljoen Familiebond voted to replace it with the golden wings. Wikipedia's image shows only the shield, helm, and mantling, with no crest, and captions the arms "unregistered". The page therefore describes them as the family's arms and makes no claim of official registration.
 
-`crest.svg` is a vector redrawing of the family's crest as Prof. Christo Viljoen shows it ([Viljoen Familie][viljoen-familie]). The pair of folded wings is drawn in profile, so one wing shows. It matches that image's 336x418 size, so the two overlay directly for comparison.
+`crest.svg` is a vector redrawing of the family's crest as Prof. Christo Viljoen shows it ([Viljoen Family Association][viljoen-familie]). The pair of folded wings is drawn in profile, so one wing shows. It matches that image's 336x418 size, so the two overlay directly for comparison.
 
 - Each part is a named group: `mantling-gold`, `mantling-red`, `mantling-stems`, `mantling-joins`, `shield`, `helmet`, `wing`, `torse`, `name-scroll`, and `viljoen-lettering`.
 - Each side of the mantling is one group mirrored with `translate(342 0) scale(-1 1)`.
@@ -81,7 +81,7 @@ The tree is a stamboom. The children form the crown, and the stamouers card sits
 
 ## Facts on the Page and Their Sources
 
-The Familiebond's pages are the source of truth. Prof. H.C. (Christo) Viljoen maintains them, and he is the author of the Viljoen Familieregister (4th edition, 2021), which the Huguenot Society of South Africa publishes. Where another source differs, the page follows the Familiebond. [Wikipedia][wikipedia-viljoen], for example, gives the arrival as 1671.
+The Familiebond's pages are the source of truth. Prof. H.C. (Christo) Viljoen maintains them. He is the author of the Viljoen Familieregister (4th edition, 2021), which the Huguenot Society of South Africa publishes. Where another source differs, the page follows the Familiebond. [Wikipedia][wikipedia-viljoen], for example, gives the arrival as 1671.
 
 - **Francois Vilion** ([Stamouers][viljoen-familie-stamouers]): of Clermont, France. He sailed from Texel as a VOC soldier on 1671-10-11 and reached Table Bay on 1672-02-14. He married Cornelia Campenaar of Middelburg, Netherlands, in Cape Town on 1676-05-17. From 1682 he farmed Idasvallei near Stellenbosch, where he died, probably in 1689.
 - **The six children** ([Eerste geslagte][viljoen-familie-eerste-geslagte]):
@@ -102,7 +102,7 @@ The page exists in English and Afrikaans, as two HTML files that share `site.css
 - **Choosing the language.** Caddy redirects `/` to `/af/` when Afrikaans is the browser's first `Accept-Language`, and sends `Vary: Accept-Language`. The `/en/` and `/af/` addresses never redirect, so a visitor's choice holds.
 - **The switch.** A link in the corner, or under the crest on phones, leads to the other language's explicit address. Both pages carry `hreflang` alternates and their own canonical URL.
 - **Keeping them in step.** `af/index.html` is a translation of `index.html` with the same markup. A change to one page's structure goes into the other in the same commit. The CSS names the one string it carries, the "Viljoen line" badge, per language with `:lang(af)`.
-- **Mixed text.** English left on the Afrikaans page, such as the blazon and the English site names, carries `lang="en"`.
+- **Mixed text.** English left on the Afrikaans page, such as the section subtitles and the blazon, carries `lang="en"`.
 
 ## Local Preview
 
