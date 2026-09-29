@@ -63,7 +63,7 @@ So the bundle stamps its own version as `X-Blog-Release`, and `check-live-urls.s
 EXPECT_RELEASE=<version> checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and the deploy workflow passes them explicitly, as [Deploying](#deploying) below shows. Either form works locally, and the argument wins over the environment.
+Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both arguments, and the deploy workflow passes a bundle path and a version, as [Deploying](#deploying) below shows. Either form works locally, and the argument wins over the environment.
 
 `ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `~/.secrets/Blog.local.production.env` while the shell's `$SITE_BASE_URL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
 
