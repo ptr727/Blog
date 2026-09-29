@@ -42,7 +42,8 @@ CURLRC=""
 FAMILY_CURLRC=""
 CHECKRC="$(mktemp)"
 FAMILY_BODY="$(mktemp)"
-trap 'rm -f "$FAILED" "$CURLERR" "$CHECKRC" "$FAMILY_BODY" ${CURLRC:+"$CURLRC"} ${FAMILY_CURLRC:+"$FAMILY_CURLRC"}' EXIT
+FAMILY_HEAD="$(mktemp)"
+trap 'rm -f "$FAILED" "$CURLERR" "$CHECKRC" "$FAMILY_BODY" "$FAMILY_HEAD" ${CURLRC:+"$CURLRC"} ${FAMILY_CURLRC:+"$FAMILY_CURLRC"}' EXIT
 
 # Every request this script makes announces itself as synthetic, so the server's log can be filtered down to real visitors with one clause.
 # Agreed with the host side, whose Traefik captures the field and whose own `ci/smoke.sh` already sends `vps/smoke`.
@@ -362,8 +363,9 @@ n_media=$(grep -c . "$CHECKS/golden-media-live.txt")
 echo "==> checking $n_media media URLs that must be served as images"
 grep . "$CHECKS/golden-media-live.txt" | xargs -P "$PARALLEL" -I{} bash -c 'check_media "$@"' _ {}
 
-# X-Blog-Env cannot tell the family page from the blog, since one container answers both and an unknown host falls through to the blog with a 200.
-# The title can, and sending no Accept-Language keeps / from redirecting to /af/.
+# The title tells the family page from the blog, since one container answers both and an unknown host falls through to the blog with a 200.
+# X-Blog-Env still tells one environment from another, and the family host is a proxy rule of its own that can aim at the wrong container.
+# Sending no Accept-Language keeps / from redirecting to /af/.
 n_family=0
 if [ -n "$FAMILY_BASE" ]; then
 	family_auth=(-K "$CHECKRC")
@@ -378,7 +380,7 @@ if [ -n "$FAMILY_BASE" ]; then
 		page_path="${page%%|*}"
 		title="${page#*|}"
 		n_family=$((n_family + 1))
-		if ! code=$(curl -sS -o "$FAMILY_BODY" -w '%{http_code}' --max-time 30 "${family_auth[@]}" "$FAMILY_BASE$page_path" 2>"$CURLERR"); then
+		if ! code=$(curl -sS -o "$FAMILY_BODY" -D "$FAMILY_HEAD" -w '%{http_code}' --max-time 30 "${family_auth[@]}" "$FAMILY_BASE$page_path" 2>"$CURLERR"); then
 			echo "family $page_path could not be reached: $(head -1 "$CURLERR")" >>"$FAILED"
 		elif [ "$code" != "200" ]; then
 			# The gate answers a missing or wrong token by redirecting to its login page.
@@ -387,6 +389,10 @@ if [ -n "$FAMILY_BASE" ]; then
 			echo "family $page_path expected 200, got $code$hint" >>"$FAILED"
 		elif ! grep -qF "<title>$title</title>" "$FAMILY_BODY"; then
 			echo "family $page_path answered without the title '$title', so another site served it" >>"$FAILED"
+		elif [ -n "${EXPECT_SITE_ENV:-}" ]; then
+			got_env=$(grep -i '^x-blog-env:' "$FAMILY_HEAD" | tr -d '\r' | sed 's/^[^:]*: *//')
+			[ "$got_env" = "$EXPECT_SITE_ENV" ] ||
+				echo "family $page_path is served by '${got_env:-<no X-Blog-Env header>}', expected '$EXPECT_SITE_ENV'" >>"$FAILED"
 		fi
 	done
 else

@@ -69,7 +69,7 @@ Sourcing the environment file first puts the deploy root and the base URL in the
 
 It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$SITE_BASE_URL` goes. It follows every URL in the contract against the running mirror, checking each redirect's destination rather than trusting its status code.
 
-Expect a `PASS` naming the number of URLs honored, which is the two lists' combined length and grows as they do. Anything less is a finding, and the output names each URL that failed and what it answered.
+Expect a `PASS` naming the number of URLs honored. That is the three lists' combined length, plus the family pages where `FAMILY_SITE_BASE_URL` is set. Anything less is a finding, and the output names each URL that failed and what it answered.
 
 A documentation-only or workflow-only change does not need this. A change to the four paths above does, because for those CI's green is not evidence.
 
@@ -303,6 +303,12 @@ The gate is the VPS staging environment's, so this is `~/.secrets/Blog.vps.stagi
 
 Set both or neither. Half a pair is a typo rather than a choice, and it is rejected as one rather than presented as a failing site.
 
+Three properties of how the credential is handled, each there for a reason worth keeping:
+
+- **It travels in a mode-`600` curl config file, not in `-H` arguments.** A command line is readable in `ps` for the life of the process, and this runs one per URL in the contract. The config file is also the only form that survives the `export -f` the parallel checks run under, because bash cannot export an array.
+- **It is sent to the base URL's own origin and nowhere else.** The check follows every redirect's destination, and every destination in the contract is same-origin today. A rule that one day points off-site must not mail the credential to whoever is on the other end.
+- **A preflight request runs before the rest.** Behind an auth gate a wrong token fails *every* URL, and the output then reads as a site that has vanished rather than as a bad credential. The two are indistinguishable from the far end of a CI log, so the run stops on the first request with a message naming which of the two it was.
+
 The family site's staging host sits behind a gate of its own. A Pangolin token opens exactly one resource, so the blog's pair gets the login page there. The same run checks the family site when `FAMILY_SITE_BASE_URL` is set, sending a second pair to that origin alone:
 
 | Variable | Header |
@@ -310,13 +316,7 @@ The family site's staging host sits behind a gate of its own. A Pangolin token o
 | `FAMILY_SITE_AUTH_TOKEN_ID` | `P-Access-Token-Id` |
 | `FAMILY_SITE_AUTH_TOKEN` | `P-Access-Token` |
 
-The family token is created with Pangolin's session persistence off. The check sends both headers on every request and keeps no cookie, so a persisted session would only hand a cookie to nobody. The token never goes in the `p_token` query parameter. Pangolin answers that form with a redirect and a session cookie rather than the page, and the proxy's access log records the query. The deploy workflow does not run this part, since it receives only the blog's pair, so the family check runs from `~/.secrets/Blog.vps.staging.env`.
-
-Three properties of how the credential is handled, each there for a reason worth keeping:
-
-- **It travels in a mode-`600` curl config file, not in `-H` arguments.** A command line is readable in `ps` for the life of the process, and this runs one per URL in the contract. The config file is also the only form that survives the `export -f` the parallel checks run under, because bash cannot export an array.
-- **It is sent to the base URL's own origin and nowhere else.** The check follows every redirect's destination, and every destination in the contract is same-origin today. A rule that one day points off-site must not mail the credential to whoever is on the other end.
-- **A preflight request runs before the rest.** Behind an auth gate a wrong token fails *every* URL, and the output then reads as a site that has vanished rather than as a bad credential. The two are indistinguishable from the far end of a CI log, so the run stops on the first request with a message naming which of the two it was.
+The family token is created with Pangolin's session persistence off. The check sends both headers on every request and keeps no cookie, so a persisted session would only hand a cookie to nobody. The token never goes in the `p_token` query parameter. Pangolin answers that form with a redirect and a session cookie rather than the page, and the proxy's access log records the query. The family pair gets neither the preflight nor redirect following. Its three pages are requested after the URL contract. A wrong family token therefore surfaces at the end of the run, as a `302` on each page. The deploy workflow receives only the blog's pair and does not run this part. The family check runs from `~/.secrets/Blog.vps.staging.env`.
 
 ## Configuration Layout
 

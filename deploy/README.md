@@ -144,7 +144,7 @@ The last three check the family site, whose host is a proxy resource of its own:
 
 | Variable | Effect |
 | --- | --- |
-| `FAMILY_SITE_BASE_URL` | The family site's base URL. Unset, the family site is not checked. |
+| `FAMILY_SITE_BASE_URL` | The family site's base URL. Unset, the family site is not checked, and a family pair set without it is refused. |
 | `FAMILY_SITE_AUTH_TOKEN_ID` | The family resource's access token id, sent as `P-Access-Token-Id`. |
 | `FAMILY_SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
 

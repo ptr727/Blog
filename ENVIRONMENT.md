@@ -55,7 +55,7 @@ Held on the `production` and `staging` environments. The deploy workflow reads n
 | `SITE_AUTH_TOKEN_ID` | secret | as above, for an environment behind the gate. Forwarded to `checks/check-live-urls.sh`, which reads this name directly |
 | `SITE_AUTH_TOKEN` | secret | as above, forwarded the same way |
 
-**The family site is checked from a local environment file only.** The deploy workflow's verify step receives `SITE_BASE_URL` and the blog's token pair and nothing else. A deploy therefore does not check the family host, and a family pair stored on a GitHub Environment reaches no step.
+**The family site is checked from a local environment file only.** The deploy workflow's verify step receives `SITE_BASE_URL` and the blog's token pair, and no family variable. A deploy therefore does not check the family host, and a family pair stored on a GitHub Environment reaches no step.
 
 **`SITE_BASE_URL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes. Its generic name is the hub's own `deploy-site-task.yml` interface, and it is also the one this repository's own scripts and `~/.secrets/Blog.*.env` files read: `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` in one place, since only Hugo requires that name.
 
