@@ -31,7 +31,7 @@ Every file in this directory except this README ships to the bundle's `family/` 
 
 ## The Arms
 
-The blazon, from the Viljoen Family Website crest page ([hugenoot.org.za][hugenoot-crest]):
+The blazon, from Prof. H.C. Viljoen's coat-of-arms page, which also records the Familiebond's 1976 vote on the crest ([hugenoot.org.za][hugenoot-crest]):
 
 - **Shield:** Gules, a saltire Or (a gold St Andrew's cross on red).
 - **Mantling:** Or and Gules.
@@ -39,7 +39,7 @@ The blazon, from the Viljoen Family Website crest page ([hugenoot.org.za][hugeno
 
 The arms derive from the French family Villon de Varennes, whose crest was a golden mural crown. At the 1976 Viljoen Festival the Viljoen Familiebond voted to replace it with the golden wings. Wikipedia's image shows only the shield, helm, and mantling, with no crest, and captions the arms "unregistered". The page therefore describes them as the family's arms and makes no claim of official registration.
 
-`crest.svg` is a vector redrawing of the family's crest as Prof. Christo Viljoen shows it ([Viljoen Familie][viljoen-familie]). The pair of folded wings is drawn in profile, so one wing shows. It matches that image's 336x418 size, so the two overlay directly for comparison.
+`crest.svg` is a vector redrawing of the family's crest as Prof. Christo Viljoen shows it ([Viljoen Family Association][viljoen-familie]). The pair of folded wings is drawn in profile, so one wing shows. It matches that image's 336x418 size, so the two overlay directly for comparison.
 
 - Each part is a named group: `mantling-gold`, `mantling-red`, `mantling-stems`, `mantling-joins`, `shield`, `helmet`, `wing`, `torse`, `name-scroll`, and `viljoen-lettering`.
 - Each side of the mantling is one group mirrored with `translate(342 0) scale(-1 1)`.
@@ -81,16 +81,18 @@ The tree is a stamboom. The children form the crown, and the stamouers card sits
 
 ## Facts on the Page and Their Sources
 
-- **Francois Villion:** a Huguenot from Clermont, France, who arrived at the Cape in 1671 ([Wikipedia][wikipedia-viljoen]). He married Cornelia Campenaar of Middelburg, Netherlands, at the Cape in 1676 ([hugenoot.org.za][hugenoot-viljoen]). They farmed near Stellenbosch.
-- **The six children** ([Descendants of Francois Villion][oocities-descend], which shows baptism years only):
+The Familiebond's pages are the source of truth. Prof. H.C. (Christo) Viljoen maintains them. He is the author of the Viljoen Familieregister (4th edition, 2021), which the Huguenot Society of South Africa publishes. Where another source differs, the page follows the Familiebond. [Wikipedia][wikipedia-viljoen], for example, gives the arrival as 1671.
+
+- **Francois Vilion** ([Stamouers][viljoen-familie-stamouers]): of Clermont, France. He sailed from Texel as a VOC soldier on 1671-10-11 and reached Table Bay on 1672-02-14. He married Cornelia Campenaar of Middelburg, Netherlands, in Cape Town on 1676-05-17. From 1682 he farmed Idasvallei near Stellenbosch, where he died, probably in 1689.
+- **The six children** ([Eerste geslagte][viljoen-familie-eerste-geslagte]):
   - b1 Pieter: baptized Cape Town 1677-02-07, never married
   - b2 Anna: baptized Cape Town 1678-05-19, married 1691-12-09 Heinrich Venter
-  - b3 Henning: baptized Cape Town 1682-05-19, married 1707 Margaretha de Savoye. She was the daughter of Jacques de Savoye and Marie Madeleine le Clercq, who arrived in 1688 on the Oosterland.
+  - b3 Henning: baptized Cape Town 1682-05-19, married 1707 Margaretha de Savoye. She was the daughter of Jacques de Savoye and Marie Madeleine le Clerq, who arrived in 1688 on the Oosterlandt.
   - b4 Johannes: baptized Cape Town 1684-09-24, married 1708-08-14 Catharina Snyman
-  - b5 Cornelia: baptized Stellenbosch 1686-10-13, married 1702 Hercule du Preez, then 1722 Christian Maasdorp
+  - b5 Cornelia: baptized Stellenbosch 1686-10-13, married 1702 Hercul&eacute; du Preez, then 1722 Christian Maasdorp
   - b6 Francina: baptized Stellenbosch 1689-04-24, married Jacob Cloete
-- **Next generation**, not yet on the page: Henning b3c4 married Susanna Durand and had 12 children. Johannes b4c2 married Aletta Olivier and had 8 children.
-- **Still to verify** against the Familiebond's Familieregister (4 volumes, about 2,000 pages): all of the above. That includes the claim that the Viljoen name was carried forward through Henning and Johannes.
+- **The name** was carried forward only through Henning b3 and Johannes b4, each through one son of the same name, b3c4 and b4c2. It took its present spelling, Viljoen, in the second generation.
+- **Next generation**, not yet on the page: Henning b3c4 married Susanna Durand on 1732-11-06 and had 12 children. Johannes b4c2 married Aletta Olivier on 1744-03-08 and had 8 children. The same page lists both families in full.
 - **MyHeritage and Geni** returned nothing to automated fetches, and their content has not been reviewed.
 
 ## Languages
@@ -100,7 +102,7 @@ The page exists in English and Afrikaans, as two HTML files that share `site.css
 - **Choosing the language.** Caddy redirects `/` to `/af/` when Afrikaans is the browser's first `Accept-Language`, and sends `Vary: Accept-Language`. The `/en/` and `/af/` addresses never redirect, so a visitor's choice holds.
 - **The switch.** A link in the corner, or under the crest on phones, leads to the other language's explicit address. Both pages carry `hreflang` alternates and their own canonical URL.
 - **Keeping them in step.** `af/index.html` is a translation of `index.html` with the same markup. A change to one page's structure goes into the other in the same commit. The CSS names the one string it carries, the "Viljoen line" badge, per language with `:lang(af)`.
-- **Mixed text.** English left on the Afrikaans page, such as the blazon and the English site names, carries `lang="en"`.
+- **Mixed text.** English left on the Afrikaans page, such as the section subtitles and the blazon, carries `lang="en"`.
 
 ## Local Preview
 
@@ -118,7 +120,7 @@ Serve the directory with any static server, for example `python3 -m http.server 
 
 <!-- External links -->
 [hugenoot-crest]: https://hugenoot.org.za/Viljoen/crest.htm
-[hugenoot-viljoen]: https://hugenoot.org.za/Viljoen/
-[oocities-descend]: https://www.oocities.org/viljoen_family/descend.htm
 [viljoen-familie]: https://hcv625.wixsite.com/viljoen
+[viljoen-familie-eerste-geslagte]: https://hcv625.wixsite.com/viljoen/eerste-geslagte
+[viljoen-familie-stamouers]: https://hcv625.wixsite.com/viljoen/stamouers
 [wikipedia-viljoen]: https://en.wikipedia.org/wiki/Viljoen
