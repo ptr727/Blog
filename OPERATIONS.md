@@ -63,7 +63,7 @@ So the bundle stamps its own version as `X-Blog-Release`, and `check-live-urls.s
 EXPECT_RELEASE=<version> checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and [Deploying](#deploying) below passes them explicitly, which is what CI does so a pipeline run names the commit it built rather than the clock. Either form works locally, and the argument wins over the environment.
+Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and [Deploying](#deploying) below passes them explicitly, as the deploy workflow does. Either form works locally, and the argument wins over the environment.
 
 `ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `~/.secrets/Blog.local.production.env` while the shell's `$SITE_BASE_URL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
 
@@ -90,11 +90,13 @@ The deploy root and the base URL are the only host-specific values. A local run 
 
 **The command-prefix form above is CI-only.** A local run whose default environment file exists sources it after the command-prefix assignment and overwrites it, since `set -a` overwrites a value the caller exported first. Locally, select the environment through `ENV_FILE` instead, as the two examples earlier in this section do.
 
+**A VPS release is named by its deploy run, never by a commit.** The hub's deploy task names each release `<UTC yyyymmdd-HHMMSS>-<run id>-<run attempt>` and verifies the site against that id itself. To check a VPS site by hand afterwards, pass that id as `EXPECT_RELEASE`. Read it from the deploy run's `Resolve release id step`, or from the site's `X-Blog-Release` header. A short SHA there never matches, so the check waits out its timeout and fails.
+
 **Always set `SITE_BASE_URL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` internally, and the effective value is printed on every build for that reason.
 
 **The deploy workflow reaches only the VPS `staging` and `production` sites.** Dispatching it with `environment=staging` deploys `blog.vps.insanegenius.net`, never a local mirror. The two local mirrors are deployed from the maintainer's own machine with `make-release.sh` and nothing else. So "deploy staging" names two different targets depending on who says it. A run reporting that staging deployed says nothing about what a local mirror serves, so check the mirror itself.
 
-**`make-release.sh` builds the working tree, not the commit.** Hugo reads the checkout as it stands, so an uncommitted file ships. The release carries whatever version you pass, which both CI and the documented local procedure set to a commit SHA. It defaults to a timestamp when you pass nothing. A SHA then names a commit that does not describe what is served. `EXPECT_RELEASE` still matches, because it compares the stamp against itself rather than against the tree. Commit before deploying, or read the release id as a label rather than a description.
+**`make-release.sh` builds the working tree, not the commit.** Hugo reads the checkout as it stands, so an uncommitted file ships. The release carries whatever version you pass. The documented local procedure passes a commit SHA, and a VPS deploy passes its run-based id. It defaults to a timestamp when you pass nothing. A SHA then names a commit that does not describe what is served. `EXPECT_RELEASE` still matches, because it compares the stamp against itself rather than against the tree. Commit before deploying, or read the release id as a label rather than a description.
 
 | Variable | Effect |
 | --- | --- |

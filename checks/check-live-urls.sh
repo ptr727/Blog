@@ -351,10 +351,12 @@ if [ -n "${EXPECT_RELEASE:-}" ]; then
 	done
 	if [ "$got_release" != "$EXPECT_RELEASE" ]; then
 		echo "FAIL preflight: after ${waited}s the rules are from release '${got_release:-<no X-Blog-Release header>}', expected '$EXPECT_RELEASE'" >&2
-		echo "     The content symlink moved but the config never followed, so the redirects" >&2
-		echo "     below would be checked against a config that was never deployed, and would" >&2
-		echo "     pass. Two causes, and the second is the likelier one on a server that has" >&2
-		echo "     been working:" >&2
+		echo "     Either the expected value is wrong, or the content symlink moved but the config" >&2
+		echo "     never followed, and the redirects below would pass against a config that was" >&2
+		echo "     never deployed. Three causes, and on a server that has been working the first" >&2
+		echo "     and the last are the likelier ones:" >&2
+		echo "       - EXPECT_RELEASE names another release. A VPS deploy names its release after" >&2
+		echo "         its run rather than a commit, so pass the id its deploy run resolved." >&2
 		echo "       - the container is not running 'caddy run --watch' at all; or" >&2
 		echo "       - it is, and the watcher is dead. It stops watching permanently after one" >&2
 		echo "         failed config load, logs nothing further, and reports healthy throughout." >&2
