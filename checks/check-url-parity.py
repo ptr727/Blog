@@ -27,7 +27,7 @@ CHECKS = pathlib.Path(__file__).resolve().parent
 # The other two media checks run outward from a reference and cannot see these: a legacy URL resolving proves an inbound link still lands, and a reference resolving proves it names a real file.
 # Neither asks whether anything points at a given file, so an image the conversion dropped from a page stays reachable by URL, invisible on the site, and green in both directions.
 # It opened at 120, of which 17 were conversion losses restored from the captured live site and 5 were never orphans at all, being referenced only by an absolute URL this check could not read.
-# The 99 that remain are adjudicated rather than unknown, and checks/README.md says what each one is.
+# The 98 left from that count are adjudicated rather than unknown, one more is a retired page's cover, and checks/README.md says what each is.
 # Nothing here is a conversion loss, and no image the old site served from its own uploads went unimported.
 # The count is exact rather than a bound, so whatever lowers it lowers this in the same change and slack can never accumulate for a later regression to hide in.
 ORPHANED_MEDIA = 99

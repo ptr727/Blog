@@ -17,7 +17,7 @@ The contract is enforced by two gates, because one cannot cover both halves:
 
 **`golden-urls.txt`, 327 URLs Hugo must render.** Missing any one is a hard CI failure.
 
-**Every count on this page describes the two lists, not the site.** The lists are the legacy contract, closed by the migration, so a new post adds a URL the parity gate reports as `additional URLs built (not a failure)` and changes nothing here. A count moves only when a log review finds a legacy address the crawl missed, which is a deliberate append.
+**Every count on this page describes the two lists, not the site.** The lists are the legacy contract, closed by the migration. A new post adds a URL the parity gate reports as `additional URLs built (not a failure)` and changes nothing here. A count moves only when a log review finds a legacy address the crawl missed, a deliberate append, or when a page is retired.
 
 | Shape | Count | Note |
 | --- | --- | --- |
@@ -93,6 +93,8 @@ wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy
 
 The parity check fails on a **missing** URL and only notes an **extra** one. New posts, new tags, and deeper pagination legitimately add URLs, and nothing legitimately removes a URL the site has served. That asymmetry is what makes the lists append-only, which in turn is what makes the length-floor assertion in `check-live-urls.sh` sound: without it a truncated list would make every assertion below it pass vacuously.
 
+A retired page is the one exception. Its URL moves from the render list to the redirect list, so the contract as a whole still never loses it.
+
 Media is the one surface checked in **both** directions, and it has to be, because each direction is blind to the other's failure. Outward from a reference, the legacy list proves an inbound link still lands and the asset check proves a reference names a real file. Neither asks whether anything points at a given file, so an image dropped from a page during the conversion stays on disk, stays reachable at its own URL, and reports green in both directions while appearing nowhere on the site. The orphan check reads inward from the file and is the only one that sees it.
 
 Its constant is an exact count rather than a bound. A ceiling would let a drop leave slack behind for a later regression to hide in, so whatever lowers the count lowers the constant in the same change, and the check names the new number when it drops.
@@ -133,7 +135,7 @@ The gallery shortcode therefore takes a `caption` of its own and renders the con
 
 ## What the orphans are
 
-The count is not a backlog. It opened at 120 and was adjudicated against the captured live site under `blog-capture/mirror/`, which holds a crawl of the old platform including all 328 URLs the contract requires:
+The count is not a backlog. It opened at 120 and was adjudicated against the captured live site under `blog-capture/mirror/`. That crawl of the old platform includes every URL the render contract requires:
 
 | | |
 | --- | --- |
