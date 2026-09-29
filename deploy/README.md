@@ -45,9 +45,9 @@ neither. Seven facts are the whole contract:
 5. Caddy runs with **`--watch`**. This is not optional. See
    [Reloading without a restart](#reloading-without-a-restart).
 6. The release tree is world-readable and world-traversable, so any uid can serve it.
-7. The container sets `SITE_ENV` and `SITE_ROBOTS`, which the bundle stamps on every response
-   as `X-Blog-Env` and `X-Robots-Tag`, `FAMILY_SITE_ROBOTS` for the family site's own
-   `X-Robots-Tag`, and `TRUSTED_PROXIES`. A local mirror also sets
+7. The container sets `SITE_ENV`, which the bundle stamps on every response as `X-Blog-Env`,
+   `SITE_ROBOTS` and `FAMILY_SITE_ROBOTS`, which it stamps as `X-Robots-Tag` on the blog and on
+   the family site, and `TRUSTED_PROXIES`. A local mirror also sets
    `FAMILY_SITE_ADDRESS`. See [Identifying the environment](#identifying-the-environment),
    [Trusting the proxy](#trusting-the-proxy), and
    [Serving the family site on a local name](#serving-the-family-site-on-a-local-name).
@@ -242,7 +242,7 @@ asking for it explicitly.
 the same reason. The two sites reach production on different schedules: the blog serves under an
 interim hostname that duplicates the live blog until its cutover, while `viljoen.family` is the
 family site's final domain and duplicates nothing. One variable would hold both at the stricter
-value. A staging container sets both to `noindex, nofollow`, since neither falls back to the other.
+value. Set both to `noindex, nofollow` on a staging container, since neither falls back to the other.
 
 `checks/check-live-urls.sh` asserts this when `EXPECT_SITE_ENV` is set, before it checks the
 contract, since checking the contract against the wrong environment proves nothing.
