@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Fail if the variables and secrets GitHub holds differ from the ones ENVIRONMENT.md lists.
 
-ENVIRONMENT.md's "The GitHub Environments" table names every stored value, its kind, and each
-store holding it: a deployment environment such as `staging`, `repository` for the Actions
+ENVIRONMENT.md's "The GitHub Environments" table names every value stored for Actions,
+Dependabot, and the deployment environments, its kind, and each store holding it: a deployment environment such as `staging`, `repository` for the Actions
 repository store, or `dependabot` for the Dependabot secret store. This reads the names GitHub
 holds in each store and compares them against that table, in both directions:
 
@@ -14,6 +14,8 @@ holds in each store and compares them against that table, in both directions:
 The repository read is the one this checkout's origin names, on github.com. Every environment
 GitHub has is read, so a value set on an environment the table never names is reported as
 unlisted rather than passed over.
+
+The Codespaces secret store is not read, and the table does not cover it.
 
 Only names are read. A secret's value is not readable at all, and a variable's value is
 projected away inside gh before any output reaches this script.

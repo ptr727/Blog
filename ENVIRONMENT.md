@@ -43,7 +43,7 @@ Three more are named in the template but commented out, because CI resolves them
 
 ## The GitHub Environments
 
-Every variable and secret this repository stores on GitHub, and the stores holding each. A store is a deployment environment, `repository` for the Actions repository store, or `dependabot` for the Dependabot secret store. The deploy workflow reads no file.
+Every variable and secret this repository stores for GitHub Actions, Dependabot, and its deployment environments, and the stores holding each. Codespaces secrets are out of scope, and the repository holds none. A store is a deployment environment, `repository` for the Actions repository store, or `dependabot` for the Dependabot secret store. The deploy workflow reads no file.
 
 | Value | Kind | Held on | Names |
 | --- | --- | --- | --- |
@@ -60,7 +60,7 @@ Every variable and secret this repository stores on GitHub, and the stores holdi
 | `CODEGEN_APP_CLIENT_ID` | secret | `repository`, `dependabot` | the merge bot's GitHub App client id, read by `merge-bot-pull-request.yml` |
 | `CODEGEN_APP_PRIVATE_KEY` | secret | `repository`, `dependabot` | the merge bot's GitHub App private key, read the same way |
 
-**[`checks/check-github-env.py`](./checks/check-github-env.py) compares this table against GitHub.** It reads the names every store holds, never a value. It reports a value missing from a store, held on a store the table does not name, or held as the wrong kind. Every environment GitHub has is read, so an environment the table never names must hold nothing. Run it after changing a value on GitHub or a row here. It needs a `gh` login that can administer the repository, since listing environment secrets requires that. A workflow's `GITHUB_TOKEN` cannot, so CI does not run it.
+**[`checks/check-github-env.py`](./checks/check-github-env.py) compares this table against GitHub.** It reads the names those stores hold, never a value, and leaves the Codespaces secret store unread. It reports a value missing from a store, held on a store the table does not name, or held as the wrong kind. Every environment GitHub has is read, so an environment the table never names must hold nothing. Run it after changing a value on GitHub or a row here. It needs a `gh` login that can administer the repository, since listing environment secrets requires that. A workflow's `GITHUB_TOKEN` cannot, so CI does not run it.
 
 **The family values on `staging` reach no deploy step.** The deploy workflow's verify step receives `SITE_BASE_URL` and the blog's token pair from the hub's deploy task, and no family variable. A deploy therefore does not check the family host, and the family check runs from a local environment file.
 
