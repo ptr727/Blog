@@ -208,7 +208,7 @@ response says which one answered. A proxy rule aimed at the wrong container conn
 serves the wrong environment under the right hostname, returning a healthy `200`. That is a
 failure a reader reports before a monitor notices.
 
-The bundle stamps two headers for that, taking both values from the container so the artifact
+The bundle stamps two headers for that, taking all three values from the container so the artifact
 stays the same everywhere and still rolls back as one unit:
 
 | Container variable | Header | Values |
@@ -217,11 +217,11 @@ stays the same everywhere and still rolls back as one unit:
 | `SITE_ROBOTS` | `X-Robots-Tag` on the blog | `index, follow` or `noindex, nofollow` |
 | `FAMILY_SITE_ROBOTS` | `X-Robots-Tag` on the family site | `index, follow` or `noindex, nofollow` |
 
-Both are emitted at site level, outside the `route` block, which is what puts them on the error
+Both headers are emitted at site level, outside the `route` block, which is what puts them on the error
 path as well. Verified on all three response classes: `200` from `file_server`, `301` from a
 `redir`, and `404` through `handle_errors`.
 
-**Both carry a default, because an unset `{$VAR}` is silent.** It expands to an empty header
+**Each variable carries a default, because an unset `{$VAR}` is silent.** It expands to an empty header
 rather than an error, and `caddy validate` still reports a valid configuration, so a missing
 value would otherwise reach production unnoticed. `SITE_ENV` defaults to `unset`, which
 `EXPECT_SITE_ENV` then fails on.
