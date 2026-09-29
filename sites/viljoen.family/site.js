@@ -70,7 +70,7 @@
     const roots = [], branches = [];
     let trunk, sprigs = "";
 
-    // Roots start straight down inside the trunk's base width, so they leave the couple card as one trunk.
+    // Roots start straight down within the wide trunk's base width, so there they leave the couple card as the trunk continued.
     [-2, -1, 0, 1, 2, -1.5, 1.5].forEach((j, i) => {
       const main = i < 5, w0 = (main ? 11 - Math.abs(j) * 2 : 4) * s;
       const sx = cp.cx + j / 4 * (30 * s - w0), sy = cp.b - 8 * s;

@@ -164,7 +164,7 @@ abbr[title] { text-decoration: none; cursor: help; font-style: normal; font-weig
 }
 .stub {
   align-self: center;
-  margin: 0 0 54px;
+  margin: 0 0 3.375rem;
   padding: 2px 12px 3px;
   font: italic 500 1.05rem/1.3 "Cormorant Garamond", serif;
   color: var(--leaf-dark);
