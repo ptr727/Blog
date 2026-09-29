@@ -11,6 +11,7 @@
   --bark-dark: #3a2716;
   --leaf: #6f7d3a;
   --leaf-dark: #4f5a26;
+  --crest-drop: min(8rem, 29.36vw);
   --paper-tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 * { box-sizing: border-box; }
@@ -32,7 +33,7 @@ a:hover { text-decoration-color: currentColor; }
 .frame {
   position: relative;
   max-width: 73.75rem;
-  margin: 8rem auto 0;
+  margin: var(--crest-drop) auto 0;
   padding: 0 clamp(18px, 4vw, 60px) 40px;
   border: 2.5px solid var(--red);
   border-radius: 40px;
@@ -59,7 +60,7 @@ a:hover { text-decoration-color: currentColor; }
 /* ---------- Crest ---------- */
 .masthead {
   position: relative;
-  margin: -8rem auto 0;
+  margin: calc(-1 * var(--crest-drop)) auto 0;
   width: min(21.25rem, 78vw);
   text-align: center;
   z-index: 1;
@@ -257,10 +258,10 @@ footer {
   .story { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; }
 }
 @media (max-width: 520px) {
+  :root { --crest-drop: 96px; }
   body { font-size: 1.0625rem; }
-  .frame { margin-top: 6rem; border-radius: 26px; }
+  .frame { border-radius: 26px; }
   .frame::before { inset: 5px; border-radius: 21px; }
-  .masthead { margin-top: -6rem; }
   .corner { width: 30px; height: 30px; }
   .corner.tl, .corner.tr { top: 12px; } .corner.bl, .corner.br { bottom: 12px; }
   .corner.tl, .corner.bl { left: 12px; } .corner.tr, .corner.br { right: 12px; }
