@@ -76,7 +76,7 @@ fi
 ROOT="${ROOT_ARG:-${DEPLOY_ROOT:-}}"
 [ -n "$ROOT" ] || usage
 
-# CI passes the version so a release directory traces back to a commit rather than to a clock.
+# CI passes the version so a release directory traces back to the deploy run that built it.
 VERSION="${2:-$(date -u +%Y%m%d-%H%M%S)}"
 
 # Constrained because the value becomes a directory name, a symlink target, and a sed replacement.

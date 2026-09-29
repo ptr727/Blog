@@ -63,7 +63,7 @@ So the bundle stamps its own version as `X-Blog-Release`, and `check-live-urls.s
 EXPECT_RELEASE=<version> checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and [Deploying](#deploying) below passes them explicitly, as the deploy workflow does. Either form works locally, and the argument wins over the environment.
+Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both, and the deploy workflow passes them explicitly, as [Deploying](#deploying) below shows. Either form works locally, and the argument wins over the environment.
 
 `ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `~/.secrets/Blog.local.production.env` while the shell's `$SITE_BASE_URL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
 
@@ -80,11 +80,11 @@ The procedures that change what the servers are serving. Read [Local Verificatio
 ### Deploying
 
 ```sh
-SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> <release-id>
+SITE_BASE_URL=<base-url> deploy/make-release.sh <bundle-path> <release-id>
 EXPECT_RELEASE=<release-id> checks/check-live-urls.sh <base-url>
 ```
 
-The deploy root and the base URL are the only host-specific values. A local run reads them from a file under `~/.secrets/`, one per environment, copied from [`.secrets/example.env`](./.secrets/example.env), and CI passes both explicitly. The real files live on the host, never in this checkout.
+The deploy root and the base URL are the only host-specific values. A local run reads them from a file under `~/.secrets/`, one per environment, copied from [`.secrets/example.env`](./.secrets/example.env). CI passes the base URL and a scratch bundle path, then uploads the bundle to the host's deploy root. The real files live on the host, never in this checkout.
 
 **The command-prefix form above is CI-only.** A local run whose default environment file exists sources it after the command-prefix assignment and overwrites it, since `set -a` overwrites a value the caller exported first. Locally, select the environment through `ENV_FILE` instead, as the two examples earlier in this section do.
 
