@@ -150,6 +150,19 @@ if [ -n "$FAMILY_CURLRC" ] && [ -z "$FAMILY_BASE" ]; then
 	exit 2
 fi
 
+# A token sent over plain HTTP is readable by anyone on the path, so a pair is only ever sent to an HTTPS origin.
+for pair in "CURLRC BASE SITE_AUTH_TOKEN" "FAMILY_CURLRC FAMILY_BASE FAMILY_SITE_AUTH_TOKEN"; do
+	read -r rc_name base_name token_name <<<"$pair"
+	[ -n "${!rc_name}" ] || continue
+	case "${!base_name,,}" in
+	https://*) ;;
+	*)
+		echo "FAIL ${token_name}_ID and $token_name are set, but ${!base_name} is not an HTTPS URL, so the token would travel in the clear" >&2
+		exit 2
+		;;
+	esac
+done
+
 # Assembled once here rather than per request, since it is the same for every call.
 # The check tag is unconditional and the token is not, which is why they are two files rather than one.
 # Every request should be attributable.

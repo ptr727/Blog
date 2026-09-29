@@ -125,7 +125,8 @@ Two open the auth gate:
 | `SITE_AUTH_TOKEN_ID` | Resource access token id, sent as the `P-Access-Token-Id` header. |
 | `SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
 
-Set both or neither. Half a pair is rejected as the typo it is. They go to curl through a
+Set both or neither. Half a pair is rejected as the typo it is, and a pair is refused unless
+the base URL is HTTPS. They go to curl through a
 mode-`600` config file rather than as `-H` arguments, which keeps the credential out of the
 `ps` output of one request per URL in the contract, and is also the only form that survives the `export -f` the
 parallel checks run under. The token is sent to the base URL's own origin and to nothing else,
