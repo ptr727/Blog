@@ -11,7 +11,7 @@ holds in each store and compares them against that table, in both directions:
               name behind.
   wrong kind  a value is held as a variable where the table says secret, or the reverse.
 
-Every environment GitHub has is read, so a value set on an environment the table never names is
+The repository read is the one this checkout's origin names. Every environment GitHub has is read, so a value set on an environment the table never names is
 reported as unlisted rather than passed over.
 
 Only names are read. A secret's value is not readable at all, and a variable's value is
@@ -41,10 +41,10 @@ REPOSITORY = "repository"
 DEPENDABOT = "dependabot"
 KINDS = ("variable", "secret")
 
-ROW = re.compile(
-    r"^\|\s*`([A-Z][A-Z0-9_]*)`\s*\|\s*([a-z]+)\s*\|([^|]*)\|", re.MULTILINE
-)
+NAME = re.compile(r"`([A-Z][A-Z0-9_]*)`")
 STORE = re.compile(r"`([A-Za-z0-9_.-]+)`")
+SEPARATOR = re.compile(r"[-:\s]+")
+ORIGIN = re.compile(r"github\.com[:/]([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(?:\.git)?/?$")
 
 # One stored value, as (store, kind, name).
 Entry = tuple[str, str, str]
@@ -64,10 +64,22 @@ def read_table(text: str) -> set[Entry]:
     section = text[start : end if end >= 0 else len(text)]
 
     listed: set[Entry] = set()
-    for name, kind, cell in ROW.findall(section):
+    for line in section.splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if cells[0] == "Value" or SEPARATOR.fullmatch(cells[0]):
+            continue
+        # Every row is parsed or refused, since a row skipped for its shape would read as a value nobody listed.
+        if len(cells) != 4:
+            raise ValueError(f"row '{line[:60]}' has {len(cells)} cells, expected 4")
+        match = NAME.fullmatch(cells[0])
+        if match is None:
+            raise ValueError(f"row '{line[:60]}' does not name its value as `NAME`")
+        name, kind = match.group(1), cells[1]
         if kind not in KINDS:
             raise ValueError(f"{name} has kind '{kind}', expected variable or secret")
-        stores = STORE.findall(cell)
+        stores = STORE.findall(cells[2])
         if not stores:
             raise ValueError(f"{name} names no store in its 'Held on' cell")
         # The Dependabot store holds secrets only, so a variable listed there could never be registered.
@@ -81,13 +93,33 @@ def read_table(text: str) -> set[Entry]:
     return listed
 
 
-def gh_names(path: str, key: str) -> set[str]:
+def origin_repo() -> str:
+    """Return this checkout's origin as owner/repo."""
+    # Named explicitly rather than left to gh, whose own resolution prefers GH_REPO and could read another repository.
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(REPO), "remote", "get-url", "origin"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError as error:
+        raise QueryError("git is not installed") from error
+    match = ORIGIN.search(result.stdout.strip()) if result.returncode == 0 else None
+    if match is None:
+        raise QueryError(
+            f"origin is not a GitHub repository: {result.stdout.strip() or result.stderr.strip()}"
+        )
+    return f"{match.group(1)}/{match.group(2)}"
+
+
+def gh_names(repo: str, path: str, key: str) -> set[str]:
     """List the `name` of every item under `key` at a repository API path, through gh."""
     command = [
         "gh",
         "api",
         "--paginate",
-        f"repos/{{owner}}/{{repo}}/{path}",
+        f"repos/{repo}/{path}",
         "--jq",
         f".{key}[].name",
     ]
@@ -102,7 +134,7 @@ def gh_names(path: str, key: str) -> set[str]:
     return {line for line in result.stdout.splitlines() if line}
 
 
-def read_github(names: Lister = gh_names) -> set[Entry]:
+def read_github(names: Lister) -> set[Entry]:
     """Return every (store, kind, name) GitHub holds for this repository."""
     held: set[Entry] = set()
 
@@ -113,6 +145,11 @@ def read_github(names: Lister = gh_names) -> set[Entry]:
     add(REPOSITORY, "variable", names("actions/variables", "variables"))
     add(DEPENDABOT, "secret", names("dependabot/secrets", "secrets"))
     for environment in sorted(names("environments", "environments")):
+        # An environment sharing a store label would merge its values into that store.
+        if environment in (REPOSITORY, DEPENDABOT):
+            raise QueryError(
+                f"an environment is named '{environment}', the same as a store label, so its values cannot be told apart"
+            )
         path = f"environments/{quote(environment, safe='')}"
         add(environment, "secret", names(f"{path}/secrets", "secrets"))
         add(environment, "variable", names(f"{path}/variables", "variables"))
@@ -154,7 +191,8 @@ def main() -> int:
         return 1
 
     try:
-        held = read_github()
+        repo = origin_repo()
+        held = read_github(lambda path, key: gh_names(repo, path, key))
     except QueryError as error:
         print(
             f"ERROR: GitHub could not be read, so nothing was compared: {error}",
@@ -167,13 +205,13 @@ def main() -> int:
         print(finding)
     if findings:
         print(
-            f"\n{len(findings)} finding(s). Register the value on GitHub, or correct the table in {DOC.name}."
+            f"\n{len(findings)} finding(s) against {repo}. Register the value on GitHub, or correct the table in {DOC.name}."
         )
         return 1
 
     stores = sorted({store for store, _, _ in listed})
     print(
-        f"{len(listed)} value(s) across {len(stores)} store(s), all held on GitHub as {DOC.name} lists"
+        f"{repo}: {len(listed)} value(s) across {len(stores)} store(s), all held on GitHub as {DOC.name} lists"
     )
     return 0
 

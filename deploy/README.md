@@ -126,7 +126,7 @@ Two open the auth gate:
 | `SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
 
 Set both or neither. Half a pair is rejected as the typo it is, and a pair is refused unless
-the base URL is HTTPS. They go to curl through a
+the base URL starts with a lowercase `https://`. They go to curl through a
 mode-`600` config file rather than as `-H` arguments, which keeps the credential out of the
 `ps` output of one request per URL in the contract, and is also the only form that survives the `export -f` the
 parallel checks run under. The token is sent to the base URL's own origin and to nothing else,
@@ -141,7 +141,7 @@ the preflight before a single URL is requested:
 | `EXPECT_RELEASE` | Asserts the release whose rules answered, read from `X-Blog-Release`. |
 | `RELOAD_TIMEOUT` | Seconds to wait for that release to become live. Default 30. |
 
-The last three check the family site, whose host is a proxy resource of its own:
+Three more check the family site, whose host is a proxy resource of its own:
 
 | Variable | Effect |
 | --- | --- |

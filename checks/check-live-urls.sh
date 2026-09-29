@@ -139,7 +139,6 @@ token_rc() {
 }
 
 token_rc SITE_AUTH_TOKEN_ID SITE_AUTH_TOKEN CURLRC || exit 2
-[ -n "$CURLRC" ] && echo "==> sending a Pangolin access token"
 
 # A token opens exactly one proxy resource, so the family host needs a pair of its own.
 FAMILY_BASE="${FAMILY_SITE_BASE_URL:-}"
@@ -154,14 +153,16 @@ fi
 for pair in "CURLRC BASE SITE_AUTH_TOKEN" "FAMILY_CURLRC FAMILY_BASE FAMILY_SITE_AUTH_TOKEN"; do
 	read -r rc_name base_name token_name <<<"$pair"
 	[ -n "${!rc_name}" ] || continue
-	case "${!base_name,,}" in
+	# Lowercase only, since the same-origin tests below compare against the lowercase scheme curl reports.
+	case "${!base_name}" in
 	https://*) ;;
 	*)
-		echo "FAIL ${token_name}_ID and $token_name are set, but ${!base_name} is not an HTTPS URL, so the token would travel in the clear" >&2
+		echo "FAIL ${token_name}_ID and $token_name are set, but ${!base_name} does not start with https://, so the token could travel in the clear" >&2
 		exit 2
 		;;
 	esac
 done
+[ -n "$CURLRC" ] && echo "==> sending a Pangolin access token"
 
 # Assembled once here rather than per request, since it is the same for every call.
 # The check tag is unconditional and the token is not, which is why they are two files rather than one.

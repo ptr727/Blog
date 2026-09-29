@@ -73,6 +73,16 @@ class ReadTableTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             gate.read_table(doc)
 
+    def test_misshapen_rows_are_refused_not_skipped(self) -> None:
+        row = "| `TOKEN` | secret | `staging` | a token |"
+        for bad in (
+            "| `TOKEN` | Secret | `staging` | a token |",
+            "| TOKEN | secret | `staging` | a token |",
+            "| `TOKEN` | secret, staging only |",
+        ):
+            with self.subTest(row=bad), self.assertRaises(ValueError):
+                gate.read_table(DOC.replace(row, bad))
+
     def test_variable_on_dependabot_is_refused(self) -> None:
         doc = DOC.replace(
             "| `BOT_KEY` | secret | `repository`, `dependabot` |",
@@ -108,6 +118,36 @@ class ReadGithubTests(unittest.TestCase):
 
         gate.read_github(names)
         self.assertIn("environments/a%20b/secrets", seen)
+
+    def test_environment_named_like_a_store_is_refused(self) -> None:
+        for label in ("repository", "dependabot"):
+            with self.subTest(label=label), self.assertRaises(gate.QueryError):
+                gate.read_github(lister({"environments": {label}}))
+
+
+class OriginRepoTests(unittest.TestCase):
+    def origin(self, url: str, returncode: int = 0) -> str:
+        done = mock.Mock(returncode=returncode, stdout=url + "\n", stderr="")
+        with mock.patch.object(gate.subprocess, "run", return_value=done):
+            return gate.origin_repo()
+
+    def test_ssh_and_https_forms(self) -> None:
+        for url in (
+            "git@github.com:someone/Example.git",
+            "https://github.com/someone/Example.git",
+            "https://github.com/someone/Example",
+            "ssh://git@github.com/someone/Example.git",
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(self.origin(url), "someone/Example")
+
+    def test_non_github_origin_is_refused(self) -> None:
+        with self.assertRaises(gate.QueryError):
+            self.origin("git@example.org:someone/Example.git")
+
+    def test_missing_origin_is_refused(self) -> None:
+        with self.assertRaises(gate.QueryError):
+            self.origin("", returncode=2)
 
 
 class CompareTests(unittest.TestCase):
@@ -155,6 +195,7 @@ class MainTests(unittest.TestCase):
         read = mock.Mock(return_value=held, side_effect=error)
         with (
             mock.patch.object(gate.DOC.__class__, "read_text", return_value=DOC),
+            mock.patch.object(gate, "origin_repo", return_value="someone/Example"),
             mock.patch.object(gate, "read_github", read),
             contextlib.redirect_stdout(out),
             contextlib.redirect_stderr(err),
@@ -165,7 +206,7 @@ class MainTests(unittest.TestCase):
     def test_agreement_exits_zero(self) -> None:
         code, out, _ = self.run_main(held=set(LISTED))
         self.assertEqual(code, 0)
-        self.assertIn("5 value(s) across 4 store(s)", out)
+        self.assertIn("someone/Example: 5 value(s) across 4 store(s)", out)
 
     def test_finding_exits_one(self) -> None:
         code, out, _ = self.run_main(held=LISTED - {("staging", "secret", "TOKEN")})
@@ -186,14 +227,14 @@ class MainTests(unittest.TestCase):
             mock.patch.object(gate.subprocess, "run", return_value=failed),
             self.assertRaises(gate.QueryError),
         ):
-            gate.gh_names("environments", "environments")
+            gate.gh_names("someone/Example", "environments", "environments")
 
     def test_missing_gh_raises_query_error(self) -> None:
         with (
             mock.patch.object(gate.subprocess, "run", side_effect=FileNotFoundError),
             self.assertRaises(gate.QueryError),
         ):
-            gate.gh_names("environments", "environments")
+            gate.gh_names("someone/Example", "environments", "environments")
 
 
 if __name__ == "__main__":

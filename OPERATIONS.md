@@ -301,7 +301,7 @@ The gate is the VPS staging environment's, so this is `~/.secrets/Blog.vps.stagi
 | `SITE_AUTH_TOKEN_ID` | `P-Access-Token-Id` |
 | `SITE_AUTH_TOKEN` | `P-Access-Token` |
 
-Set both or neither. Half a pair is a typo rather than a choice, and it is rejected as one rather than presented as a failing site. A pair is also refused unless its base URL is HTTPS, since a token sent over plain HTTP travels in the clear.
+Set both or neither. Half a pair is a typo rather than a choice, and it is rejected as one rather than presented as a failing site. A pair is also refused unless its base URL starts with a lowercase `https://`, since a token sent over plain HTTP travels in the clear.
 
 Three properties of how the credential is handled, each there for a reason worth keeping:
 

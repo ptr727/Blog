@@ -69,7 +69,7 @@ GH_REF = re.compile(r"\b(?:vars|secrets)\.([A-Z][A-Z0-9_]*)\b")
 # A row is `| `NAME` | ...`, and the backticks are what separate a described value from a mention of one in a sentence.
 # The trailing `=value` is optional because a knob is documented as REQUIRE_BROTLI=1, which names the value that switches it on.
 DOC_ROW = re.compile(r"^\|\s*`([A-Z][A-Z0-9_]*)(?:=[^`]*)?`", re.MULTILINE)
-# Values the doc names in prose rather than in a table row, which is how the three commented-out template keys and the two bot secrets are covered.
+# Values the doc names in prose rather than in a table row, which is how the three commented-out template keys are covered.
 DOC_INLINE = re.compile(r"`([A-Z][A-Z0-9_]{2,})(?:=[^`]*)?`")
 
 
