@@ -17,7 +17,7 @@ The contract is enforced by two gates, because one cannot cover both halves:
 
 **`golden-urls.txt`, 327 URLs Hugo must render.** Missing any one is a hard CI failure.
 
-**Every count on this page describes the two lists, not the site.** The lists are the legacy contract, closed by the migration. A new post adds a URL the parity gate reports as `additional URLs built (not a failure)` and changes nothing here. A count moves only when a log review finds a legacy address the crawl missed, a deliberate append, or when a page is retired.
+**Every count on this page describes the two lists, not the site.** The lists are the legacy contract, closed by the migration. A new post adds a URL the parity gate reports as `additional URLs built (not a failure)` and changes nothing here. A count moves in two cases only. A log review finds a legacy address the crawl missed, which is a deliberate append, or a page is retired.
 
 | Shape | Count | Note |
 | --- | --- | --- |
@@ -135,7 +135,7 @@ The gallery shortcode therefore takes a `caption` of its own and renders the con
 
 ## What the orphans are
 
-The count is not a backlog. It opened at 120 and was adjudicated against the captured live site under `blog-capture/mirror/`. That crawl of the old platform includes every URL the render contract requires:
+The count is not a backlog. It opened at 120 and was adjudicated against the captured live site under `blog-capture/mirror/`. That crawl of the old platform includes every URL the render contract requires. The 120 break down as follows:
 
 | | |
 | --- | --- |
