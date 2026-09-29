@@ -26,12 +26,12 @@ CHECKS = REPO / "checks"
 # The WordPress importer registers the full slug, and both answer, so both are mapped.
 BLOGGER_SLUG_LIMIT = 40
 
-# A one-segment URL naming a file the site serves at the root, rather than a page slug.
-# The resolver below reads these as unresolvable attachment slugs and sends them to the home page, which is the right answer for a slug nothing claims and the wrong one for a file that exists: /robots.txt/ should reach /robots.txt.
+# One-segment URLs whose destination the export cannot supply, which the resolver below would send to the home page.
+# /robots.txt/ names a file served at the root, and /viljoen-family/ moved to its own site, so its shortlink goes there as well.
 # Named here rather than hand-edited into the generated map, because the map is rewritten from the capture and a hand edit does not survive.
 # /osd.xml/ stays out deliberately.
 # It was the old platform's OpenSearch description and this site emits no such file, so the home page remains the honest destination for it.
-WELL_KNOWN = {"/robots.txt/": "/robots.txt"}
+FIXED_DESTINATIONS = {"/robots.txt/": "/robots.txt", "/viljoen-family/": "https://viljoen.family/"}
 
 
 def text(el, path):
@@ -119,7 +119,8 @@ def main(argv):
         ptype = text(item, "wp:post_type")
         published = text(item, "wp:status") == "publish"
         if ptype in ("post", "page") and published:
-            posts[pid] = path_of(text(item, "link"))
+            link = path_of(text(item, "link"))
+            posts[pid] = FIXED_DESTINATIONS.get(link, link)
             # Any blogger_* postmeta marks a post from before the move off Blogger.
             # The permalink value is a numeric post id rather than a path.
             # The old path is rebuilt from the publish date and the slug.
@@ -215,8 +216,8 @@ def main(argv):
     resolved, via_parent, via_media, orphan = [], 0, 0, []
     for u in needed:
         slug = u.strip("/")
-        if u in WELL_KNOWN:
-            resolved.append((u, WELL_KNOWN[u]))
+        if u in FIXED_DESTINATIONS:
+            resolved.append((u, FIXED_DESTINATIONS[u]))
         elif slug in by_slug:
             resolved.append((u, by_slug[slug]))
             via_parent += 1

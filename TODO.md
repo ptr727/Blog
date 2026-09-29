@@ -9,8 +9,8 @@ The site is built, gated in CI, and deployed to staging by pipeline. It is not y
 | Piece | State |
 | --- | --- |
 | Content and media | done. Carries every migrated post and page, with the media hash-verified against the export tar |
-| Media integrity | closed for the files themselves. The conversion's only loss was 19 images, inside five galleries, restored from the capture, and the 98 files with no page links are adjudicated rather than unknown, with `ORPHANED_MEDIA` failing if that count moves either way. How media was *presented* was a separate loss, found later and now gated |
-| URL contract | done. 328 render, 917 redirect, 778 legacy image URLs, all gated. **Two gates read different subsets of that, which is why two totals appear in this file**: the build gate proves all three against files on disk, and the live check requests 328 + 917 + 8 curated media = **1,253** against a running server, since proving 778 images over the wire on every deploy buys nothing the build gate has not already proven |
+| Media integrity | closed for the files themselves. The conversion's only loss was 19 images, inside five galleries, restored from the capture, and the 99 files with no page links are adjudicated rather than unknown, with `ORPHANED_MEDIA` failing if that count moves either way. How media was *presented* was a separate loss, found later and now gated |
+| URL contract | done. 327 render, 918 redirect, 778 legacy image URLs, all gated. **Two gates read different subsets of that, which is why two totals appear in this file**: the build gate proves all three against files on disk, and the live check requests 327 + 918 + 8 curated media = **1,253** against a running server, since proving 778 images over the wire on every deploy buys nothing the build gate has not already proven |
 | Deploy shape | done. Proven on two local mirrors and on the VPS, by hand and by pipeline |
 | CI workflows | green. Validation runs on every pull request and feeds the required check. `checks/` holds the URL contract's build gate (`check-url-parity.py`, live gate `check-live-urls.sh` is deploy-time only) plus `check-env-docs.py`, which checks `ENVIRONMENT.md` against the tree in both directions |
 | Branches | converged 2026-08-09. [#68][pr-68] promoted `develop` to `main` as a merge commit, `main` carries every commit on `develop`, and the content diff is empty. **The merge itself published nothing**, which is the release model behaving as specified: a human merge never auto-publishes, and the releases named two rows down were cut afterwards by explicit dispatch |
@@ -177,8 +177,8 @@ The URL contract lives in this repo and is the thing CI enforces.
 
 | Path | Contents |
 | --- | --- |
-| [`checks/golden-urls.txt`](./checks/golden-urls.txt) | 328 URLs that must render |
-| [`checks/redirect-urls.txt`](./checks/redirect-urls.txt) | 917 URLs that must redirect |
+| [`checks/golden-urls.txt`](./checks/golden-urls.txt) | 327 URLs that must render |
+| [`checks/redirect-urls.txt`](./checks/redirect-urls.txt) | 918 URLs that must redirect |
 | [`checks/golden-media-legacy.txt`](./checks/golden-media-legacy.txt) | 778 legacy image URLs that must still resolve |
 | [`checks/README.md`](./checks/README.md) | how the contract was derived |
 | [`deploy/README.md`](./deploy/README.md) | the release mechanics and the redirect design |

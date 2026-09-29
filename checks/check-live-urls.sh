@@ -360,6 +360,8 @@ if [ -n "${EXPECT_RELEASE:-}" ]; then
 		echo "         failed config load, logs nothing further, and reports healthy throughout." >&2
 		echo "         Anything that broke 'current' even briefly, including a test, does this." >&2
 		echo "         Only a container restart re-arms it." >&2
+		echo "     Run by hand, first rule out a wrong EXPECT_RELEASE. A VPS deploy names its" >&2
+		echo "     release after its run rather than a commit, so pass the id its build logged." >&2
 		exit 1
 	fi
 	echo "==> rules from release $got_release${waited:+ (after ${waited}s)}"
