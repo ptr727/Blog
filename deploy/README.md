@@ -117,15 +117,16 @@ that reason.
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
 | `NO_LINK_DEST=1` | Full copy instead of hard-linking from the previous release. |
 
-`checks/check-live-urls.sh` reads five more, and none of them reaches `make-release.sh`. Two
-open the auth gate:
+`checks/check-live-urls.sh` reads its own variables, and none of them reaches `make-release.sh`.
+Two open the auth gate:
 
 | Variable | Effect |
 | --- | --- |
 | `SITE_AUTH_TOKEN_ID` | Resource access token id, sent as the `P-Access-Token-Id` header. |
 | `SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
 
-Set both or neither. Half a pair is rejected as the typo it is. They go to curl through a
+Set both or neither. Half a pair is rejected as the typo it is, and a pair is refused unless
+the base URL starts with a lowercase `https://`. They go to curl through a
 mode-`600` config file rather than as `-H` arguments, which keeps the credential out of the
 `ps` output of one request per URL in the contract, and is also the only form that survives the `export -f` the
 parallel checks run under. The token is sent to the base URL's own origin and to nothing else,
@@ -139,6 +140,21 @@ the preflight before a single URL is requested:
 | `EXPECT_SITE_ENV` | Asserts the environment that answered, read from `X-Blog-Env`. |
 | `EXPECT_RELEASE` | Asserts the release whose rules answered, read from `X-Blog-Release`. |
 | `RELOAD_TIMEOUT` | Seconds to wait for that release to become live. Default 30. |
+
+Three more check the family site, whose host is a proxy resource of its own:
+
+| Variable | Effect |
+| --- | --- |
+| `FAMILY_SITE_BASE_URL` | The family site's base URL. Unset, the family site is not checked, and a family pair set without it is refused. |
+| `FAMILY_SITE_AUTH_TOKEN_ID` | The family resource's access token id, sent as `P-Access-Token-Id`. |
+| `FAMILY_SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
+
+The family pair follows the same rules as the blog's, and goes to the family origin alone. A
+token opens exactly one proxy resource, so the blog's pair cannot open the family host. The
+check requests `/`, `/en/`, and `/af/` after the URL contract and asserts each page's `<title>`,
+since a hostname the family block does not name falls through to the blog with a `200`. Where
+`EXPECT_SITE_ENV` is set, each page's `X-Blog-Env` must match it too, because the family host is
+a proxy rule of its own. A family failure is recorded with the rest rather than stopping the run.
 
 ## Reloading without a restart
 

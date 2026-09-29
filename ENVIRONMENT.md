@@ -24,9 +24,12 @@ Held in `~/.secrets/Blog.<server>.<environment>.env`, one file per environment, 
 | `SITE_BASE_URL` | the site base URL | Baked into the canonical tag, the feed links, and every absolute permalink. Must be set for anything that is not production, or a mirror serves pages pointing at production and every gate still passes. `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL`, the only name Hugo itself reads. |
 | `CADDY_APPDATA` | the container's persistent state root, deliberately outside `DEPLOY_ROOT` | Holds `config/` with the bootstrap Caddyfile and `data/` with Caddy state. A release writes neither. Nothing reads this value, so it is recorded to keep a rebuild from depending on memory. |
 | `CADDY_CONTAINER` | the container serving this environment | A release needs no restart, because Caddy reloads in process. Restarting is the remedy when the watcher dies, which it does silently after one failed load. |
-| `EXPECT_SITE_ENV` | the environment that must answer, compared against the `X-Blog-Env` header the bundle stamps | A proxy rule aimed at the wrong container returns a healthy 200 under the right hostname, so the check refuses to start rather than proving nothing. |
+| `EXPECT_SITE_ENV` | the environment that must answer, compared against the `X-Blog-Env` header the bundle stamps | A proxy rule aimed at the wrong container returns a healthy 200 under the right hostname, so the check refuses to start rather than proving nothing. Each family page is held to it as well, where `FAMILY_SITE_BASE_URL` is set. |
 | `SITE_AUTH_TOKEN_ID` | the resource access token's id, for an environment behind the auth gate | Set both or neither. Leave both unset for a site that is public. |
 | `SITE_AUTH_TOKEN` | the token itself | Read by `check-live-urls.sh`, sent as Pangolin's own `P-Access-Token` header. Staging keeps its gate on because it serves a byte-identical copy of the public site. |
+| `FAMILY_SITE_BASE_URL` | the family site's base URL in this environment | Read by `check-live-urls.sh`, which checks the family page there when it is set. Leave it unset until the family hostname reaches this environment, since the check fails on any other answer. |
+| `FAMILY_SITE_AUTH_TOKEN_ID` | the family resource's access token id, for a family site behind the auth gate | Set both or neither, and only with `FAMILY_SITE_BASE_URL`. A token opens exactly one proxy resource, so the blog's pair cannot open the family host. |
+| `FAMILY_SITE_AUTH_TOKEN` | the token itself | Sent as `P-Access-Token` to the family host and nowhere else. |
 | `CAPTURE_ROOT` | the provenance capture, holding the WordPress exports, the crawl of the old platform, and the inventories derived from it | Every script under [`capture/`](./capture/) reads beneath it, and all but one write there too. The exception is [`capture/build-redirects.py`](./capture/build-redirects.py), which writes the committed maps under `deploy/maps/` in this repository, and which also accepts the capture as a first argument that wins over this value. Environment-independent, so it belongs in the default file only. |
 | `CAPTURE_SOURCE_URL` | the old platform's base URL, the site the crawl and the URL verification ran against | **Not `SITE_BASE_URL`.** The two hold the same string after the cutover and mean different things, so merging them points a verification run at the new site while every check still passes. Environment-independent. |
 | `CAPTURE_SOURCE_API` | the old platform's REST API for that site, carrying its numeric site id | Read for the post and page bodies in **rendered** form, which is what expands shortcodes so a media reference is seen the way a reader's browser sees it. Environment-independent. |
@@ -40,23 +43,30 @@ Three more are named in the template but commented out, because CI resolves them
 
 ## The GitHub Environments
 
-Held on the `production` and `staging` environments. The deploy workflow reads no file.
+Every variable and secret this repository stores for GitHub Actions, Dependabot, and its deployment environments, and the stores holding each. Codespaces secrets are out of scope, and the repository holds none. A store is a deployment environment, `repository` for the Actions repository store, or `dependabot` for the Dependabot secret store. The deploy workflow reads no file.
 
-| Value | Kind | Names |
-| --- | --- | --- |
-| `SITE_BASE_URL` | variable | the base URL, used twice: `.github/actions/deploy/action.yml` builds the site with it and points `check-live-urls.sh` at it |
-| `DEPLOY_SSH_HOST` | variable | the deploy endpoint |
-| `DEPLOY_SSH_USER` | variable | the confined deploy account |
-| `DEPLOY_SSH_KNOWN_HOSTS` | variable | the pinned host key. A variable rather than a secret, deliberately, since it is public by nature |
-| `DEPLOY_SSH_PRIVATE_KEY` | secret | the deploy key, held behind an `rrsync` forced command |
-| `SITE_AUTH_TOKEN_ID` | secret | as above, for an environment behind the gate. Forwarded to `checks/check-live-urls.sh`, which reads this name directly |
-| `SITE_AUTH_TOKEN` | secret | as above, forwarded the same way |
+| Value | Kind | Held on | Names |
+| --- | --- | --- | --- |
+| `SITE_BASE_URL` | variable | `staging`, `production` | the base URL, used twice: `.github/actions/deploy/action.yml` builds the site with it and points `check-live-urls.sh` at it |
+| `DEPLOY_SSH_HOST` | variable | `staging`, `production` | the deploy endpoint |
+| `DEPLOY_SSH_USER` | variable | `staging`, `production` | the confined deploy account |
+| `DEPLOY_SSH_KNOWN_HOSTS` | variable | `staging`, `production` | the pinned host key. A variable rather than a secret, deliberately, since it is public by nature |
+| `DEPLOY_SSH_PRIVATE_KEY` | secret | `staging`, `production` | the deploy key, held behind an `rrsync` forced command |
+| `SITE_AUTH_TOKEN_ID` | secret | `staging` | as above, for an environment behind the gate. Forwarded to `checks/check-live-urls.sh`, which reads this name directly |
+| `SITE_AUTH_TOKEN` | secret | `staging` | as above, forwarded the same way |
+| `FAMILY_SITE_BASE_URL` | variable | `staging`, `production` | the family site's base URL, as above. Production's family site is public, so production carries no family token |
+| `FAMILY_SITE_AUTH_TOKEN_ID` | secret | `staging` | the family resource's token id, as above |
+| `FAMILY_SITE_AUTH_TOKEN` | secret | `staging` | the family resource's token, as above |
+| `CODEGEN_APP_CLIENT_ID` | secret | `repository`, `dependabot` | the merge bot's GitHub App client id, read by `merge-bot-pull-request.yml` |
+| `CODEGEN_APP_PRIVATE_KEY` | secret | `repository`, `dependabot` | the merge bot's GitHub App private key, read the same way |
+
+**[`checks/check-github-env.py`](./checks/check-github-env.py) compares this table against GitHub.** It reads the names those stores hold, never a value, and leaves the Codespaces secret store unread. It reports a value missing from a store, held on a store the table does not name, or held as the wrong kind. Every environment GitHub has is read, so an environment the table never names must hold nothing. Run it after changing a value on GitHub or a row here. It needs a `gh` login that can administer the repository, since listing environment secrets requires that. A workflow's `GITHUB_TOKEN` cannot, so CI does not run it.
+
+**The family values reach no deploy step.** The deploy workflow's verify step receives `SITE_BASE_URL` and the blog's token pair from the hub's deploy task, and no family variable. A deploy therefore does not check the family host, and the family check runs from a local environment file.
 
 **`SITE_BASE_URL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes. Its generic name is the hub's own `deploy-site-task.yml` interface, and it is also the one this repository's own scripts and `~/.secrets/Blog.*.env` files read: `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` in one place, since only Hugo requires that name.
 
 **A host rebuild regenerates the SSH host keys and the pinned value stops matching**, which fails every deploy closed and blocks the rollback path at the same moment a rebuild makes both matter. Replace `DEPLOY_SSH_KNOWN_HOSTS` on **both** environments before the first deploy after a rebuild.
-
-Two repository-level secrets are unrelated to deployment and exist for the merge bot: `CODEGEN_APP_CLIENT_ID` and `CODEGEN_APP_PRIVATE_KEY`.
 
 ## Per-invocation knobs
 
