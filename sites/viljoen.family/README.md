@@ -72,9 +72,11 @@ The tree is a stamboom. The children form the crown, and the stamouers card sits
 
 - Each limb is a cubic Bezier drawn as a filled shape that tapers from width `w0` to `w1` (`limb()`), not as a stroke.
 - Leaves sprout at chosen positions along a limb, alternating sides (`leaves()`). The pattern is fixed rather than random, so every redraw looks the same. About one leaf in five is gold.
-- **Roots:** seven tapering roots run from the bottom of the couple card into the soil band, in both layouts.
-- **Wide layout** (six cards in a row): a trunk rises from the couple card to a fork. One S-curve branch runs from there to the bottom of each child card. A short limb continues from each name-carrying card to its stub.
-- **Stacked layout** (`62.5em` wide or less, 1000px at a 16px default font): the cards form a column, at most `32.875rem` wide so it widens with the reader's font size. The trunk rises up the left gutter from the couple card, with a twig into each card. A "Stamouers" jump link at the top leads to the couple card, which sits below the children.
+- **Scale:** every width, offset, and leaf size is set for a 16px root and multiplied by the actual root size, and the fork gap, soil band, and stacked gutter in `site.css` are in `rem`, so the tree keeps its proportions to the cards at any viewport and default font size.
+- **Seamless joins:** all the wood is drawn twice, first as an outline layer and then as a fill layer on top, so overlapping pieces read as one shape with no line where they meet. The trunk's bark shading sits on top of that, masked out under a blurred copy of the branches, so it fades where each branch leaves the trunk instead of ending in an edge. Every branch starts inside the piece it grows from, with its start tangent matching.
+- **Roots:** seven tapering roots start straight down inside the trunk's base width (30px at a 16px root), under the couple card, and fan out into the soil band, in both layouts.
+- **Wide layout** (six cards in a row): a trunk rises from the couple card to a fork, where it ends pointing straight up, 24px wide at a 16px root. One S-curve limb rises from inside the trunk's top to the bottom of each child card, the starts spread across the trunk's width with the outer two flush with its sides. A short limb continues from each name-carrying card to its stub.
+- **Stacked layout** (`62.5em` wide or less, 1000px at a 16px default font): the cards form a column, at most `32.875rem` wide so it widens with the reader's font size. The trunk rises up the left gutter from the couple card, with a twig into each card starting on the trunk's center line. A "Stamouers" jump link at the top leads to the couple card, which sits below the children.
 - It redraws on resize, on load, when the fonts finish loading, and through a `ResizeObserver`. With JavaScript off the page still reads correctly, without branches.
 
 ## Facts on the Page and Their Sources

@@ -84,7 +84,7 @@ a:hover { text-decoration-color: currentColor; }
 .couple {
   width: 100%;
   max-width: 38.75rem;
-  margin: 170px auto 0;
+  margin: 10.625rem auto 0;
   padding: 20px 28px 18px;
   text-align: center;
   background: var(--paper-card);
@@ -111,8 +111,8 @@ a:hover { text-decoration-color: currentColor; }
   display: flex;
   justify-content: space-around;
   align-items: flex-end;
-  height: 84px;
-  margin-top: 34px;
+  height: 5.25rem;
+  margin-top: 2.125rem;
   padding: 0 8% 12px;
   border-radius: 50% 50% 18px 18px / 26px 26px 18px 18px;
   background: linear-gradient(to bottom, color-mix(in srgb, var(--bark) 14%, transparent), color-mix(in srgb, var(--bark) 34%, transparent));
@@ -248,8 +248,8 @@ footer {
     font: italic 500 1.05rem/1.3 "Cormorant Garamond", serif;
   }
   .gen-b, .gen-a > .couple, .soil { width: min(100%, 32.875rem); margin-left: auto; margin-right: auto; }
-  .gen-b { grid-template-columns: 1fr; gap: 14px; padding-left: 46px; }
-  .gen-a > .couple { margin-top: 48px; }
+  .gen-b { grid-template-columns: 1fr; gap: 14px; padding-left: 2.875rem; }
+  .gen-a > .couple { margin-top: 3rem; }
   .gen-b > li > .stub { order: 3; align-self: flex-start; margin: 6px 0 0; }
   .child { text-align: left; padding: 12px 16px; }
   .child h3 { display: inline; }
