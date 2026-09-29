@@ -142,8 +142,23 @@ class OriginRepoTests(unittest.TestCase):
                 self.assertEqual(self.origin(url), "someone/Example")
 
     def test_non_github_origin_is_refused(self) -> None:
-        with self.assertRaises(gate.QueryError):
-            self.origin("git@example.org:someone/Example.git")
+        for url in (
+            "git@example.org:someone/Example.git",
+            "git@notgithub.com:someone/Example.git",
+            "https://notgithub.com/someone/Example",
+            "https://evil.example/github.com/someone/Example",
+            "https://github.com.evil.example/someone/Example",
+            "/srv/mirrors/github.com/someone/Example.git",
+        ):
+            with self.subTest(url=url), self.assertRaises(gate.QueryError):
+                self.origin(url)
+
+    def test_requests_pin_the_github_host(self) -> None:
+        done = mock.Mock(returncode=0, stdout="", stderr="")
+        with mock.patch.object(gate.subprocess, "run", return_value=done) as run:
+            gate.gh_names("someone/Example", "environments", "environments")
+        command = run.call_args.args[0]
+        self.assertEqual(command[command.index("--hostname") + 1], "github.com")
 
     def test_missing_origin_is_refused(self) -> None:
         with self.assertRaises(gate.QueryError):

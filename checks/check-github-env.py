@@ -11,8 +11,9 @@ holds in each store and compares them against that table, in both directions:
               name behind.
   wrong kind  a value is held as a variable where the table says secret, or the reverse.
 
-The repository read is the one this checkout's origin names. Every environment GitHub has is read, so a value set on an environment the table never names is
-reported as unlisted rather than passed over.
+The repository read is the one this checkout's origin names, on github.com. Every environment
+GitHub has is read, so a value set on an environment the table never names is reported as
+unlisted rather than passed over.
 
 Only names are read. A secret's value is not readable at all, and a variable's value is
 projected away inside gh before any output reaches this script.
@@ -44,7 +45,10 @@ KINDS = ("variable", "secret")
 NAME = re.compile(r"`([A-Z][A-Z0-9_]*)`")
 STORE = re.compile(r"`([A-Za-z0-9_.-]+)`")
 SEPARATOR = re.compile(r"[-:\s]+")
-ORIGIN = re.compile(r"github\.com[:/]([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(?:\.git)?/?$")
+ORIGIN = re.compile(
+    r"(?:git@github\.com:|ssh://git@github\.com/|https://(?:[^@/]+@)?github\.com/)"
+    r"([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+?)(?:\.git)?/?"
+)
 
 # One stored value, as (store, kind, name).
 Entry = tuple[str, str, str]
@@ -95,7 +99,7 @@ def read_table(text: str) -> set[Entry]:
 
 def origin_repo() -> str:
     """Return this checkout's origin as owner/repo."""
-    # Named explicitly rather than left to gh, whose own resolution prefers GH_REPO and could read another repository.
+    # Named explicitly rather than left to gh, whose own resolution prefers GH_REPO and GH_HOST and could read another repository.
     try:
         result = subprocess.run(
             ["git", "-C", str(REPO), "remote", "get-url", "origin"],
@@ -105,7 +109,7 @@ def origin_repo() -> str:
         )
     except FileNotFoundError as error:
         raise QueryError("git is not installed") from error
-    match = ORIGIN.search(result.stdout.strip()) if result.returncode == 0 else None
+    match = ORIGIN.fullmatch(result.stdout.strip()) if result.returncode == 0 else None
     if match is None:
         raise QueryError(
             f"origin is not a GitHub repository: {result.stdout.strip() or result.stderr.strip()}"
@@ -119,6 +123,8 @@ def gh_names(repo: str, path: str, key: str) -> set[str]:
         "gh",
         "api",
         "--paginate",
+        "--hostname",
+        "github.com",
         f"repos/{repo}/{path}",
         "--jq",
         f".{key}[].name",
