@@ -66,11 +66,11 @@ environment. Copy [`example.env`](../.secrets/example.env) to `~/.secrets/Blog.l
 file read when `ENV_FILE` is unset, and add `~/.secrets/Blog.<server>.<environment>.env` for each further
 environment. A single environment therefore needs `~/.secrets/Blog.local.production.env` and nothing
 else, since a differently named file is read only when `ENV_FILE` names it. The real files
-live on the host, in `~/.secrets/`, never in this checkout. CI passes them explicitly instead, which
-keeps a pipeline run self-describing:
+live on the host, in `~/.secrets/`, never in this checkout. CI passes the base URL and a scratch
+bundle path explicitly instead, then uploads the bundle to the host's deploy root:
 
 ```sh
-SITE_BASE_URL=<base-url> deploy/make-release.sh <deploy-root> "$(git rev-parse --short HEAD)"
+SITE_BASE_URL=<base-url> deploy/make-release.sh <bundle-path> <release-id>
 ```
 
 **That command-prefix form is CI-only.** A local run whose default environment file exists sources it after the command-prefix assignment and overwrites it, since `set -a` overwrites a value the caller exported first. Locally, select the environment through `ENV_FILE` instead, per the table below.
