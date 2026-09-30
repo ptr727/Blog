@@ -8,7 +8,7 @@ Every configuration value this repository reads or writes, described once. [`OPE
 
 ## The mechanism
 
-A local run reads one file. `~/.secrets/Blog.<server>.<environment>.env` is sourced with `set -a`, selected by `ENV_FILE`, and defaults to `~/.secrets/Blog.local.production.env`. The real files live on the host, never in this checkout, and [`.secrets/example.env`](./.secrets/example.env) is the tracked template that documents the shape.
+A local run reads one file. `~/.secrets/blog.<server>.<environment>.env` is sourced with `set -a`, selected by `ENV_FILE`, and defaults to `~/.secrets/blog.local.production.env`. The real files live on the host, never in this checkout, and [`.secrets/example.env`](./.secrets/example.env) is the tracked template that documents the shape.
 
 Two consequences of `set -a` are worth stating because both have surprised someone. Sourcing overwrites a variable the caller exported first, so exporting `DEPLOY_ROOT` by hand does not switch environments and only `ENV_FILE` does. And a named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
 
@@ -16,7 +16,7 @@ CI reads no file. The deploy workflow resolves the same values from the GitHub E
 
 ## Repository environment files
 
-Held in `~/.secrets/Blog.<server>.<environment>.env`, one file per environment, on the host rather than in this checkout. Template: [`.secrets/example.env`](./.secrets/example.env).
+Held in `~/.secrets/blog.<server>.<environment>.env`, one file per environment, on the host rather than in this checkout. Template: [`.secrets/example.env`](./.secrets/example.env).
 
 | Value | Names | Notes |
 | --- | --- | --- |
@@ -64,7 +64,7 @@ Every variable and secret this repository stores for GitHub Actions, Dependabot,
 
 **The family values reach no deploy step.** The deploy workflow's verify step receives `SITE_BASE_URL` and the blog's token pair from the hub's deploy task, and no family variable. A deploy therefore does not check the family host, and the family check runs from a local environment file.
 
-**`SITE_BASE_URL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes. Its generic name is the hub's own `deploy-site-task.yml` interface, and it is also the one this repository's own scripts and `~/.secrets/Blog.*.env` files read: `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` in one place, since only Hugo requires that name.
+**`SITE_BASE_URL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes. Its generic name is the hub's own `deploy-site-task.yml` interface, and it is also the one this repository's own scripts and `~/.secrets/blog.*.env` files read: `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` in one place, since only Hugo requires that name.
 
 **A host rebuild regenerates the SSH host keys and the pinned value stops matching**, which fails every deploy closed and blocks the rollback path at the same moment a rebuild makes both matter. Replace `DEPLOY_SSH_KNOWN_HOSTS` on **both** environments before the first deploy after a rebuild.
 
@@ -74,7 +74,7 @@ Set on the command line for one run rather than stored anywhere.
 
 | Value | Effect |
 | --- | --- |
-| `ENV_FILE` | which environment file to source. Defaults to `~/.secrets/Blog.local.production.env` |
+| `ENV_FILE` | which environment file to source. Defaults to `~/.secrets/blog.local.production.env` |
 | `REQUIRE_BROTLI=1` | fail rather than shipping gzip-only. CI sets it |
 | `NO_LINK_DEST=1` | full copy instead of hard-linking from the previous release |
 | `KEEP_RELEASES` | how many releases `make-release.sh` leaves behind |

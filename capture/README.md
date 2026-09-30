@@ -2,7 +2,7 @@
 
 Everything in this repository is derived. What it was derived *from* is a capture directory that lives outside it, and this directory holds the scripts that read that capture.
 
-The capture's path is `CAPTURE_ROOT`, recorded alongside the other values that name a machine rather than the project. It is environment-independent, so unlike a deploy root it belongs in `~/.secrets/Blog.local.production.env` alone rather than in a copy per environment: there is one capture, and four copies of its path is four chances for three of them to be wrong. It is not a git repository, so it has no history to revert to, and it is read-only in normal use. Nothing here writes into it except the steps below that say they do.
+The capture's path is `CAPTURE_ROOT`, recorded alongside the other values that name a machine rather than the project. It is environment-independent, so unlike a deploy root it belongs in `~/.secrets/blog.local.production.env` alone rather than in a copy per environment: there is one capture, and four copies of its path is four chances for three of them to be wrong. It is not a git repository, so it has no history to revert to, and it is read-only in normal use. Nothing here writes into it except the steps below that say they do.
 
 **None of this runs in CI, and none of it runs on a schedule.** These are provenance tools, run by hand, and their outputs are committed. That is the whole difference between this directory and [`checks/`](../checks/), which holds gates that run on every change.
 
@@ -46,7 +46,7 @@ In order. Each Python step is a dry run by default and takes `--apply` to write.
 Everything here is standard library except `clean-content.py`, which needs PyYAML to read front matter. It names the package if it is missing rather than raising an import error.
 
 ```sh
-set -a; . ~/.secrets/Blog.local.production.env; set +a
+set -a; . ~/.secrets/blog.local.production.env; set +a
 
 capture/run-wp2hugo.sh                        # convert, into $CAPTURE_ROOT/converted/
 capture/clean-content.py --apply              # drop comments, reduce the front matter
