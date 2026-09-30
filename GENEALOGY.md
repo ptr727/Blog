@@ -50,7 +50,7 @@ The sources agree that the progenitor's children are the `b` generation. They di
 | Born | `*` | `&ast;` | `* 01.02.1700` |
 | Baptized | `~` | `&#126;` | `~ 19.05.1682 Cape Town` |
 | Married | `x` | plain letter | `x 1707 Margaretha de Savoye` |
-| Married, first and second | `x1`, `x2` | plain letters | `x1 1702 Hercul&eacute; du Preez` |
+| Married, first and second | `x1`, `x2` | plain letters | `x1 1702 Herculé du Preez` |
 | Died | dagger | `&dagger;` | `&dagger; 1720` |
 | Buried | not yet chosen | | |
 
