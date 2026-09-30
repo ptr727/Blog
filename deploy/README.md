@@ -56,16 +56,16 @@ neither. Seven facts are the whole contract:
 
 ```sh
 set -e
-set -a; . ~/.secrets/Blog.local.production.env; set +a
+set -a; . ~/.secrets/blog.local.production.env; set +a
 RELEASE="$(git rev-parse --short HEAD)"
-ENV_FILE=~/.secrets/Blog.local.production.env deploy/make-release.sh "" "$RELEASE"
+ENV_FILE=~/.secrets/blog.local.production.env deploy/make-release.sh "" "$RELEASE"
 EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
 The deploy root and the base URL are the only host-specific values, and they pair per
-environment. Copy [`example.env`](../.secrets/example.env) to `~/.secrets/Blog.local.production.env`, which is the
-file read when `ENV_FILE` is unset, and add `~/.secrets/Blog.<server>.<environment>.env` for each further
-environment. A single environment therefore needs `~/.secrets/Blog.local.production.env` and nothing
+environment. Copy [`example.env`](../.secrets/example.env) to `~/.secrets/blog.local.production.env`, which is the
+file read when `ENV_FILE` is unset, and add `~/.secrets/blog.<server>.<environment>.env` for each further
+environment. A single environment therefore needs `~/.secrets/blog.local.production.env` and nothing
 else, since a differently named file is read only when `ENV_FILE` names it. The real files
 live on the host, in `~/.secrets/`, never in this checkout. CI passes the base URL and a scratch
 bundle path explicitly instead, then uploads the bundle to the host's deploy root:
@@ -76,22 +76,22 @@ SITE_BASE_URL=<base-url> deploy/make-release.sh <bundle-path> <release-id>
 
 **That command-prefix form is CI-only.** A local run whose default environment file exists sources it after the command-prefix assignment and overwrites it, since `set -a` overwrites a value the caller exported first. Locally, select the environment through `ENV_FILE` instead, per the table below.
 
-**One file per environment, named `~/.secrets/Blog.<server>.<environment>.env`, selected by `ENV_FILE`.**
+**One file per environment, named `~/.secrets/blog.<server>.<environment>.env`, selected by `ENV_FILE`.**
 Both halves are spelled out, so a name says which machine it describes as well as which
-environment on it, and the four in the fleet read as one set. `~/.secrets/Blog.local.production.env` is
+environment on it, and the four in the fleet read as one set. `~/.secrets/blog.local.production.env` is
 the default and is read when `ENV_FILE` is unset, so a single-environment host needs nothing
 else:
 
 ```sh
-deploy/make-release.sh                                       # ~/.secrets/Blog.local.production.env
-ENV_FILE=~/.secrets/Blog.local.staging.env deploy/make-release.sh    # the staging site on the same host
+deploy/make-release.sh                                       # ~/.secrets/blog.local.production.env
+ENV_FILE=~/.secrets/blog.local.staging.env deploy/make-release.sh    # the staging site on the same host
 ```
 
 A file whose `DEPLOY_SSH_HOST` is set describes a root on another machine, so this script refuses
 to create that path here and asks for a local one to assemble a bundle into:
 
 ```sh
-ENV_FILE=~/.secrets/Blog.vps.staging.env deploy/make-release.sh /path/to/bundle
+ENV_FILE=~/.secrets/blog.vps.staging.env deploy/make-release.sh /path/to/bundle
 ```
 
 Selecting the file is the only way to switch environments. The file is sourced with `set -a`,
@@ -112,7 +112,7 @@ that reason.
 
 | Variable | Effect |
 | --- | --- |
-| `ENV_FILE` | Which environment file to source. Defaults to `~/.secrets/Blog.local.production.env`. |
+| `ENV_FILE` | Which environment file to source. Defaults to `~/.secrets/blog.local.production.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
 | `SITE_BASE_URL` | Overrides the site base URL. Bridged internally to `HUGO_BASEURL`, the name Hugo maps `HUGO_<KEY>` onto config natively. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
