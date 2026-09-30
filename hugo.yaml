@@ -61,6 +61,9 @@ params:
     disableHLJS: true
   # The theme prints this value directly, so a map renders as a literal Go map on every page.
   author: Pieter Viljoen
+  # Every post has the one author, so the name adds nothing to the date and reading time line under each post and each list entry.
+  # This hides only that line's copy, and the author meta tag and structured data still carry it.
+  hideAuthor: true
 
 markup:
   highlight:

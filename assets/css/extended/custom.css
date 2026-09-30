@@ -92,3 +92,14 @@ body {
         align-items: center;
     }
 }
+
+/*
+    Cover images span portrait to panorama, so at full card width their natural heights ranged from a thin strip to a couple of screens, and the list scrolled unevenly.
+    A fixed height cropped to fill gives every card with a cover the same height, about that of the title, summary, and byline under it.
+    A fixed height rather than a fixed ratio keeps the cover from shrinking on a phone, where the text under it wraps taller.
+    Scoped to list entries, so the cover on the post itself still shows the whole image.
+*/
+.post-entry .entry-cover img {
+    height: 8rem;
+    object-fit: cover;
+}
