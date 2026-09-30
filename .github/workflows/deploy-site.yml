@@ -40,7 +40,7 @@ jobs:
   validate:
     name: Validate sources job
     needs: [ assert-ref ]
-    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@904096552cea4192d7a1c4db88a347fbb18272e9 # 2.0.718
+    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@fe7cfa1411d4d71e4066f61758cc59abba05c7df # 2.0.774
     permissions:
       contents: read
     with:
@@ -52,14 +52,16 @@ jobs:
   deploy:
     name: Deploy site job
     needs: [ validate ]
-    uses: ptr727/ProjectTemplate/.github/workflows/deploy-site-task.yml@904096552cea4192d7a1c4db88a347fbb18272e9 # 2.0.718
+    uses: ptr727/ProjectTemplate/.github/workflows/deploy-site-task.yml@fe7cfa1411d4d71e4066f61758cc59abba05c7df # 2.0.774
     with:
       environment: ${{ inputs.environment }}
     permissions:
       contents: read
     # Cross-repo, so secrets: inherit does not apply.
-    # Production maps both auth-token secrets to empty, since neither is set there, which the hub task's own assert step treats as a public site.
+    # Production maps both auth-token pairs to empty, since neither is set there, which the hub task's own assert step treats as a public site.
     secrets:
       DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
       SITE_AUTH_TOKEN_ID: ${{ secrets.SITE_AUTH_TOKEN_ID }}
       SITE_AUTH_TOKEN: ${{ secrets.SITE_AUTH_TOKEN }}
+      SITE_EXTRA_AUTH_TOKEN_ID: ${{ secrets.SITE_EXTRA_AUTH_TOKEN_ID }}
+      SITE_EXTRA_AUTH_TOKEN: ${{ secrets.SITE_EXTRA_AUTH_TOKEN }}

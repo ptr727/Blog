@@ -412,10 +412,15 @@ if [ -n "$FAMILY_BASE" ]; then
 			echo "family $page_path expected 200, got $code$hint" >>"$FAILED"
 		elif ! grep -qF "<title>$title</title>" "$FAMILY_BODY"; then
 			echo "family $page_path answered without the title '$title', so another site served it" >>"$FAILED"
-		elif [ -n "${EXPECT_SITE_ENV:-}" ]; then
+		else
 			got_env=$(grep -i '^x-blog-env:' "$FAMILY_HEAD" | tr -d '\r' | sed 's/^[^:]*: *//')
-			[ "$got_env" = "$EXPECT_SITE_ENV" ] ||
+			family_release=$(grep -i '^x-blog-release:' "$FAMILY_HEAD" | tr -d '\r' | sed 's/^[^:]*: *//')
+			if [ -n "${EXPECT_SITE_ENV:-}" ] && [ "$got_env" != "$EXPECT_SITE_ENV" ]; then
 				echo "family $page_path is served by '${got_env:-<no X-Blog-Env header>}', expected '$EXPECT_SITE_ENV'" >>"$FAILED"
+			fi
+			if [ -n "${EXPECT_RELEASE:-}" ] && [ "$family_release" != "$EXPECT_RELEASE" ]; then
+				echo "family $page_path is from release '${family_release:-<no X-Blog-Release header>}', expected '$EXPECT_RELEASE'" >>"$FAILED"
+			fi
 		fi
 	done
 else

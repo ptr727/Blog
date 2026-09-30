@@ -54,15 +54,15 @@ Every variable and secret this repository stores for GitHub Actions, Dependabot,
 | `DEPLOY_SSH_PRIVATE_KEY` | secret | `staging`, `production` | the deploy key, held behind an `rrsync` forced command |
 | `SITE_AUTH_TOKEN_ID` | secret | `staging` | as above, for an environment behind the gate. Forwarded to `checks/check-live-urls.sh`, which reads this name directly |
 | `SITE_AUTH_TOKEN` | secret | `staging` | as above, forwarded the same way |
-| `FAMILY_SITE_BASE_URL` | variable | `staging`, `production` | the family site's base URL, as above. Production's family site is public, so production carries no family token |
-| `FAMILY_SITE_AUTH_TOKEN_ID` | secret | `staging` | the family resource's token id, as above |
-| `FAMILY_SITE_AUTH_TOKEN` | secret | `staging` | the family resource's token, as above |
+| `SITE_EXTRA_BASE_URL` | variable | `staging`, `production` | the family site's base URL, which the hub's deploy task forwards to the verify step as its second site. The hook passes it to `check-live-urls.sh` as `FAMILY_SITE_BASE_URL`. Production's family site is public, so production carries no family token |
+| `SITE_EXTRA_AUTH_TOKEN_ID` | secret | `staging` | the family resource's token id, passed on as `FAMILY_SITE_AUTH_TOKEN_ID` |
+| `SITE_EXTRA_AUTH_TOKEN` | secret | `staging` | the family resource's token, passed on as `FAMILY_SITE_AUTH_TOKEN` |
 | `CODEGEN_APP_CLIENT_ID` | secret | `repository`, `dependabot` | the merge bot's GitHub App client id, read by `merge-bot-pull-request.yml` |
 | `CODEGEN_APP_PRIVATE_KEY` | secret | `repository`, `dependabot` | the merge bot's GitHub App private key, read the same way |
 
 **[`checks/check-github-env.py`](./checks/check-github-env.py) compares this table against GitHub.** It reads the names those stores hold, never a value, and leaves the Codespaces secret store unread. It reports a value missing from a store, held on a store the table does not name, or held as the wrong kind. Every environment GitHub has is read, so an environment the table never names must hold nothing. Run it after changing a value on GitHub or a row here. It needs a `gh` login that can administer the repository, since listing environment secrets requires that. A workflow's `GITHUB_TOKEN` cannot, so CI does not run it.
 
-**The family values reach no deploy step.** The deploy workflow's verify step receives `SITE_BASE_URL` and the blog's token pair from the hub's deploy task, and no family variable. A deploy therefore does not check the family host, and the family check runs from a local environment file.
+**The family values carry the hub's names on GitHub and this repository's names everywhere else.** The hub's deploy task forwards a second site as `SITE_EXTRA_BASE_URL` and the `SITE_EXTRA_AUTH_TOKEN_ID`/`SITE_EXTRA_AUTH_TOKEN` pair, reading each by that name from the environment. The deploy hook's verify step bridges them to the `FAMILY_SITE_*` names that `check-live-urls.sh` and the `~/.secrets/blog.*.env` files use. A deploy therefore checks the family host with its own token.
 
 **`SITE_BASE_URL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes. Its generic name is the hub's own `deploy-site-task.yml` interface, and it is also the one this repository's own scripts and `~/.secrets/blog.*.env` files read: `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` in one place, since only Hugo requires that name.
 
@@ -78,7 +78,7 @@ Set on the command line for one run rather than stored anywhere.
 | `REQUIRE_BROTLI=1` | fail rather than shipping gzip-only. CI sets it |
 | `NO_LINK_DEST=1` | full copy instead of hard-linking from the previous release |
 | `KEEP_RELEASES` | how many releases `make-release.sh` leaves behind |
-| `EXPECT_RELEASE` | the release id `check-live-urls.sh` requires the live site to report, which is what makes a rollback verifiable rather than merely exiting zero |
+| `EXPECT_RELEASE` | the release id `check-live-urls.sh` requires the live site to report, which is what makes a rollback verifiable rather than merely exiting zero. Each family page is held to it as well |
 | `MTIME_RESTORED=1` | the caller has already restored `static/` mtimes. Two effects, and no others: `make-release.sh` does not run the restore, and does not require `git-restore-mtime` to be installed. **The assertion that the mtimes are correct still runs**, so setting this without having restored fails the build rather than bypassing it. **CI sets it**, because the workflows restore with a pinned action that runs the tool from the action's own directory and never puts it on `PATH` |
 | `CHECK_TAG` | the `X-Blog-Check` provenance this run announces on every request. **`<source>/<id>` is enforced, not merely expected**: exactly one `/`, which is the separator and the only one allowed, with both halves non-empty and each drawn from letters, digits, `.`, `_`, `-`. Rarely set by hand, since `check-live-urls.sh` derives `github/<run-id>-<attempt>` under Actions and `proxmox/manual` elsewhere. Set it to name a purpose for a hand run, as `proxmox/media-dev` |
 
