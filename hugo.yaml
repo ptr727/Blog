@@ -43,6 +43,8 @@ params:
   showCodeCopyButtons: true
   showPostNavLinks: true
   hideFooter: false
+  footer:
+    text: '[About](/about/) &middot; [Comments](https://github.com/ptr727/Blog/discussions)'
   # No comment box or share buttons.
   # A post may opt in to a GitHub Discussions link by setting a `discussions` URL, and the archive sets none.
   comments: false
@@ -88,6 +90,3 @@ menu:
     - name: Search
       url: /search/
       weight: 20
-    - name: About
-      url: /about/
-      weight: 30
