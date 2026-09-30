@@ -137,7 +137,7 @@ Secrets and variables, per environment. The App-token pair is repository-scoped 
 
 `DEPLOY_SSH_PRIVATE_KEY` holds the same key in both environments. The environment split still carries the base URL, the SSH endpoint, and the staging-only token pair, so it is not decorative.
 
-The deploy root is deliberately absent from this table. The rsync destination is anchored at the deploy key's confinement root, so the workflow names an environment rather than a host path, and a declared-but-unread name is drift no audit can tell from a missing one. The local `DEPLOY_ROOT` in `~/.secrets/Blog.<server>.<environment>.env` is a different value and is still read.
+The deploy root is deliberately absent from this table. The rsync destination is anchored at the deploy key's confinement root, so the workflow names an environment rather than a host path, and a declared-but-unread name is drift no audit can tell from a missing one. The local `DEPLOY_ROOT` in `~/.secrets/blog.<server>.<environment>.env` is a different value and is still read.
 
 <!-- Repo -->
 
