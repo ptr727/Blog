@@ -31,7 +31,7 @@ I bought a Philips 9" wood border model 9FF2CWO.
 
 - The frame's built in software is very extensive and easy to use.
 
-- The frame directly displays pictures from cameras or pictures copied to  
+- The frame directly displays pictures from cameras or pictures copied  
 to memory cards, no special settings required, no image resizing required.
 
 ### The Bad:
@@ -56,7 +56,7 @@ next time.
 
 On launching the autorun application again the links now work.
 
-- When you connect the frame's USB connecter to the PC, several new  
+- When you connect the frame's USB connector to the PC, several new  
 removable drives are mounted.
 
 The one drive is the internal frame memory, the other drives are for the  
@@ -96,7 +96,7 @@ software, or to delete the pictures directly using Windows Explorer.
 
 
 - The version of Photo Manager (1.0.1.6) I received on the CD and the  
-firmware (9.01.38) in my frame was both later versions than the versions  
+firmware (9.01.38) in my frame were both later versions than the versions  
 listed on the Philips support website.
 
 ### The Outcome:
@@ -105,10 +105,10 @@ listed on the Philips support website.
 
 
 - Because the picture quality is so good, I am willing to avoid the Photo Manager software,  
-and using the USB connection directly manipulate the pictures on the SD  
+and use the USB connection to directly manipulate the pictures on the SD  
 card.
 
-- I can only hope that Philips will replace the Photo Manger software with  
+- I can only hope that Philips will replace the Photo Manager software with  
 something usable.
 
 ### Links:

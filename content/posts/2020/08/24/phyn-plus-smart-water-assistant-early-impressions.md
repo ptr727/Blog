@@ -13,7 +13,7 @@ cover:
 ---
 [Phyn Plus](https://www.phyn.com/plus-smart-water-assistant/) is a "smart water assistant", a device that monitors water usage, and can automatically shut off the water supply when a leak is detected.
 
-I am familiar with whole house water monitoring and leak detection devices, like the widely available and advertised [Moen Flo Smart Water Shutoff](https://meetflo.com/product/smart-water-shutoff), but until very recently I've never even heard of [Phyn](https://www.phyn.com/). I was introduced to Phyn by a tech savvy friend that bought one at [Costco](https://www.costco.com/phyn-plus-smart-water-monitor-with-whole-home-leak-detection-and-auto-shutoff.product.100490249.html), installed it at his house, and he had only good things to say about it.
+I am familiar with whole house water monitoring and leak detection devices, like the widely available and advertised [Moen Flo Smart Water Shutoff](https://meetflo.com/product/smart-water-shutoff), but until very recently I'd never even heard of [Phyn](https://www.phyn.com/). I was introduced to Phyn by a tech savvy friend that bought one at [Costco](https://www.costco.com/phyn-plus-smart-water-monitor-with-whole-home-leak-detection-and-auto-shutoff.product.100490249.html), installed it at his house, and he had only good things to say about it.
 
 What made Phyn interesting to me was that Phyn is to water what [Sense](https://sense.com/) is to electricity. Phyn uses machine learning to [analyze](https://www.phyn.com/technology/) water flow and pressure measurements to automatically identify individual water consuming devices, just like Sense uses machine learning and current and voltage measurements to [identify](https://blog.sense.com/articles/training-sense/) individual electrical appliances.
 
@@ -39,7 +39,7 @@ Configuring the mobile app on iOS was easy, following a typical pattern of creat
 
 During water use the app presents water use events and tries to match the event with the configured fixtures and appliances. For every event you have the ability to override the automatic classification, and this is what Phyn uses for training. The app was reasonably successful at identifying fixtures and toilets, but not so successful at identifying the washing machine, showers, or tubs. The docs do state that Phyn needs more than a thousand events before accuracy improves, and I've yet to reach that milestone after less than a week of use.
 
-During use I did encounter two alerts, both alerts were high flow rate events, both when running multiple showers at the same time. On alert the app pops a notification and asked me to classify the event as an issue or not, and if not an issue, what fixture was in use. The app does not offer the ability to specify when multiple fixtures were in use, so I had to select "a" shower. I do suspect there is a bug in the app, as the alert history shows a slow flow event, quite the opposite of what happened.
+During use I did encounter two alerts, both alerts were high flow rate events, both when running multiple showers at the same time. On alert the app pops a notification and asks me to classify the event as an issue or not, and if not an issue, what fixture was in use. The app does not offer the ability to specify when multiple fixtures were in use, so I had to select "a" shower. I do suspect there is a bug in the app, as the alert history shows a slow flow event, quite the opposite of what happened.
 
 ![](/media/2020/08/img_6636.png)
 
@@ -58,4 +58,4 @@ I was very disappointed to learn that there is no ability to download water usag
 I integrate everything I can measure at my house into [Home Assistant](https://www.home-assistant.io/), and if I'd known there was no way for me to access my own data, I may not have installed Phyn. But, it is too soon to say if I'd be uninstalling it simply because it keeps my data hostage.
 
 _Update - 20 January 2025_:  
-I discovered a [Phyn integration for Home Assistant](https://github.com/jordanruthe/homeassistant-phyn) does exist. Looks like it was created around January 2023, after I had long given up on using Phyn in HA. Do note that the original integration, the one currently found in HACS, appears to be abandoned, but the form I linked is currently being maintained.
+I discovered a [Phyn integration for Home Assistant](https://github.com/jordanruthe/homeassistant-phyn) does exist. Looks like it was created around January 2023, after I had long given up on using Phyn in HA. Do note that the original integration, the one currently found in HACS, appears to be abandoned, but the fork I linked is currently being maintained.

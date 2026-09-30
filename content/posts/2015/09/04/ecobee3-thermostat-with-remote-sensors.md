@@ -12,7 +12,7 @@ cover:
   alt: Schedule
   image: /media/2015/09/schedule.png
 ---
-We've had a particularly warm summer, for our very moderate area, and between my wife and my parent's in-law, they were constantly changing the thermostat temperature, leaving nobody particularly happy, and our electricity consumption skyhigh. I needed a better solution, I found one, but it has some quirks.
+We've had a particularly warm summer, for our very moderate area, and between my wife and my parents-in-law, they were constantly changing the thermostat temperature, leaving nobody particularly happy, and our electricity consumption sky-high. I needed a better solution, I found one, but it has some quirks.
 
 I was an early adopter of the Nest Generation 1 thermostat, and when we moved to our new house, [Nest](https://nest.com/) was still the best available, and I installed two Nest Generation 2 thermostats, one upstairs, and one downstairs.
 
@@ -22,7 +22,7 @@ The one feature I, and many [other users](https://community.nest.com/ideas/1296)
 
 Ecobee solved this problem, to a large degree, with the [Ecobee3](http://amzn.to/1fXhI2U) thermostat, that comes with one remote sensing unit, and extra sensors can be purchased at $35 per sensor. The latest version of their thermostat is also [Apple HomeKit](https://developer.apple.com/homekit/) compatible, allowing Siri to control the thermostat.
 
-There are 3rd party integrations that can control the Nest temperature, like [Wally](http://www.wallyhome.com/works-with-nest/) at an additional $299, or [SmartThings](https://community.smartthings.com/t/nest-thermostat-additional-temp-sensors/3282) at an additional $139, but these are integration solutions, not integrated solutions, and makes the Nest solution much more expensive, especially considering the Ecobee3 (with one extra sensor included) and the Nest Gen3 are both $249.
+There are 3rd party integrations that can control the Nest temperature, like [Wally](http://www.wallyhome.com/works-with-nest/) at an additional $299, or [SmartThings](https://community.smartthings.com/t/nest-thermostat-additional-temp-sensors/3282) at an additional $139, but these are integration solutions, not integrated solutions, and make the Nest solution much more expensive, especially considering the Ecobee3 (with one extra sensor included) and the Nest Gen3 are both $249.
 
 There are alternate solutions like [EcoVent](https://www.ecoventsystems.com/) that controls the individual vents per room, but that adds an additional $499 minimum for two rooms.
 

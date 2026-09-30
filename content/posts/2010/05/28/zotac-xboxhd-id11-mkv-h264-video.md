@@ -1,5 +1,5 @@
 ---
-title: Zotac XBOXHD-ID11 MKV H.264 Video Playback Performance
+title: Zotac ZBOXHD-ID11 MKV H.264 Video Playback Performance
 date: '2010-05-29T00:28:00+00:00'
 url: /2010/05/28/zotac-xboxhd-id11-mkv-h264-video/
 categories:
@@ -18,7 +18,7 @@ tags:
 - zotac
 post_id: '109'
 ---
-When I started writing about the [ID11](http://www.zotacusa.com/zotac-zboxhd-id11-u-intel-atom-d510-1-66-ghz-dual-core-all-in-one-mini-pc.html), my intent was to document video playback and use as a HTPC, several posts later, and I am finally getting to [MKV](http://en.wikipedia.org/wiki/Mkv) [H.264](http://en.wikipedia.org/wiki/H.264/MPEG-4_AVC) playback configuration and performance.
+When I started writing about the [ID11](http://www.zotacusa.com/zotac-zboxhd-id11-u-intel-atom-d510-1-66-ghz-dual-core-all-in-one-mini-pc.html), my intent was to document video playback and use as an HTPC, several posts later, and I am finally getting to [MKV](http://en.wikipedia.org/wiki/Mkv) [H.264](http://en.wikipedia.org/wiki/H.264/MPEG-4_AVC) playback configuration and performance.
 
 This is the sixth post in a [series of posts related to the Zotac ZBOX ZBOXHD-ID11](/2010/05/zotac-zbox-mini-pc-zboxhd-id11.html).
 
@@ -26,13 +26,13 @@ Summary:
 
 - The CPU is not powerful enough to render / decode H.264 video, and GPU acceleration via [DXVA](http://en.wikipedia.org/wiki/DXVA) is required, as well as a DXVA capable player.
 - The [Microsoft DTV-DVD Video Decoder](http://msdn.microsoft.com/en-us/library/dd390679(VS.85).aspx), included as part of Windows 7 x64, worked perfectly for H.264 playback, and compared to other H.264 decoders had the lowest CPU usage.
-- As standalone player, [Media Player Classic Home Cinema](http://mpc-hc.sourceforge.net/), is a perfect choice, it supports MKV, H.264, DXVA, and subtitles without the need of any other software.
+- As a standalone player, [Media Player Classic Home Cinema](http://mpc-hc.sourceforge.net/), is a perfect choice, it supports MKV, H.264, DXVA, and subtitles without the need of any other software.
 - Playback of MKV H.264 in [Windows Media Player](http://www.microsoft.com/windows/windowsmedia/player/default.aspx), [Windows Media Center](http://www.microsoft.com/windows/windows-media-center/), [MediaPortal](http://www.team-mediaportal.com/), or [XBMC](http://xbmc.org/) requires the installation of [Haali Media Splitter](http://haali.su/mkv/), and [ffdshow](http://ffdshow-tryout.sourceforge.net/) audio and video decoders.
 - For [AC-3](http://en.wikipedia.org/wiki/Dolby_Digital) / [DTS](http://en.wikipedia.org/wiki/DTS_(sound_system)) pass-through playback via [S/PDIF](http://en.wikipedia.org/wiki/S/PDIF) / [HDMI](http://en.wikipedia.org/wiki/Hdmi), the ffdshow audio decoder is required.
 
-I am not an expert in how these things work, but I have a basic understanding of video playback on Windows platforms, so let's start with the file format; an MKV file is a [Matroska Media Container](http://www.matroska.org/) file. A MKV file can contain multiple audio-, video-, subtitle-, and other, streams. A MKV file is not a video or audio compression format, it is just a container.
+I am not an expert in how these things work, but I have a basic understanding of video playback on Windows platforms, so let's start with the file format; an MKV file is a [Matroska Media Container](http://www.matroska.org/) file. An MKV file can contain multiple audio-, video-, subtitle-, and other, streams. An MKV file is not a video or audio compression format, it is just a container.
 
-To play the contents of a MKV file, you need a de-multiplexer or splitter, the splitter understands the container format, and produces separate output streams.
+To play the contents of an MKV file, you need a de-multiplexer or splitter, the splitter understands the container format, and produces separate output streams.
 
 The stream output is processed by the stream decoders, typically known as [DirectShow](http://en.wikipedia.org/wiki/DirectShow) filters. The stream filters need to understand the stream contents, e.g. H.264 video, DTS audio, subtitles, etc.
 
@@ -76,7 +76,7 @@ Below are the MPC-HC graphs for CPU and GPU utilization:
 
 [![MPC.GPU](/external/fa46471fda0d1ce7.png)](/external/e0a024ea71a7117a.png)
 
-[Windows Media Player](http://www.microsoft.com/windows/windowsmedia/player/default.aspx) is included with the standard Windows installation. WMP uses the system installed DirectShow filers for playback. Even on a x64 system, WMP is still a x86 process, as such, it requires the installation of x86 filters.
+[Windows Media Player](http://www.microsoft.com/windows/windowsmedia/player/default.aspx) is included with the standard Windows installation. WMP uses the system installed DirectShow filters for playback. Even on an x64 system, WMP is still an x86 process, as such, it requires the installation of x86 filters.
 
 In order for WMP to open MKV files, a splitter is required, I used [Haali Media Splitter](http://haali.su/mkv/).
 
@@ -150,13 +150,13 @@ Below are the WMP with ffdshow DXVA graphs for CPU and GPU utilization:
 
 [![MediaPlayer.ffdshow.GPU](/external/fca7f179ec89bd47.png)](/external/50f59c5ca85db101.png)
 
-[Windows Media Center](http://www.microsoft.com/windows/windows-media-center/) is included with the Premier and Ultimate editions of Windows. MCE does not use DirectShow for playback, instead it uses [Windows Media Foundation](http://en.wikipedia.org/wiki/Media_Foundation). In order to use DirectShow filters in MCE, either the media type is not natively supported by WMF but is supported by DS, or the WMF media type is disabled using e.g. [Preferred Filter Tweaker for Windows 7](http://www.codecguide.com/windows7_preferred_filter_tweaker.htm). MCE runs as a x64 process on a x64 system, as such, it requires the installation of x64 filters.
+[Windows Media Center](http://www.microsoft.com/windows/windows-media-center/) is included with the Premium and Ultimate editions of Windows. MCE does not use DirectShow for playback, instead it uses [Windows Media Foundation](http://en.wikipedia.org/wiki/Media_Foundation). In order to use DirectShow filters in MCE, either the media type is not natively supported by WMF but is supported by DS, or the WMF media type is disabled using e.g. [Preferred Filter Tweaker for Windows 7](http://www.codecguide.com/windows7_preferred_filter_tweaker.htm). MCE runs as an x64 process on an x64 system, as such, it requires the installation of x64 filters.
 
 As with WMP, MCE also requires the [Haali Media Splitter](http://haali.su/mkv/) to open MKV files. And to use ffdshow instead of the default WMF decoders, set the HMS \[Use custom media type for H.264\] option to \[Yes\].
 
 I tested playback with two different video decoders; the [Microsoft DTV-DVD Video Decoder](http://msdn.microsoft.com/en-us/library/dd390679(VS.85).aspx), and [ffdshow tryouts](http://ffdshow-tryout.sourceforge.net/).
 
-I have read that it is possible to get subtitles working with MCE, but even with enabling subtitles in ffdshow, I could not get subtitles to show in WMP. I also tried the [Media Control](http://damienbt.free.fr/) plugin that is supposed to enable remote control support for ffdshow subtitles, but I could not get it to work. As with WMP, I am sure it is possible, I just didn't spend the effort to make it work.
+I have read that it is possible to get subtitles working with MCE, but even with enabling subtitles in ffdshow, I could not get subtitles to show in MCE. I also tried the [Media Control](http://damienbt.free.fr/) plugin that is supposed to enable remote control support for ffdshow subtitles, but I could not get it to work. As with WMP, I am sure it is possible, I just didn't spend the effort to make it work.
 
 I could not find a way to loop playback in MCE, or in MediaPortal, or in XBMC, so instead I manually played the video three times in a row. The resulting fan speed, CPU and GPU temperature graphs are not very interesting, so I am only including the CPU and GPU utilization graphs.
 
@@ -240,9 +240,9 @@ All other configurations require [Haali Media Splitter](http://haali.su/mkv/) an
 
 If you want to use Windows Media Center or Windows Media Player with subtitles, you will need to do some more research.
 
-If you run Windows and want a MCE alternative that is easily configurable, use [MediaPortal](http://www.team-mediaportal.com/).
+If you run Windows and want an MCE alternative that is easily configurable, use [MediaPortal](http://www.team-mediaportal.com/).
 
-If you need Mac or Linux support use [XBMC](http://xbmc.org/), or if don't mind configuration files and bleeding-edge code on Windows, use [DSPlayer](http://forum.xbmc.org/showthread.php?t=61355).
+If you need Mac or Linux support use [XBMC](http://xbmc.org/), or if you don't mind configuration files and bleeding-edge code on Windows, use [DSPlayer](http://forum.xbmc.org/showthread.php?t=61355).
 
 As long as your player of choice supports DXVA, the ID11 has no problem playing 1080p MKV H.264 content.
 

@@ -47,7 +47,7 @@ At least on paper, I never got to test it.
 
 - No ability to pick a boot device at POST time.
 
-Whenever I want to boot from my USB key, or CD, or external drive, I had to  
+Whenever I wanted to boot from my USB key, or CD, or external drive, I had to  
 edit the BIOS settings then reboot.
 
 - BIOS screen will hang on the monitor hardware page if any fans are  

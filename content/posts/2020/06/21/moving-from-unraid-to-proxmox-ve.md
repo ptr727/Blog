@@ -43,11 +43,11 @@ I tried [Proxmox VE](https://www.proxmox.com/en/proxmox-ve) for the first time, 
 
 There is a pattern here with LXC natively supported, but Docker not, maybe old vs. new? If you search for or ask how to install Docker on OMV or FreeNAS or PVE, the first responses are invariably why not just use LXC? I think of [Docker Hub](https://hub.docker.com/) as the modern cloud equivalent of app stores, everybody publishes there, and everybody looks for apps there. Nothing close to Docker Hub exists for LXC.
 
-With the need to install Docker, I need to consider if I will install on the base OS, or inside a LXC or VM. For me the deciding factor was [ZFS](https://zfsonlinux.org/); if I install in a LXC or VM I cannot utilize the underlying ZFS capabilities, while if I install on the host, I get all the capabilities of ZFS, most notably datasets, snapshots and quotas. [Virtio-FS](https://virtio-fs.gitlab.io/) may eventually change this, but for now I am installing Docker and Samba directly on the host.
+With the need to install Docker, I need to consider if I will install on the base OS, or inside an LXC or VM. For me the deciding factor was [ZFS](https://zfsonlinux.org/); if I install in an LXC or VM I cannot utilize the underlying ZFS capabilities, while if I install on the host, I get all the capabilities of ZFS, most notably datasets, snapshots and quotas. [Virtio-FS](https://virtio-fs.gitlab.io/) may eventually change this, but for now I am installing Docker and Samba directly on the host.
 
 I decided to go with Proxmox VE, with ZFS, with Docker and Samba installed directly on the Debian host OS. PVE gives me confidence and reliability in getting the OS installed, updated, and configured. PVE gives me a good web UI for KVM configuration and host monitoring. I will still use NetData for monitoring, Portainer for container configuration and monitoring, and Watchtower to keep the containers updated. The rest is done via CLI, Docker-Compose, and Ansible.
 
-As I had to do when I moved from [Windows Server 2016 to Unraid](/2019/05/05/moving-from-w2k16-to-unraid/), the critical parts are data migration, and I had quite a lot of data to move from Unraid to PVE. I had two basic choices for data migration; copy the Unraid XFS disks to ZFS disks on the same server, or copy the data to the secondary server and then copy it back.
+As I had to do when I moved from [Windows Server 2016 to Unraid](/2019/05/05/moving-from-w2k16-to-unraid/), the critical part is data migration, and I had quite a lot of data to move from Unraid to PVE. I had two basic choices for data migration; copy the Unraid XFS disks to ZFS disks on the same server, or copy the data to the secondary server and then copy it back.
 
 To copy the data in-place would require extra disks to create the initial ZFS pool, then copy data from the Unraid XFS disks to ZFS, as the XFS disks are freed up, add them as mirror vdev's to the pool, and repeat. For every 1 drive freed, I will need 2 drives for the ZFS mirror, this would mean I need more drives than I currently have.
 
@@ -55,7 +55,7 @@ The alternative is to provision enough (for data I want to keep) storage on a se
 
 I know, a large RAIDZ1 using old disks is risky, but I do have OneDrive and Backblaze B2 cloud backups of my most valuable data, so I was willing to take the chance, and I saved money by not having to buy any new drives.
 
-Copying the data over gigabit ethernet using rsync over SSH adds quite a bit of overhead, and I was maxing out at around 6MBps. The typical google answer of using SSH with the arcfour cipher no longer works, as SSH no longer supports arcfour. Instead I deployd a [rsyncd docker container](https://hub.docker.com/r/vimagick/rsyncd), and rsyncd has no encryption overhead. Copying from Unraid using `rsync -av --numeric-ids --delete server-1::share/ /mnt/unraidbackup/` runs at around 120MBps and maxes out the gigabit network, with about 8% CPU utilization.
+Copying the data over gigabit ethernet using rsync over SSH adds quite a bit of overhead, and I was maxing out at around 6MBps. The typical google answer of using SSH with the arcfour cipher no longer works, as SSH no longer supports arcfour. Instead I deployed an [rsyncd docker container](https://hub.docker.com/r/vimagick/rsyncd), and rsyncd has no encryption overhead. Copying from Unraid using `rsync -av --numeric-ids --delete server-1::share/ /mnt/unraidbackup/` runs at around 120MBps and maxes out the gigabit network, with about 8% CPU utilization.
 
 At this rate it will take around a week to copy, and I decided to buy two used [Mellanox MCX354A-FCBT](https://amzn.to/3dZBD05) ConnectX-3 VPI 40GbE Infiniband adapters, and connect the two servers using [QSFP+ Direct Attach Copper](https://amzn.to/3fyFSAr) cables. This will give a theoretical 40Gbps transfer rate, but the hard drives will max out at around 230MBps, still near double what I get over gigabit.
 
@@ -211,11 +211,11 @@ The above steps were easy on the PVE server, but Unraid runs Slackware with a cu
 
 With the links up and running rsyncd through the Mellanox cards the maximum throughput is around 230MBps or 2Gbps, this is far below the 40Gbps link capacity, but as expected the speed is capped by the transfer rate of a single hard drive, still double the speed of gigabit, and half the time to copy the data (ignoring the time required to ship the Mellanox adapters...).
 
-Now that the data was copied to the secondary server, I need to install PVE on the primary server. The server motherboards have USB3 plugs on the motherboard, typically used for boot media. Unraid is designed to boot from a USB stick as it loads into memory and does not use the USB stick for general write operations. PVE can be installed on a USB stick, but treats the USB stick like a normal drive, and this can lead to [wear leveling](https://en.wikipedia.org/wiki/Wear_leveling) problems. An alternative would be to install PVE on a SSD drive, and PVE supports installation on a ZFS mirror, but I don't have vanilla SATA and SSD installation options in the SC846 cases. I could enable the boot BIOS in the LSI HBA, and using one or two removable drive bays for the boot SSD's, but that reduces storage expansion capacity. I chose a simpler alternative, using a [USB3 to mSATA adapter](https://amzn.to/30DUrhK), and a [64GB mSATA drive](https://amzn.to/30BzyUq), plugged into the motherboard USB3 adapter. You can find new [InnoDisk 3ME2](https://www.innodisk.com/Download_file?5D99A0E7C762CE71DB88133D1BDB838F8FBCB9786F531A5BE7873839956219035422DE88AF530F2D2492DB06F7019394B17044A36B849DFE323FA8EBA7ECEF47) industrial grade mSATA drives with a USB3 adapter, updated to support TRIM, reasonably priced on [eBay](https://www.ebay.com/itm/USB3-0-boot-drive-with-InnoDisk-64GB-SSD-mSATA-SSD-UASP/164213711265).
+Now that the data was copied to the secondary server, I need to install PVE on the primary server. The server motherboards have USB3 plugs on the motherboard, typically used for boot media. Unraid is designed to boot from a USB stick as it loads into memory and does not use the USB stick for general write operations. PVE can be installed on a USB stick, but treats the USB stick like a normal drive, and this can lead to [wear leveling](https://en.wikipedia.org/wiki/Wear_leveling) problems. An alternative would be to install PVE on an SSD drive, and PVE supports installation on a ZFS mirror, but I don't have vanilla SATA and SSD installation options in the SC846 cases. I could enable the boot BIOS in the LSI HBA, and use one or two removable drive bays for the boot SSD's, but that reduces storage expansion capacity. I chose a simpler alternative, using a [USB3 to mSATA adapter](https://amzn.to/30DUrhK), and a [64GB mSATA drive](https://amzn.to/30BzyUq), plugged into the motherboard USB3 adapter. You can find new [InnoDisk 3ME2](https://www.innodisk.com/Download_file?5D99A0E7C762CE71DB88133D1BDB838F8FBCB9786F531A5BE7873839956219035422DE88AF530F2D2492DB06F7019394B17044A36B849DFE323FA8EBA7ECEF47) industrial grade mSATA drives with a USB3 adapter, updated to support TRIM, reasonably priced on [eBay](https://www.ebay.com/itm/USB3-0-boot-drive-with-InnoDisk-64GB-SSD-mSATA-SSD-UASP/164213711265).
 
 My test PVE setup installed on a 32GB USB stick, and the default partitioning only allocated 7GB to the root partition, and the rest to data, and I am constantly running out of space on root. Per the Proxmox [install wiki](https://pve.proxmox.com/wiki/Installation#advanced_lvm_options) the maximum root size is 1/4 the total disk size, I don't understand why this restriction exists.
 
-Installing on the 64GB mSATA disk, I modified the install options; disk size reported as 59GB, changed the filesystem from EXT4 to XFS, swapsize to 8, minfree to 0, maxvz to 0, I left maxroot blank, and the installer only created a 14.8GB root partition. I tried again, this time specifying 48 for maxroot. Made no difference, root is still 14.8GB, so it seems the wiki that says maximum root size of 1/4 of the disk is enforced. At least the data volume was not created, and there is enough space left to extend the LVM if ever needed.
+Installing on the 64GB mSATA disk, I modified the install options; disk size reported as 59GB, changed the filesystem from EXT4 to XFS, swapsize to 8, minfree to 0, maxvz to 0, I left maxroot blank, and the installer only created a 14.8GB root partition. I tried again, this time specifying 48 for maxroot. Made no difference, root is still 14.8GB, so it seems the maximum root size of 1/4 of the disk that the wiki states is enforced. At least the data volume was not created, and there is enough space left to extend the LVM if ever needed.
 
 ```
 root@server-1:~# lsblk
@@ -246,7 +246,7 @@ Things initially looked good for the USB mSATA option, but by the next morning t
 
 [![](/media/2020/06/xfs-error.png)](/media/2020/06/xfs-error.png)
 
-I considered using SATA DOM adapters, DELL branded DOM's are reasonably cheap on eBay, but the X10SLM+-F boards I use does not have powered SATA ports, and I would have to get SM DOM power cables. Too much hassle, and combined more expensive than a small SSD, so I used a [256GB Samsung 860 Pro](https://amzn.to/3hOW2Y0) SSD instead, and used [3M Command](https://amzn.to/3dl4Cum) velcro strips to tape the SSD to the inside of the case. with 256GB there is enough space on the SSD, so I reinstalled with default install options, and PVE has been running without issue on the SSD drive.
+I considered using SATA DOM adapters, DELL branded DOM's are reasonably cheap on eBay, but the X10SLM+-F boards I use do not have powered SATA ports, and I would have to get SM DOM power cables. Too much hassle, and combined more expensive than a small SSD, so I used a [256GB Samsung 860 Pro](https://amzn.to/3hOW2Y0) SSD instead, and used [3M Command](https://amzn.to/3dl4Cum) velcro strips to tape the SSD to the inside of the case. with 256GB there is enough space on the SSD, so I reinstalled with default install options, and PVE has been running without issue on the SSD drive.
 
 ```
 root@server-1:~# lsblk
@@ -280,11 +280,11 @@ Following are a few post-installation steps I took:
 - Purchase a community support subscription, apply the subscription key, upgrade, reboot if required. Alternatively follow internet instructions on removing the subscription nag, and replacing the PVE enterprise repository with the vanilla Debian repository.
 - PVE does ask for an email address at install time, but it tries to use the domain MX record as SMTP server to send email, and unless you are running an open email relay, email sending will probably fail. Reconfigure postfix to match your environment.
   - `dpkg-reconfigure postfix`
-- Add a SSL certificate for the server, I use wildcard certs, or follow the instructions in the [wiki](https://pve.proxmox.com/wiki/Certificate_Management) for ACME setup for Let's Encrypt certificates.
+- Add an SSL certificate for the server, I use wildcard certs, or follow the instructions in the [wiki](https://pve.proxmox.com/wiki/Certificate_Management) for ACME setup for Let's Encrypt certificates.
 - Install your favorite apps, that are probably not included in the trimmed down base installation. pve-headers is required when building any kernel modules, and ifupdown2 is required when making dynamic network changes.
   - `apt update`
   - `apt install mc sudo screen pve-headers ifupdown2`
-- Add user accounts to the system, then follow the instruction in the [wiki](https://pve.proxmox.com/wiki/User_Management) to add PAM accounts to the Datacenter. Remember to create a home directory when creating the user, and add the user to the sudo group if desired.
+- Add user accounts to the system, then follow the instructions in the [wiki](https://pve.proxmox.com/wiki/User_Management) to add PAM accounts to the Datacenter. Remember to create a home directory when creating the user, and add the user to the sudo group if desired.
   - `useradd --create-home pieter`
   - `passwd pieter`
   - `usermod -aG sudo pieter`
@@ -303,7 +303,7 @@ Following are a few post-installation steps I took:
   - By default the adapter you selected at install time is bridged and used by PVE.
   - My motherboards have two ethernet ports, and I create a second bridge with no IP assignment for use by VM's and Docker macvlan networks.
   - I configured the third bridge for the Mellanox 40Gbps adapter with a static IP to direct-connect to the other server.
-- Hold of on installing Docker until after ZFS is configured, then create a ZFS datasets mapping to `/var/lib/docker` so that Docker will use the ZFS filesystem driver.
+- Hold off on installing Docker until after ZFS is configured, then create a ZFS dataset mapping to `/var/lib/docker` so that Docker will use the ZFS filesystem driver.
 
 For my ZFS configuration I chose to use mirror vdev's, for it allows upgrading storage two disks at a time, but it comes at a cost of 50% space utilization, and protection against only 1 drive failure. There are many [opinions](https://jrs-s.net/2015/02/06/zfs-you-should-use-mirror-vdevs-not-raidz/) on best configurations and actual [probability](https://jro.io/r2c2/) of failures, but the overriding factor for me was the ability to expand storage two disks at a time.
 
@@ -453,7 +453,7 @@ chmod -R u=rwx,g=rwx,o=rx /data/appdata
 sudo chmod g+s /data/appdata
 ```
 
-As I mentioned, I store my configuration files on a private GitHub repository, and I use [VSCode](https://code.visualstudio.com/) for general authoring. In order for VSCode Remote Development to work, make sure the local system [can connect](https://code.visualstudio.com/docs/remote/ssh) to the server using SSH keys, and that the server account [can access](https://help.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) GitHub over SSH. A detailed rundown on how to use VSCode, Docker, Ansible, and setup all the containers is beyond the scope of this article, but I'll show how to get Portainer, [Postfix](https://github.com/juanluisbaptiste/docker-postfix), and Watchtower configured.
+As I mentioned, I store my configuration files on a private GitHub repository, and I use [VSCode](https://code.visualstudio.com/) for general authoring. In order for VSCode Remote Development to work, make sure the local system [can connect](https://code.visualstudio.com/docs/remote/ssh) to the server using SSH keys, and that the server account [can access](https://help.github.com/en/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) GitHub over SSH. A detailed rundown on how to use VSCode, Docker, Ansible, and set up all the containers is beyond the scope of this article, but I'll show how to get Portainer, [Postfix](https://github.com/juanluisbaptiste/docker-postfix), and Watchtower configured.
 
 portainer.yml:
 
@@ -606,7 +606,7 @@ It took longer than I expected, but I learned a few things along the way, and I 
 
 Everything is up and running, but I am going to keep the backup data on the secondary for a few weeks, just in case.
 
-Here are a few screenshot of the end result:
+Here are a few screenshots of the end result:
 
 
 {{< gallery cols="3" >}}  

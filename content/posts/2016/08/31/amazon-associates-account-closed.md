@@ -1,5 +1,5 @@
 ---
-title: Amazon Associate's Account Closed
+title: Amazon Associates Account Closed
 date: '2016-08-31T17:55:07+00:00'
 url: /2016/08/31/amazon-associates-account-closed/
 categories:
@@ -11,13 +11,13 @@ cover:
   alt: Amazon.Stats
   image: /media/2016/08/amazon-stats.png
 ---
-Amazon just notified me in email that my Associate's account was closed due to not being in compliance with their operating agreement:
+Amazon just notified me in email that my Associates account was closed due to not being in compliance with their operating agreement:
 
 "You are not in compliance with Participation Requirement Number 29 because purchases resulting from Special Links on your site have been used for resale or commercial use."
 
 I have no idea how or why this happened.
 
-A couple of years ago I moved my blog from the free Blogger platform to a paid WordPress.com hosted site. About the same time I signed up for an Amazon Associate's account, profiting from any Amazon links resulting in sales, hoping that the proceeds would cover the costs of WordPress hosting and domain registration.
+A couple of years ago I moved my blog from the free Blogger platform to a paid WordPress.com hosted site. About the same time I signed up for an Amazon Associates account, profiting from any Amazon links resulting in sales, hoping that the proceeds would cover the costs of WordPress hosting and domain registration.
 
 A quick calculation shows Amazon payouts of $669.57 between 2 August 2012 and 30 August 2016, that is about $167.39 per year, less the $99.00 for WordPress hosting, less $36.00 for Akismet blog spam filtering, less $19.00 for domain registration, leaves a profit of $13.39. Less $99.00 for bulk domain registration fees, not really fair to charge this fee to one domain, leaves a loss of $85.61 per year.
 

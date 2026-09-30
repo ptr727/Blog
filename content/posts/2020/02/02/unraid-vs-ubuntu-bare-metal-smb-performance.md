@@ -16,7 +16,7 @@ cover:
 ---
 In my last [test](/2020/01/18/unraid-vs-ubuntu-smb-performance/) I compared Unraid SMB performance with an Ubuntu VM running on Unraid, and Ubuntu outperformed Unraid. I was wondering if the VM disk image synthetically improved performance, maybe IO caching, so this time I tested Ubuntu on the same hardware that runs Unraid.
 
-I configured the system to boot from either the Unraid USB stick, or an Ubuntu Server USB stick. In both cases the hardware was exactly the same, and the SMB share was on the same 4 x 1TB Samsung 860 Pro SSD BTRFS volume. I mounted the BTRS volume using the same mount options that Unraid uses. The Ubuntu Samba server used default options, the only change I made was to register the share.
+I configured the system to boot from either the Unraid USB stick, or an Ubuntu Server USB stick. In both cases the hardware was exactly the same, and the SMB share was on the same 4 x 1TB Samsung 860 Pro SSD BTRFS volume. I mounted the BTRFS volume using the same mount options that Unraid uses. The Ubuntu Samba server used default options, the only change I made was to register the share.
 
 ```
 Samba Config:

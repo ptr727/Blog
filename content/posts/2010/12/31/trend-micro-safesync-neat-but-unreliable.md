@@ -17,7 +17,7 @@ I wanted to write about [Trend Micro SafeSync](http://us.trendmicro.com/us/produ
 
 SafeSync is another online backup and sync and share application. Actually, they offer both online storage through a mapped drive, and syncing folders online, this makes it unique compared to many existing offerings.
 
-I have used almost all online backup and sync and share type applications out there, my favorite remains [DropBox](http://www.dropbox.com/). SafeSync used to be [Humyo](http://en.wikipedia.org/wiki/Humyo), before being acquired by Trend. I have used Humyo when they were in Beta, it was just ok, but between then and now their product seem to have come a long way.
+I have used almost all online backup and sync and share type applications out there, my favorite remains [DropBox](http://www.dropbox.com/). SafeSync used to be [Humyo](http://en.wikipedia.org/wiki/Humyo), before being acquired by Trend. I used Humyo when they were in Beta, it was just ok, but between then and now their product seems to have come a long way.
 
 Of all the online backup and sync and share applications, a few things remain constant;   
 Free is unsustainable, somebody has to pay for the staff, the bandwidth, the disks, and the infrastructure. These vendors are running on venture capital, waiting for acquisition, for paid customers, for indirect monetization, or failure.   
@@ -41,7 +41,7 @@ The web frontend really reminds me of Streamload:
 
 A very neat feature is WebDAV access to the storage. This means that you can access the data using any WebDAV client, and there is no need to install the SafeSync client software. Here is a [Trend KB](http://support.antivirus.co.uk/trendmicro/kbresolution.jsp?hmid=52790&serviceId=37&applicationId=265#_Is_it_possible) for details, basically you connect to "dav.trendmicro.safesync.com" using your SafeSync credentials.
 
-You can use the built in Windows WebDAV client to access the storage, but you have to make a registry change, else you will get a "the folder you entered does not appear to be be valid" error. After you make the change reboot, or just restart the WebClient service. See this [Microsoft KB](http://support.microsoft.com/kb/2123563) for details:   
+You can use the built in Windows WebDAV client to access the storage, but you have to make a registry change, else you will get a "the folder you entered does not appear to be valid" error. After you make the change reboot, or just restart the WebClient service. See this [Microsoft KB](http://support.microsoft.com/kb/2123563) for details:   
 \[HKEY\_LOCAL\_MACHINE\\SYSTEM\\CurrentControlSet\\services\\WebClient\\Parameters\]   
 "BasicAuthLevel"=dword:00000002
 
@@ -55,7 +55,7 @@ Here are some explorer screenshots of a mapped drive using SafeSync, Windows, an
 
 So this all sounds great, well, not so great, the client application has serious stability issues.
 
-On two machines, every time I logout of Windows, Windows reports that SafeSync is not responding, after a minute or so, Windows eventually logs out.   
+On two machines, every time I log out of Windows, Windows reports that SafeSync is not responding, after a minute or so, Windows eventually logs out.   
 On one machine, every time I logout, Windows paints the logging out screen, and never completes, requiring a power cycle.
 
 SafeSync interferes with applications that are accessing files in a shared folder. It appears that SafeSync notices a file modification, then opens the file, and does not allow other applications access to the file. As an example, I create backups of my CD collection using [dbPoweramp](http://www.dbpoweramp.com/), and I shared the output folder in SafeSync. While dbPoweramp is still using the files, SafeSync opens the file and dbPoweramp fails. This is not a problem with dbPoweramp, and other sync applications, like DropBox, work just fine in the same situation.   

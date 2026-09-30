@@ -12,7 +12,7 @@ I previously commented on this problem [here](http://www.insanegenius.com/dg33tl
 
 I participated in the Microsoft Vista SP1 Beta program.
 
-After installing Vista SP1 Beta on my machine with an Intel DG33TL motherboard, and installing version 15.7.3 of the Intel GMA drivers, my machine would blue screen crash when it goes to sleep.
+After installing Vista SP1 Beta on my machine with an Intel DG33TL motherboard, and installing version 15.7.3 of the Intel GMA drivers, my machine would blue screen crash when it went to sleep.
 
 The crash happens in the igdkmd32.sys and igdkmd64.sys drivers, and I could reproduce it on two machines, both with DG33TL motherboards, with Vista x86 and x64.
 
@@ -28,6 +28,6 @@ Microsoft posted [KB948343](http://support.microsoft.com/Default.aspx?kbid=94834
 
 To prevent my machines from crashing I am using the "high performance" power profile, i.e. they would never go to sleep.
 
-It has been several months and the Intel has yet to resolve the problem, unbelievable.
+It has been several months and Intel has yet to resolve the problem, unbelievable.
 
 

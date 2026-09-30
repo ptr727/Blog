@@ -19,7 +19,7 @@ In this post I detail the results of my testing of the Western Digital RE4-GP en
 
 
 
-To summarize, the RE4-GP drive fails with a variety of problems, Adaptec, Areca, and LSI acknowledge the problem and lays blame on WD, yet WD insists there are no known problems with the RE4-GP drives.
+To summarize, the RE4-GP drive fails with a variety of problems, Adaptec, Areca, and LSI acknowledge the problem and lay blame on WD, yet WD insists there are no known problems with the RE4-GP drives.
 
 
 
@@ -33,7 +33,7 @@ Test hardware:
 
 \- [Adaptec 51245 RAID controller](http://www.adaptec.com/en-US/products/Controllers/Hardware/sas/performance/SAS-51245/ "Adaptec 51245 RAID controller"), firmware 17517, driver 5.2.0.17517
 
-\- [Areca ARC1680ix-12 RAID controller](http://www.areca.com.tw/products/pcietosas1680series.htm "Areca ARC1680ix-16 RAID controller"), firmware 1.47, driver 6.20.00.16\_80819
+\- [Areca ARC1680ix-16 RAID controller](http://www.areca.com.tw/products/pcietosas1680series.htm "Areca ARC1680ix-16 RAID controller"), firmware 1.47, driver 6.20.00.16\_80819
 
 \- [LSI 8888ELP RAID controller](http://www.lsi.com/storage_home/products_home/internal_raid/megaraid_sas/megaraid_sas_8888elp/ "LSI 8888ELP RAID controller"), firmware 11.0.1-0017 (APP-1.40.62-0665), driver 4.16.0.64
 
@@ -85,7 +85,7 @@ I could not complete testing.
 
 LSI 8888ELP and Chenbro CK12803, SATA-II / 3Gb/s:
 
-The LSI card has 2 x internal SFF-8087 ports and 2 x external SFF-8088 port, supporting 8 internal drives.
+The LSI card has 2 x internal SFF-8087 ports and 2 x external SFF-8088 ports, supporting 8 internal drives.
 
 Since I needed to host 10 drives, I used the Chenbro 28 port SAS expander.
 
@@ -153,7 +153,7 @@ Adaptec 51245, SATA-I / 1.5Gb/s:
 
 This time the Adaptec card had no problems seeing the arrays, although some of the drives continue to report link errors.
 
-A much bigger problem was that the controller and battery was overheating, the controller running at 103C / 217F.
+A much bigger problem was that the controller and battery were overheating, the controller running at 103C / 217F.
 
 In order to continue my testing I had to install an extra chassis fan to provide additional ventilation over the card.
 
@@ -237,7 +237,7 @@ Although all three cards produced results when the RE4-GP drives were forced to 
 
 
 
-The RE4-GP drive fails with a variety of problems, Adaptec, Areca, and LSI acknowledge the problem and lays blame on WD, yet WD insists there are no known problems with the RE4 drives-GP.
+The RE4-GP drive fails with a variety of problems, Adaptec, Areca, and LSI acknowledge the problem and lay blame on WD, yet WD insists there are no known problems with the RE4-GP drives.
 
 
 
@@ -249,7 +249,7 @@ I've always had good service from Hitachi drives, so maybe I'll give the new [Hi
 
 
 
-One thing is for sure, I will definately be returning the RE4-GP drives.
+One thing is for sure, I will definitely be returning the RE4-GP drives.
 
 
 

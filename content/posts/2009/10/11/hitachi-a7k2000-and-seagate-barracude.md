@@ -1,5 +1,5 @@
 ---
-title: Hitachi Ultrastar and Seagate Barracude LP 2TB drives
+title: Hitachi Ultrastar and Seagate Barracuda LP 2TB drives
 date: '2009-10-11T22:54:00+00:00'
 url: /2009/10/11/hitachi-a7k2000-and-seagate-barracude/
 categories:
@@ -118,7 +118,7 @@ Adaptec, RAID5, WD:
 
 Areca ARC1680ix-12, SATA-II / 3Gb/s:
 
-The Areca had not problems with the Hitachi or Seagate drives.
+The Areca had no problems with the Hitachi or Seagate drives.
 
 The Hitachi drives completed initialization in 40 hours.
 
@@ -134,7 +134,7 @@ Areca, RAID5, Hitachi:
 
 
 
-Areaca, RAID5, Seagate:
+Areca, RAID5, Seagate:
 
 [![](http://docs.google.com/File?id=dcmzmbww_26ghxs8ddp_b)](http://docs.google.com/File?id=dcmzmbww_26ghxs8ddp_b)
 
@@ -152,7 +152,7 @@ Areca, RAID5, WD:
 
 LSI 8888ELP and Chenbro CK12803, SATA-II / 3Gb/s:
 
-The Hitachi drives reported a few "Invalid field in CDB" errors with, but it did not appear to affect the operation of the array.
+The Hitachi drives reported a few "Invalid field in CDB" errors, but it did not appear to affect the operation of the array.
 
 The Hitachi drives completed initialization in 4 hours.
 

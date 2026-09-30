@@ -36,7 +36,7 @@ Below is an example of a folder of test files with a created date of 1 Jan 1970 
 {{< figure src="/media/2019/05/2019-05-12-3.png" title="2019-05-12 (3)" alt="2019-05-12 (3)" >}}  
 {{< /gallery >}}  
 
-The second set of problem files occur in folder names ending in a dot. Unraid ignores the dots on the end of the folder names, and when another folder exists without dots, the copy operation uses the wrong folder.
+The second set of problem files occurs in folder names ending in a dot. Unraid ignores the dots on the end of the folder names, and when another folder exists without dots, the copy operation uses the wrong folder.
 
 Below is an example of a folder that contains two directories, one named "LocalState", and one named "LocalState..". I robocopy the folder contents, and when running robocopy again, it reports an extra folder. That extra folder gets "magically" created in the destination directory, but the "LocalState.." folder is missing.
 
@@ -55,9 +55,9 @@ Below is an example of a folder that contains two directories, one named "LocalS
 {{< figure src="/media/2019/05/2019-05-12-4.png" title="2019-05-12 (4)" alt="2019-05-12 (4)" >}}  
 {{< /gallery >}}  
 
-The same robocopy operations to the W2K16 server over SMB works as expected.
+The same robocopy operations to the W2K16 server over SMB work as expected.
 
-From what I researched, the timestamp ranges for [NTFS](https://devblogs.microsoft.com/oldnewthing/20090306-00/?p=18913) is 1 January 1601 to 14 September 30828, [FAT](https://en.wikipedia.org/wiki/File_Allocation_Table) is 1 January 1980 to 31 December 2107, and [EXT4](https://en.wikipedia.org/wiki/Ext4) is 1 January 1970 to 19 January 2106 (2038 + 408). I could not create files with a date earlier than 1 Jan 1980, but I could set file modified timestamps to dates greater than 2106, so I do not know what the Unraid timestamp range is.
+From what I researched, the timestamp ranges for [NTFS](https://devblogs.microsoft.com/oldnewthing/20090306-00/?p=18913) are 1 January 1601 to 14 September 30828, [FAT](https://en.wikipedia.org/wiki/File_Allocation_Table) is 1 January 1980 to 31 December 2107, and [EXT4](https://en.wikipedia.org/wiki/Ext4) is 1 January 1970 to 19 January 2106 (2038 + 408). I could not create files with a date earlier than 1 Jan 1980, but I could set file modified timestamps to dates greater than 2106, so I do not know what the Unraid timestamp range is.
 
 Creating and accessing directories with trailing dots requires special care on Windows using the [NT style notation](https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file), e.g. "[CreateDirectoryW](https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-createdirectorya)(L"\\\\\\?\\\C:\\\Users\\\piete\\\Unraid.Badfiles\\\TestDot..", NULL), but robocopy does handle that correctly on W2K16 SMB.
 

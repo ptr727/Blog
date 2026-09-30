@@ -14,7 +14,7 @@ cover:
 ---
 Our house uses a Noritz natural gas instant hot water heater, with a dedicated hot water recirculation line. Problem is the heater is installed in the garage, and in the summer the garage gets so hot that the [aquastat](https://en.wikipedia.org/wiki/Aquastat) that controls the recirculation pump never turns on. This leaves us with cold water in the recirculation line, and we have to wait several minutes for hot water, defeating the entire purpose of the instant hot recirculation line.
 
-Our Grundfos recirculation pump uses a 85F (29.4C) to 105F (40.6C) thermostatic control. The circulation pump will turn on when the temperature drops below 85F, the water flow turns the heater on, and the pump will keep running until the temperature exceeds 105F. The garage temperature in the summer often exceeds 85F, which keeps the aquastat satisfied, and the pump never runs.
+Our Grundfos recirculation pump uses an 85F (29.4C) to 105F (40.6C) thermostatic control. The circulation pump will turn on when the temperature drops below 85F, the water flow turns the heater on, and the pump will keep running until the temperature exceeds 105F. The garage temperature in the summer often exceeds 85F, which keeps the aquastat satisfied, and the pump never runs.
 
 One option is to periodically circulate the water in the line allowing the aquastat to measure the temperature of the water in the line, not just the stagnant water in the garage, that reaches thermal equilibrium with the garage ambient temperature.
 
@@ -70,6 +70,6 @@ Below is a graph showing the temperatures and pump activity over a 6 hour period
 
 ![](/media/2020/10/screenshot-2020-10-11-172747.png)
 
-I am noticing some instability, with the controller randomly restarting due to a `Reset Info: Fatal exception:4 flag:1 (Hardware Watchdog)` error. Fortunately nothing bad happens, the timer just resets, but I will keep investigating. Remote debugging will require serial connectivity, which is a bit tricky, but I may try to install a [ESP-01](https://amzn.to/3nHq2rJ) running [esp-link](https://github.com/jeelabs/esp-link) in the same case as the TH10, and use that for remote diagnostics.
+I am noticing some instability, with the controller randomly restarting due to a `Reset Info: Fatal exception:4 flag:1 (Hardware Watchdog)` error. Fortunately nothing bad happens, the timer just resets, but I will keep investigating. Remote debugging will require serial connectivity, which is a bit tricky, but I may try to install an [ESP-01](https://amzn.to/3nHq2rJ) running [esp-link](https://github.com/jeelabs/esp-link) in the same case as the TH10, and use that for remote diagnostics.
 
 I would still like to figure out a way to monitor the gas heater activity, maybe optically monitoring the LED state? And I do wish I could monitor the water flow rate from the [Phyn](/2020/08/24/phyn-plus-smart-water-assistant-early-impressions/), but unfortunately no user access to data.

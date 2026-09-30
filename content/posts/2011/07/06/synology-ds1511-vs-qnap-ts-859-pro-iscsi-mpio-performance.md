@@ -1,5 +1,5 @@
 ---
-title: Synology DS1511+ vs. QNap TS-859 Pro, iSCSI MPIO Performance
+title: Synology DS1511+ vs. QNAP TS-859 Pro, iSCSI MPIO Performance
 date: '2011-07-06T22:50:00+00:00'
 url: /2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance/
 categories:
@@ -14,7 +14,7 @@ tags:
 - synology
 post_id: '120'
 ---
-Untitled Page I have been very happy with my [QNap TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146) ([Amazon](http://amzn.to/Lpv6Yr)), but I've run out of space while archiving my media collection, and I needed to expand the storage capacity. You can read about my experience with the TS-859 Pro [here](/2010/01/data-robotics-drobopro-vs-qnap-ts-859.html), and my experience archiving my media collection [here](/2011/04/archiving-my-cd-dvd-and-bd-collection.html).  
+I have been very happy with my [QNap TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146) ([Amazon](http://amzn.to/Lpv6Yr)), but I've run out of space while archiving my media collection, and I needed to expand the storage capacity. You can read about my experience with the TS-859 Pro [here](/2010/01/data-robotics-drobopro-vs-qnap-ts-859.html), and my experience archiving my media collection [here](/2011/04/archiving-my-cd-dvd-and-bd-collection.html).  
  My primary objective with this project is storage capacity expansion, and my secondary objective is improved performance.
 
 My choices for storage capacity expansion included:  
@@ -28,7 +28,7 @@ My choices for storage capacity expansion included:
 
 For improving performance I had a few ideas:  
 
-- The TS-859 Pro is a bit older than the DS1511+, and there are newer and more powerful QNap models available, like the [TS-859 Pro+](http://www.qnap.com/pro_detail_feature.asp?p_id=180) ([Amazon](http://amzn.to/LpvAO6)) with a faster processor, or the [TS-659 Pro II](http://www.qnap.com/pro_detail_feature.asp?p_id=167) ([Amazon](http://amzn.to/LdoEIw)) with a faster processor and SATA3 support, so it not totally fair to compare the TS-859 Pro performance against the newer DS1511+. But, the newer QNap models do not support my capacity needs.
+- The TS-859 Pro is a bit older than the DS1511+, and there are newer and more powerful QNap models available, like the [TS-859 Pro+](http://www.qnap.com/pro_detail_feature.asp?p_id=180) ([Amazon](http://amzn.to/LpvAO6)) with a faster processor, or the [TS-659 Pro II](http://www.qnap.com/pro_detail_feature.asp?p_id=167) ([Amazon](http://amzn.to/LdoEIw)) with a faster processor and SATA3 support, so it is not totally fair to compare the TS-859 Pro performance against the newer DS1511+. But, the newer QNap models do not support my capacity needs.
 - I use Hyper-V clients and dynamic VHD files located on an iSCSI volume mounted in the host server. I elected this setup because it allowed me great flexibility in creating logical volumes for the VM's, without actually requiring the space to be allocated. In retrospect this may have been convenient, but it was not performing well in large file transfers between the iSCSI target and the file server Hyper-V client.   
  For my new setup I was going to mount the iSCSI volume as a raw disk in the file server Hyper-V client. This still allowed me to easily move the iSCSI volume between hosts, but the performance will be better than fixed size VHD files, and much better than dynamic VHD files.   
  Here is a [blog post](http://blogs.msdn.com/b/virtual_pc_guy/archive/2010/07/02/hyper-v-amp-iscsi-in-the-parent-or-in-the-virtual-machine.aspx) describing some options for using iSCSI and Hyper-V.
@@ -92,19 +92,19 @@ Disk performance test tools:
  During my testing I encountered a few problems:  
 
 - The DX510 expansion unit would sometimes not power on when the DS1511+ is powered on, or would sometimes fail to initialize the RAID volume, or would sometimes go offline while powered on. I RMA'd the device, and the replacement unit works fine.
-- During testing of the DS1511+, the write performance would sometimes degrade by 50% and never recover. The only solution was to reboot the device. Upgrading the latest 3.1-1748 DSM firmware solved this problem.
-- During testing of the DS1511+, when one of the MPIO network links would go down, e.g. I unplug a cable, ghost iSCSI connections would remain open, and the iSCSI processes would consume 50% of the NAS CPU time. The only solution was to reboot the device. Upgrading the latest 3.1-1748 DSM firmware solved this problem.
+- During testing of the DS1511+, the write performance would sometimes degrade by 50% and never recover. The only solution was to reboot the device. Upgrading to the latest 3.1-1748 DSM firmware solved this problem.
+- During testing of the DS1511+, when one of the MPIO network links would go down, e.g. I unplug a cable, ghost iSCSI connections would remain open, and the iSCSI processes would consume 50% of the NAS CPU time. The only solution was to reboot the device. Upgrading to the latest 3.1-1748 DSM firmware solved this problem.
 - I could not get MPIO to work with the DS1511+, yet no errors were reported. It turns out that LAN-1 and LAN-2 must be on different subnets for MPIO to work.
-- Both the QNap and Synology exhibits weird LAN traffic behavior when both LAN-1 and LAN-2 is connected, and the server generates traffic directed to LAN-1 only. The NAS resource monitor would show high traffic volumes on LAN-1 and LAN-2, even with no traffic directed at LAN-2. I am uncertain why this happens, maybe a reporting issue, maybe a switching issue, but to avoid it influencing the tests, I disconnected LAN-2 while not testing MPIO.
+- Both the QNap and Synology exhibit weird LAN traffic behavior when both LAN-1 and LAN-2 are connected, and the server generates traffic directed to LAN-1 only. The NAS resource monitor would show high traffic volumes on LAN-1 and LAN-2, even with no traffic directed at LAN-2. I am uncertain why this happens, maybe a reporting issue, maybe a switching issue, but to avoid it influencing the tests, I disconnected LAN-2 while not testing MPIO.
 
 
  My test methodology was as follows:  
 
-- Mount either the QNap or Synology iSCSI device, power of the other device while not being tested.
+- Mount either the QNap or Synology iSCSI device, power off the other device while not being tested.
 - Connect the iSCSI target using LAN-1 only and unplug LAN-2, or connect using MPIO with LAN-1 and LAN-2 active.
 - Run all CDM tests with iterations set at 9, and a 4GB file-set size.
 - Run ATTO with the queue depth set to 8, and a 2GB file-set size.
-- As a baseline, I also tested the Samsung PM810 SSD drive using ATTO and CDW.
+- As a baseline, I also tested the Samsung PM810 SSD drive using ATTO and CDM.
 
 
  Test result summary:  

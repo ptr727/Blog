@@ -23,7 +23,7 @@ This post continues from my [last post](/2009/06/power-saving-sata-raid-controll
 
 
 
-It turns out the Adaptec 5 series controller are not that workstation friendly.
+It turns out the Adaptec 5 series controllers are not that workstation friendly.
 
 
 
@@ -79,9 +79,9 @@ The embedded Intel ICH10R RAID controller did correctly spin down all drives bef
 
 
 
-Since installing the ASM utility my system is taking a noticably longer time to shutdown.
+Since installing the ASM utility my system is taking a noticeably longer time to shutdown.
 
-Vista provides a convenient, although not always accurate, way to see what is impacting system performance in terms of even timing, and ASM was identified as adding 16s to every shutown.
+Vista provides a convenient, although not always accurate, way to see what is impacting system performance in terms of event timing, and ASM was identified as adding 16s to every shutdown.
 
 
 
@@ -117,7 +117,7 @@ I received several WD RE4-GP / WD2002FYPS drives.
 
 I tested with W2K8R2 booted from a WD RE3 / WD1002FBYS drive connected to an Intel ICH10R controller on an Intel S5000PSL server board.
 
-I tested 8 drives in RAID6 connected to a LSI 8888ELP controller, worked perfectly.
+I tested 8 drives in RAID6 connected to an LSI 8888ELP controller, worked perfectly.
 
 I connected the same 8 drives to an Adaptec 51245 controller, at boot only 2 out of 8 drives were recognized.
 
@@ -133,7 +133,7 @@ I am still waiting to hear back from Adaptec and WD support.
 
 \[Update: 30 August 2009\]
 
-I received a reply from Adaptec support, and the news is not good, there is a hardware compatibility problem between the WD RE4-GP /WD2002FYPS drives.
+I received a reply from Adaptec support, and the news is not good, there is a hardware compatibility problem between the WD RE4-GP /WD2002FYPS drives and the 51245 controller.
 
 "I am afraid currently these drives are not supported with this model of controller. This is due to a compatibility issue with the onboard expander on the 51245 card. We are working on a hardware solution to this problem, but I am currently not able to say in what timeframe this will come."
 
@@ -143,7 +143,7 @@ I received a reply from Adaptec support, and the news is not good, there is a ha
 
 I asked support if a firmware update will fix the issue, or if a hardware change will be required.
 
-"Correct, a hardware solution, this would mean the card would need to be swapped, not a firmeware update. I can't tell you for sure when the solution would come as its difficult to predict the amount of time required to certify the solution but my estimate would be around the end of September."
+"Correct, a hardware solution, this would mean the card would need to be swapped, not a firmware update. I can't tell you for sure when the solution would come as its difficult to predict the amount of time required to certify the solution but my estimate would be around the end of September."
 
 
 
