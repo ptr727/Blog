@@ -57,30 +57,21 @@ gh secret list --repo ptr727/Blog --app dependabot
 
 ### Environment scope
 
-No fleet tool reaches these. `configure.sh check` asserts that each environment the registry declares exists and carries its declared branch policy, and says outright that it reads neither secrets nor variables, so the names below are this repo's own record and this section is the only thing that checks them.
+No fleet tool reaches these. `configure.sh check` asserts that each environment the registry declares exists and carries its declared branch policy, and says outright that it reads neither secrets nor variables.
 
-One key covers both environments, a deliberate decision recorded in `OPERATIONS.md`: the per-environment split only pays where the two keys never share a machine, and both sit on one workstation and in one secret store. The split still carries the base URL, the SSH endpoint, and the staging-only access token, so it is not decorative.
+One key covers both environments, a deliberate decision recorded in `OPERATIONS.md`. The per-environment split only pays where the two keys never share a machine. Both sit on one workstation and in one secret store. The split still carries the base URLs, the SSH endpoint, and the staging-only access tokens, so it is not decorative.
 
-The two environments are `staging` and `production`. Every environment carries the secret `DEPLOY_SSH_PRIVATE_KEY` and the variables `DEPLOY_SSH_HOST`, `DEPLOY_SSH_USER`, `DEPLOY_SSH_KNOWN_HOSTS`, and `SITE_BASE_URL`. `staging` additionally carries `SITE_AUTH_TOKEN_ID` and `SITE_AUTH_TOKEN`, and `production` carries neither.
+`ENVIRONMENT.md`'s "The GitHub Environments" table declares every secret and variable name, its kind, and each store holding it. This repo's own check compares that table against GitHub:
 
 ```sh
-for env in staging production; do
-  gh secret list   --repo ptr727/Blog --env "$env" --json name --jq '.[].name'
-  gh variable list --repo ptr727/Blog --env "$env" --json name --jq '.[].name'
-done
+python3 checks/check-github-env.py
 ```
 
-`--json name` is not decoration. The bare `gh variable list` prints a value column, and when its output is captured rather than shown it prints each value in full, so an audit run without it writes the deploy endpoint into its own log. Never request the `value` field here, and never use `gh variable view`, which prints one by design.
+It compares in both directions and reports three findings. A store lacks a declared name, a store holds a name the table does not list, or a value is held as the wrong kind. The second is the one presence-checking misses. A Pangolin access token on `production` is reported as unlisted rather than passed as a harmless extra. Production answers unauthenticated, so a token there means a check could pass through a gate production is not supposed to have.
 
-Three assertions, and the third is the one presence-checking misses:
+It needs a `gh` login that can administer the repository, since listing environment secrets requires that. Exit 2 means GitHub could not be read, which is not a pass. The deploy root is deliberately not declared. The rsync destination is anchored at the deploy key's confinement root, and the workflow names an environment rather than a host path.
 
-- Every shared secret and variable name above is present in **both** environments.
-- `SITE_AUTH_TOKEN_ID` and `SITE_AUTH_TOKEN` are present in `staging`.
-- Both are **absent** from `production`. A Pangolin access token there is a finding rather than a harmless extra: production answers unauthenticated, so a token there means a check could pass through a gate production is not supposed to have.
-
-A **declared but unset** name is drift in the same way an undeclared one is. The deploy root is deliberately not declared, because the rsync destination is anchored at the deploy key's confinement root and the workflow names an environment rather than a host path.
-
-Never read, print, or log a value. Every command above lists names.
+Never read, print, or log a value. The check reads names only. A name checked by hand is listed with `--json name`, since the bare `gh variable list` prints each value in full when its output is captured. Never use `gh variable view`, which prints one by design.
 
 ## 3. The URL Contract
 

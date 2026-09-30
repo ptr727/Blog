@@ -39,7 +39,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Attachment pages, nested | 216 | Redirect to the parent post |
 | Per-term comment feeds | 192 | Redirect to the term archive |
 | `?p=<id>` shortlinks | 110 | Redirect to the permalink, via `p-ids.map` |
-| Attachment pages, root level | 107 | Redirect to the parent post, via `slugs.map` |
+| Attachment pages, root level | 105 | Redirect to the parent post, via `slugs.map` |
 | Per-post comment feeds | 107 | Redirect to the parent post |
 | Date archives | 83 | Redirect to `/all/`, since **Hugo has no built-in year or month archive**. The matcher accepts any date, including dates absent from the list |
 | Blogger permalinks | 59 | Redirect to the current post, via `blogger.map` |
@@ -47,11 +47,12 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Author archive and pagination | 12 | Redirect to `/`, a single-author blog duplicating home |
 | Blogger feed | 2 | Redirect to `/feed.xml` |
 | Blogger static pages | 2 | `/p/<slug>.html` to `/<slug>/` |
+| Root files | 2 | `/robots.txt/` to the file and `/osd.xml/` to `/`, via `slugs.map`, as below |
 | Empty term archives | 3 | `brultech`, `phyn`, `review`, as above |
 | Site and section feeds | 3 | `/feed/`, `/about/feed/`, `/comments/feed/` |
 | Retired pages | 1 | `/viljoen-family/` to `https://viljoen.family/`, via `slugs.map` |
 
-An **attachment page** is the page the old platform generated per uploaded image, served at both `/YYYY/MM/DD/post/attachment/` and a bare `/attachment/`. That makes a one-segment URL ambiguous with a real page, and the sitemap resolves it: the sitemap lists exactly the posts and pages, so a one-segment URL absent from it is an attachment page. The images themselves keep their `wp-content/uploads/` paths and are covered separately by `golden-media-legacy.txt`.
+An **attachment page** is the page the old platform generated per uploaded image, served at both `/YYYY/MM/DD/post/attachment/` and a bare `/attachment/`. That makes a one-segment URL ambiguous with a real page, and the sitemap resolves it: the sitemap lists exactly the posts and pages, so a one-segment URL absent from it is an attachment page. The two root files are the one exception. The images themselves keep their `wp-content/uploads/` paths and are covered separately by `golden-media-legacy.txt`.
 
 A **retired page** is one the site no longer renders because another site replaced it. Its URL moves from the render list to this one rather than leaving the contract, so it keeps answering.
 
