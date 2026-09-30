@@ -39,7 +39,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Attachment pages, nested | 216 | Redirect to the parent post |
 | Per-term comment feeds | 192 | Redirect to the term archive |
 | `?p=<id>` shortlinks | 110 | Redirect to the permalink, via `p-ids.map` |
-| Attachment pages, root level | 107 | Redirect to the parent post, via `slugs.map` |
+| Attachment pages, root level | 105 | Redirect to the parent post, via `slugs.map` |
 | Per-post comment feeds | 107 | Redirect to the parent post |
 | Date archives | 83 | Redirect to `/all/`, since **Hugo has no built-in year or month archive**. The matcher accepts any date, including dates absent from the list |
 | Blogger permalinks | 59 | Redirect to the current post, via `blogger.map` |
@@ -47,6 +47,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Author archive and pagination | 12 | Redirect to `/`, a single-author blog duplicating home |
 | Blogger feed | 2 | Redirect to `/feed.xml` |
 | Blogger static pages | 2 | `/p/<slug>.html` to `/<slug>/` |
+| Root files | 2 | `/robots.txt/` to the file and `/osd.xml/` to `/`, via `slugs.map`, as below |
 | Empty term archives | 3 | `brultech`, `phyn`, `review`, as above |
 | Site and section feeds | 3 | `/feed/`, `/about/feed/`, `/comments/feed/` |
 | Retired pages | 1 | `/viljoen-family/` to `https://viljoen.family/`, via `slugs.map` |
