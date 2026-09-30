@@ -183,7 +183,7 @@ Every configuration value is described in [ENVIRONMENT.md][environment]. The dep
 
 ## Questions or Issues
 
-To discuss a post, use [Discussions][discussions-link], which the footer of every page on both sites links as Comments. The site itself carries no comment system, deliberately: comments on the old platform were closed years ago, and a static site has nowhere to put them without adding a third-party service that outlives its usefulness. Discussions gives a reader somewhere to respond without the site taking on a moving part.
+To discuss a post, use [Discussions][discussions-link], which the footer of every page on both sites links. The site itself carries no comment system, deliberately: comments on the old platform were closed years ago, and a static site has nowhere to put them without adding a third-party service that outlives its usefulness. Discussions gives a reader somewhere to respond without the site taking on a moving part.
 
 For a defect in the site or the tooling, such as a broken link, a missing redirect, or a page that renders wrongly, open an [Issue][issues-link].
 
