@@ -52,7 +52,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Site and section feeds | 3 | `/feed/`, `/about/feed/`, `/comments/feed/` |
 | Retired pages | 1 | `/viljoen-family/` to `https://viljoen.family/`, via `slugs.map` |
 
-An **attachment page** is the page the old platform generated per uploaded image, served at both `/YYYY/MM/DD/post/attachment/` and a bare `/attachment/`. That makes a one-segment URL ambiguous with a real page, and the sitemap resolves it: the sitemap lists exactly the posts and pages, so a one-segment URL absent from it is an attachment page. The images themselves keep their `wp-content/uploads/` paths and are covered separately by `golden-media-legacy.txt`.
+An **attachment page** is the page the old platform generated per uploaded image, served at both `/YYYY/MM/DD/post/attachment/` and a bare `/attachment/`. That makes a bare slug ambiguous with a real page, and the sitemap resolves it, since it lists exactly the posts and pages. A bare slug the sitemap omits and no Caddyfile rule covers lands in `slugs.map`. Every entry there is an attachment page except the three the table counts apart, the two root files and the retired page. The images themselves keep their `wp-content/uploads/` paths and are covered separately by `golden-media-legacy.txt`.
 
 A **retired page** is one the site no longer renders because another site replaced it. Its URL moves from the render list to this one rather than leaving the contract, so it keeps answering.
 
@@ -114,7 +114,7 @@ Hugo emits no `robots.txt` unless `enableRobotsTXT` is set, so this site served 
 
 What the comparison does catch is an origin that was **written rather than derived**, along with a sitemap advertised but never built. A committed `static/robots.txt` shadowing the template is the way the first happens, and pasting the old platform's `.com` sitemap line into one is the specific mistake it would catch.
 
-`/robots.txt/`, with a trailing slash, is a URL the old platform served and is in the redirect contract. It resolves through `slugs.map` like any other one-segment legacy URL, and the generator special-cases it to the real file rather than to the home page. `/osd.xml/` stays pointed at the home page deliberately: it was the old platform's OpenSearch description and this site emits no such file.
+`/robots.txt/`, with a trailing slash, is a URL the old platform served and is in the redirect contract. It resolves through `slugs.map` like the attachment pages beside it, and the generator special-cases it to the real file rather than to the home page. `/osd.xml/` stays pointed at the home page deliberately: it was the old platform's OpenSearch description and this site emits no such file.
 
 ## The gallery check, which no direction above can reach
 
