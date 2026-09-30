@@ -16,7 +16,6 @@
 }
 * { box-sizing: border-box; }
 html {
-  font-size: clamp(100%, calc(.75rem + .35vw), 125%);
   background: var(--paper-tex), radial-gradient(ellipse at 50% 30%, #f7efdc 0%, var(--paper) 55%, #e6d5ae 100%) fixed;
   background-color: var(--paper);
 }
