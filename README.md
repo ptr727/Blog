@@ -28,7 +28,7 @@ The blog's public address is [blog.insanegenius.com][blog-link].
 **Summary**:
 
 - The blog moved from WordPress to a Hugo site built and verified by GitHub Actions and served by Caddy.
-- The Viljoen family page moved off the blog to its own site at viljoen.family, built and deployed with the blog.
+- The Viljoen family page moved off the blog to its own site at viljoen.family, shipped and deployed with the blog.
 - The public addresses cut over separately.
 
 See [Release History][history] for complete release notes and older versions.
@@ -69,7 +69,7 @@ How it was done is in [`capture/README.md`][capture-readme], and the account of 
 
 The Viljoen family page, once a page on this blog, is its own site at [viljoen.family][family-link]. It is a single hand-written page in English and Afrikaans with no build step, and its source is [`sites/viljoen.family/`][family-site]. [GENEALOGY.md][genealogy] defines the lineage notation it uses.
 
-It ships with the blog rather than beside it. The release script copies it into the blog's bundle, and the same Caddy container serves it from its own site block. A family change therefore deploys, verifies, and rolls back as a blog release. The site block sends a browser whose first language is Afrikaans to `/af/`. The blog's old `/viljoen-family/` address and its short link redirect to the new site. The live gate checks both languages when `FAMILY_SITE_BASE_URL` is set.
+It ships with the blog rather than beside it. The release script copies it into the blog's bundle, and the same Caddy container serves it from its own site block. A family change therefore deploys and rolls back as a blog release. The site block sends a browser whose first language is Afrikaans from `/` to `/af/`. The blog's old `/viljoen-family/` address and its short link redirect to the new site. The live gate checks both languages when `FAMILY_SITE_BASE_URL` is set. That check is run by hand, since the deploy workflow's own check covers the blog alone.
 
 [OPERATIONS.md][operations-family] holds its host names, its web-server block, and the rollback caveats. Its own [README][family-readme] covers previewing it locally.
 

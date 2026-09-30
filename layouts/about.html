@@ -9,9 +9,10 @@
     <img class="about-portrait" src="{{ . | absURL }}" alt="{{ $.Params.cover.alt }}" width="160" height="160">
     {{- end }}
     <div class="post-content md-content">
-      {{- .Content }}
+      {{- partial "anchored_headings.html" .Content }}
     </div>
   </div>
+  {{- partial "extend_post_content.html" . }}
 </article>
 
 {{- end }}
