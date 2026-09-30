@@ -1,0 +1,17 @@
+{{- define "main" }}
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">{{ .Title }}</h1>
+  </header>
+  <div class="about-profile">
+    {{- with .Params.cover.image }}
+    <img class="about-portrait" src="{{ . | absURL }}" alt="{{ $.Params.cover.alt }}" width="160" height="160">
+    {{- end }}
+    <div class="post-content md-content">
+      {{- .Content }}
+    </div>
+  </div>
+</article>
+
+{{- end }}
