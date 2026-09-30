@@ -142,16 +142,16 @@ token_rc() {
 token_rc SITE_AUTH_TOKEN_ID SITE_AUTH_TOKEN CURLRC || exit 2
 
 # A token opens exactly one proxy resource, so the family host needs a pair of its own.
-FAMILY_BASE="${FAMILY_SITE_BASE_URL:-}"
+FAMILY_BASE="${SITE_EXTRA_BASE_URL:-}"
 FAMILY_BASE="${FAMILY_BASE%/}"
-token_rc FAMILY_SITE_AUTH_TOKEN_ID FAMILY_SITE_AUTH_TOKEN FAMILY_CURLRC || exit 2
+token_rc SITE_EXTRA_AUTH_TOKEN_ID SITE_EXTRA_AUTH_TOKEN FAMILY_CURLRC || exit 2
 if [ -n "$FAMILY_CURLRC" ] && [ -z "$FAMILY_BASE" ]; then
-	echo "FAIL FAMILY_SITE_AUTH_TOKEN_ID and FAMILY_SITE_AUTH_TOKEN are set, but FAMILY_SITE_BASE_URL is not" >&2
+	echo "FAIL SITE_EXTRA_AUTH_TOKEN_ID and SITE_EXTRA_AUTH_TOKEN are set, but SITE_EXTRA_BASE_URL is not" >&2
 	exit 2
 fi
 
 # A token sent over plain HTTP is readable by anyone on the path, so a pair is only ever sent to an HTTPS origin.
-for pair in "CURLRC BASE SITE_AUTH_TOKEN" "FAMILY_CURLRC FAMILY_BASE FAMILY_SITE_AUTH_TOKEN"; do
+for pair in "CURLRC BASE SITE_AUTH_TOKEN" "FAMILY_CURLRC FAMILY_BASE SITE_EXTRA_AUTH_TOKEN"; do
 	read -r rc_name base_name token_name <<<"$pair"
 	[ -n "${!rc_name}" ] || continue
 	# Lowercase only, since the same-origin tests below compare against the lowercase scheme curl reports.
@@ -412,14 +412,19 @@ if [ -n "$FAMILY_BASE" ]; then
 			echo "family $page_path expected 200, got $code$hint" >>"$FAILED"
 		elif ! grep -qF "<title>$title</title>" "$FAMILY_BODY"; then
 			echo "family $page_path answered without the title '$title', so another site served it" >>"$FAILED"
-		elif [ -n "${EXPECT_SITE_ENV:-}" ]; then
+		else
 			got_env=$(grep -i '^x-blog-env:' "$FAMILY_HEAD" | tr -d '\r' | sed 's/^[^:]*: *//')
-			[ "$got_env" = "$EXPECT_SITE_ENV" ] ||
+			family_release=$(grep -i '^x-blog-release:' "$FAMILY_HEAD" | tr -d '\r' | sed 's/^[^:]*: *//')
+			if [ -n "${EXPECT_SITE_ENV:-}" ] && [ "$got_env" != "$EXPECT_SITE_ENV" ]; then
 				echo "family $page_path is served by '${got_env:-<no X-Blog-Env header>}', expected '$EXPECT_SITE_ENV'" >>"$FAILED"
+			fi
+			if [ -n "${EXPECT_RELEASE:-}" ] && [ "$family_release" != "$EXPECT_RELEASE" ]; then
+				echo "family $page_path is from release '${family_release:-<no X-Blog-Release header>}', expected '$EXPECT_RELEASE'" >>"$FAILED"
+			fi
 		fi
 	done
 else
-	echo "==> FAMILY_SITE_BASE_URL is unset, so the family site is not checked"
+	echo "==> SITE_EXTRA_BASE_URL is unset, so the family site is not checked"
 fi
 
 # A count of zero exits non-zero, so a fallback that echoes would append a second zero.

@@ -57,6 +57,7 @@ HUB_HOSTED_ENVIRONMENT_VALUES = {
     "DEPLOY_SSH_HOST",
     "DEPLOY_SSH_USER",
     "DEPLOY_SSH_KNOWN_HOSTS",
+    "SITE_EXTRA_BASE_URL",
 }
 
 # Names that look like configuration to the patterns above but are not.
