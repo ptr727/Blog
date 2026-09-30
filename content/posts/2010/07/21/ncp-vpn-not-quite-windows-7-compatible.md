@@ -28,7 +28,7 @@ The NCP software is intrusive, every time you log in it shows a splashscreen, an
 
 This means a few things to me; they do not value usability, they acknowledge there is a problem, yet they do not offer a solution.
 
-Imagine if every application you install on your system decides it is a good idea to show a splashscreen when you login.
+Imagine if every application you install on your system decides it is a good idea to show a splashscreen when you log in.
 
 Here is the splashscreen that pops up on every login:   
 [![NCP.Splash](/external/17a532eabbda55e1.png)](/external/3189bb34b720d0e5.png)
@@ -40,7 +40,7 @@ While we're on the topic of usability, this application's UI was probably not de
 In the main UI, shown below, how do you connect, where is the connect button, do you click the red button, no you need to click the gray area next to the red button. They probably thought it looks cool.   
 [![NCP.UI.1](/external/5e5e7b08ae4854e1.png)](/external/14e292fa67e9fe73.png)
 
-Every time you login the application starts and shows its UI. How would you normally look for options in a windows app; probably \[Options\], or \[Tools\]\[Options\], or \[File\]\[Options\]. No, you need to click on \[View\]\[Autostart\]\[No Autostart\], what does the \[View\] menu have to do with \[Autostart\]?   
+Every time you log in the application starts and shows its UI. How would you normally look for options in a windows app; probably \[Options\], or \[Tools\]\[Options\], or \[File\]\[Options\]. No, you need to click on \[View\]\[Autostart\]\[No Autostart\], what does the \[View\] menu have to do with \[Autostart\]?   
 [![NCP.UI.7](/external/922ac06d6897bfdf.png)](/external/73f5e53a275bccec.png)
 
 And in case you were wondering, no, disabling autostart does not disable the splashscreen.

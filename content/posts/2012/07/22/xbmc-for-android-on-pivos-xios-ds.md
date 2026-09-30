@@ -15,7 +15,7 @@ In my [ongoing quest](/tag/htpc/) to find the perfect Home Theater PC platform, 
 
 The XBMC Android development was done on a [Pivos XIOS DS](http://www.pivosgroup.com/#!vstc0=xios) device, and I ordered one from [Amazon](http://amzn.to/M4zD8o). At $115 it is not exactly low cost, especially compared to mature platforms like the [Roku 2 XS](http://amzn.to/MTVgCf) for $98 or [Boxee Box](http://amzn.to/ORnvBV) for $180.
 
-The XIOS DS is really small, here is a picture showing the size of a [Roku 2 XS](http://www.roku.com/roku-products) compared to a [XIOS DS](http://www.pivosgroup.com/#!vstc0=xios) compared to a [Zotac ZBOX Nano XS AD11](http://www.zotacusa.com/zbox-nano-xs-ad11-plus.html), compared to a [Pulse Eight Pulse Box](http://www.pulse-eight.com/store/products/107-pulsebox-xbmc-based-home-theatre-pc.aspx):
+The XIOS DS is really small, here is a picture showing the size of a [Roku 2 XS](http://www.roku.com/roku-products) compared to an [XIOS DS](http://www.pivosgroup.com/#!vstc0=xios) compared to a [Zotac ZBOX Nano XS AD11](http://www.zotacusa.com/zbox-nano-xs-ad11-plus.html), compared to a [Pulse Eight Pulse Box](http://www.pulse-eight.com/store/products/107-pulsebox-xbmc-based-home-theatre-pc.aspx):
 
 [![Size.Compare](/media/2012/07/size-compare_thumb.jpg)](/media/2012/07/size-compare.jpg)
 

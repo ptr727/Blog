@@ -29,9 +29,9 @@ I could not get the camera to connect to my server, looking at the security logs
 
 I took some pictures, pressed the WiFi button, navigated to the profiles, and uploaded the pictures, it took forever, around 90s per 5MB average picture, or around 400Kbps. Using my USB3 card reader the same pictures all transferred in a few seconds. Yes, USB3 is much faster than WiFi 802.11n, but 400 kilobits per second is super slow, not near the capability of the WiFi network.
 
-I also tried the [Panasonic Lumix Club](http://lumixclub.panasonic.net/) Cloud Sync service, what a joke. You set up the account from the camera, it reports a username in the form of aaaa-bbbb-cccc-dddd, then you enter your own password, but when you try to login at the website, that you need to find using google, you need to use aaaabbbbccccdddd. I only discovered this through trial and error.
+I also tried the [Panasonic Lumix Club](http://lumixclub.panasonic.net/) Cloud Sync service, what a joke. You set up the account from the camera, it reports a username in the form of aaaa-bbbb-cccc-dddd, then you enter your own password, but when you try to log in at the website, that you need to find using google, you need to use aaaabbbbccccdddd. I only discovered this through trial and error.
 
-On logging in, you need to supply an email address, and then validate the email address, by clicking a link emailed to you. On clicking the link, it takes you to the service page, and it displays an error message, any action gives more errors. If you manually login again, you are in.
+On logging in, you need to supply an email address, and then validate the email address, by clicking a link emailed to you. On clicking the link, it takes you to the service page, and it displays an error message, any action gives more errors. If you manually log in again, you are in.
 
 From there nothing works. From what I can tell from FAQ's, you are supposed to be able to create a drop that allows you to pull the data from the cloud to your PC. But when you go to configure the devices and services, none of the links work.
 

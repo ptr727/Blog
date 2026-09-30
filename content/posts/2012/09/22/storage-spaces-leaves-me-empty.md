@@ -123,9 +123,9 @@ The Simple, Mirror, and Triple test results speak for themselves, performance ha
 
 The Parity test shows good read performance, and bad write performance. The write performance approaches that of a single disk.
 
-The Parity with SSD Journal disks shows about the same read performance as without journal disks, and the write performance doubles that of a single disk.
+The Parity with SSD Journal disks shows about the same read performance as without journal disks, and the write performance is double that of a single disk.
 
-The RAID0 and Simple throughput results are close, but the RAID0 write IOPS double that of the Simple volume.
+The RAID0 and Simple throughput results are close, but the RAID0 write IOPS are double that of the Simple volume.
 
 The RAID5 and RAID6 read performance is close to Parity, but the write performance is almost ten fold that of Parity. It appears that the LSI card writes to all drives in parallel, while Storage Spaces parity writes to one drive only.
 

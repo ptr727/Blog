@@ -148,7 +148,7 @@ It detected both monitors, allowed me to pick which monitor to calibrate, and as
 
 
 
-In contrast with iMatch you had to launch the software, then move the window to the monitor you want to calibrate, then start the calibration.
+In contrast with i1Match you had to launch the software, then move the window to the monitor you want to calibrate, then start the calibration.
 
 
 
@@ -204,7 +204,7 @@ I opened a support case with Integrated Color Corporation to ask about DDC and t
 
 
 
-> The driver that comes up unsigned is for the dtp-94. Since the device is no longer in large production, that driver will likely never be signed. However I am sure that is not the issue. These drivers have been used by hundreds of users without an issue on Vista 64. It is more likely that you either have a usb port with a power issue or if you are trying to use ddc the communication is failing. Dell says all their monitors are ddc. However I have been going around and around with them asking for information about how to actually communicate with these monitors. Not only can they not give me any help, I don't think they actually know anything about ddc. No doubt there is some capability in them but Dell can't tell us how to access it. If they were using the standard ddc protocol it would be working. We actually support multiple protocols on Vista 64.  
+> The driver that comes up unsigned is for the dtp-94. Since the device is no longer in large production, that driver will likely never be signed. However I am sure that is not the issue. These drivers have been used by hundreds of users without an issue on Vista 64. It is more likely that you either have a usb port with a power issue or if you are trying to use ddc the communication is failing. Dell says all their monitors are ddc. However I have been going around and around with them asking for information about how to actually communicate with these monitors. Not only can they not give me any help, I don't think the actually know anything about ddc. No doubt there is some capability in them but Dell can't tell us how to access it. If they were using the standard ddc protocol it would be working. We actually support multiple protocols on Vista 64.  
 I would be sure to choose lcd brightness and gains. And if that is not the problem I would try another usb port. If there is a usb hub involved I would avoid that as well. Let me know if that gets you through. If not perhaps we can get on the phone and work on this more easily.
 
 

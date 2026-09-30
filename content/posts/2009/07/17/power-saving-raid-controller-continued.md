@@ -143,7 +143,7 @@ I received a reply from Adaptec support, and the news is not good, there is a ha
 
 I asked support if a firmware update will fix the issue, or if a hardware change will be required.
 
-"Correct, a hardware solution, this would mean the card would need to be swapped, not a firmware update. I can't tell you for sure when the solution would come as its difficult to predict the amount of time required to certify the solution but my estimate would be around the end of September."
+"Correct, a hardware solution, this would mean the card would need to be swapped, not a firmeware update. I can't tell you for sure when the solution would come as its difficult to predict the amount of time required to certify the solution but my estimate would be around the end of September."
 
 
 

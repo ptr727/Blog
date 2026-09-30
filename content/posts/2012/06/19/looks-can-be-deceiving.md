@@ -17,7 +17,7 @@ It has been almost two weeks since I [switched to using Blogger's new dynamic te
 
 Browsing the site with the new template works really well; it uses most of the available browser real estate, it looks good on an iPad, it feels nice and fluid, but it also has problems.
 
-For some reason my AdSense integration stopped working, and the AdSense site said my account needs to be verified. AdSense was working fine in the old template, so something in the new template, or switching to the new template, must have triggered this. I've had AdSense for almost a year, and in that time I've not even made enough for Google to trigger a payment. In order to verify my account, I had to enter a PIN they mailed me on a postcard, enter the amount of a test transfer in my bank account, and entered a PIN read to me on my phone. Two days after the verification steps were completed ads started showing up again.
+For some reason my AdSense integration stopped working, and the AdSense site said my account needs to be verified. AdSense was working fine in the old template, so something in the new template, or switching to the new template, must have triggered this. I've had AdSense for almost a year, and in that time I've not even made enough for Google to trigger a payment. In order to verify my account, I had to enter a PIN they mailed me on a postcard, enter the amount of a test transfer in my bank account, and enter a PIN read to me on my phone. Two days after the verification steps were completed ads started showing up again.
 
 Very few widgets support the dynamic template, and the options are limited to a handful of very basic widgets.
 

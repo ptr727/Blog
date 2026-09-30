@@ -28,7 +28,7 @@ SuperMicro support provided me with Beta BIOS's for the X9DAi and X9DA7 motherbo
 I configured both machines with:
 
 - [480GB Intel Series 520 SSD](http://amzn.to/OK2k7c) SATA3 drives
-- [ATI FirePro V7900](http://amzn.to/LZehYW) graphic cards
+- [ATI FirePro V7900](http://amzn.to/LZehYW) graphics cards
 - 32GB Kingston [KVR13LR9D4/8HC](http://amzn.to/QvhfoC) DDR3L memory
 - Dual [Intel Xeon E5-2660](http://amzn.to/Qvh3Wo) processors
 

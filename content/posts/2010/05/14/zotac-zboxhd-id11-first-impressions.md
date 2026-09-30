@@ -68,7 +68,7 @@ This did not seem safe to me, I contacted Zotac support, and they said they will
 
 The ID11 comes with everything included, except for a hard drive and memory.
 
-I installed an [80GB Intel SSD (SSDSA2MH080G2R5](http://www.intel.com/design/flash/nand/mainstream/index.htm "80GB Intel SSD")) hard drive, and a [Kingston 2GB (](http://www.valueram.com/datasheets/default.asp#DDR2 SODIMMs "Kingston 2GB SODIM RAM") [KVR800D2S5/2G](http://www.valueram.com/datasheets/default.asp#DDR2 SODIMMs "Kingston 2GB SODIM RAM")) SODIMM RAM module, I ordered the [SSD](http://www.amazon.com/Intel-Mainstream-Retail-Package-SSDSA2MH080G2R5/dp/B002IJA1EG/ref=sr_1_1?ie=UTF8&s=electronics&qid=1273880908&sr=1-1 "SSD") and the [RAM](http://www.amazon.com/Kingston-ValueRAM-Notebook-KVR800D2S5-2G/dp/B00102A066/ref=sr_1_1?ie=UTF8&s=electronics&qid=1273880741&sr=8-1 "RAM") from Amazon.
+I installed an [80GB Intel SSD (SSDSA2MH080G2R5](http://www.intel.com/design/flash/nand/mainstream/index.htm "80GB Intel SSD")) hard drive, and a [Kingston 2GB (](http://www.valueram.com/datasheets/default.asp#DDR2 SODIMMs "Kingston 2GB SODIMM RAM") [KVR800D2S5/2G](http://www.valueram.com/datasheets/default.asp#DDR2 SODIMMs "Kingston 2GB SODIMM RAM")) SODIMM RAM module, I ordered the [SSD](http://www.amazon.com/Intel-Mainstream-Retail-Package-SSDSA2MH080G2R5/dp/B002IJA1EG/ref=sr_1_1?ie=UTF8&s=electronics&qid=1273880908&sr=1-1 "SSD") and the [RAM](http://www.amazon.com/Kingston-ValueRAM-Notebook-KVR800D2S5-2G/dp/B00102A066/ref=sr_1_1?ie=UTF8&s=electronics&qid=1273880741&sr=8-1 "RAM") from Amazon.
 
 
 

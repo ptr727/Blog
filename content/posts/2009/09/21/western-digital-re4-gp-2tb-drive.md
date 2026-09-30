@@ -33,7 +33,7 @@ Test hardware:
 
 \- [Adaptec 51245 RAID controller](http://www.adaptec.com/en-US/products/Controllers/Hardware/sas/performance/SAS-51245/ "Adaptec 51245 RAID controller"), firmware 17517, driver 5.2.0.17517
 
-\- [Areca ARC1680ix-16 RAID controller](http://www.areca.com.tw/products/pcietosas1680series.htm "Areca ARC1680ix-16 RAID controller"), firmware 1.47, driver 6.20.00.16\_80819
+\- [Areca ARC1680ix-12 RAID controller](http://www.areca.com.tw/products/pcietosas1680series.htm "Areca ARC1680ix-12 RAID controller"), firmware 1.47, driver 6.20.00.16\_80819
 
 \- [LSI 8888ELP RAID controller](http://www.lsi.com/storage_home/products_home/internal_raid/megaraid_sas/megaraid_sas_8888elp/ "LSI 8888ELP RAID controller"), firmware 11.0.1-0017 (APP-1.40.62-0665), driver 4.16.0.64
 
@@ -71,7 +71,7 @@ I could not complete testing.
 
 
 
-Areca ARC1680ix-16, SATA-II / 3Gb/s:
+Areca ARC1680ix-12, SATA-II / 3Gb/s:
 
 The Areca card has 3 x internal SFF-8087 ports and 1 x external SFF-8088 port, supporting 12 internal drives.
 
@@ -181,7 +181,7 @@ The controller supports power management, and drives are spun down when not in u
 
 
 
-Areca ARC1680ix-16, SATA-I / 1.5Gb/s:
+Areca ARC1680ix-12, SATA-I / 1.5Gb/s:
 
 This time the Areca card had no problems initializing the arrays.
 

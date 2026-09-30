@@ -41,7 +41,7 @@ The web frontend really reminds me of Streamload:
 
 A very neat feature is WebDAV access to the storage. This means that you can access the data using any WebDAV client, and there is no need to install the SafeSync client software. Here is a [Trend KB](http://support.antivirus.co.uk/trendmicro/kbresolution.jsp?hmid=52790&serviceId=37&applicationId=265#_Is_it_possible) for details, basically you connect to "dav.trendmicro.safesync.com" using your SafeSync credentials.
 
-You can use the built in Windows WebDAV client to access the storage, but you have to make a registry change, else you will get a "the folder you entered does not appear to be valid" error. After you make the change reboot, or just restart the WebClient service. See this [Microsoft KB](http://support.microsoft.com/kb/2123563) for details:   
+You can use the built in Windows WebDAV client to access the storage, but you have to make a registry change, else you will get a "the folder you entered does not appear to be be valid" error. After you make the change reboot, or just restart the WebClient service. See this [Microsoft KB](http://support.microsoft.com/kb/2123563) for details:   
 \[HKEY\_LOCAL\_MACHINE\\SYSTEM\\CurrentControlSet\\services\\WebClient\\Parameters\]   
 "BasicAuthLevel"=dword:00000002
 
@@ -56,7 +56,7 @@ Here are some explorer screenshots of a mapped drive using SafeSync, Windows, an
 So this all sounds great, well, not so great, the client application has serious stability issues.
 
 On two machines, every time I log out of Windows, Windows reports that SafeSync is not responding, after a minute or so, Windows eventually logs out.   
-On one machine, every time I logout, Windows paints the logging out screen, and never completes, requiring a power cycle.
+On one machine, every time I log out, Windows paints the logging out screen, and never completes, requiring a power cycle.
 
 SafeSync interferes with applications that are accessing files in a shared folder. It appears that SafeSync notices a file modification, then opens the file, and does not allow other applications access to the file. As an example, I create backups of my CD collection using [dbPoweramp](http://www.dbpoweramp.com/), and I shared the output folder in SafeSync. While dbPoweramp is still using the files, SafeSync opens the file and dbPoweramp fails. This is not a problem with dbPoweramp, and other sync applications, like DropBox, work just fine in the same situation.   
 [![dBPoweramp.Error.Writing](/external/0f10c13980dede96.png)](/external/6b280149315843db.png)
@@ -65,7 +65,7 @@ Adobe PhotoShop CS4 x64 crashes every time I open an image that is located in a 
 FAULTING\_IP:   
 HrfsShellExtension!DllUnregisterServer+202ef
 
-If a sync is in progress, and the machine goes to sleep, then later wakes up, SafeSync does not reconnect, instead it reports that the server is unavailable. In order to resolve this you have to logout and log back in.
+If a sync is in progress, and the machine goes to sleep, then later wakes up, SafeSync does not reconnect, instead it reports that the server is unavailable. In order to resolve this you have to log out and log back in.
 
 I added a folder to sync, this folder was very large, the status window indicated it would take several days to complete, I wanted to remove the mapping. On clicking the remove button, I received this funny error message, "Unexpected and unknown error, it is possible a logical error". The only way to stop the sync was to uninstall.   
 [![SafeSync.Logical.Error](/external/3a25fab79c71dfb2.png)](/external/98d84413bf424b21.png)

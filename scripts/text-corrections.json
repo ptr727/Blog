@@ -696,12 +696,6 @@
     {
       "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
       "why": "Wrong word",
-      "from": "I don't think the actually know anything about ddc",
-      "to": "I don't think they actually know anything about ddc"
-    },
-    {
-      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
-      "why": "Wrong word",
       "from": "since EnTech provides a SDK, maybe they can",
       "to": "since EnTech provides an SDK, maybe they can"
     },
@@ -784,22 +778,10 @@
       "to": "a hardware compatibility problem between the WD RE4-GP /WD2002FYPS drives and the 51245 controller."
     },
     {
-      "file": "content/posts/2009/07/17/power-saving-raid-controller-continued.md",
-      "why": "Spelling",
-      "from": "not a firmeware update",
-      "to": "not a firmware update"
-    },
-    {
       "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
       "why": "Grammar",
       "from": "To summarize, the RE4-GP drive fails with a variety of problems, Adaptec, Areca, and LSI acknowledge the problem and lays blame on WD, yet WD insists there are no known problems with the RE4-GP drives.",
       "to": "To summarize, the RE4-GP drive fails with a variety of problems, Adaptec, Areca, and LSI acknowledge the problem and lay blame on WD, yet WD insists there are no known problems with the RE4-GP drives."
-    },
-    {
-      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
-      "why": "Product name",
-      "from": "[Areca ARC1680ix-12 RAID controller]",
-      "to": "[Areca ARC1680ix-16 RAID controller]"
     },
     {
       "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
@@ -1343,12 +1325,6 @@
     },
     {
       "file": "content/posts/2010/12/31/trend-micro-safesync-neat-but-unreliable.md",
-      "why": "Grammar",
-      "from": "does not appear to be be valid",
-      "to": "does not appear to be valid"
-    },
-    {
-      "file": "content/posts/2010/12/31/trend-micro-safesync-neat-but-unreliable.md",
       "why": "Wrong word",
       "from": "every time I logout of Windows",
       "to": "every time I log out of Windows"
@@ -1463,7 +1439,7 @@
     },
     {
       "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
-      "why": "Grammar",
+      "why": "Import artifact",
       "from": "Untitled Page I have been very happy with my",
       "to": "I have been very happy with my"
     },
@@ -1523,7 +1499,7 @@
     },
     {
       "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
-      "why": "Missing or extra word",
+      "why": "Import artifact",
       "from": "Untitled Page I have yet to find",
       "to": "I have yet to find"
     },
@@ -1865,18 +1841,6 @@
     },
     {
       "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
-      "why": "Wrong word",
-      "from": "nothing we can do to fix it while in is not available",
-      "to": "nothing we can do to fix it while it is not available"
-    },
-    {
-      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
-      "why": "Spelling",
-      "from": "Until it is publically and commercially available",
-      "to": "Until it is publicly and commercially available"
-    },
-    {
-      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
       "why": "Missing or extra word",
       "from": "something unique the Quadro 5000 cards",
       "to": "something unique to the Quadro 5000 cards"
@@ -1909,7 +1873,7 @@
       "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
       "why": "Wrong word",
       "from": "with a NVidia Quadro 5000 graphic card",
-      "to": "with an NVidia Quadro 5000 graphic card"
+      "to": "with an NVidia Quadro 5000 graphics card"
     },
     {
       "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
@@ -2071,13 +2035,13 @@
       "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
       "why": "Missing or extra word",
       "from": "and the write performance double that of a single disk",
-      "to": "and the write performance doubles that of a single disk"
+      "to": "and the write performance is double that of a single disk"
     },
     {
       "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
-      "why": "Grammar",
+      "why": "Missing or extra word",
       "from": "but the RAID0 write IOPS doubling that of the Simple volume",
-      "to": "but the RAID0 write IOPS double that of the Simple volume"
+      "to": "but the RAID0 write IOPS are double that of the Simple volume"
     },
     {
       "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
@@ -3638,6 +3602,180 @@
       "why": "Import artifact",
       "from": "---\nUntitled Page\n\nI am sharing",
       "to": "---\nI am sharing"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Product name",
+      "from": "with iMatch",
+      "to": "with i1Match"
+    },
+    {
+      "file": "content/posts/2010/12/31/trend-micro-safesync-neat-but-unreliable.md",
+      "why": "Wrong word",
+      "from": "I logout,",
+      "to": "I log out,"
+    },
+    {
+      "file": "content/posts/2010/12/31/trend-micro-safesync-neat-but-unreliable.md",
+      "why": "Wrong word",
+      "from": "to logout and",
+      "to": "to log out and"
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Wrong word",
+      "from": "you login.",
+      "to": "you log in."
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Wrong word",
+      "from": "you login the",
+      "to": "you log in the"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Wrong word",
+      "from": "fingerprint to lookup the",
+      "to": "fingerprint to look up the"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Wrong word",
+      "from": "is used to lookup the disc",
+      "to": "is used to look up the disc"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Wrong word",
+      "from": "[IMDB](http://www.imdb.com/) to lookup the",
+      "to": "[IMDB](http://www.imdb.com/) to look up the"
+    },
+    {
+      "file": "content/posts/2012/07/22/xbmc-for-android-on-pivos-xios-ds.md",
+      "why": "Wrong word",
+      "from": "compared to a [XIOS",
+      "to": "compared to an [XIOS"
+    },
+    {
+      "file": "content/posts/2012/06/19/looks-can-be-deceiving.md",
+      "why": "Grammar",
+      "from": "and entered a PIN",
+      "to": "and enter a PIN"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Wrong word",
+      "from": "to login at",
+      "to": "to log in at"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Wrong word",
+      "from": "manually login",
+      "to": "manually log in"
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Product name",
+      "from": "\"Areca ARC1680ix-16",
+      "to": "\"Areca ARC1680ix-12"
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Product name",
+      "from": "Areca ARC1680ix-16, SATA-II",
+      "to": "Areca ARC1680ix-12, SATA-II"
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Product name",
+      "from": "Areca ARC1680ix-16, SATA-I /",
+      "to": "Areca ARC1680ix-12, SATA-I /"
+    },
+    {
+      "file": "content/posts/2009/10/11/hitachi-a7k2000-and-seagate-barracude.md",
+      "why": "Product name",
+      "from": "\"Areca ARC1680ix-16",
+      "to": "\"Areca ARC1680ix-12"
+    },
+    {
+      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
+      "why": "Wrong word",
+      "from": "V7900](http://amzn.to/LZehYW) graphic cards,",
+      "to": "V7900](http://amzn.to/LZehYW) graphics cards,"
+    },
+    {
+      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
+      "why": "Wrong word",
+      "from": "new graphic cards,",
+      "to": "new graphics cards,"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Wrong word",
+      "from": "graphic cards",
+      "to": "graphics cards"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "graphic cards",
+      "to": "graphics cards"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "the graphic card to",
+      "to": "the graphics card to"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "the graphic card in",
+      "to": "the graphics card in"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "- Graphic card: [NVidia Quadro 5000](http://amzn.to/RrHg9L)",
+      "to": "- Graphics card: [NVidia Quadro 5000](http://amzn.to/RrHg9L)"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "- Graphic card: [NVidia Quadro 4000](http://amzn.to/Q6lGGc)",
+      "to": "- Graphics card: [NVidia Quadro 4000](http://amzn.to/Q6lGGc)"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "- Graphic card: [NVidia GeForce",
+      "to": "- Graphics card: [NVidia GeForce"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "- Graphic card: [ATI FirePro",
+      "to": "- Graphics card: [ATI FirePro"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "- Graphic card: [ATI Radeon",
+      "to": "- Graphics card: [ATI Radeon"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Spelling",
+      "from": "\"Kingston 2GB SODIM RAM\") [KVR",
+      "to": "\"Kingston 2GB SODIMM RAM\") [KVR"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Spelling",
+      "from": "\"Kingston 2GB SODIM RAM\"))",
+      "to": "\"Kingston 2GB SODIMM RAM\"))"
     }
   ]
 }
