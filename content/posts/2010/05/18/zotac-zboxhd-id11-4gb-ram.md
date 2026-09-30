@@ -30,14 +30,14 @@ Summary:
 \[Update: 20 May 2010\]   
 After writing this post, the machine started bluescreen / BSOD crashing.   
 Mostly MEMORY\_MANAGEMENT / 0x0000001A errors, with occasional 0x000000BE and 0x0000003B crashes.   
-When I initially installed the 4GB RAM, I ran [memtest](http://www.memtest.org/) for one cycle, and the RAM tested fine. I just reran memtest, and it is reporting that the memory as bad.   
+When I initially installed the 4GB RAM, I ran [memtest](http://www.memtest.org/) for one cycle, and the RAM tested fine. I just reran memtest, and it is reporting the memory as bad.   
 I replaced the memory with a new stick, I ran memtest overnight, and everything seems back to normal.   
 I hope it was just a bad stick, and not the ID11 that killed the memory.
 
 
-When I ordered my ID11, I also ordered a [4GB Kingston SODIM RAM](http://www.ec.kingston.com/ecom/configurator_new/partsinfo.asp?root=&LinkBack=&ktcpartno=KVR800D2S6/4G) stick.   
+When I ordered my ID11, I also ordered a [4GB Kingston SODIMM RAM](http://www.ec.kingston.com/ecom/configurator_new/partsinfo.asp?root=&LinkBack=&ktcpartno=KVR800D2S6/4G) stick.   
 When I received the ID11, the specs said 2GB only, and after contacting Zotac support, and posting in their [support forum](http://www.zotacusa.com/forum/topic/2791-id11-can-it-use-4gb-memory/), they confirmed that 4GB is not supported.   
-I reverted to using a [2GB Kingston SODIM RAM](http://www.ec.kingston.com/ecom/configurator_new/partsinfo.asp?root=&LinkBack=&ktcpartno=KVR800D2S5/2G) stick.
+I reverted to using a [2GB Kingston SODIMM RAM](http://www.ec.kingston.com/ecom/configurator_new/partsinfo.asp?root=&LinkBack=&ktcpartno=KVR800D2S5/2G) stick.
 
 I was pleasantly surprised when Zotac [announced a BIOS update](http://www.zotacusa.com/downloads/?cat=223) that added 4GB support.
 

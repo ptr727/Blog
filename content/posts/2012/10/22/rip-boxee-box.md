@@ -17,12 +17,12 @@ I have no need for such a device, and based on the [Boxee community forum posts]
 
 I suspected this may happen, but I had always hoped that Boxee would eventually make good on their empty promises and fix the issues. If not fix it, then release an updated hardware platform that corrects the problems that plagued the first version, and I'd still be willing to pay for it.
 
-I am one of the many users that is plagued by the [HD audio playback dropout issues](http://jira.boxee.tv/browse/BOXEE-7914) introduced in a firmware update almost two years ago. A problem Boxee blamed on the Intel CE4100 SDK, and promised to fix in March, but then backtracked saying that fixing it would incur too much testing overhead. Yes, break a feature that worked, then claim it is Intel's fault, but refuse to correct it because it is too much trouble to test.
+I am one of the many users that are plagued by the [HD audio playback dropout issues](http://jira.boxee.tv/browse/BOXEE-7914) introduced in a firmware update almost two years ago. A problem Boxee blamed on the Intel CE4100 SDK, and promised to fix in March, but then backtracked saying that fixing it would incur too much testing overhead. Yes, break a feature that worked, then claim it is Intel's fault, but refuse to correct it because it is too much trouble to test.
 
 The Boxee Box will get a last update to fix an issue with Flash playback, but the HD audio issue will not be fixed.
 
 I have already transitioned one of my Boxee Boxes to [XBMC](http://xbmc.org/) based [OpenELEC 2.0](http://openelec.tv/) running on a [Zotac ZBOX Nano XS ID11 Plus](http://amzn.to/RVlCLf). It still has a few rough edges, but XBMC is actively being developed for a variety of exciting platforms.
 
-The one thing about Boxee I will miss the most is the standalone [D-Link DSM-22 Boxee remote](http://www.dlink.com/us/en/home-solutions/support/product/dsm-22-boxee-remote), best remote for XBMC ever. If I had known they will be discontinued, and impossible to buy, I would have bought a couple spares. If you know where to buy DSM-22's, please let me know.
+The one thing about Boxee I will miss the most is the standalone [D-Link DSM-22 Boxee remote](http://www.dlink.com/us/en/home-solutions/support/product/dsm-22-boxee-remote), best remote for XBMC ever. If I had known they would be discontinued, and impossible to buy, I would have bought a couple spares. If you know where to buy DSM-22's, please let me know.
 
 Rest In Peace Boxee Box.

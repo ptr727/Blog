@@ -35,7 +35,7 @@ and by adding an ADD2 HDMI board you get HDMI and audio over HDMI.
 
 - Vista installed very fast and with no problems.
 
-- The driver DVD that came with the board installs all devices that is not  
+- The driver DVD that came with the board installs all devices that are not  
 installed by Vista.
 
 It even lets you set your username and password and will automatically  
@@ -82,7 +82,7 @@ Utilities.
 - I purchased the  
 [  
 Prolink PV-CH7315](http://www.prolink.com.tw/style/content/CN-08-2cp2/product_detail.asp?lang=2&customer_id=1470&name_id=36165&rid=17885&id=82053) ADD2 card, but connecting the HDMI does indicate that  
-there is a HDMI signal, but no picture on the television.
+there is an HDMI signal, but no picture on the television.
 
 The Intel GMA control application does list three outputs, monitor,  
 television, and digital television, only monitor / VGA works.

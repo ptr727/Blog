@@ -13,7 +13,7 @@ This post is about [Microsoft Debugging Tools for Windows](http://www.microsoft.
 
 You can read my posts about this problem on the [Microsoft WinDbg group](http://groups.google.com/group/microsoft.public.windbg/browse_thread/thread/8d4d4628cbd580b8/c95bd267da162ff4), and on the [Google Chromium group](http://groups.google.com/group/chromium-dev/browse_thread/thread/1f109398e848bb6d).
 
-We run several symbol servers, and a single symbol proxy server that provides transparent access to all our symbols servers, as well as the Microsoft symbol servers.
+We run several symbol servers, and a single symbol proxy server that provides transparent access to all our symbol servers, as well as the Microsoft symbol servers.
 
 I was debugging a Google Chrome crash, and was looking for symbols for Chrome. I was pleasantly surprised to find out that both Mozilla and Google have public debug symbol servers [for Firefox](https://developer.mozilla.org/en/Using_the_Mozilla_symbol_server) and [for Chrome](http://dev.chromium.org/developers/how-tos/debugging). I added the Mozilla and Google symbol servers to our symbol proxy server list.
 
@@ -71,13 +71,13 @@ Pragma: no-cache
 
 The problem turns out to be that the symbol proxy uses an all lowercase URI to access the symbol servers. This works with the Microsoft symbol server because they run IIS, and IIS is case insensitive. But, Mozilla and Google run case sensitive Linux based web servers, and when the symbol proxy changes the case of the request, the symbols are not found
 
-We were running symproxy.dll version 6.8.4.0, and the latest release was 6.11.1.404. I upgraded the binaries to the latest version, hoping the problem would go away, instead the problem got worse. Now we were also unable to download symbols from the Microsoft's own symbol server.
+We were running symproxy.dll version 6.8.4.0, and the latest release was 6.11.1.404. I upgraded the binaries to the latest version, hoping the problem would go away, instead the problem got worse. Now we were also unable to download symbols from Microsoft's own symbol server.
 
 Reading the MSDN documentation for [SymSetOptions()](http://msdn.microsoft.com/en-us/library/ms681366(VS.85).aspx), I noticed two options that could affect the observed behavior; SYMOPT\_CASE\_INSENSITIVE, and SYMOPT\_FAVOR\_COMPRESSED.
 
 I wanted to modify the symbol options while the symbol proxy was running, so I created an ISAPI filter DLL that will run in the same process space as the symbol proxy, allowing me to modify the symbol options. IIS calls [GetFilterVersion()](http://msdn.microsoft.com/en-us/library/ms525465.aspx) to initialize the filter, during this call I called SymSetOptions() and set SYMOPT\_CASE\_INSENSITIVE and SYMOPT\_FAVOR\_COMPRESSED.
 
-Calling SymSetOptions() had no effect, and I quickly realized that I am on the wrong track.
+Calling SymSetOptions() had no effect, and I quickly realized that I was on the wrong track.
 
 SymSetOptions() is implemented by dbghelp.dll, while symproxy.dll does not load dbghelp.dll.
 
@@ -143,7 +143,7 @@ Since I had access to the original path request, and I could intercept the call 
 
 See the [source code](https://docs.google.com/uc?id=0B_YiDruAPkKzNzMzN2I3ODktOWM0OS00NmJjLThjYTEtZDhiOWVhNzY1NmMx&export=download&hl=en) for details.
 
-This fixed the case problem and I was now able to retrieve symbols from the Mozilla and Firefox symbol servers.
+This fixed the case problem and I was now able to retrieve symbols from the Mozilla and Google symbol servers.
 
 This did not however solve the problem with the Microsoft symbol servers.
 
@@ -217,7 +217,7 @@ Pragma: no-cache
 
 The problem turns out to be that the symbols on the Microsoft symbol server are compressed, and that the client would ask for the PDB file, get a 404, then ask for the compressed PD\_ file, while the proxy would only ask for the PDB file, get a 404, and do nothing.
 
-By reverting symproxy.dll and symsrv.dll back to version 6.8.0.4, the symbol proxy worked again, first asking for the PDB, then asking for PD\_, then decompressing the PD\_ to PDB, and serving the PDB to the client.
+By reverting symproxy.dll and symsrv.dll back to version 6.8.4.0, the symbol proxy worked again, first asking for the PDB, then asking for PD\_, then decompressing the PD\_ to PDB, and serving the PDB to the client.
 
 While looking at the meaning of the various options passed to SymbolServerSetOptions() I recalled that the MSDN documentation stated that the SSRVOPT\_SERVICE option had been deprecated. I took a chance and modified my code to prevent the SSRVOPT\_SERVICE option from being set.
 

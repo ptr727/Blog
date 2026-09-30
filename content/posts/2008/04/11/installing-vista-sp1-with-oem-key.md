@@ -11,7 +11,7 @@ post_id: '78'
 ---
 I received my new Lenovo ThinkPad T61 notebook, pre-installed with Vista Ultimate, but also with 3rd party software I did not care for.
 
-I wanted a clean Vista install, and that is exactly why I made sure to order the recovery media with the notebook, thinking that this will include an OS install DVD. It turns out that the recovery media is six CDs, I don't know why not a DVD, regardless, the recovery media does not include a Vista install DVD.
+I wanted a clean Vista install, and that is exactly why I made sure to order the recovery media with the notebook, thinking that this would include an OS install DVD. It turns out that the recovery media is six CDs, I don't know why not a DVD, regardless, the recovery media does not include a Vista install DVD.
 
 I called Lenovo support asking how to obtain a Vista DVD that will accept the OEM key, and was told that Vista install DVDs are not available, and that I should use the recovery CDs or the recovery partition.
 
@@ -23,7 +23,7 @@ This was much better than the out of the box version, but still not as clean as 
 
 I did some research and found several [articles](http://forum.notebookreview.com/showthread.php?t=144783) explaining elaborate procedures on how to install Vista using a normal Vista DVD and an OEM key.
 
-Since I had read that Vista SP1 had made some licensing changes, I decided to experiment using a Vista x86 with instegrated SP1 DVD I downloaded from MSDN.
+Since I had read that Vista SP1 had made some licensing changes, I decided to experiment using a Vista x86 with integrated SP1 DVD I downloaded from MSDN.
 
 I was not sure if I would need the actual key used on my system, as explained by the [article](http://forum.notebookreview.com/showthread.php?t=144783), which is different to the key on the OEM sticker, so to be safe I used [Magical Jelly Bean Keyfinder](http://www.magicaljellybean.com/keyfinder/) to make a note of my current key. This key was indeed different than the key on the OEM sticker.
 

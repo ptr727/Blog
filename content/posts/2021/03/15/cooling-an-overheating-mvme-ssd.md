@@ -1,5 +1,5 @@
 ---
-title: Cooling an Overheating MVMe SSD
+title: Cooling an Overheating NVMe SSD
 date: '2021-03-15T15:10:50+00:00'
 url: /2021/03/15/cooling-an-overheating-mvme-ssd/
 categories:
@@ -18,7 +18,7 @@ cover:
 ---
 The SSD in my Windows 10 system started reporting failures, and as luck would have it, died while I was cloning it to a new drive. I suspect death was caused by overheating, and I addressed that with my new setup.
 
-This Windows 10 system is in a [NCase M1 v5](https://ncases.com/products/m1) SFF case with an [ASUS ROG STRIX Z390-I GAMING](https://rog.asus.com/us/motherboards/rog-strix/rog-strix-z390-i-gaming-model/) mini-ITX motherboard and a [Samsung 970 EVO](https://www.samsung.com/semiconductor/minisite/ssd/product/consumer/970evo/) NVMe M.2 SSD drive. The motherboard has two M.2 slots, one on the front of the motherboard and one on the back. The slot on the front has a heatsink, but I noticed the drive runs hot even under no load. Some googling showed this to be a common problem with the heatsink and M.2 slot being heated by the motherboard chipset, so I moved the SSD to the slot on the back of the motherboard. The SSD still reported +60°C temperatures under load, and I added a passive [heatsink](https://amzn.to/3rMKAB3), and that kept temperatures in the low 50°C's even under load.
+This Windows 10 system is in an [NCase M1 v5](https://ncases.com/products/m1) SFF case with an [ASUS ROG STRIX Z390-I GAMING](https://rog.asus.com/us/motherboards/rog-strix/rog-strix-z390-i-gaming-model/) mini-ITX motherboard and a [Samsung 970 EVO](https://www.samsung.com/semiconductor/minisite/ssd/product/consumer/970evo/) NVMe M.2 SSD drive. The motherboard has two M.2 slots, one on the front of the motherboard and one on the back. The slot on the front has a heatsink, but I noticed the drive runs hot even under no load. Some googling showed this to be a common problem with the heatsink and M.2 slot being heated by the motherboard chipset, so I moved the SSD to the slot on the back of the motherboard. The SSD still reported +60°C temperatures under load, and I added a passive [heatsink](https://amzn.to/3rMKAB3), and that kept temperatures in the low 50°C's even under load.
 
 Fast forward a year or so to last week, and the system would randomly BSOD, and when rebooting the BIOS would report no disk drive found. If I let things cool for a minute or two, the drive comes back, system boots, with disk read errors reported in the eventlog. I opened the side of the case to inspect the SSD and found the rubber bands holding the heatsink to the SSD broken. I don't know if the rubber bands broke due to excessive heat, or if the excessive heat was caused by the rubber bands breaking, or if the SSD was just failing and overheating.
 

@@ -16,7 +16,7 @@ cover:
   alt: IMG_5934
   image: /media/2020/01/img_5934.jpg
 ---
-In a [previous](/2020/01/10/unraid-repeat-parity-errors-on-reboot/) adventure I replaced an Adaptec HBA with a LSI SAS3 HBA, and the chassis drive bay LED's stopped working. I suspect the LSI card does not play nice with the SGPIO sideband controller, and I decided to replace the chassis with one similar to my SC846 chassis, where the LSI card and drive bay LED's do work fine.
+In a [previous](/2020/01/10/unraid-repeat-parity-errors-on-reboot/) adventure I replaced an Adaptec HBA with an LSI SAS3 HBA, and the chassis drive bay LED's stopped working. I suspect the LSI card does not play nice with the SGPIO sideband controller, and I decided to replace the chassis with one similar to my SC846 chassis, where the LSI card and drive bay LED's do work fine.
 
 What should have been a simple replacement turned into quite a recovery operation.
 
@@ -24,9 +24,9 @@ Since I now had SAS3 HBA's in both my servers, I really wanted to get SAS3 backp
 
 I do understand that using SATA3 drives on a SAS3 backplane will not perform like SAS3 drives, but with multipath the aggregate throughput can still outperform SAS2.
 
-I received my chassis and my backplanes. The chassis was clean but a bit dinged in one corner, and the expanders were clean, but the metal frames showing a little rust. I had no idea how old the firmware on the backplanes were, so I contacted Supermicro support to ask for the current firmware. After asking for my serial numbers, Supermicro sent me the latest firmware for my hardware. The firmware update instructions were included in the "ReleaseNote.txt" file that came with the firmware.
+I received my chassis and my backplanes. The chassis was clean but a bit dinged in one corner, and the expanders were clean, but the metal frames were showing a little rust. I had no idea how old the firmware on the backplanes was, so I contacted Supermicro support to ask for the current firmware. After asking for my serial numbers, Supermicro sent me the latest firmware for my hardware. The firmware update instructions were included in the "ReleaseNote.txt" file that came with the firmware.
 
-I removed the motherboard from the old chassis and installed it in the new SC846. I removed the SAS2 backplane, and installed the SAS3 backplane in its place. The power cable layout on the SAS3 backplane is a bit different, and I had to use a few molex power [splitters](https://amzn.to/3beMRgu) to extend the power cables to reach the power plugs on the SAS3 backplane. The [standard](https://store.supermicro.com/4u-5u-rail-kit-mcp-290-00057-0n.html) rails are too long to fit in my [rack](https://www.middleatlantic.com/products/racks-enclosures/slide-out-racks/wr-series-roll-out-rotating-rack/wr-24-32.aspx), and the [short](https://store.supermicro.com/2u-5u-rail-kit-mcp-290-00058-0n.html) rails are too short for the chassis, so as I again used short outer rails and standard inner rails.
+I removed the motherboard from the old chassis and installed it in the new SC846. I removed the SAS2 backplane, and installed the SAS3 backplane in its place. The power cable layout on the SAS3 backplane is a bit different, and I had to use a few molex power [splitters](https://amzn.to/3beMRgu) to extend the power cables to reach the power plugs on the SAS3 backplane. The [standard](https://store.supermicro.com/4u-5u-rail-kit-mcp-290-00057-0n.html) rails are too long to fit in my [rack](https://www.middleatlantic.com/products/racks-enclosures/slide-out-racks/wr-series-roll-out-rotating-rack/wr-24-32.aspx), and the [short](https://store.supermicro.com/2u-5u-rail-kit-mcp-290-00058-0n.html) rails are too short for the chassis, so I again used short outer rails and standard inner rails.
 
 
 {{< gallery cols="3" >}}  
@@ -59,7 +59,7 @@ CLIXTL -f all -t 500304800000007F -d SAS3-EXPFW_66.16.11.00.fw
 CLIXTL -f 3 -t 500304800000007F -d BPN-SAS3-846EL-PRI_16_11.bin -r
 ```
 
-The existing firmware on the expanders were v66.06.01.02 and MFG v06.02, while the new firmware was v66.16.11.00 and MFG v16.11.
+The existing firmware on the expanders was v66.06.01.02 and MFG v06.02, while the new firmware was v66.16.11.00 and MFG v16.11.
 
 ```
 Firmware Update History
@@ -134,9 +134,9 @@ Error, no enclosure has been found
 
 I can hear the comments now, why risk updating the firmware if it is not broken, true, but I didn't know if it would work, and I'd rather start fresh. Do also note that I did the update on my secondary server, my primary server is still running unmodified, so no interruption of home service or work experiments.
 
-I still had the second SAS3 backplane, so I replace the "bricked" one, leaving the firmware as is, and brought my Unraid server back up, all appeared fine. At least I had two working servers, giving me time to try and recover the backplane.
+I still had the second SAS3 backplane, so I replaced the "bricked" one, leaving the firmware as is, and brought my Unraid server back up, all appeared fine. At least I had two working servers, giving me time to try and recover the backplane.
 
-I sent Supermicro support an email asking for help, but since it was weekend I had to wait, so I did my own research. I found a forum [post](https://hardforum.com/threads/did-i-brick-one-of-my-bpn-sas2-846el1-backplanes.1929384/#post-1043477103) of a user that recovered a "bricked" SAS2 expander via the factory serial port, and I decided to give it a try.
+I sent Supermicro support an email asking for help, but since it was the weekend I had to wait, so I did my own research. I found a forum [post](https://hardforum.com/threads/did-i-brick-one-of-my-bpn-sas2-846el1-backplanes.1929384/#post-1043477103) of a user that recovered a "bricked" SAS2 expander via the factory serial port, and I decided to give it a try.
 
 
 {{< gallery cols="3" >}}  
@@ -369,7 +369,7 @@ The downloaded files are larger and are padded with 0xFF or 0x00. I trimmed the 
 
 {{< figure src="/media/2020/01/2020-01-22-3.png" alt="2020-01-22 (3)" caption="2020-01-22 (3)" >}}
 
-I tried to uploaded the modified MFG data:
+I tried to upload the modified MFG data:
 
 ```
 >g3Xflash.exe -y -s com4 down mfg BPN-SAS3-846EL-PRI_16_11.bin 3
@@ -385,9 +385,9 @@ Image Validation: Passed
 Checksum: Failed
 ```
 
-But the tool complains that the checksum failed. From the file diff we can see that there is more than just the SAS address that change, I assume some sort of checksum calculation that goes with the data.
+But the tool complains that the checksum failed. From the file diff we can see that there is more than just the SAS address that changes, I assume some sort of checksum calculation that goes with the data.
 
-The v1.4 g3xFlash CLI help does reference XML options for converting between binary and XML MFG formats, but no instructions on how to use it. Like the serial recovery procedure these tools are probably for internal use only, and I could find no public references.
+The v1.4 g3Xflash CLI help does reference XML options for converting between binary and XML MFG formats, but no instructions on how to use it. Like the serial recovery procedure these tools are probably for internal use only, and I could find no public references.
 
 ```
 >g3Xflash.exe -h

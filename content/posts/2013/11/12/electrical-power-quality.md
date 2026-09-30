@@ -11,9 +11,9 @@ tags:
 post_id: '473'
 ---
 Earlier this year we moved a couple miles from Redondo Beach to Manhattan Beach, bigger house, better school district.
-As far as the house and area is concerned, it is definitely an upgrade, but not so for the utilities.
+As far as the house and area are concerned, it is definitely an upgrade, but not so for the utilities.
 
-Monthly utilities are a lot more expensive, not so much the per unit fees, but the base service fees, not just a couple $, but three of four times what we paid in Redondo Beach. Now, if it came with better offerings, or better service, or higher quality, ok, but the opposite.
+Monthly utilities are a lot more expensive, not so much the per unit fees, but the base service fees, not just a couple $, but three or four times what we paid in Redondo Beach. Now, if it came with better offerings, or better service, or higher quality, ok, but the opposite.
 Water quality is worse, specifically hardness, MB [supplies](http://www.citymb.info/city-officials/public-works/utilities-division/water-systems/source-of-supply) its own water, RB gets water from [LADWP](https://www.ladwp.com/ladwp/faces/ladwp/aboutus/a-water/a-w-sourcesofsupply/), and that unsightly water tower that no longer serves any practical purpose, with efforts to demolish it always being thwarted.
 As a new resident trash collection makes me pay almost thirty $ extra per month for an extra trash can, while grandfathered-in residents keep extras for free. Now, I know it is unfair to judge a service by their employee's actions, or is it, but the trash collection guy is a jerk, if a little dust and having to get out of the truck is going to get you agitated, you are in the wrong business, especially when compared with the pack of trash collection men in RB that were always friendly and willing to give a hand.
 But, I really digress, I want to discuss electrical power quality problems.
@@ -31,7 +31,7 @@ UPS Event Log:
 
 In order to quantify the problem, I used a [Fluke VR1710 Voltage Quality Recorder](http://www.amazon.com/gp/product/B002006LQA/ref=as_li_ss_tl?ie=UTF8&camp=1789&creative=390957&creativeASIN=B002006LQA&linkCode=as2&tag=pievilsblo-20). The device plugs into a mains outlet, and records events, and a USB port is used to configure the device, and download recorded data.
 
-As I am not a power quality expert, I referred to [Wikipedia](http://en.wikipedia.org/wiki/Power_quality) to and [Power Quality In Electrical Systems](http://www.powerqualityworld.com/) for information and reference material. To further simplify the analysis, I opted to compare my office power with my home power, this allowed me to easily visualize the quality differences, granted, I am assuming my office power is good.
+As I am not a power quality expert, I referred to [Wikipedia](http://en.wikipedia.org/wiki/Power_quality) and [Power Quality In Electrical Systems](http://www.powerqualityworld.com/) for information and reference material. To further simplify the analysis, I opted to compare my office power with my home power, this allowed me to easily visualize the quality differences, granted, I am assuming my office power is good.
 
 I configured the VR1710 to take measurements every 10s, and to record exceptional events, about 10 days worth of data. I set the dip threshold to 106V, the swell threshold to 127V, and the transient sensitivity to 5V.
 
@@ -82,7 +82,7 @@ Based on the graph we can see a large number of events exceeding the acceptable 
 Home Transients:
 [![Home - Transients](/media/2013/11/home-transients.png?w=584)](/media/2013/11/home-transients.png)
 
-I only show the transients graph for home, as the wave forms all look different, and the only difference between home and office is 87 events were recorded at home while 10 events were recorded at the office for the same approximate time duration. See [PQW](http://www.powerqualityworld.com/2011/05/transients-power-quality-basics.html) for an explanation of transients.
+I only show the transients graph for home, as the wave forms all look similar, and the only difference between home and office is 87 events were recorded at home while 10 events were recorded at the office for the same approximate time duration. See [PQW](http://www.powerqualityworld.com/2011/05/transients-power-quality-basics.html) for an explanation of transients.
 
 We can clearly see that the power quality at my house is significantly worse compared to the power at my office.
 

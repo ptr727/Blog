@@ -16,7 +16,7 @@ tags:
 - windows
 post_id: '207'
 ---
-In a [previous post](/2012/07/19/windows-8-and-server-2012-on-supermicro-results-in-acpi_bios_error-bsod/) I reported that my [SuperMicro SuperWorkstation 7047A-T](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-T.cfm) failed to install Windows 8 or Windows Server 2012 due to a [ACPI\_BIOS\_ERROR](http://msdn.microsoft.com/en-us/library/windows/hardware/ff560114(v=vs.85).aspx). I contacted SuperMicro support, and I was informed that new BIOS releases are on their way that will support Windows 8 and Server 2012.
+In a [previous post](/2012/07/19/windows-8-and-server-2012-on-supermicro-results-in-acpi_bios_error-bsod/) I reported that my [SuperMicro SuperWorkstation 7047A-T](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-T.cfm) failed to install Windows 8 or Windows Server 2012 due to an [ACPI\_BIOS\_ERROR](http://msdn.microsoft.com/en-us/library/windows/hardware/ff560114(v=vs.85).aspx). I contacted SuperMicro support, and I was informed that new BIOS releases are on their way that will support Windows 8 and Server 2012.
 
 This morning I received an email from SuperMicro, with a new Beta BIOS for the [X9DAi motherboard](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DAi.cfm) used in the 7047A-T. The new BIOS allowed me to install Windows 8 and Server 2012.
 
@@ -32,9 +32,9 @@ I performed a "Restore Optimized Defaults", and then went through the options to
 
 The \[Advanced\] \[Chipset Configuration\] \[North Bridge\] \[IOH Configuration\] now sets all PCIe busses to GEN3, the old BIOS defaulted to GEN2.
 
-The \[Advanced\] \[SATA Configuration\] now enabled hot plug on all ports, the old BIOS defaulted to hot plug disabled.
+The \[Advanced\] \[SATA Configuration\] now enables hot plug on all ports, the old BIOS defaulted to hot plug disabled.
 
-The \[Advanced\] \[Boot Feature\] ads a new power configuration item called "EuP". This seems to be related to [EU Directive 2005/32/EC](http://europa.eu/legislation_summaries/other/l32037_en.htm):
+The \[Advanced\] \[Boot Feature\] adds a new power configuration item called "EuP". This seems to be related to [EU Directive 2005/32/EC](http://europa.eu/legislation_summaries/other/l32037_en.htm):
 
 > EU Directive 2005/32/EC enacted by the European Union member countries dictates that after January 1, 2010, no computer or other energy using product (EuP) sold in the member countries may dissipate more than 1 Watt in the standby (S5) state.
 
@@ -58,4 +58,4 @@ I found the 2D and 3D results to be disappointing, and I tried to replace the "A
 
 I'm quite happy that I can use my new machines with Windows 8.
 
-I just wish SuperMicro solved the BIOS incompatibility problems long ago, after all, it has been almost two years since the Windows 8 pre-release program started, and almost a year since the release of the public developer preview.
+I just wish SuperMicro had solved the BIOS incompatibility problems long ago, after all, it has been almost two years since the Windows 8 pre-release program started, and almost a year since the release of the public developer preview.

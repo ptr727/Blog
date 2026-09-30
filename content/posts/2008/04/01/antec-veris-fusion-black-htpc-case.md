@@ -42,14 +42,14 @@ For such an expensive case this is rather disappointing.
 - There are two fans on the side of the case, both set to extract hot air,  
 but hard drives are located in an area with no direct ventilation.
 
-There is ample ventilation holes around the drives, but it remains to be  
+There are ample ventilation holes around the drives, but it remains to be  
 seen if the drives will overheat or not.
 
 - The LCD display used on the case is an OEM version of the iMON from  
 SoundGraph.
 
 The Antec provided software has far fewer functions compared to the software  
-provided by SoundGraph, unfortunately the SoundGraph software does not work with Antec  
+provided by SoundGraph, unfortunately the SoundGraph software does not work with the Antec  
 LCD.
 
 - The LCD turns on bright blue when power is applied to the case.
@@ -60,7 +60,7 @@ enabled to turn the LCD off.
 I really expected the opposite, LCD remains off until turned on by  
 controlling software.
 
-- The LCD contrast is very poor, and the viewing angle is severely limit.
+- The LCD contrast is very poor, and the viewing angle is severely limited.
 
 From pictures I expected to see a blue display on a black background, but  
 instead I see dark blue on light blue, it literally looks like the backlight  
@@ -146,7 +146,7 @@ being logged in, this allows me to boot the machine, and select an account
 and log in using only the navigation buttons on the remote.
 
 - The LCD would occasionally hang with strange characters or elements on  
-the display. Once this happens you ave to unplug the case and reboot.
+the display. Once this happens you have to unplug the case and reboot.
 
 This problem is being discussed in  
 [  

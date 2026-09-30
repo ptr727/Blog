@@ -1,5 +1,5 @@
 ---
-title: Hitachi Ultrastar and Seagate Barracude LP 2TB drives
+title: Hitachi Ultrastar and Seagate Barracuda LP 2TB drives
 date: '2009-10-11T22:54:00+00:00'
 url: /2009/10/11/hitachi-a7k2000-and-seagate-barracude/
 categories:
@@ -54,7 +54,7 @@ Test hardware:
 
 \- [Adaptec 51245 RAID controller](http://www.adaptec.com/en-US/products/Controllers/Hardware/sas/performance/SAS-51245/ "Adaptec 51245 RAID controller"), firmware 17517, driver 5.2.0.17517
 
-\- [Areca ARC1680ix-12 RAID controller](http://www.areca.com.tw/products/pcietosas1680series.htm "Areca ARC1680ix-16 RAID controller"), firmware 1.47, driver 6.20.00.16\_80819
+\- [Areca ARC1680ix-12 RAID controller](http://www.areca.com.tw/products/pcietosas1680series.htm "Areca ARC1680ix-12 RAID controller"), firmware 1.47, driver 6.20.00.16\_80819
 
 \- [LSI 8888ELP RAID controller](http://www.lsi.com/storage_home/products_home/internal_raid/megaraid_sas/megaraid_sas_8888elp/ "LSI 8888ELP RAID controller"), firmware 11.0.1-0017 (APP-1.40.62-0665), driver 4.16.0.64
 
@@ -118,7 +118,7 @@ Adaptec, RAID5, WD:
 
 Areca ARC1680ix-12, SATA-II / 3Gb/s:
 
-The Areca had not problems with the Hitachi or Seagate drives.
+The Areca had no problems with the Hitachi or Seagate drives.
 
 The Hitachi drives completed initialization in 40 hours.
 
@@ -134,7 +134,7 @@ Areca, RAID5, Hitachi:
 
 
 
-Areaca, RAID5, Seagate:
+Areca, RAID5, Seagate:
 
 [![](http://docs.google.com/File?id=dcmzmbww_26ghxs8ddp_b)](http://docs.google.com/File?id=dcmzmbww_26ghxs8ddp_b)
 
@@ -152,7 +152,7 @@ Areca, RAID5, WD:
 
 LSI 8888ELP and Chenbro CK12803, SATA-II / 3Gb/s:
 
-The Hitachi drives reported a few "Invalid field in CDB" errors with, but it did not appear to affect the operation of the array.
+The Hitachi drives reported a few "Invalid field in CDB" errors, but it did not appear to affect the operation of the array.
 
 The Hitachi drives completed initialization in 4 hours.
 

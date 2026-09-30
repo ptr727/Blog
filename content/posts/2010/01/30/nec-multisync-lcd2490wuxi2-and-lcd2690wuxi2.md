@@ -20,7 +20,7 @@ The alternative would have been [EIZO ColorEdge](http://www.eizo.com/global/ "EI
 
 
 
-Since I had a [hard time calibrating](/2009/06/dell-2408wfp-and-spyder-3-elite.html "hard time calibrating") the wide color gamut DELL monitors in the past, so it was very important that the NEC monitors be correctly calibrated.
+Since I had a [hard time calibrating](/2009/06/dell-2408wfp-and-spyder-3-elite.html "hard time calibrating") the wide color gamut DELL monitors in the past, it was very important that the NEC monitors be correctly calibrated.
 
 As such, I also purchased the monitors with the [NEC SpectraView II](http://www.necdisplay.com/SupportCenter/Monitors/spectraview2/ "NEC SpectraView II") calibration kits.
 
@@ -46,9 +46,9 @@ As I replaced one of the DELL monitors that was connected via a KVM with the NEC
 
 I was using a [DELL UltraSharp 2405FPW](http://support.dell.com/support/edocs/monitors/2405fpw/en/index.htm "DELL UltraSharp 2405FPW") monitor with a [StarTech StarView SV431DVIUAHR](http://www.startech.com/item/SV431DVIUAHR-4-Port-High-Resolution-USB-DVI-Dual-Link-KVM-Switch-with-Audio.aspx "StarTech StarView SV431DVIUAHR") 4-Port Dual-Link DVI KVM switch.
 
-Although the 2405PFW does not require dual-link, I occasionally used this switch with a [DELL UltraSharp 3007WFP-HC](http://support.dell.com/support/edocs/monitors/3007wfp/en/index.htm "DELL UltraSharp 3007WFP") monitor that does require dual-link.
+Although the 2405FPW does not require dual-link, I occasionally used this switch with a [DELL UltraSharp 3007WFP-HC](http://support.dell.com/support/edocs/monitors/3007wfp/en/index.htm "DELL UltraSharp 3007WFP") monitor that does require dual-link.
 
-I have also used this model KVM switch with [DELL UltraSharp 2408WFP](http://www.dell.com/us/en/dfo/peripherals/monitor_2408wfp/pd.aspx?refid=monitor_2408wfp&s=dfo "DELL UltraSharp 2408WFP") monitors wihtout any issues.
+I have also used this model KVM switch with [DELL UltraSharp 2408WFP](http://www.dell.com/us/en/dfo/peripherals/monitor_2408wfp/pd.aspx?refid=monitor_2408wfp&s=dfo "DELL UltraSharp 2408WFP") monitors without any issues.
 
 
 
@@ -74,7 +74,7 @@ I had three NEC monitors available, tried them all, same problem.
 
 When directly connecting the monitor to the PC, it worked fine.
 
-Using the notebooks, I could boot using the notebook screen, then plugin the KVM to the notebook, and the NEC would power on.
+Using the notebooks, I could boot using the notebook screen, then plug in the KVM to the notebook, and the NEC would power on.
 
 
 
@@ -114,7 +114,7 @@ The agent was very helpful, trying a variety of connection and power on order ch
 
 
 
-I had used IOGEAR KVM's before, and I switched StarTech for dual-link support, something IOGEAR did not offer at that time.
+I had used IOGEAR KVM's before, and I switched to StarTech for dual-link support, something IOGEAR did not offer at that time.
 
 The IOGEAR KVM's are really good value for money, especially when you consider that you get the cables with the IOGEAR units, and with most other KVM manufacturers you have to buy cables separately.
 
@@ -140,7 +140,7 @@ In total I have five NEC monitors, one LCD2490WUXi2 connected to the KVM in my o
 
 I purchased two of the monitors, model [LCD2690W2-BK-SV](http://www.necdisplay.com/Products/Product/?product=e46df7f2-40d7-4b16-b6ed-9c444e398f11 "LCD2690W2-BK-SV"), with the SpectraView II calibration kits included.
 
-The "-BK" designation means the monitor is black, and the "-SW" designation means the "SVII-PRO-KIT" is included in the box, but the monitor is a [LCD2690WUXi2](http://www.necdisplay.com/Products/Product/?product=8899a96d-28dc-484f-a4de-14309a636738 "LCD2690WUXi2-BK").
+The "-BK" designation means the monitor is black, and the "-SV" designation means the "SVII-PRO-KIT" is included in the box, but the monitor is an [LCD2690WUXi2](http://www.necdisplay.com/Products/Product/?product=8899a96d-28dc-484f-a4de-14309a636738 "LCD2690WUXi2-BK").
 
 I happen to own an [X-Rite i1Display2](http://www.xrite.com/product_overview.aspx?ID=788 "X-Rite i1Display2") sensor, so it was obvious that the NEC sensor is a custom i1Display2 sensor.
 
@@ -156,7 +156,7 @@ The SpectraView documentation states that the sensor is custom calibrated for th
 
 
 
-The SpectraView software installs a gamma loader application in the Windows startup folder, and on every login, the monitor calibration values are validated, and warns you when calibration is overdue.
+The SpectraView software installs a gamma loader application in the Windows startup folder, and on every login, the monitor calibration values are validated, and it warns you when calibration is overdue.
 
 With the Lenovo T61 notebook, on every login, the software will tell me that a compatible monitor is not found.
 
@@ -186,7 +186,7 @@ The person suggested the problem is timing related, and that I use a startup man
 
 A startup manager seems overkill for something that should probably be addressed in the SpectraView software, and I suggested as such.
 
-We'll see if they address the problem in future versions, but since I rarely logout, I normally just put machine to sleep, this is not a big issue.
+We'll see if they address the problem in future versions, but since I rarely log out, I normally just put the machine to sleep, this is not a big issue.
 
 
 
@@ -218,7 +218,7 @@ The calibration results show the difference between the LCD2490WUXi2 and LCD2690
 
 I really enjoy these monitors, especially the consistent color reproduction of the dual monitor setups.
 
-The only comments I receive every time somebody visits my desk is how thick these monitors are.
+The only comment I receive every time somebody visits my desk is how thick these monitors are.
 
 But, as soon as they see the color reproduction and consistency, they forgive the fat 90's look.
 

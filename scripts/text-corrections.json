@@ -5,9 +5,9 @@
   "corrections": [
     {
       "file": "content/posts/2008/03/30/printing-from-network.md",
-      "why": "Doubled word",
+      "why": "Doubled word and Missing or extra word",
       "from": "access the the driver media,",
-      "to": "access the driver media,"
+      "to": "access to the driver media,"
     },
     {
       "file": "content/posts/2009/05/14/how-to-install-sql-server-2008-on-windows-server-2008-r2-rc.md",
@@ -29,9 +29,9 @@
     },
     {
       "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
-      "why": "Doubled word",
+      "why": "Doubled word and Grammar",
       "from": "memory is is reasonably cheap.",
-      "to": "memory is reasonably cheap."
+      "to": "memory are reasonably cheap."
     },
     {
       "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
@@ -53,15 +53,15 @@
     },
     {
       "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
-      "why": "Doubled word",
+      "why": "Doubled word and Missing or extra word",
       "from": "only solution was to reboot the device. Upgrading the the latest 3.1-1748 DSM firmware solved this problem.\n- During",
-      "to": "only solution was to reboot the device. Upgrading the latest 3.1-1748 DSM firmware solved this problem.\n- During"
+      "to": "only solution was to reboot the device. Upgrading to the latest 3.1-1748 DSM firmware solved this problem.\n- During"
     },
     {
       "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
-      "why": "Doubled word",
+      "why": "Doubled word and Missing or extra word",
       "from": "time. The only solution was to reboot the device. Upgrading the the latest 3.1-1748 DSM firmware solved this problem.\n- I",
-      "to": "time. The only solution was to reboot the device. Upgrading the latest 3.1-1748 DSM firmware solved this problem.\n- I"
+      "to": "time. The only solution was to reboot the device. Upgrading to the latest 3.1-1748 DSM firmware solved this problem.\n- I"
     },
     {
       "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
@@ -224,6 +224,3630 @@
       "why": "An HTML entity in a title",
       "from": "title: XBMC on NUC&rsquo;s and Pi&rsquo;s",
       "to": "title: XBMC on NUC's and Pi's"
+    },
+    {
+      "file": "content/posts/2008/03/30/getting-my-feet-wet.md",
+      "why": "Grammar",
+      "from": "similar to when I decide to move my photo collection",
+      "to": "similar to when I decided to move my photo collection"
+    },
+    {
+      "file": "content/posts/2008/03/30/printing-from-network.md",
+      "why": "Grammar",
+      "from": "using USB, and then sharing the printer",
+      "to": "using USB, and then share the printer"
+    },
+    {
+      "file": "content/posts/2008/03/30/printing-from-network.md",
+      "why": "Wrong word",
+      "from": "I bought a HP D7360 Photosmart printer",
+      "to": "I bought an HP D7360 Photosmart printer"
+    },
+    {
+      "file": "content/posts/2008/03/30/printing-from-network.md",
+      "why": "Spelling",
+      "from": "without neding access",
+      "to": "without needing access"
+    },
+    {
+      "file": "content/posts/2008/03/30/vista-sp1-and-intel-gma-blue-screen-crash.md",
+      "why": "Grammar",
+      "from": "my machine would blue screen crash when it goes to sleep",
+      "to": "my machine would blue screen crash when it went to sleep"
+    },
+    {
+      "file": "content/posts/2008/03/30/vista-sp1-and-intel-gma-blue-screen-crash.md",
+      "why": "Grammar",
+      "from": "and the Intel has yet to resolve the problem",
+      "to": "and Intel has yet to resolve the problem"
+    },
+    {
+      "file": "content/posts/2008/04/01/abit-f-i90hd-motherboard.md",
+      "why": "Grammar",
+      "from": "Whenever I want to boot from my USB key",
+      "to": "Whenever I wanted to boot from my USB key"
+    },
+    {
+      "file": "content/posts/2008/04/01/antec-veris-fusion-black-htpc-case.md",
+      "why": "Grammar",
+      "from": "There is ample ventilation holes around the drives",
+      "to": "There are ample ventilation holes around the drives"
+    },
+    {
+      "file": "content/posts/2008/04/01/antec-veris-fusion-black-htpc-case.md",
+      "why": "Missing or extra word",
+      "from": "the SoundGraph software does not work with Antec",
+      "to": "the SoundGraph software does not work with the Antec"
+    },
+    {
+      "file": "content/posts/2008/04/01/antec-veris-fusion-black-htpc-case.md",
+      "why": "Grammar",
+      "from": "the viewing angle is severely limit.",
+      "to": "the viewing angle is severely limited."
+    },
+    {
+      "file": "content/posts/2008/04/01/antec-veris-fusion-black-htpc-case.md",
+      "why": "Spelling",
+      "from": "Once this happens you ave to unplug the case",
+      "to": "Once this happens you have to unplug the case"
+    },
+    {
+      "file": "content/posts/2008/04/01/intel-dg33tl-motherboard.md",
+      "why": "Grammar",
+      "from": "installs all devices that is not",
+      "to": "installs all devices that are not"
+    },
+    {
+      "file": "content/posts/2008/04/01/intel-dg33tl-motherboard.md",
+      "why": "Wrong word",
+      "from": "there is a HDMI signal, but no picture",
+      "to": "there is an HDMI signal, but no picture"
+    },
+    {
+      "file": "content/posts/2008/04/01/philips-digital-photo-frame.md",
+      "why": "Grammar",
+      "from": "directly displays pictures from cameras or pictures copied to",
+      "to": "directly displays pictures from cameras or pictures copied"
+    },
+    {
+      "file": "content/posts/2008/04/01/philips-digital-photo-frame.md",
+      "why": "Spelling",
+      "from": "When you connect the frame's USB connecter to the PC",
+      "to": "When you connect the frame's USB connector to the PC"
+    },
+    {
+      "file": "content/posts/2008/04/01/philips-digital-photo-frame.md",
+      "why": "Grammar",
+      "from": "firmware (9.01.38) in my frame was both later versions",
+      "to": "firmware (9.01.38) in my frame were both later versions"
+    },
+    {
+      "file": "content/posts/2008/04/01/philips-digital-photo-frame.md",
+      "why": "Grammar",
+      "from": "and using the USB connection directly manipulate the pictures",
+      "to": "and use the USB connection to directly manipulate the pictures"
+    },
+    {
+      "file": "content/posts/2008/04/01/philips-digital-photo-frame.md",
+      "why": "Spelling",
+      "from": "Philips will replace the Photo Manger software",
+      "to": "Philips will replace the Photo Manager software"
+    },
+    {
+      "file": "content/posts/2008/04/11/installing-vista-sp1-with-oem-key.md",
+      "why": "Grammar",
+      "from": "thinking that this will include an OS install DVD",
+      "to": "thinking that this would include an OS install DVD"
+    },
+    {
+      "file": "content/posts/2008/04/11/installing-vista-sp1-with-oem-key.md",
+      "why": "Spelling",
+      "from": "using a Vista x86 with instegrated SP1 DVD",
+      "to": "using a Vista x86 with integrated SP1 DVD"
+    },
+    {
+      "file": "content/posts/2008/04/13/getting-vista-to-go-to-sleep.md",
+      "why": "Product name",
+      "from": "I am currently using an ATI HD 26000 XT card",
+      "to": "I am currently using an ATI HD 2600 XT card"
+    },
+    {
+      "file": "content/posts/2008/05/16/asus-p5e-vm-hdmi-motherboard.md",
+      "why": "Wrong word",
+      "from": "garbage characters on the screen when sleeping on resuming from sleep",
+      "to": "garbage characters on the screen when sleeping or resuming from sleep"
+    },
+    {
+      "file": "content/posts/2008/05/16/asus-p5e-vm-hdmi-motherboard.md",
+      "why": "Grammar",
+      "from": "I contact Antec support, and a few days later",
+      "to": "I contacted Antec support, and a few days later"
+    },
+    {
+      "file": "content/posts/2008/05/24/81.md",
+      "why": "Grammar",
+      "from": "I call eNom support, explain the story, are transferred",
+      "to": "I call eNom support, explain the story, am transferred"
+    },
+    {
+      "file": "content/posts/2008/05/24/81.md",
+      "why": "Grammar",
+      "from": "I call Register.com support, explain the story, are transferred",
+      "to": "I call Register.com support, explain the story, am transferred"
+    },
+    {
+      "file": "content/posts/2008/05/24/81.md",
+      "why": "Product name",
+      "from": "I call eNum support, and are told to wait",
+      "to": "I call eNom support, and am told to wait"
+    },
+    {
+      "file": "content/posts/2008/05/24/81.md",
+      "why": "Missing or extra word",
+      "from": "When reality is that the eNom account system",
+      "to": "When the reality is that the eNom account system"
+    },
+    {
+      "file": "content/posts/2008/05/24/81.md",
+      "why": "Grammar",
+      "from": "I open a support ticket with eNom, and are told",
+      "to": "I open a support ticket with eNom, and am told"
+    },
+    {
+      "file": "content/posts/2008/05/24/81.md",
+      "why": "Missing or extra word",
+      "from": "I start a support chat conversation Register.com",
+      "to": "I start a support chat conversation with Register.com"
+    },
+    {
+      "file": "content/posts/2008/05/24/81.md",
+      "why": "Spelling",
+      "from": "deleted my domain from the fronted and backed systems",
+      "to": "deleted my domain from the frontend and backend systems"
+    },
+    {
+      "file": "content/posts/2008/05/24/81.md",
+      "why": "Grammar",
+      "from": "I call Register.com support, are transferred",
+      "to": "I call Register.com support, am transferred"
+    },
+    {
+      "file": "content/posts/2008/05/24/81.md",
+      "why": "Missing or extra word",
+      "from": "if email forwarding still works, and sure it does",
+      "to": "if email forwarding still works, and sure enough it does"
+    },
+    {
+      "file": "content/posts/2009/01/09/google-email-uploader-on-vista-x64.md",
+      "why": "Missing or extra word",
+      "from": "and on x64 / WIN64 system it will be",
+      "to": "and on an x64 / WIN64 system it will be"
+    },
+    {
+      "file": "content/posts/2009/01/09/google-email-uploader-on-vista-x64.md",
+      "why": "Wrong word",
+      "from": "on a x86 / WIN32 system it will be",
+      "to": "on an x86 / WIN32 system it will be"
+    },
+    {
+      "file": "content/posts/2009/01/09/google-email-uploader-on-vista-x64.md",
+      "why": "Missing or extra word",
+      "from": "I also had to fix a couple other small things",
+      "to": "I also had to fix a couple of other small things"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Wrong word",
+      "from": "and DxO fell in disuse",
+      "to": "and DxO fell into disuse"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Spelling",
+      "from": "In the mean time I switched to using",
+      "to": "In the meantime I switched to using"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Missing or extra word",
+      "from": "a hardcoded path instead of dynamically discovered path",
+      "to": "a hardcoded path instead of a dynamically discovered path"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Spelling",
+      "from": "it is written in .NET, presumable C#",
+      "to": "it is written in .NET, presumably C#"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Wrong word",
+      "from": "when the parent process is a x64 process",
+      "to": "when the parent process is an x64 process"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Wrong word",
+      "from": "My solution was to create a x86 proxy process",
+      "to": "My solution was to create an x86 proxy process"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Grammar",
+      "from": "DxO calls the.NET runtime calls the GetFileVersionInfoW() API",
+      "to": "DxO calls the .NET runtime, which calls the GetFileVersionInfoW() API"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Wrong word",
+      "from": "with the behavior on a x64 system",
+      "to": "with the behavior on an x64 system"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Wrong word",
+      "from": "the behavior of DxO on a x86 system",
+      "to": "the behavior of DxO on an x86 system"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Wrong word",
+      "from": "I built a x86 binary, renamed the output file",
+      "to": "I built an x86 binary, renamed the output file"
+    },
+    {
+      "file": "content/posts/2009/02/11/dxo-optics-pro-and-adobe-lightroom-on-vista-x64.md",
+      "why": "Grammar",
+      "from": "The source and binary file is available",
+      "to": "The source and binary files are available"
+    },
+    {
+      "file": "content/posts/2009/04/09/broken-symbol-proxy.md",
+      "why": "Spelling",
+      "from": "transparent access to all our symbols servers",
+      "to": "transparent access to all our symbol servers"
+    },
+    {
+      "file": "content/posts/2009/04/09/broken-symbol-proxy.md",
+      "why": "Grammar",
+      "from": "download symbols from the Microsoft's own symbol server",
+      "to": "download symbols from Microsoft's own symbol server"
+    },
+    {
+      "file": "content/posts/2009/04/09/broken-symbol-proxy.md",
+      "why": "Grammar",
+      "from": "I quickly realized that I am on the wrong track",
+      "to": "I quickly realized that I was on the wrong track"
+    },
+    {
+      "file": "content/posts/2009/04/09/broken-symbol-proxy.md",
+      "why": "Wrong word",
+      "from": "retrieve symbols from the Mozilla and Firefox symbol servers",
+      "to": "retrieve symbols from the Mozilla and Google symbol servers"
+    },
+    {
+      "file": "content/posts/2009/04/09/broken-symbol-proxy.md",
+      "why": "Wrong word",
+      "from": "back to version 6.8.0.4, the symbol proxy worked again",
+      "to": "back to version 6.8.4.0, the symbol proxy worked again"
+    },
+    {
+      "file": "content/posts/2009/04/10/2008-vw-touareg-tire-pressure.md",
+      "why": "Grammar",
+      "from": "VW's said that the label is correct.",
+      "to": "VW said that the label is correct."
+    },
+    {
+      "file": "content/posts/2009/04/10/2008-vw-touareg-tire-pressure.md",
+      "why": "Grammar",
+      "from": "the correct maximum pressure of the tires are 51PSI",
+      "to": "the correct maximum pressure of the tires is 51PSI"
+    },
+    {
+      "file": "content/posts/2009/04/10/2008-vw-touareg-tire-pressure.md",
+      "why": "Grammar",
+      "from": "This is the label is on the side of the door",
+      "to": "This is the label on the side of the door"
+    },
+    {
+      "file": "content/posts/2009/04/10/archived-content-and-templates.md",
+      "why": "Wrong word",
+      "from": "would either skew the text, or cut of the images",
+      "to": "would either skew the text, or cut off the images"
+    },
+    {
+      "file": "content/posts/2009/06/12/power-saving-sata-raid-controller.md",
+      "why": "Grammar",
+      "from": "computationally intensive tasks that leaves the machines running 24/7",
+      "to": "computationally intensive tasks that leave the machines running 24/7"
+    },
+    {
+      "file": "content/posts/2009/06/12/power-saving-sata-raid-controller.md",
+      "why": "Grammar",
+      "from": "I decided to the try a 3Ware / AMCC SATA",
+      "to": "I decided to try a 3Ware / AMCC SATA"
+    },
+    {
+      "file": "content/posts/2009/06/12/power-saving-sata-raid-controller.md",
+      "why": "Grammar",
+      "from": "installing the battery backup unit was less than impressive",
+      "to": "installing the battery backup unit were less than impressive"
+    },
+    {
+      "file": "content/posts/2009/06/12/power-saving-sata-raid-controller.md",
+      "why": "Spelling",
+      "from": "and elevation s not allowed for auto start items",
+      "to": "and elevation is not allowed for auto start items"
+    },
+    {
+      "file": "content/posts/2009/06/12/power-saving-sata-raid-controller.md",
+      "why": "Missing or extra word",
+      "from": "and used the other of the volume for data",
+      "to": "and used the rest of the volume for data"
+    },
+    {
+      "file": "content/posts/2009/06/12/power-saving-sata-raid-controller.md",
+      "why": "Grammar",
+      "from": "I decided I had enough.",
+      "to": "I decided I had had enough."
+    },
+    {
+      "file": "content/posts/2009/06/12/power-saving-sata-raid-controller.md",
+      "why": "Grammar",
+      "from": "and requires power savings to be enabled",
+      "to": "and require power savings to be enabled"
+    },
+    {
+      "file": "content/posts/2009/06/12/power-saving-sata-raid-controller.md",
+      "why": "Grammar",
+      "from": "made an image backups using Symantec Ghost Solution Suite",
+      "to": "made image backups using Symantec Ghost Solution Suite"
+    },
+    {
+      "file": "content/posts/2009/06/13/amazon-unbox-on-x64-vista.md",
+      "why": "Wrong word",
+      "from": "\"HBO series Nurse Jackie in HD\"",
+      "to": "\"Showtime series Nurse Jackie in HD\""
+    },
+    {
+      "file": "content/posts/2009/06/13/amazon-unbox-on-x64-vista.md",
+      "why": "Spelling",
+      "from": "and the 1.3GB downloaded also completed pretty quickly",
+      "to": "and the 1.3GB download also completed pretty quickly"
+    },
+    {
+      "file": "content/posts/2009/06/13/amazon-unbox-on-x64-vista.md",
+      "why": "Grammar",
+      "from": "I suspected I know what the problem was",
+      "to": "I suspected I knew what the problem was"
+    },
+    {
+      "file": "content/posts/2009/06/13/amazon-unbox-on-x64-vista.md",
+      "why": "Wrong word",
+      "from": "tries to load a x86 binary, not allowed",
+      "to": "tries to load an x86 binary, not allowed"
+    },
+    {
+      "file": "content/posts/2009/06/13/amazon-unbox-on-x64-vista.md",
+      "why": "Grammar",
+      "from": "\"CorFlags\" is parts of the .NET / Platform SDK",
+      "to": "\"CorFlags\" is part of the .NET / Platform SDK"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Spelling",
+      "from": "to test your browser's color manangement behavior",
+      "to": "to test your browser's color management behavior"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Wrong word",
+      "from": "[calorimeter](http://en.wikipedia.org/wiki/Colorimeter \"calorimeter\") to calibrate the display",
+      "to": "[colorimeter](http://en.wikipedia.org/wiki/Colorimeter \"colorimeter\") to calibrate the display"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Wrong word",
+      "from": "I purchased a [X-Rite i1Display 2]",
+      "to": "I purchased an [X-Rite i1Display 2]"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Wrong word",
+      "from": "or correctly detecting the calorimeter.",
+      "to": "or correctly detecting the colorimeter."
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Product name",
+      "from": "getting the iMatch software to work correctly",
+      "to": "getting the i1Match software to work correctly"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Product name",
+      "from": "I tried the 1iDisplay 2 again with the 2408WFP displays",
+      "to": "I tried the i1Display 2 again with the 2408WFP displays"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Wrong word",
+      "from": "\"Datacolor Spyder 3 Elite\") calorimeter.",
+      "to": "\"Datacolor Spyder 3 Elite\") colorimeter."
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Missing or extra word",
+      "from": "not \"great\", and two monitors were not matched",
+      "to": "not \"great\", and the two monitors were not matched"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Grammar",
+      "from": "the graphics does not really matter, right",
+      "to": "the graphics do not really matter, right"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Wrong word",
+      "from": "The software supports multiple calorimeter devices",
+      "to": "The software supports multiple colorimeter devices"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Wrong word",
+      "from": "since EnTech provides a SDK, maybe they can",
+      "to": "since EnTech provides an SDK, maybe they can"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Missing or extra word",
+      "from": "without needing to use monitor's buttons",
+      "to": "without needing to use the monitor's buttons"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Spelling",
+      "from": "Event at a brightness of 0 the luminance",
+      "to": "Even at a brightness of 0 the luminance"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Wrong word",
+      "from": "This time I had not problems",
+      "to": "This time I had no problems"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Wrong word",
+      "from": "monitors kept loosing their settings when they wake",
+      "to": "monitors kept losing their settings when they wake"
+    },
+    {
+      "file": "content/posts/2009/07/05/dell-2408wfp-loosing-settings-on-power-cycle.md",
+      "why": "Wrong word",
+      "from": "title: DELL 2408WFP loosing settings on power cycle",
+      "to": "title: DELL 2408WFP losing settings on power cycle"
+    },
+    {
+      "file": "content/posts/2009/07/05/dell-2408wfp-loosing-settings-on-power-cycle.md",
+      "why": "Grammar",
+      "from": "or the monitors go into power saving mode, or powers off",
+      "to": "or the monitors go into power saving mode, or power off"
+    },
+    {
+      "file": "content/posts/2009/07/05/dell-2408wfp-loosing-settings-on-power-cycle.md",
+      "why": "Grammar",
+      "from": "if this is specific my to my setup",
+      "to": "if this is specific to my setup"
+    },
+    {
+      "file": "content/posts/2009/07/17/power-saving-raid-controller-continued.md",
+      "why": "Grammar",
+      "from": "the Adaptec 5 series controller are not that workstation friendly",
+      "to": "the Adaptec 5 series controllers are not that workstation friendly"
+    },
+    {
+      "file": "content/posts/2009/07/17/power-saving-raid-controller-continued.md",
+      "why": "Spelling",
+      "from": "my system is taking a noticably longer time",
+      "to": "my system is taking a noticeably longer time"
+    },
+    {
+      "file": "content/posts/2009/07/17/power-saving-raid-controller-continued.md",
+      "why": "Spelling",
+      "from": "adding 16s to every shutown.",
+      "to": "adding 16s to every shutdown."
+    },
+    {
+      "file": "content/posts/2009/07/17/power-saving-raid-controller-continued.md",
+      "why": "Spelling",
+      "from": "in terms of even timing, and ASM",
+      "to": "in terms of event timing, and ASM"
+    },
+    {
+      "file": "content/posts/2009/07/17/power-saving-raid-controller-continued.md",
+      "why": "Wrong word",
+      "from": "connected to a LSI 8888ELP controller",
+      "to": "connected to an LSI 8888ELP controller"
+    },
+    {
+      "file": "content/posts/2009/07/17/power-saving-raid-controller-continued.md",
+      "why": "Missing or extra word",
+      "from": "a hardware compatibility problem between the WD RE4-GP /WD2002FYPS drives.",
+      "to": "a hardware compatibility problem between the WD RE4-GP /WD2002FYPS drives and the 51245 controller."
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Grammar",
+      "from": "To summarize, the RE4-GP drive fails with a variety of problems, Adaptec, Areca, and LSI acknowledge the problem and lays blame on WD, yet WD insists there are no known problems with the RE4-GP drives.",
+      "to": "To summarize, the RE4-GP drive fails with a variety of problems, Adaptec, Areca, and LSI acknowledge the problem and lay blame on WD, yet WD insists there are no known problems with the RE4-GP drives."
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Grammar",
+      "from": "and 2 x external SFF-8088 port, supporting 8 internal drives",
+      "to": "and 2 x external SFF-8088 ports, supporting 8 internal drives"
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Grammar",
+      "from": "the controller and battery was overheating",
+      "to": "the controller and battery were overheating"
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Grammar",
+      "from": "The RE4-GP drive fails with a variety of problems, Adaptec, Areca, and LSI acknowledge the problem and lays blame on WD, yet WD insists there are no known problems with the RE4 drives-GP.",
+      "to": "The RE4-GP drive fails with a variety of problems, Adaptec, Areca, and LSI acknowledge the problem and lay blame on WD, yet WD insists there are no known problems with the RE4-GP drives."
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Spelling",
+      "from": "I will definately be returning the RE4-GP drives",
+      "to": "I will definitely be returning the RE4-GP drives"
+    },
+    {
+      "file": "content/posts/2009/10/11/hitachi-a7k2000-and-seagate-barracude.md",
+      "why": "Product name",
+      "from": "title: Hitachi Ultrastar and Seagate Barracude LP 2TB drives",
+      "to": "title: Hitachi Ultrastar and Seagate Barracuda LP 2TB drives"
+    },
+    {
+      "file": "content/posts/2009/10/11/hitachi-a7k2000-and-seagate-barracude.md",
+      "why": "Wrong word",
+      "from": "The Areca had not problems with the Hitachi or Seagate drives",
+      "to": "The Areca had no problems with the Hitachi or Seagate drives"
+    },
+    {
+      "file": "content/posts/2009/10/11/hitachi-a7k2000-and-seagate-barracude.md",
+      "why": "Product name",
+      "from": "Areaca, RAID5, Seagate:",
+      "to": "Areca, RAID5, Seagate:"
+    },
+    {
+      "file": "content/posts/2009/10/11/hitachi-a7k2000-and-seagate-barracude.md",
+      "why": "Grammar",
+      "from": "\"Invalid field in CDB\" errors with, but it did not",
+      "to": "\"Invalid field in CDB\" errors, but it did not"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Wrong word",
+      "from": "After he told me how quite the device is",
+      "to": "After he told me how quiet the device is"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Grammar",
+      "from": "it did appear to unmount them, and then reboot.",
+      "to": "it did appear to unmount them, and then rebooted."
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Grammar",
+      "from": "the diagnostic report dialog hanged, then I noticed",
+      "to": "the diagnostic report dialog hung, then I noticed"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Spelling",
+      "from": "to my surprised the file was encrypted",
+      "to": "to my surprise the file was encrypted"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Grammar",
+      "from": "the encryption on newer models have changed",
+      "to": "the encryption on newer models has changed"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Grammar",
+      "from": "on the Drobo support site was helpful",
+      "to": "on the Drobo support site were helpful"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Grammar",
+      "from": "The steps calls for; power up with USB only",
+      "to": "The steps call for; power up with USB only"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Missing or extra word",
+      "from": "The steps say that for DroboPro connected to a switch",
+      "to": "The steps say that for a DroboPro connected to a switch"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Wrong word",
+      "from": "I could not see why no, so I ignored",
+      "to": "I could not see why not, so I ignored"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Grammar",
+      "from": "the target and device was already configured",
+      "to": "the target and device were already configured"
+    },
+    {
+      "file": "content/posts/2009/12/23/drobopro-impressions.md",
+      "why": "Grammar",
+      "from": "Email alerts requires a user to be logged in",
+      "to": "Email alerts require a user to be logged in"
+    },
+    {
+      "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
+      "why": "Wrong word",
+      "from": "too loud for a HTPC",
+      "to": "too loud for an HTPC"
+    },
+    {
+      "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
+      "why": "Wrong word",
+      "from": "The HD 2600XT GPU fan was very load",
+      "to": "The HD 2600XT GPU fan was very loud"
+    },
+    {
+      "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
+      "why": "Spelling",
+      "from": "because it has an HDMI connecter",
+      "to": "because it has an HDMI connector"
+    },
+    {
+      "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
+      "why": "Grammar",
+      "from": "meaning the fans are on all the time, the fans worked fine",
+      "to": "meaning the fans are on all the time, the fans work fine"
+    },
+    {
+      "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
+      "why": "Missing or extra word",
+      "from": "There is a little piece of text on Scythe site",
+      "to": "There is a little piece of text on Scythe's site"
+    },
+    {
+      "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
+      "why": "Spelling",
+      "from": "remote control only login, codec's, etc.",
+      "to": "remote control only login, codecs, etc."
+    },
+    {
+      "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
+      "why": "Grammar",
+      "from": "fixing the overscan is the first thing I tried to do",
+      "to": "fixing the overscan was the first thing I tried to do"
+    },
+    {
+      "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
+      "why": "Wrong word",
+      "from": "vs. a default that cuts of parts of the screen",
+      "to": "vs. a default that cuts off parts of the screen"
+    },
+    {
+      "file": "content/posts/2010/01/03/intel-dp45sg-and-lian-li-pc-c33b-htpc.md",
+      "why": "Grammar",
+      "from": "and the 9.12 driver hotfix does not address this problem",
+      "to": "and the 9.12 driver hotfix do not address this problem"
+    },
+    {
+      "file": "content/posts/2010/01/30/data-robotics-drobopro-vs-qnap-ts-859-pro.md",
+      "why": "Grammar",
+      "from": "a new RAW volume being mounted, and asked if it should be formatted",
+      "to": "a new RAW volume being mounted, and ask if it should be formatted"
+    },
+    {
+      "file": "content/posts/2010/01/30/data-robotics-drobopro-vs-qnap-ts-859-pro.md",
+      "why": "Grammar",
+      "from": "email alerts are generated from the device and does not require",
+      "to": "email alerts are generated from the device and do not require"
+    },
+    {
+      "file": "content/posts/2010/01/30/data-robotics-drobopro-vs-qnap-ts-859-pro.md",
+      "why": "Wrong word",
+      "from": "to keep things fair I setup a configuration",
+      "to": "to keep things fair I set up a configuration"
+    },
+    {
+      "file": "content/posts/2010/01/30/data-robotics-drobopro-vs-qnap-ts-859-pro.md",
+      "why": "Product name",
+      "from": "TS-589 Pro (1500 MTU) iSCSI:",
+      "to": "TS-859 Pro (1500 MTU) iSCSI:"
+    },
+    {
+      "file": "content/posts/2010/01/30/data-robotics-drobopro-vs-qnap-ts-859-pro.md",
+      "why": "Product name",
+      "from": "TS-589 Pro Jumbo Frame (9000 MTU) iSCSI:",
+      "to": "TS-859 Pro Jumbo Frame (9000 MTU) iSCSI:"
+    },
+    {
+      "file": "content/posts/2010/01/30/data-robotics-drobopro-vs-qnap-ts-859-pro.md",
+      "why": "Product name",
+      "from": "TS-589 Pro SMB:",
+      "to": "TS-859 Pro SMB:"
+    },
+    {
+      "file": "content/posts/2010/01/30/data-robotics-drobopro-vs-qnap-ts-859-pro.md",
+      "why": "Grammar",
+      "from": "This phenomena has been a topic of discussion",
+      "to": "This phenomenon has been a topic of discussion"
+    },
+    {
+      "file": "content/posts/2010/01/30/data-robotics-drobopro-vs-qnap-ts-859-pro.md",
+      "why": "Wrong word",
+      "from": "is not as pretty as the DroboPro, arguable.",
+      "to": "is not as pretty as the DroboPro, arguably."
+    },
+    {
+      "file": "content/posts/2010/01/30/data-robotics-drobopro-vs-qnap-ts-859-pro.md",
+      "why": "Spelling",
+      "from": "ample diagnostics and remote managament capabilities",
+      "to": "ample diagnostics and remote management capabilities"
+    },
+    {
+      "file": "content/posts/2010/01/30/data-robotics-drobopro-vs-qnap-ts-859-pro.md",
+      "why": "Wrong word",
+      "from": "The TS-859 Pro is easy to setup",
+      "to": "The TS-859 Pro is easy to set up"
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Grammar",
+      "from": "DELL monitors in the past, so it was very important",
+      "to": "DELL monitors in the past, it was very important"
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Product name",
+      "from": "Although the 2405PFW does not require dual-link",
+      "to": "Although the 2405FPW does not require dual-link"
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Spelling",
+      "from": "monitors wihtout any issues",
+      "to": "monitors without any issues"
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Wrong word",
+      "from": "then plugin the KVM to the notebook",
+      "to": "then plug in the KVM to the notebook"
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Missing or extra word",
+      "from": "and I switched StarTech for dual-link support",
+      "to": "and I switched to StarTech for dual-link support"
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Wrong word",
+      "from": "but the monitor is a [LCD2690WUXi2]",
+      "to": "but the monitor is an [LCD2690WUXi2]"
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Product name",
+      "from": "and the \"-SW\" designation means the \"SVII-PRO-KIT\"",
+      "to": "and the \"-SV\" designation means the \"SVII-PRO-KIT\""
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Grammar",
+      "from": "the monitor calibration values are validated, and warns you",
+      "to": "the monitor calibration values are validated, and it warns you"
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Missing or extra word",
+      "from": "I normally just put machine to sleep",
+      "to": "I normally just put the machine to sleep"
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Wrong word",
+      "from": "but since I rarely logout",
+      "to": "but since I rarely log out"
+    },
+    {
+      "file": "content/posts/2010/01/30/nec-multisync-lcd2490wuxi2-and-lcd2690wuxi2.md",
+      "why": "Grammar",
+      "from": "The only comments I receive every time somebody visits my desk is",
+      "to": "The only comment I receive every time somebody visits my desk is"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Missing or extra word",
+      "from": "This is first post in a",
+      "to": "This is the first post in a"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Grammar",
+      "from": "I am currently using a two self built HTPC's",
+      "to": "I am currently using two self built HTPC's"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Spelling",
+      "from": "SODIM RAM module, I ordered the",
+      "to": "SODIMM RAM module, I ordered the"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Wrong word",
+      "from": "I installed a [80GB Intel SSD",
+      "to": "I installed an [80GB Intel SSD"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Grammar",
+      "from": "a variety of keys that normally lets you enter the BIOS",
+      "to": "a variety of keys that normally let you enter the BIOS"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Wrong word",
+      "from": "The ID11 is supposed to be used as a HTPC",
+      "to": "The ID11 is supposed to be used as an HTPC"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Wrong word",
+      "from": "The fan is quieter, but not quite",
+      "to": "The fan is quieter, but not quiet"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Wrong word",
+      "from": "I filed a RMA with NewEgg, and returned the on ID11",
+      "to": "I filed an RMA with NewEgg, and returned the one ID11"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Missing or extra word",
+      "from": "Below is picture of the screen corruption:",
+      "to": "Below is a picture of the screen corruption:"
+    },
+    {
+      "file": "content/posts/2010/05/18/zotac-zboxhd-id11-4gb-ram.md",
+      "why": "Grammar",
+      "from": "it is reporting that the memory as bad",
+      "to": "it is reporting the memory as bad"
+    },
+    {
+      "file": "content/posts/2010/05/18/zotac-zboxhd-id11-4gb-ram.md",
+      "why": "Spelling",
+      "from": "a [4GB Kingston SODIM RAM]",
+      "to": "a [4GB Kingston SODIMM RAM]"
+    },
+    {
+      "file": "content/posts/2010/05/18/zotac-zboxhd-id11-4gb-ram.md",
+      "why": "Spelling",
+      "from": "using a [2GB Kingston SODIM RAM]",
+      "to": "using a [2GB Kingston SODIMM RAM]"
+    },
+    {
+      "file": "content/posts/2010/05/18/zotac-zboxhd-id11-fan-speed-and-noise.md",
+      "why": "Missing or extra word",
+      "from": "This is second post in a",
+      "to": "This is the second post in a"
+    },
+    {
+      "file": "content/posts/2010/05/18/zotac-zboxhd-id11-fan-speed-and-noise.md",
+      "why": "Missing or extra word",
+      "from": "and produced significantly better results",
+      "to": "and it produced significantly better results"
+    },
+    {
+      "file": "content/posts/2010/05/18/zotac-zboxhd-id11-fan-speed-and-noise.md",
+      "why": "Missing or extra word",
+      "from": "Next I launched EVEREST system stability test",
+      "to": "Next I launched the EVEREST system stability test"
+    },
+    {
+      "file": "content/posts/2010/05/18/zotac-zboxhd-id11-fan-speed-and-noise.md",
+      "why": "Wrong word",
+      "from": "and instead relies on the CPU to the rendering",
+      "to": "and instead rely on the CPU to do the rendering"
+    },
+    {
+      "file": "content/posts/2010/05/26/zotac-zboxhd-id11-beta-bios-reduces-fan-speed-and-noise.md",
+      "why": "Grammar",
+      "from": "a new Beta BIOS is available that address the issue",
+      "to": "a new Beta BIOS is available that addresses the issue"
+    },
+    {
+      "file": "content/posts/2010/05/26/zotac-zboxhd-id11-beta-bios-reduces-fan-speed-and-noise.md",
+      "why": "Spelling",
+      "from": "the Beta BIOS maximum fans speed is around 2400RPM",
+      "to": "the Beta BIOS maximum fan speed is around 2400RPM"
+    },
+    {
+      "file": "content/posts/2010/05/27/zotac-zbhoxhd-id11-case-positioning-impact-on-fan-noise.md",
+      "why": "Product name",
+      "from": "title: Zotac ZBHOXHD-ID11 Case Positioning Impact on Fan Noise",
+      "to": "title: Zotac ZBOXHD-ID11 Case Positioning Impact on Fan Noise"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Product name",
+      "from": "title: Zotac XBOXHD-ID11 MKV H.264 Video Playback Performance",
+      "to": "title: Zotac ZBOXHD-ID11 MKV H.264 Video Playback Performance"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Wrong word",
+      "from": "document video playback and use as a HTPC",
+      "to": "document video playback and use as an HTPC"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Missing or extra word",
+      "from": "As standalone player, [Media Player Classic Home Cinema]",
+      "to": "As a standalone player, [Media Player Classic Home Cinema]"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Wrong word",
+      "from": "A MKV file is not",
+      "to": "An MKV file is not"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Wrong word",
+      "from": "A MKV file can contain multiple audio-, video-",
+      "to": "An MKV file can contain multiple audio-, video-"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Wrong word",
+      "from": "To play the contents of a MKV file",
+      "to": "To play the contents of an MKV file"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Wrong word",
+      "from": "Even on a x64 system, WMP is still a x86 process",
+      "to": "Even on an x64 system, WMP is still an x86 process"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Spelling",
+      "from": "uses the system installed DirectShow filers for playback",
+      "to": "uses the system installed DirectShow filters for playback"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Wrong word",
+      "from": "MCE runs as a x64 process on a x64 system",
+      "to": "MCE runs as an x64 process on an x64 system"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Product name",
+      "from": "is included with the Premier and Ultimate editions of Windows",
+      "to": "is included with the Premium and Ultimate editions of Windows"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Wrong word",
+      "from": "I could not get subtitles to show in WMP. I also tried",
+      "to": "I could not get subtitles to show in MCE. I also tried"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Wrong word",
+      "from": "and want a MCE alternative",
+      "to": "and want an MCE alternative"
+    },
+    {
+      "file": "content/posts/2010/05/28/zotac-xboxhd-id11-mkv-h264-video.md",
+      "why": "Missing or extra word",
+      "from": "or if don't mind configuration files",
+      "to": "or if you don't mind configuration files"
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Missing or extra word",
+      "from": "maybe they are representative of IT organizations as whole",
+      "to": "maybe they are representative of IT organizations as a whole"
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Wrong word",
+      "from": "every time you login it shows a splashscreen",
+      "to": "every time you log in it shows a splashscreen"
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Wrong word",
+      "from": "They probably though it looks cool.",
+      "to": "They probably thought it looks cool."
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Spelling",
+      "from": "disabling autostart does not disable the splashcreen",
+      "to": "disabling autostart does not disable the splashscreen"
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Spelling",
+      "from": "Or is that really 23,729 KB as in 24 megabyte?",
+      "to": "Or is that really 23,792 KB as in 24 megabyte?"
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Grammar",
+      "from": "the installer will run elevated, and the install succeed.",
+      "to": "the installer will run elevated, and the install succeeds."
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Grammar",
+      "from": "It is companies like NCP that gives Windows a bad name, and drives",
+      "to": "It is companies like NCP that give Windows a bad name, and drive"
+    },
+    {
+      "file": "content/posts/2010/12/31/trend-micro-safesync-neat-but-unreliable.md",
+      "why": "Grammar",
+      "from": "between then and now their product seem to have come",
+      "to": "between then and now their product seems to have come"
+    },
+    {
+      "file": "content/posts/2010/12/31/trend-micro-safesync-neat-but-unreliable.md",
+      "why": "Grammar",
+      "from": "I have used Humyo when they were in Beta",
+      "to": "I used Humyo when they were in Beta"
+    },
+    {
+      "file": "content/posts/2010/12/31/trend-micro-safesync-neat-but-unreliable.md",
+      "why": "Wrong word",
+      "from": "every time I logout of Windows",
+      "to": "every time I log out of Windows"
+    },
+    {
+      "file": "content/posts/2010/12/31/will-your-online-backup-or-sync-and-share-provider-survive.md",
+      "why": "Wrong word",
+      "from": "became paid only accounts or loose your data",
+      "to": "became paid only accounts or lose your data"
+    },
+    {
+      "file": "content/posts/2011/01/03/delete-are-you-sure-yes-oh-oh.md",
+      "why": "Missing or extra word",
+      "from": "This is 5TB GPT partition backed by RAID5",
+      "to": "This is a 5TB GPT partition backed by RAID5"
+    },
+    {
+      "file": "content/posts/2011/01/03/delete-are-you-sure-yes-oh-oh.md",
+      "why": "Wrong word",
+      "from": "they are too big to backup",
+      "to": "they are too big to back up"
+    },
+    {
+      "file": "content/posts/2011/04/12/unlimited-online-backup-providers.md",
+      "why": "Wrong word",
+      "from": "offers a [$80 per year for unlimited storage]",
+      "to": "offers an [$80 per year for unlimited storage]"
+    },
+    {
+      "file": "content/posts/2011/04/12/unlimited-online-backup-providers.md",
+      "why": "Wrong word",
+      "from": "significantly trim down what I backup",
+      "to": "significantly trim down what I back up"
+    },
+    {
+      "file": "content/posts/2011/04/12/unlimited-online-backup-providers.md",
+      "why": "Spelling",
+      "from": "Needles to say, none of their new plans",
+      "to": "Needless to say, none of their new plans"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Grammar",
+      "from": "the dimensions of the 600-disc case allows for easy manipulation",
+      "to": "the dimensions of the 600-disc case allow for easy manipulation"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Wrong word",
+      "from": "the naming is used to lookup the content details",
+      "to": "the naming is used to look up the content details"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Missing or extra word",
+      "from": "online services allow access my catalog content anywhere",
+      "to": "online services allow access to my catalog content anywhere"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Grammar",
+      "from": "the individual movies in the box does not",
+      "to": "the individual movies in the box do not"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Wrong word",
+      "from": "you are still not guaranteed the what you read is accurate",
+      "to": "you are still not guaranteed that what you read is accurate"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Grammar",
+      "from": "also resulting in a different CD fingerprints",
+      "to": "also resulting in different CD fingerprints"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Spelling",
+      "from": "a language other than the main audio langue",
+      "to": "a language other than the main audio language"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Grammar",
+      "from": "that [Boxee](http://www.boxee.tv/) and [XBMC](http://xbmc.org/) recognizes",
+      "to": "that [Boxee](http://www.boxee.tv/) and [XBMC](http://xbmc.org/) recognize"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Grammar",
+      "from": "RPC-1 versions of firmware is available for many drives",
+      "to": "RPC-1 versions of firmware are available for many drives"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Wrong word",
+      "from": "restricts the media than can be played in that drive",
+      "to": "restricts the media that can be played in that drive"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Spelling",
+      "from": "the fastest DVD dripping drives",
+      "to": "the fastest DVD ripping drives"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "title: Synology DS1511+ vs. QNap TS-859 Pro",
+      "to": "title: Synology DS1511+ vs. QNAP TS-859 Pro"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Import artifact",
+      "from": "Untitled Page I have been very happy with my",
+      "to": "I have been very happy with my"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Missing or extra word",
+      "from": "so it not totally fair to compare",
+      "to": "so it is not totally fair to compare"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Grammar",
+      "from": "when both LAN-1 and LAN-2 is connected",
+      "to": "when both LAN-1 and LAN-2 are connected"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Grammar and Product name",
+      "from": "Both the QNap and Synology exhibits weird LAN traffic behavior",
+      "to": "Both the QNAP and Synology exhibit weird LAN traffic behavior"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Wrong word",
+      "from": "power of the other device while not being tested",
+      "to": "power off the other device while not being tested"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "the Samsung PM810 SSD drive using ATTO and CDW.",
+      "to": "the Samsung PM810 SSD drive using ATTO and CDM."
+    },
+    {
+      "file": "content/posts/2011/12/13/rotation-confuses-face-recognition.md",
+      "why": "Grammar",
+      "from": "and duplicate contacts happens all the time",
+      "to": "and duplicate contacts happen all the time"
+    },
+    {
+      "file": "content/posts/2011/12/13/rotation-confuses-face-recognition.md",
+      "why": "Spelling",
+      "from": "supports almost all camera's and formats under the sun",
+      "to": "supports almost all cameras and formats under the sun"
+    },
+    {
+      "file": "content/posts/2011/12/13/rotation-confuses-face-recognition.md",
+      "why": "Wrong word",
+      "from": "did not render correctly nor detect any pictures at all",
+      "to": "did not render correctly nor detect any faces at all"
+    },
+    {
+      "file": "content/posts/2011/12/13/rotation-confuses-face-recognition.md",
+      "why": "Wrong word",
+      "from": "they were shipping a x64 DNG codec",
+      "to": "they were shipping an x64 DNG codec"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Import artifact",
+      "from": "Untitled Page I have yet to find",
+      "to": "I have yet to find"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Wrong word",
+      "from": "When using a [HDMI switch]",
+      "to": "When using an [HDMI switch]"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Wrong word",
+      "from": "I substitute it for a \";\" in the filename",
+      "to": "I substitute a \";\" for it in the filename"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Grammar",
+      "from": "article on Boxee](http://en.wikipedia.org/wiki/Boxee#Hardware_with_Boxee_software_integrated) shows the devices",
+      "to": "article on Boxee](http://en.wikipedia.org/wiki/Boxee#Hardware_with_Boxee_software_integrated) show the devices"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Spelling",
+      "from": "replacing one of my D-Link Boxee's",
+      "to": "replacing one of my D-Link Boxees"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Missing or extra word",
+      "from": "but I around the end of November I pre-ordered",
+      "to": "but around the end of November I pre-ordered"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Grammar",
+      "from": "The Iomega powered on and displays IO on the screen",
+      "to": "The Iomega powers on and displays IO on the screen"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Wrong word",
+      "from": "The next step was to login to my Boxee account",
+      "to": "The next step was to log in to my Boxee account"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Wrong word",
+      "from": "something like a RF Harmony One can be built",
+      "to": "something like an RF Harmony One can be built"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Wrong word",
+      "from": "and I could login to my account",
+      "to": "and I could log in to my account"
+    },
+    {
+      "file": "content/posts/2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee.md",
+      "why": "Wrong word",
+      "from": "When I tried to play a MKV file with TrueHD",
+      "to": "When I tried to play an MKV file with TrueHD"
+    },
+    {
+      "file": "content/posts/2012/06/07/blogger-dynamic-templates.md",
+      "why": "Wrong word",
+      "from": "You can read about what if offers readers",
+      "to": "You can read about what it offers readers"
+    },
+    {
+      "file": "content/posts/2012/06/07/blogger-dynamic-templates.md",
+      "why": "Grammar",
+      "from": "the default templates are very narrow and wastes tons of space",
+      "to": "the default templates are very narrow and waste tons of space"
+    },
+    {
+      "file": "content/posts/2012/06/07/blogger-dynamic-templates.md",
+      "why": "Spelling",
+      "from": "import the dynamic template for WYSIWIG editing",
+      "to": "import the dynamic template for WYSIWYG editing"
+    },
+    {
+      "file": "content/posts/2012/06/19/looks-can-be-deceiving.md",
+      "why": "Grammar",
+      "from": "on a postcard, entered the amount of a test transfer",
+      "to": "on a postcard, enter the amount of a test transfer"
+    },
+    {
+      "file": "content/posts/2012/06/19/looks-can-be-deceiving.md",
+      "why": "Wrong word",
+      "from": "That leaves me to using just tagged links to Amazon pages",
+      "to": "That leaves me with using just tagged links to Amazon pages"
+    },
+    {
+      "file": "content/posts/2012/06/19/looks-can-be-deceiving.md",
+      "why": "Spelling",
+      "from": "Unfortunately, the WYSIWIG functionality does not work",
+      "to": "Unfortunately, the WYSIWYG functionality does not work"
+    },
+    {
+      "file": "content/posts/2012/06/19/looks-can-be-deceiving.md",
+      "why": "Wrong word",
+      "from": "the few dollars I stand to loose is well worth it",
+      "to": "the few dollars I stand to lose is well worth it"
+    },
+    {
+      "file": "content/posts/2012/07/15/crashplan-memory-utilization.md",
+      "why": "Grammar",
+      "from": "have restrictions in place that makes such a setup impossible",
+      "to": "have restrictions in place that make such a setup impossible"
+    },
+    {
+      "file": "content/posts/2012/07/15/crashplan-memory-utilization.md",
+      "why": "Grammar",
+      "from": "the maximum amount of memory they use are capped by configuration",
+      "to": "the maximum amount of memory they use is capped by configuration"
+    },
+    {
+      "file": "content/posts/2012/07/15/crashplan-memory-utilization.md",
+      "why": "Wrong word",
+      "from": "To fix the problem, shutdown the service",
+      "to": "To fix the problem, shut down the service"
+    },
+    {
+      "file": "content/posts/2012/07/15/crashplan-memory-utilization.md",
+      "why": "Wrong word",
+      "from": "the amount of data I backup",
+      "to": "the amount of data I back up"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Missing or extra word",
+      "from": "I created a blog a WordPress.com",
+      "to": "I created a blog at WordPress.com"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Missing or extra word",
+      "from": "If you enter the BlueHost using",
+      "to": "If you enter BlueHost using"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Missing or extra word",
+      "from": "As I did not want restrict myself to a particular domain",
+      "to": "As I did not want to restrict myself to a particular domain"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Spelling",
+      "from": "told me that the fist step is to transfer my domain",
+      "to": "told me that the first step is to transfer my domain"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Grammar",
+      "from": "I need to open port 2082 and 2083 outbound",
+      "to": "I need to open ports 2082 and 2083 outbound"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Wrong word",
+      "from": "does not allow anything other that port 80 HTTP",
+      "to": "does not allow anything other than port 80 HTTP"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Wrong word",
+      "from": "I proceeded to login to cPanel",
+      "to": "I proceeded to log in to cPanel"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Wrong word",
+      "from": "you are asked to provide a FTP username",
+      "to": "you are asked to provide an FTP username"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Grammar",
+      "from": "that allows you to use a dreamhosters.com sub-domain",
+      "to": "that allow you to use a dreamhosters.com sub-domain"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Grammar",
+      "from": "Blogger and WordPress.com uses different permalink formats",
+      "to": "Blogger and WordPress.com use different permalink formats"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Spelling",
+      "from": "The forum users' comment was very insightful",
+      "to": "The forum user's comment was very insightful"
+    },
+    {
+      "file": "content/posts/2012/07/15/from-blogger-to-wordpress.md",
+      "why": "Missing or extra word",
+      "from": "I could find no information about it on WordPress site",
+      "to": "I could find no information about it on the WordPress site"
+    },
+    {
+      "file": "content/posts/2012/07/19/windows-8-and-server-2012-on-supermicro-results-in-acpi_bios_error-bsod.md",
+      "why": "Wrong word",
+      "from": "and an [NVidia Quadro 4000](http://amzn.to/Mbv3AI) graphic card",
+      "to": "and an [NVidia Quadro 4000](http://amzn.to/Mbv3AI) graphics card"
+    },
+    {
+      "file": "content/posts/2012/07/19/windows-8-and-server-2012-on-supermicro-results-in-acpi_bios_error-bsod.md",
+      "why": "Grammar",
+      "from": "before Windows 8 and Windows Server 2012 is released",
+      "to": "before Windows 8 and Windows Server 2012 are released"
+    },
+    {
+      "file": "content/posts/2012/07/20/debugging-windows-8-install-bsod.md",
+      "why": "Grammar",
+      "from": "Once you installed the debugging tools on one machine",
+      "to": "Once you have installed the debugging tools on one machine"
+    },
+    {
+      "file": "content/posts/2012/07/22/xbmc-for-android-on-pivos-xios-ds.md",
+      "why": "Product name",
+      "from": "was done on a [Pivox XIOS DS]",
+      "to": "was done on a [Pivos XIOS DS]"
+    },
+    {
+      "file": "content/posts/2012/07/22/xbmc-for-android-on-pivos-xios-ds.md",
+      "why": "Missing or extra word",
+      "from": "If you're interested in an a full unboxing",
+      "to": "If you're interested in a full unboxing"
+    },
+    {
+      "file": "content/posts/2012/07/22/xbmc-for-android-on-pivos-xios-ds.md",
+      "why": "Grammar",
+      "from": "By default LAN and WiFi are both disable,",
+      "to": "By default LAN and WiFi are both disabled,"
+    },
+    {
+      "file": "content/posts/2012/07/22/xbmc-for-android-on-pivos-xios-ds.md",
+      "why": "Missing or extra word",
+      "from": "that allowed me to access to the folder",
+      "to": "that allowed me to access the folder"
+    },
+    {
+      "file": "content/posts/2012/07/22/xbmc-for-android-on-pivos-xios-ds.md",
+      "why": "Wrong word",
+      "from": "Next I tried setting up a XP VM image",
+      "to": "Next I tried setting up an XP VM image"
+    },
+    {
+      "file": "content/posts/2012/07/22/xbmc-for-android-on-pivos-xios-ds.md",
+      "why": "Grammar",
+      "from": "Note that these MKV files only contains a video stream",
+      "to": "Note that these MKV files only contain a video stream"
+    },
+    {
+      "file": "content/posts/2012/07/30/supermicro-beta-bios-supports-windows-8-and-server-2012.md",
+      "why": "Wrong word",
+      "from": "Server 2012 due to a [ACPI\\_BIOS\\_ERROR]",
+      "to": "Server 2012 due to an [ACPI\\_BIOS\\_ERROR]"
+    },
+    {
+      "file": "content/posts/2012/07/30/supermicro-beta-bios-supports-windows-8-and-server-2012.md",
+      "why": "Grammar",
+      "from": "now enabled hot plug on all ports",
+      "to": "now enables hot plug on all ports"
+    },
+    {
+      "file": "content/posts/2012/07/30/supermicro-beta-bios-supports-windows-8-and-server-2012.md",
+      "why": "Spelling",
+      "from": "\\[Boot Feature\\] ads a new power configuration item",
+      "to": "\\[Boot Feature\\] adds a new power configuration item"
+    },
+    {
+      "file": "content/posts/2012/07/30/supermicro-beta-bios-supports-windows-8-and-server-2012.md",
+      "why": "Grammar",
+      "from": "I just wish SuperMicro solved the BIOS incompatibility problems long ago",
+      "to": "I just wish SuperMicro had solved the BIOS incompatibility problems long ago"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Wrong word",
+      "from": "the install hanging when booting of the LSI 2038 SAS controller",
+      "to": "the install hanging when booting off the LSI 2308 SAS controller"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Wrong word",
+      "from": "using a [X9DA7]",
+      "to": "using an [X9DA7]"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Wrong word",
+      "from": "using a [X9DAi]",
+      "to": "using an [X9DAi]"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Grammar",
+      "from": "and the install hanged at 0% while copying files",
+      "to": "and the install hung at 0% while copying files"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Grammar",
+      "from": "I ran diskpart, and diskpart hanged",
+      "to": "I ran diskpart, and diskpart hung"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Missing or extra word",
+      "from": "I would not recommend using SuperMicro 14368 method",
+      "to": "I would not recommend using the SuperMicro 14368 method"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Missing or extra word",
+      "from": "then change to the directory to the USB drive",
+      "to": "then change the directory to the USB drive"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Grammar",
+      "from": "includes firmware P14 version 14.0.0.0",
+      "to": "include firmware P14 version 14.0.0.0"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Grammar",
+      "from": "The P14 firmware packages does not include the EFI version",
+      "to": "The P14 firmware packages do not include the EFI version"
+    },
+    {
+      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
+      "why": "Missing or extra word",
+      "from": "benchmark site to be a very informative",
+      "to": "benchmark site to be very informative"
+    },
+    {
+      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
+      "why": "Missing or extra word",
+      "from": "something unique the Quadro 5000 cards",
+      "to": "something unique to the Quadro 5000 cards"
+    },
+    {
+      "file": "content/posts/2012/08/06/wordpress-com-404-with-blogger-permalinks.md",
+      "why": "Grammar",
+      "from": "will resolve correctly once the old posts were imported",
+      "to": "would resolve correctly once the old posts were imported"
+    },
+    {
+      "file": "content/posts/2012/08/06/wordpress-com-404-with-blogger-permalinks.md",
+      "why": "Wrong word",
+      "from": "reported a suddenly spike in 404's",
+      "to": "reported a sudden spike in 404's"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "if installing to a SSD drive on a [LSI 2308]",
+      "to": "if installing to an SSD drive on an [LSI 2308]"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "or a NVidia GeForce GTX 680",
+      "to": "or an NVidia GeForce GTX 680"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "with a NVidia Quadro 5000 graphic card",
+      "to": "with an NVidia Quadro 5000 graphics card"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Product name",
+      "from": "I got [VIDEO\\_TDR\\_ERROR BSOD]",
+      "to": "I got [VIDEO\\_TDR\\_FAILURE BSOD]"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Grammar",
+      "from": "I was hoping this will resolve the",
+      "to": "I was hoping this would resolve the"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Product name",
+      "from": "and [7470A-73]",
+      "to": "and [7047A-73]"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Product name",
+      "from": "motherboards used in the [7470A-T]",
+      "to": "motherboards used in the [7047A-T]"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Missing or extra word",
+      "from": "I have a variety WinPE v3 (Win7) based utility images",
+      "to": "I have a variety of WinPE v3 (Win7) based utility images"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Missing or extra word",
+      "from": "I tested with following hardware configurations",
+      "to": "I tested with the following hardware configurations"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Spelling",
+      "from": "the kernel ASSERT's on a problem reported by the BIOS",
+      "to": "the kernel ASSERTs on a problem reported by the BIOS"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Product name",
+      "from": "unrelated to the ACPI\\_TDR\\_FAILURE error",
+      "to": "unrelated to the VIDEO\\_TDR\\_FAILURE error"
+    },
+    {
+      "file": "content/posts/2012/09/07/koubachi-wi-fi-plant-sensor.md",
+      "why": "Grammar",
+      "from": "connect to it using your computer Wi-Fi adapter",
+      "to": "connect to it using your computer's Wi-Fi adapter"
+    },
+    {
+      "file": "content/posts/2012/09/07/koubachi-wi-fi-plant-sensor.md",
+      "why": "Wrong word",
+      "from": "everything appeared to be setup and working",
+      "to": "everything appeared to be set up and working"
+    },
+    {
+      "file": "content/posts/2012/09/07/koubachi-wi-fi-plant-sensor.md",
+      "why": "Spelling",
+      "from": "In the mean time it is displaying",
+      "to": "In the meantime it is displaying"
+    },
+    {
+      "file": "content/posts/2012/09/07/koubachi-wi-fi-plant-sensor.md",
+      "why": "Spelling",
+      "from": "In the mean time I'll install some more sensors",
+      "to": "In the meantime I'll install some more sensors"
+    },
+    {
+      "file": "content/posts/2012/09/07/koubachi-wi-fi-plant-sensor.md",
+      "why": "Missing or extra word",
+      "from": "in case you were concerned about effect of the Wi-Fi radiation",
+      "to": "in case you were concerned about the effect of the Wi-Fi radiation"
+    },
+    {
+      "file": "content/posts/2012/09/08/xbmc-for-linux-on-pivos-xios-ds.md",
+      "why": "Wrong word",
+      "from": "Pivos released a [XBMC build for Linux]",
+      "to": "Pivos released an [XBMC build for Linux]"
+    },
+    {
+      "file": "content/posts/2012/09/08/xbmc-for-linux-on-pivos-xios-ds.md",
+      "why": "Missing or extra word",
+      "from": "is very small (less than 5\" x 5\" x 1\") HTPC",
+      "to": "is a very small (less than 5\" x 5\" x 1\") HTPC"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Wrong word",
+      "from": "or a [LSI SAS 9207-8e]",
+      "to": "or an [LSI SAS 9207-8e]"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Spelling",
+      "from": "Arguable I am swapping one proprietary technology",
+      "to": "Arguably I am swapping one proprietary technology"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Wrong word",
+      "from": "that includes a [LSI SAS2308]",
+      "to": "that includes an [LSI SAS2308]"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Wrong word",
+      "from": "uses a [X9DA7]",
+      "to": "uses an [X9DA7]"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Wrong word",
+      "from": "tested using a [LSI MegaRAID SAS 9286CV-8e]",
+      "to": "tested using an [LSI MegaRAID SAS 9286CV-8e]"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Grammar",
+      "from": "and defeats the purpose of cost effective home use storage",
+      "to": "and defeat the purpose of cost effective home use storage"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Wrong word",
+      "from": "trying to install on a SSD connected to the SAS2308",
+      "to": "trying to install on an SSD connected to the SAS2308"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Grammar",
+      "from": "firmware was the only stable combination",
+      "to": "firmware were the only stable combination"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Product name",
+      "from": "the actual PowerShell commandlet parameters",
+      "to": "the actual PowerShell cmdlet parameters"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Missing or extra word",
+      "from": "is in TechNet [forum post]",
+      "to": "is in a TechNet [forum post]"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Grammar",
+      "from": "one of those technologies that matures and becomes generally usable",
+      "to": "one of those technologies that mature and become generally usable"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Missing or extra word",
+      "from": "and the write performance double that of a single disk",
+      "to": "and the write performance is double that of a single disk"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Missing or extra word",
+      "from": "but the RAID0 write IOPS doubling that of the Simple volume",
+      "to": "but the RAID0 write IOPS are double that of the Simple volume"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Product name",
+      "from": "It appears that the SLI card writes to all drives",
+      "to": "It appears that the LSI card writes to all drives"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Missing or extra word",
+      "from": "but the write performance almost ten fold that of Parity",
+      "to": "but the write performance is almost ten fold that of Parity"
+    },
+    {
+      "file": "content/posts/2012/09/22/storage-spaces-leaves-me-empty.md",
+      "why": "Missing or extra word",
+      "from": "but the IOPS ten fold higher",
+      "to": "but the IOPS are ten fold higher"
+    },
+    {
+      "file": "content/posts/2012/10/22/rip-boxee-box.md",
+      "why": "Grammar",
+      "from": "I am one of the many users that is plagued",
+      "to": "I am one of the many users that are plagued"
+    },
+    {
+      "file": "content/posts/2012/10/22/rip-boxee-box.md",
+      "why": "Grammar",
+      "from": "If I had known they will be discontinued",
+      "to": "If I had known they would be discontinued"
+    },
+    {
+      "file": "content/posts/2012/11/21/lsi-turns-their-back-on-green.md",
+      "why": "Grammar",
+      "from": "on my research into finding a power saving RAID controllers",
+      "to": "on my research into finding power saving RAID controllers"
+    },
+    {
+      "file": "content/posts/2012/11/21/lsi-turns-their-back-on-green.md",
+      "why": "Missing or extra word",
+      "from": "controllers Windows Server 2008 R2 servers",
+      "to": "controllers in my Windows Server 2008 R2 servers"
+    },
+    {
+      "file": "content/posts/2012/11/21/lsi-turns-their-back-on-green.md",
+      "why": "Grammar",
+      "from": "on either of the controllers, nor in Windows 8 or Windows Server 2012",
+      "to": "on either of the controllers, in either Windows 8 or Windows Server 2012"
+    },
+    {
+      "file": "content/posts/2012/11/21/lsi-turns-their-back-on-green.md",
+      "why": "Missing or extra word",
+      "from": "CS-033877.htm) that they have disabled",
+      "to": "CS-033877.htm) stating that they have disabled"
+    },
+    {
+      "file": "content/posts/2012/12/26/xbmc-on-nucs-and-pis.md",
+      "why": "Grammar",
+      "from": "The number of options are increasing",
+      "to": "The number of options is increasing"
+    },
+    {
+      "file": "content/posts/2012/12/26/xbmc-on-nucs-and-pis.md",
+      "why": "Wrong word",
+      "from": "I previously tested a [XIOS DS]",
+      "to": "I previously tested an [XIOS DS]"
+    },
+    {
+      "file": "content/posts/2012/12/26/xbmc-on-nucs-and-pis.md",
+      "why": "Wrong word",
+      "from": "of the DS, a M1 version, that I have",
+      "to": "of the DS, an M1 version, that I have"
+    },
+    {
+      "file": "content/posts/2012/12/26/xbmc-on-nucs-and-pis.md",
+      "why": "Wrong word",
+      "from": "Similar to openELEC that provides a XBMC plugin",
+      "to": "Similar to openELEC that provides an XBMC plugin"
+    },
+    {
+      "file": "content/posts/2012/12/26/xbmc-on-nucs-and-pis.md",
+      "why": "Grammar",
+      "from": "(I wish I can find more for sale)",
+      "to": "(I wish I could find more for sale)"
+    },
+    {
+      "file": "content/posts/2012/12/26/xbmc-on-nucs-and-pis.md",
+      "why": "Grammar",
+      "from": "once memory and flash storage is added",
+      "to": "once memory and flash storage are added"
+    },
+    {
+      "file": "content/posts/2012/12/26/xbmc-on-nucs-and-pis.md",
+      "why": "Wrong word",
+      "from": "system with a NVidia GeForce GT520M GPU",
+      "to": "system with an NVidia GeForce GT520M GPU"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Spelling",
+      "from": "title: Panasonic Lumix WiFi Dissapoints",
+      "to": "title: Panasonic Lumix WiFi Disappoints"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Product name",
+      "from": "and the [DMZ-ZS7]",
+      "to": "and the [DMC-ZS7]"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Missing or extra word",
+      "from": "WiFi capable handheld cameras, an opportunity to make my life simpler",
+      "to": "WiFi capable handheld cameras, came an opportunity to make my life simpler"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Product name",
+      "from": "to replace my DMC-Z20",
+      "to": "to replace my DMC-ZS20"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Spelling",
+      "from": "I setup the PC WiFi connected option",
+      "to": "I set up the PC WiFi connected option"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Wrong word",
+      "from": "PC connectivity requires a SMB network share",
+      "to": "PC connectivity requires an SMB network share"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Wrong word",
+      "from": "The camera has no provisioning for changing the workgroup",
+      "to": "The camera has no provision for changing the workgroup"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Spelling",
+      "from": "but 400 kilo bits per second is super slow",
+      "to": "but 400 kilobits per second is super slow"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Wrong word",
+      "from": "it reports your a username in the form",
+      "to": "it reports a username in the form"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Spelling",
+      "from": "You setup the account from the camera",
+      "to": "You set up the account from the camera"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Missing or extra word",
+      "from": "it displays an error message, any action more errors",
+      "to": "it displays an error message, any action gives more errors"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Grammar",
+      "from": "the WiFi capability on these cameras are a waste",
+      "to": "the WiFi capability on these cameras is a waste"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Product name",
+      "from": "At that time DirectTV was my only option",
+      "to": "At that time DirecTV was my only option"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Missing or extra word",
+      "from": "The TWC DVR sucked compared the TiVo that I was used, and",
+      "to": "The TWC DVR sucked compared to the TiVo that I was used to, and"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Grammar",
+      "from": "exclusivity and long service contracts leads to substandard offerings",
+      "to": "exclusivity and long service contracts lead to substandard offerings"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Grammar",
+      "from": "The HD channel lineup and internet speed was the primary reasons",
+      "to": "The HD channel lineup and internet speed were the primary reasons"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Product name",
+      "from": "I tried a Window MCE box",
+      "to": "I tried a Windows MCE box"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Product name",
+      "from": "the Roamio, Romio Plus, and Roamio Pro",
+      "to": "the Roamio, Roamio Plus, and Roamio Pro"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Grammar",
+      "from": "The screenshots below shows the relative sizes",
+      "to": "The screenshots below show the relative sizes"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Grammar",
+      "from": "the standard Roamio is reasonable thin and small",
+      "to": "the standard Roamio is reasonably thin and small"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Grammar",
+      "from": "that are moved between devices needs to be re-activated",
+      "to": "that are moved between devices need to be re-activated"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Wrong word",
+      "from": "My house is wired with CAT6 connected to a HP ProCurve",
+      "to": "My house is wired with CAT6 connected to an HP ProCurve"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Product name and Wrong word",
+      "from": "forum, siting incompatibility with \"green\" or 802.11az compliant switches",
+      "to": "forum, citing incompatibility with \"green\" or 802.3az compliant switches"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Spelling",
+      "from": "there is a gain a short pause",
+      "to": "there is again a short pause"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Grammar",
+      "from": "the Mini never displays the current watching video in the main UI",
+      "to": "the Mini never displays the currently watched video in the main UI"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Wrong word",
+      "from": "without loosing location context",
+      "to": "without losing location context"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Missing or extra word",
+      "from": "In order delete this show",
+      "to": "In order to delete this show"
+    },
+    {
+      "file": "content/posts/2013/09/30/tivo-roamio-dvr-vs-verizon-fios-dvr.md",
+      "why": "Missing or extra word",
+      "from": "only $100 more than Mini, there is little point",
+      "to": "only $100 more than the Mini, there is little point"
+    },
+    {
+      "file": "content/posts/2013/11/12/electrical-power-quality.md",
+      "why": "Grammar",
+      "from": "As far as the house and area is concerned",
+      "to": "As far as the house and area are concerned"
+    },
+    {
+      "file": "content/posts/2013/11/12/electrical-power-quality.md",
+      "why": "Wrong word",
+      "from": "but three of four times what we paid",
+      "to": "but three or four times what we paid"
+    },
+    {
+      "file": "content/posts/2013/11/12/electrical-power-quality.md",
+      "why": "Wrong word",
+      "from": "I referred to [Wikipedia](http://en.wikipedia.org/wiki/Power_quality) to and",
+      "to": "I referred to [Wikipedia](http://en.wikipedia.org/wiki/Power_quality) and"
+    },
+    {
+      "file": "content/posts/2013/11/12/electrical-power-quality.md",
+      "why": "Wrong word",
+      "from": "as the wave forms all look different, and the only difference",
+      "to": "as the wave forms all look similar, and the only difference"
+    },
+    {
+      "file": "content/posts/2014/04/16/self-signed-bitfury-drivers.md",
+      "why": "Spelling",
+      "from": "and easy to setup and run",
+      "to": "and easy to set up and run"
+    },
+    {
+      "file": "content/posts/2014/04/16/self-signed-bitfury-drivers.md",
+      "why": "Spelling",
+      "from": "In the mean time USB stick miners became available",
+      "to": "In the meantime USB stick miners became available"
+    },
+    {
+      "file": "content/posts/2014/04/16/self-signed-bitfury-drivers.md",
+      "why": "Wrong word",
+      "from": "an [Nano Fury II]",
+      "to": "a [Nano Fury II]"
+    },
+    {
+      "file": "content/posts/2014/04/16/self-signed-bitfury-drivers.md",
+      "why": "Wrong word",
+      "from": "is saved in \\*NIX format (CR), convert it",
+      "to": "is saved in \\*NIX format (LF), convert it"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Grammar",
+      "from": "the biggest source of dust are the gaps",
+      "to": "the biggest source of dust is the gaps"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Grammar",
+      "from": "sticking out past the pillars do not, and prevents",
+      "to": "sticking out past the pillars does not, and prevents"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Grammar",
+      "from": "the 23\" pillars just clears the enclosure",
+      "to": "the 23\" pillars just clear the enclosure"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Wrong word",
+      "from": "I replaced them with a MCP-290-00058-0N short rail set",
+      "to": "I replaced them with an MCP-290-00058-0N short rail set"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Grammar",
+      "from": "Low power and low heat was a higher priority",
+      "to": "Low power and low heat were a higher priority"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Missing or extra word",
+      "from": "over the more expensive but reliable Ultrastar drives",
+      "to": "over the more expensive but more reliable Ultrastar drives"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Wrong word",
+      "from": "a [MSSQL](",
+      "to": "an [MSSQL]("
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Grammar",
+      "from": "mixing 100Mbps and 1Gbps ports have serious performance",
+      "to": "mixing 100Mbps and 1Gbps ports has serious performance"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Wrong word",
+      "from": "Be weary of the ToughSwitch units though",
+      "to": "Be wary of the ToughSwitch units though"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Product name",
+      "from": "switches with Ubiquity ToughSwitch",
+      "to": "switches with Ubiquiti ToughSwitch"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Product name",
+      "from": "access points to Ubiquity [UniFi AC]",
+      "to": "access points to Ubiquiti [UniFi AC]"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Product name",
+      "from": "I did run a MiktroTik Routerboard",
+      "to": "I did run a MikroTik Routerboard"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Product name",
+      "from": "I now run a [Ubiquity EdgeRouter Pro]",
+      "to": "I now run a [Ubiquiti EdgeRouter Pro]"
+    },
+    {
+      "file": "content/posts/2014/10/08/rack-that-server.md",
+      "why": "Wrong word",
+      "from": "VM's are noticeably more response, presumable due to being backed by SSD",
+      "to": "VM's are noticeably more responsive, presumably due to being backed by SSD"
+    },
+    {
+      "file": "content/posts/2015/01/20/nest-protect-false-alarms.md",
+      "why": "Grammar",
+      "from": "and pressing the button on those units still say \"this",
+      "to": "and pressing the button on those units still says \"this"
+    },
+    {
+      "file": "content/posts/2015/01/20/nest-protect-false-alarms.md",
+      "why": "Missing or extra word",
+      "from": "I get a screwdriver open it up",
+      "to": "I get a screwdriver and open it up"
+    },
+    {
+      "file": "content/posts/2015/01/20/nest-protect-false-alarms.md",
+      "why": "Grammar",
+      "from": "when one of the units go off",
+      "to": "when one of the units goes off"
+    },
+    {
+      "file": "content/posts/2015/01/20/nest-protect-false-alarms.md",
+      "why": "Wrong word",
+      "from": "iPhone in low night not so great",
+      "to": "iPhone in low light not so great"
+    },
+    {
+      "file": "content/posts/2015/01/20/nest-protect-false-alarms.md",
+      "why": "Wrong word",
+      "from": "Let's hope I never hear them peep",
+      "to": "Let's hope I never hear them beep"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Wrong word",
+      "from": "that are near the cost of a MR16 bulb",
+      "to": "that are near the cost of an MR16 bulb"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Grammar",
+      "from": "there is an equal growing number of line voltage",
+      "to": "there is an equally growing number of line voltage"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Grammar",
+      "from": "the MR16 LED manufacturer's compatibility guide require the use",
+      "to": "the MR16 LED manufacturer's compatibility guide requires the use"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Spelling",
+      "from": "The DV-603P is a vanilly halogen and incandescent dimmer",
+      "to": "The DV-603P is a vanilla halogen and incandescent dimmer"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Spelling",
+      "from": "The bulb color is very blueish",
+      "to": "The bulb color is very bluish"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Product name",
+      "from": "we can see that the RL12-60W and TC60W",
+      "to": "we can see that the RL12-60A and TC60W"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Grammar",
+      "from": "the magnetic transformer and LED load has all sorts",
+      "to": "the magnetic transformer and LED load have all sorts"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Grammar",
+      "from": "the response waveforms for the halogen bulb is, not surprisingly",
+      "to": "the response waveforms for the halogen bulb are, not surprisingly"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Grammar",
+      "from": "the COB array arrangement of LED's provide an even light source",
+      "to": "the COB array arrangement of LED's provides an even light source"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Grammar",
+      "from": "have a slight flicker at the low end, but dims down all the way",
+      "to": "have a slight flicker at the low end, but dim down all the way"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Wrong word",
+      "from": "I have yet to find a MR16 LED",
+      "to": "I have yet to find an MR16 LED"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Grammar",
+      "from": "my attempts at spray painting with heat resistant paint was not very successful",
+      "to": "my attempts at spray painting with heat resistant paint were not very successful"
+    },
+    {
+      "file": "content/posts/2015/08/02/mr16-12v-halogen-to-led-retrofit.md",
+      "why": "Wrong word",
+      "from": "assuming due to my search history",
+      "to": "presumably due to my search history"
+    },
+    {
+      "file": "content/posts/2015/09/04/ecobee3-thermostat-with-remote-sensors.md",
+      "why": "Spelling",
+      "from": "our electricity consumption skyhigh",
+      "to": "our electricity consumption sky-high"
+    },
+    {
+      "file": "content/posts/2015/09/04/ecobee3-thermostat-with-remote-sensors.md",
+      "why": "Spelling",
+      "from": "between my wife and my parent's in-law",
+      "to": "between my wife and my parents-in-law"
+    },
+    {
+      "file": "content/posts/2015/09/04/ecobee3-thermostat-with-remote-sensors.md",
+      "why": "Grammar",
+      "from": "not integrated solutions, and makes the Nest solution much more expensive",
+      "to": "not integrated solutions, and make the Nest solution much more expensive"
+    },
+    {
+      "file": "content/posts/2016/01/30/ecobee3-wifi-connection-troubles.md",
+      "why": "Wrong word",
+      "from": "Every time a I get a sensors offline report",
+      "to": "Every time I get a sensor offline report"
+    },
+    {
+      "file": "content/posts/2016/01/30/ecobee3-wifi-connection-troubles.md",
+      "why": "Spelling",
+      "from": "setup a dedicated 2.4GHz SSID",
+      "to": "set up a dedicated 2.4GHz SSID"
+    },
+    {
+      "file": "content/posts/2016/01/30/ecobee3-wifi-connection-troubles.md",
+      "why": "Product name",
+      "from": "I tested with [Ubiquity UniFi AC]",
+      "to": "I tested with [Ubiquiti UniFi AC]"
+    },
+    {
+      "file": "content/posts/2016/01/30/ecobee3-wifi-connection-troubles.md",
+      "why": "Grammar",
+      "from": "as signal strength by the E3's are perfect",
+      "to": "as signal strength by the E3's is perfect"
+    },
+    {
+      "file": "content/posts/2016/08/31/amazon-associates-account-closed.md",
+      "why": "Product name",
+      "from": "title: Amazon Associate's Account Closed",
+      "to": "title: Amazon Associates Account Closed"
+    },
+    {
+      "file": "content/posts/2016/08/31/amazon-associates-account-closed.md",
+      "why": "Product name",
+      "from": "my Associate's account was closed",
+      "to": "my Associates account was closed"
+    },
+    {
+      "file": "content/posts/2016/08/31/amazon-associates-account-closed.md",
+      "why": "Product name",
+      "from": "I signed up for an Amazon Associate's account",
+      "to": "I signed up for an Amazon Associates account"
+    },
+    {
+      "file": "content/posts/2016/10/14/ups-battery-replacement-turns-into-unrecoverable-firmware-update.md",
+      "why": "Wrong word",
+      "from": "The alarm has it's own backup battery",
+      "to": "The alarm has its own backup battery"
+    },
+    {
+      "file": "content/posts/2016/10/14/ups-battery-replacement-turns-into-unrecoverable-firmware-update.md",
+      "why": "Spelling",
+      "from": "watch my PC shutdown while it is still delivering",
+      "to": "watch my PC shut down while it is still delivering"
+    },
+    {
+      "file": "content/posts/2016/10/14/ups-battery-replacement-turns-into-unrecoverable-firmware-update.md",
+      "why": "Missing or extra word",
+      "from": "I try to do [Firmware Upgrade Wizard]",
+      "to": "I try to do a [Firmware Upgrade Wizard]"
+    },
+    {
+      "file": "content/posts/2016/12/23/circumventing-thinkpads-wifi-card-whitelisting.md",
+      "why": "Wrong word",
+      "from": "which lead me to [Middleton's BIOS]",
+      "to": "which led me to [Middleton's BIOS]"
+    },
+    {
+      "file": "content/posts/2016/12/23/circumventing-thinkpads-wifi-card-whitelisting.md",
+      "why": "Wrong word",
+      "from": "This lead me to the discovery of ThinkPad",
+      "to": "This led me to the discovery of ThinkPad"
+    },
+    {
+      "file": "content/posts/2016/12/23/circumventing-thinkpads-wifi-card-whitelisting.md",
+      "why": "Wrong word",
+      "from": "but that is an exercise of another day",
+      "to": "but that is an exercise for another day"
+    },
+    {
+      "file": "content/posts/2016/12/23/circumventing-thinkpads-wifi-card-whitelisting.md",
+      "why": "Grammar",
+      "from": "writing raw images to USB result in a FAT12 disk structure",
+      "to": "writing raw images to USB results in a FAT12 disk structure"
+    },
+    {
+      "file": "content/posts/2016/12/23/circumventing-thinkpads-wifi-card-whitelisting.md",
+      "why": "Wrong word",
+      "from": "Ok, let me create a MS-DOS USB key",
+      "to": "Ok, let me create an MS-DOS USB key"
+    },
+    {
+      "file": "content/posts/2016/12/23/circumventing-thinkpads-wifi-card-whitelisting.md",
+      "why": "Wrong word",
+      "from": "Trying again with a MS-DOS USB key",
+      "to": "Trying again with an MS-DOS USB key"
+    },
+    {
+      "file": "content/posts/2016/12/23/circumventing-thinkpads-wifi-card-whitelisting.md",
+      "why": "Wrong word",
+      "from": "This machine had a SSD drive",
+      "to": "This machine had an SSD drive"
+    },
+    {
+      "file": "content/posts/2017/03/28/razer-shoddy-support-and-bad-software-ux.md",
+      "why": "Wrong word",
+      "from": "My main monitor is a [NEC MultiSync EA275UHD]",
+      "to": "My main monitor is an [NEC MultiSync EA275UHD]"
+    },
+    {
+      "file": "content/posts/2017/03/28/razer-shoddy-support-and-bad-software-ux.md",
+      "why": "Missing or extra word",
+      "from": "connect my USB devices directly the notebook",
+      "to": "connect my USB devices directly to the notebook"
+    },
+    {
+      "file": "content/posts/2017/03/28/razer-shoddy-support-and-bad-software-ux.md",
+      "why": "Missing or extra word",
+      "from": "they said my choice is RMA the device",
+      "to": "they said my choice is to RMA the device"
+    },
+    {
+      "file": "content/posts/2017/03/28/razer-shoddy-support-and-bad-software-ux.md",
+      "why": "Grammar",
+      "from": "custom drawn controls of this software matches their edgy",
+      "to": "custom drawn controls of this software match their edgy"
+    },
+    {
+      "file": "content/posts/2017/08/22/crashplan-throws-in-the-towel-for-home-users.md",
+      "why": "Spelling",
+      "from": "without needing to backup again",
+      "to": "without needing to back up again"
+    },
+    {
+      "file": "content/posts/2018/06/30/enom-dynamic-dns-update-problems.md",
+      "why": "Missing or extra word",
+      "from": "as home router, and I have",
+      "to": "as my home router, and I have"
+    },
+    {
+      "file": "content/posts/2018/06/30/enom-dynamic-dns-update-problems.md",
+      "why": "Product name",
+      "from": "I use a [Ubiquity UniFi Security Gateway Pro]",
+      "to": "I use a [Ubiquiti UniFi Security Gateway Pro]"
+    },
+    {
+      "file": "content/posts/2018/11/18/purpleair-sensor-installation.md",
+      "why": "Spelling",
+      "from": "what I would call rugged or weather proof",
+      "to": "what I would call rugged or weatherproof"
+    },
+    {
+      "file": "content/posts/2019/01/05/monoprice-mp-voxel-3d-printer-setup.md",
+      "why": "Missing or extra word",
+      "from": "the deal breaker is hangs during printing",
+      "to": "the deal breaker is the hangs during printing"
+    },
+    {
+      "file": "content/posts/2019/01/05/monoprice-mp-voxel-3d-printer-setup.md",
+      "why": "Grammar",
+      "from": "The steps to connect to WiFi is easy",
+      "to": "The steps to connect to WiFi are easy"
+    },
+    {
+      "file": "content/posts/2019/01/05/monoprice-mp-voxel-3d-printer-setup.md",
+      "why": "Spelling",
+      "from": "Mistake, I cloud not select the Voxel as printer",
+      "to": "Mistake, I could not select the Voxel as printer"
+    },
+    {
+      "file": "content/posts/2019/01/05/monoprice-mp-voxel-3d-printer-setup.md",
+      "why": "Missing or extra word",
+      "from": "I suspect it is related the camera",
+      "to": "I suspect it is related to the camera"
+    },
+    {
+      "file": "content/posts/2019/01/05/monoprice-mp-voxel-3d-printer-setup.md",
+      "why": "Grammar",
+      "from": "I hope future firmware updates improves the experience",
+      "to": "I hope future firmware updates improve the experience"
+    },
+    {
+      "file": "content/posts/2019/01/05/monoprice-mp-voxel-3d-printer-setup.md",
+      "why": "Grammar",
+      "from": "Next steps for me is to find suitable software",
+      "to": "Next steps for me are to find suitable software"
+    },
+    {
+      "file": "content/posts/2019/05/05/moving-from-w2k16-to-unraid.md",
+      "why": "Wrong word",
+      "from": "I set about a path that lead to me",
+      "to": "I set about a path that led to me"
+    },
+    {
+      "file": "content/posts/2019/05/05/moving-from-w2k16-to-unraid.md",
+      "why": "Wrong word",
+      "from": "expand the RAID6 volume without loosing data",
+      "to": "expand the RAID6 volume without losing data"
+    },
+    {
+      "file": "content/posts/2019/05/05/moving-from-w2k16-to-unraid.md",
+      "why": "Wrong word",
+      "from": "workloads from Server-2 with the 8-bay chassis, to Server-1 with the 24-bay chassis",
+      "to": "workloads from Server-1 with the 24-bay chassis, to Server-2 with the 8-bay chassis"
+    },
+    {
+      "file": "content/posts/2019/05/05/moving-from-w2k16-to-unraid.md",
+      "why": "Wrong word",
+      "from": "without loosing data or workloads, quite another",
+      "to": "without losing data or workloads, quite another"
+    },
+    {
+      "file": "content/posts/2019/05/05/moving-from-w2k16-to-unraid.md",
+      "why": "Grammar",
+      "from": "There are lots of info online on installing",
+      "to": "There is lots of info online on installing"
+    },
+    {
+      "file": "content/posts/2019/05/05/moving-from-w2k16-to-unraid.md",
+      "why": "Wrong word",
+      "from": "the file is larger that the available space",
+      "to": "the file is larger than the available space"
+    },
+    {
+      "file": "content/posts/2019/05/05/moving-from-w2k16-to-unraid.md",
+      "why": "Grammar",
+      "from": "there is no high water or low water mechanisms",
+      "to": "there are no high water or low water mechanisms"
+    },
+    {
+      "file": "content/posts/2019/05/05/moving-from-w2k16-to-unraid.md",
+      "why": "Grammar",
+      "from": "the operation is schedule per time period",
+      "to": "the operation is scheduled per time period"
+    },
+    {
+      "file": "content/posts/2019/05/12/unraid-and-robocopy-problems.md",
+      "why": "Grammar",
+      "from": "The second set of problem files occur in folder names",
+      "to": "The second set of problem files occurs in folder names"
+    },
+    {
+      "file": "content/posts/2019/05/12/unraid-and-robocopy-problems.md",
+      "why": "Grammar",
+      "from": "The same robocopy operations to the W2K16 server over SMB works as expected",
+      "to": "The same robocopy operations to the W2K16 server over SMB work as expected"
+    },
+    {
+      "file": "content/posts/2019/05/12/unraid-and-robocopy-problems.md",
+      "why": "Grammar",
+      "from": "?p=18913) is 1 January 1601",
+      "to": "?p=18913) are 1 January 1601"
+    },
+    {
+      "file": "content/posts/2019/06/10/unraid-in-production-a-bit-rough-around-the-edges-and-terrible-smb-performance.md",
+      "why": "Wrong word",
+      "from": "I chose to switch to Nx Witness, no DW Spectrum,",
+      "to": "I chose to switch to Nx Witness, or DW Spectrum,"
+    },
+    {
+      "file": "content/posts/2019/06/10/unraid-in-production-a-bit-rough-around-the-edges-and-terrible-smb-performance.md",
+      "why": "Wrong word",
+      "from": "that seems to have been exasperated by the recent Unraid 6.7.0 update",
+      "to": "that seems to have been exacerbated by the recent Unraid 6.7.0 update"
+    },
+    {
+      "file": "content/posts/2019/06/10/unraid-in-production-a-bit-rough-around-the-edges-and-terrible-smb-performance.md",
+      "why": "Grammar",
+      "from": "I wanted to validate the synthetic tests results",
+      "to": "I wanted to validate the synthetic test results"
+    },
+    {
+      "file": "content/posts/2019/06/10/unraid-in-production-a-bit-rough-around-the-edges-and-terrible-smb-performance.md",
+      "why": "Grammar",
+      "from": "The robocopy read results are pretty even, but again shows",
+      "to": "The robocopy read results are pretty even, but again show"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Grammar",
+      "from": "forced me to swap SSD drives, and subsequently losing a data volume",
+      "to": "forced me to swap SSD drives, and subsequently lose a data volume"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Product name",
+      "from": "in HBA mode, so no Marvel chipset",
+      "to": "in HBA mode, so no Marvell chipset"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Product name",
+      "from": "instances attributed to a Marvel chipset",
+      "to": "instances attributed to a Marvell chipset"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Wrong word",
+      "from": "storage problems is to switch to a LSI HBA",
+      "to": "storage problems is to switch to an LSI HBA"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Grammar",
+      "from": "but it eventually turns out to be an Unraid",
+      "to": "but it eventually turned out to be an Unraid"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Missing or extra word",
+      "from": "As example, take the SQLite corruption bug",
+      "to": "As an example, take the SQLite corruption bug"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Wrong word",
+      "from": "I found a LSI KB [article]",
+      "to": "I found an LSI KB [article]"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Wrong word",
+      "from": "Server-1 had two EVO 840's, a 850 Pro, and a 860 Pro",
+      "to": "Server-1 had two EVO 840's, an 850 Pro, and an 860 Pro"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Wrong word",
+      "from": "to verify that a LSI HBA will resolve the problem",
+      "to": "to verify that an LSI HBA will resolve the problem"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Missing or extra word",
+      "from": "The BTRFS volume consisting 4 x Pro 860 drives",
+      "to": "The BTRFS volume consisting of 4 x Pro 860 drives"
+    },
+    {
+      "file": "content/posts/2020/01/10/unraid-repeat-parity-errors-on-reboot.md",
+      "why": "Missing or extra word",
+      "from": "After I recreated the cache volume, reinstalled the Duplicacy web container",
+      "to": "After I recreated the cache volume, I reinstalled the Duplicacy web container"
+    },
+    {
+      "file": "content/posts/2020/01/16/unraid-smb-performance-v6-7-2-vs-v6-8-1.md",
+      "why": "Grammar",
+      "from": "poor SMB performance when a folders contains large numbers of files",
+      "to": "poor SMB performance when a folder contains large numbers of files"
+    },
+    {
+      "file": "content/posts/2020/01/18/unraid-vs-ubuntu-smb-performance.md",
+      "why": "Spelling",
+      "from": "128GB raw disk located on the BTRS cache volume",
+      "to": "128GB raw disk located on the BTRFS cache volume"
+    },
+    {
+      "file": "content/posts/2020/01/18/unraid-vs-ubuntu-smb-performance.md",
+      "why": "Wrong word",
+      "from": "I created a SMB share that is backed",
+      "to": "I created an SMB share that is backed"
+    },
+    {
+      "file": "content/posts/2020/01/18/unraid-vs-ubuntu-smb-performance.md",
+      "why": "Grammar",
+      "from": "Note that the VirtFS mapped share exhibit some problems",
+      "to": "Note that the VirtFS mapped share exhibits some problems"
+    },
+    {
+      "file": "content/posts/2020/02/02/recovering-the-firmware-on-a-supermicro-bpn-sas3-846el1-backplane.md",
+      "why": "Wrong word",
+      "from": "replaced an Adaptec HBA with a LSI SAS3 HBA",
+      "to": "replaced an Adaptec HBA with an LSI SAS3 HBA"
+    },
+    {
+      "file": "content/posts/2020/02/02/recovering-the-firmware-on-a-supermicro-bpn-sas3-846el1-backplane.md",
+      "why": "Grammar",
+      "from": "how old the firmware on the backplanes were",
+      "to": "how old the firmware on the backplanes was"
+    },
+    {
+      "file": "content/posts/2020/02/02/recovering-the-firmware-on-a-supermicro-bpn-sas3-846el1-backplane.md",
+      "why": "Missing or extra word",
+      "from": "but the metal frames showing a little rust",
+      "to": "but the metal frames were showing a little rust"
+    },
+    {
+      "file": "content/posts/2020/02/02/recovering-the-firmware-on-a-supermicro-bpn-sas3-846el1-backplane.md",
+      "why": "Grammar",
+      "from": "so as I again used short outer rails",
+      "to": "so I again used short outer rails"
+    },
+    {
+      "file": "content/posts/2020/02/02/recovering-the-firmware-on-a-supermicro-bpn-sas3-846el1-backplane.md",
+      "why": "Grammar",
+      "from": "The existing firmware on the expanders were v66.06.01.02",
+      "to": "The existing firmware on the expanders was v66.06.01.02"
+    },
+    {
+      "file": "content/posts/2020/02/02/recovering-the-firmware-on-a-supermicro-bpn-sas3-846el1-backplane.md",
+      "why": "Grammar",
+      "from": "so I replace the \"bricked\" one, leaving the firmware",
+      "to": "so I replaced the \"bricked\" one, leaving the firmware"
+    },
+    {
+      "file": "content/posts/2020/02/02/recovering-the-firmware-on-a-supermicro-bpn-sas3-846el1-backplane.md",
+      "why": "Missing or extra word",
+      "from": "but since it was weekend I had to wait",
+      "to": "but since it was the weekend I had to wait"
+    },
+    {
+      "file": "content/posts/2020/02/02/recovering-the-firmware-on-a-supermicro-bpn-sas3-846el1-backplane.md",
+      "why": "Grammar",
+      "from": "I tried to uploaded the modified MFG data",
+      "to": "I tried to upload the modified MFG data"
+    },
+    {
+      "file": "content/posts/2020/02/02/recovering-the-firmware-on-a-supermicro-bpn-sas3-846el1-backplane.md",
+      "why": "Grammar",
+      "from": "is more than just the SAS address that change,",
+      "to": "is more than just the SAS address that changes,"
+    },
+    {
+      "file": "content/posts/2020/02/02/recovering-the-firmware-on-a-supermicro-bpn-sas3-846el1-backplane.md",
+      "why": "Product name",
+      "from": "The v1.4 g3xFlash CLI help does reference",
+      "to": "The v1.4 g3Xflash CLI help does reference"
+    },
+    {
+      "file": "content/posts/2020/02/02/unraid-vs-ubuntu-bare-metal-smb-performance.md",
+      "why": "Spelling",
+      "from": "I mounted the BTRS volume using the same mount options",
+      "to": "I mounted the BTRFS volume using the same mount options"
+    },
+    {
+      "file": "content/posts/2020/04/25/unraid-user-share-vs-disk-share-smb-performance.md",
+      "why": "Grammar",
+      "from": "the performance of disk shares are near the same performance",
+      "to": "the performance of disk shares is near the same performance"
+    },
+    {
+      "file": "content/posts/2020/04/25/unraid-user-share-vs-disk-share-smb-performance.md",
+      "why": "Grammar",
+      "from": "quality demands of filesystem code requires extremely competent",
+      "to": "quality demands of filesystem code require extremely competent"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Wrong word",
+      "from": "if I install in a LXC or VM I cannot",
+      "to": "if I install in an LXC or VM I cannot"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Wrong word",
+      "from": "if I will install on the base OS, or inside a LXC or VM",
+      "to": "if I will install on the base OS, or inside an LXC or VM"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Grammar",
+      "from": "the critical parts are data migration",
+      "to": "the critical part is data migration"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Spelling",
+      "from": "Instead I deployd a [rsyncd docker container]",
+      "to": "Instead I deployed an [rsyncd docker container]"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Grammar",
+      "from": "and using one or two removable drive bays for the boot SSD's",
+      "to": "and use one or two removable drive bays for the boot SSD's"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Wrong word",
+      "from": "An alternative would be to install PVE on a SSD drive",
+      "to": "An alternative would be to install PVE on an SSD drive"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Grammar",
+      "from": "so it seems the wiki that says maximum root size of 1/4 of the disk is enforced",
+      "to": "so it seems the maximum root size of 1/4 of the disk that the wiki states is enforced"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Grammar",
+      "from": "the X10SLM+-F boards I use does not have powered SATA ports",
+      "to": "the X10SLM+-F boards I use do not have powered SATA ports"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Wrong word",
+      "from": "Add a SSL certificate for the server",
+      "to": "Add an SSL certificate for the server"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Grammar",
+      "from": "then follow the instruction in the [wiki]",
+      "to": "then follow the instructions in the [wiki]"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Grammar",
+      "from": "then create a ZFS datasets mapping to",
+      "to": "then create a ZFS dataset mapping to"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Wrong word",
+      "from": "Hold of on installing Docker until after ZFS is configured",
+      "to": "Hold off on installing Docker until after ZFS is configured"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Spelling",
+      "from": "Docker, Ansible, and setup all the containers",
+      "to": "Docker, Ansible, and set up all the containers"
+    },
+    {
+      "file": "content/posts/2020/06/21/moving-from-unraid-to-proxmox-ve.md",
+      "why": "Grammar",
+      "from": "Here are a few screenshot of the end result",
+      "to": "Here are a few screenshots of the end result"
+    },
+    {
+      "file": "content/posts/2020/08/24/phyn-plus-smart-water-assistant-early-impressions.md",
+      "why": "Grammar",
+      "from": "until very recently I've never even heard of",
+      "to": "until very recently I'd never even heard of"
+    },
+    {
+      "file": "content/posts/2020/08/24/phyn-plus-smart-water-assistant-early-impressions.md",
+      "why": "Grammar",
+      "from": "the app pops a notification and asked me to classify",
+      "to": "the app pops a notification and asks me to classify"
+    },
+    {
+      "file": "content/posts/2020/08/24/phyn-plus-smart-water-assistant-early-impressions.md",
+      "why": "Wrong word",
+      "from": "but the form I linked is currently being maintained",
+      "to": "but the fork I linked is currently being maintained"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Grammar",
+      "from": "I planned whole a house energy monitoring setup",
+      "to": "I planned a whole house energy monitoring setup"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Grammar",
+      "from": "First a bit of a history, skip to the end",
+      "to": "First a bit of history, skip to the end"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Grammar",
+      "from": "circa 2009, a [The Energy Detective TED-5000]",
+      "to": "circa 2009, [The Energy Detective TED-5000]"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Grammar",
+      "from": "due to the excessive loud high frequency noise",
+      "to": "due to the excessively loud high frequency noise"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Wrong word",
+      "from": "or if there is not demand for longer leads",
+      "to": "or if there is no demand for longer leads"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Grammar",
+      "from": "if the short leads is a cost saving measure",
+      "to": "if the short leads are a cost saving measure"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Grammar",
+      "from": "The UX of the tools are indicative of engineers",
+      "to": "The UX of the tools is indicative of engineers"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Product name",
+      "from": "I use a [Ubiquity UniFi Security Gateway]",
+      "to": "I use a [Ubiquiti UniFi Security Gateway]"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Wrong word",
+      "from": "the edit field needs to be a FQDN only",
+      "to": "the edit field needs to be an FQDN only"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Wrong word",
+      "from": "isolation transformer with a [AD7684]",
+      "to": "isolation transformer with an [AD7684]"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Grammar",
+      "from": "To my surprise it did not fit",
+      "to": "To my surprise they did not fit"
+    },
+    {
+      "file": "content/posts/2020/09/05/abandoning-greeneye-for-sense.md",
+      "why": "Wrong word",
+      "from": "(https://amzn.to/3budPRE) triple circuit breakers",
+      "to": "(https://amzn.to/3budPRE) quad circuit breakers"
+    },
+    {
+      "file": "content/posts/2020/09/10/tuya-to-tasmota-to-esphome.md",
+      "why": "Product name",
+      "from": "[Frenc power plug calibration guide]",
+      "to": "[Frenck power plug calibration guide]"
+    },
+    {
+      "file": "content/posts/2020/09/10/tuya-to-tasmota-to-esphome.md",
+      "why": "Missing or extra word",
+      "from": "possibly contributed by Tuya [switching]",
+      "to": "possibly contributed to by Tuya [switching]"
+    },
+    {
+      "file": "content/posts/2020/09/10/tuya-to-tasmota-to-esphome.md",
+      "why": "Wrong word",
+      "from": "Create a `ssh` file in the root folder",
+      "to": "Create an `ssh` file in the root folder"
+    },
+    {
+      "file": "content/posts/2020/09/10/tuya-to-tasmota-to-esphome.md",
+      "why": "Missing or extra word",
+      "from": "and web page will change from Tasmota to ESPHome",
+      "to": "and the web page will change from Tasmota to ESPHome"
+    },
+    {
+      "file": "content/posts/2020/09/10/tuya-to-tasmota-to-esphome.md",
+      "why": "Grammar",
+      "from": "rename the plug to a unique name follow the OTA renaming",
+      "to": "rename the plug to a unique name following the OTA renaming"
+    },
+    {
+      "file": "content/posts/2020/09/10/tuya-to-tasmota-to-esphome.md",
+      "why": "Grammar",
+      "from": "The energy monitor chip used in these plugs are",
+      "to": "The energy monitor chips used in these plugs are"
+    },
+    {
+      "file": "content/posts/2020/09/10/tuya-to-tasmota-to-esphome.md",
+      "why": "Spelling",
+      "from": "V **oltage Divider**",
+      "to": "**Voltage Divider**"
+    },
+    {
+      "file": "content/posts/2020/10/11/hot-water-recirculation-pump-controller.md",
+      "why": "Wrong word",
+      "from": "pump uses a 85F (29.4C) to 105F",
+      "to": "pump uses an 85F (29.4C) to 105F"
+    },
+    {
+      "file": "content/posts/2020/10/11/hot-water-recirculation-pump-controller.md",
+      "why": "Wrong word",
+      "from": "I may try to install a [ESP-01]",
+      "to": "I may try to install an [ESP-01]"
+    },
+    {
+      "file": "content/posts/2020/10/22/using-esp-to-debug-an-esp.md",
+      "why": "Wrong word",
+      "from": "and this lead me to the open source",
+      "to": "and this led me to the open source"
+    },
+    {
+      "file": "content/posts/2020/10/22/using-esp-to-debug-an-esp.md",
+      "why": "Wrong word",
+      "from": "I bought a [ESP-01S]",
+      "to": "I bought an [ESP-01S]"
+    },
+    {
+      "file": "content/posts/2021/03/15/cooling-an-overheating-mvme-ssd.md",
+      "why": "Product name",
+      "from": "title: Cooling an Overheating MVMe SSD",
+      "to": "title: Cooling an Overheating NVMe SSD"
+    },
+    {
+      "file": "content/posts/2021/03/15/cooling-an-overheating-mvme-ssd.md",
+      "why": "Wrong word",
+      "from": "This Windows 10 system is in a [NCase M1 v5]",
+      "to": "This Windows 10 system is in an [NCase M1 v5]"
+    },
+    {
+      "file": "content/posts/2021/08/09/esp32-water-and-gas-utility-meter.md",
+      "why": "Wrong word",
+      "from": "I used a [ESP32-DevKitC-32UE]",
+      "to": "I used an [ESP32-DevKitC-32UE]"
+    },
+    {
+      "file": "content/posts/2021/08/09/esp32-water-and-gas-utility-meter.md",
+      "why": "Wrong word",
+      "from": "so I built a ESP32 based counter",
+      "to": "so I built an ESP32 based counter"
+    },
+    {
+      "file": "content/posts/2021/08/11/trying-to-keep-my-garage-cool.md",
+      "why": "Wrong word",
+      "from": "the fans do make an affective difference",
+      "to": "the fans do make an effective difference"
+    },
+    {
+      "file": "content/posts/2021/12/21/getting-carried-away-with-rgb-holiday-lights.md",
+      "why": "Spelling",
+      "from": "for RBG LED sequencing",
+      "to": "for RGB LED sequencing"
+    },
+    {
+      "file": "content/posts/2021/12/21/getting-carried-away-with-rgb-holiday-lights.md",
+      "why": "Wrong word",
+      "from": "installing permanent under-eve mounted addressable RGB LED lights",
+      "to": "installing permanent under-eave mounted addressable RGB LED lights"
+    },
+    {
+      "file": "content/posts/2021/12/21/getting-carried-away-with-rgb-holiday-lights.md",
+      "why": "Grammar",
+      "from": "returning much of the no-name products",
+      "to": "returning many of the no-name products"
+    },
+    {
+      "file": "content/posts/2021/12/21/getting-carried-away-with-rgb-holiday-lights.md",
+      "why": "Wrong word",
+      "from": "double runs of [14AWG silicon wire]",
+      "to": "double runs of [14AWG silicone wire]"
+    },
+    {
+      "file": "content/posts/2021/12/21/getting-carried-away-with-rgb-holiday-lights.md",
+      "why": "Grammar",
+      "from": "The 18/3 and 14/2 has about the same outer diameter, and works well",
+      "to": "The 18/3 and 14/2 have about the same outer diameter, and work well"
+    },
+    {
+      "file": "content/posts/2021/12/21/getting-carried-away-with-rgb-holiday-lights.md",
+      "why": "Wrong word",
+      "from": "Maybe a SSR in front of the PSU's",
+      "to": "Maybe an SSR in front of the PSU's"
+    },
+    {
+      "file": "content/posts/2021/12/21/getting-carried-away-with-rgb-holiday-lights.md",
+      "why": "Grammar",
+      "from": "but the price and quality is appealing",
+      "to": "but the price and quality are appealing"
+    },
+    {
+      "file": "content/posts/2022/01/17/enom-datacenter-move-borks-dns.md",
+      "why": "Product name",
+      "from": "getting [Google Workspaces](https://workspace.google.com/) email working again",
+      "to": "getting [Google Workspace](https://workspace.google.com/) email working again"
+    },
+    {
+      "file": "content/posts/2022/01/17/enom-datacenter-move-borks-dns.md",
+      "why": "Product name",
+      "from": "the MX records at Google Workspaces domain management",
+      "to": "the MX records at Google Workspace domain management"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Grammar",
+      "from": "the number of very hot days have steadily increased",
+      "to": "the number of very hot days has steadily increased"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Missing or extra word",
+      "from": "Over the of twenty or so years I've lived",
+      "to": "Over the twenty or so years I've lived"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Wrong word",
+      "from": "I am not completely foregoing the idea",
+      "to": "I am not completely forgoing the idea"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Grammar",
+      "from": "I did noticed the UI state would sometimes",
+      "to": "I did notice the UI state would sometimes"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Missing or extra word",
+      "from": "I am not a great at drywalling or painting",
+      "to": "I am not great at drywalling or painting"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Grammar",
+      "from": "caption=\"FLAIR vent sizes vs. standard vents sizes\"",
+      "to": "caption=\"FLAIR vent sizes vs. standard vent sizes\""
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Wrong word",
+      "from": "I can't do anything about noisy vent veins",
+      "to": "I can't do anything about noisy vent vanes"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Wrong word",
+      "from": "or from the mechanical vent veins themselves",
+      "to": "or from the mechanical vent vanes themselves"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Spelling",
+      "from": "and I though of creating a thin flange",
+      "to": "and I thought of creating a thin flange"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Spelling",
+      "from": "I received the piece in a bout a week",
+      "to": "I received the piece in about a week"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Missing or extra word",
+      "from": "having the ability monitor per room temperatures",
+      "to": "having the ability to monitor per room temperatures"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Spelling",
+      "from": "nothing more than also jsut averaging temperatures",
+      "to": "nothing more than also just averaging temperatures"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Missing or extra word",
+      "from": "Later the day I wondered how Flair",
+      "to": "Later that day I wondered how Flair"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Grammar",
+      "from": "I change the mode from within the Flair UI",
+      "to": "I changed the mode from within the Flair UI"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Wrong word",
+      "from": "and gaps between the vent and drywall, and vent veins",
+      "to": "and gaps between the vent and drywall, and vent vanes"
+    },
+    {
+      "file": "content/posts/2022/10/30/installing-flair-smart-vents-to-keep-room-temperatures-balanced.md",
+      "why": "Wrong word",
+      "from": "It has now been more than 3 years",
+      "to": "It has now been more than 2 years"
+    },
+    {
+      "file": "content/posts/2022/10/31/halloween-pumpkins-and-lights.md",
+      "why": "Missing or extra word",
+      "from": "and this year Halloween I started with",
+      "to": "and this year for Halloween I started with"
+    },
+    {
+      "file": "content/posts/2022/10/31/halloween-pumpkins-and-lights.md",
+      "why": "Grammar",
+      "from": "[Mattos Designs Diamond Pixels Balls]",
+      "to": "[Mattos Designs Diamond Pixel Balls]"
+    },
+    {
+      "file": "content/posts/2022/10/31/halloween-pumpkins-and-lights.md",
+      "why": "Wrong word",
+      "from": "and [48V-12V DC-DC converts]",
+      "to": "and [48V-12V DC-DC converters]"
+    },
+    {
+      "file": "content/posts/2022/10/31/halloween-pumpkins-and-lights.md",
+      "why": "Missing or extra word",
+      "from": "Wiring is still a bit of mess",
+      "to": "Wiring is still a bit of a mess"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Product name",
+      "from": "the very typical Ubiquity love hate relationship",
+      "to": "the very typical Ubiquiti love hate relationship"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Product name",
+      "from": "It is unfortunate that Ubiquity never invested",
+      "to": "It is unfortunate that Ubiquiti never invested"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Product name",
+      "from": "exclusively of [Ubiquity](https://www.ui.com/) UniFi managed equipment",
+      "to": "exclusively of [Ubiquiti](https://www.ui.com/) UniFi managed equipment"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Grammar",
+      "from": "but is unfortunately that the mobile app is the only way",
+      "to": "but it is unfortunate that the mobile app is the only way"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Grammar",
+      "from": "both DoH and Unbound was enabled",
+      "to": "both DoH and Unbound were enabled"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Product name",
+      "from": "forwarded to my [Taefik](https://traefik.io/) proxy",
+      "to": "forwarded to my [Traefik](https://traefik.io/) proxy"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Grammar",
+      "from": "Native support for captive portals are missing",
+      "to": "Native support for captive portals is missing"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Grammar",
+      "from": "ignore 15 if 15 and 119 is set",
+      "to": "ignore 15 if 15 and 119 are set"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Missing or extra word",
+      "from": "Some more searching I found that apparently option 119",
+      "to": "After some more searching I found that apparently option 119"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Missing or extra word",
+      "from": "change the dnsmasq DHCP config from tag from 119 to 15",
+      "to": "change the dnsmasq DHCP config tag from 119 to 15"
+    },
+    {
+      "file": "content/posts/2023/03/19/moving-from-unifi-usg-and-circle-to-firewalla.md",
+      "why": "Grammar",
+      "from": "dhcptest confirms that both tag 15 and 119 is set",
+      "to": "dhcptest confirms that both tag 15 and 119 are set"
+    },
+    {
+      "file": "content/posts/2023/03/20/mattos-rgb-trim-permanent-roofline-rgb-pixel-install.md",
+      "why": "Wrong word",
+      "from": "and I'll share me experience and opinion",
+      "to": "and I'll share my experience and opinion"
+    },
+    {
+      "file": "content/posts/2023/03/20/mattos-rgb-trim-permanent-roofline-rgb-pixel-install.md",
+      "why": "Wrong word",
+      "from": "installing permanent under eve roofline RGB lights",
+      "to": "installing permanent under eave roofline RGB lights"
+    },
+    {
+      "file": "content/posts/2023/03/20/mattos-rgb-trim-permanent-roofline-rgb-pixel-install.md",
+      "why": "Wrong word",
+      "from": "self-install option matching my eve design",
+      "to": "self-install option matching my eave design"
+    },
+    {
+      "file": "content/posts/2023/03/20/mattos-rgb-trim-permanent-roofline-rgb-pixel-install.md",
+      "why": "Wrong word",
+      "from": "with the upper eve being 24' (7.3m) high",
+      "to": "with the upper eave being 24' (7.3m) high"
+    },
+    {
+      "file": "content/posts/2023/03/20/mattos-rgb-trim-permanent-roofline-rgb-pixel-install.md",
+      "why": "Wrong word",
+      "from": "The installation location under the roof eves is difficult",
+      "to": "The installation location under the roof eaves is difficult"
+    },
+    {
+      "file": "content/posts/2023/03/20/mattos-rgb-trim-permanent-roofline-rgb-pixel-install.md",
+      "why": "Wrong word",
+      "from": "connectors were just to difficult to work with",
+      "to": "connectors were just too difficult to work with"
+    },
+    {
+      "file": "content/posts/2023/03/20/mattos-rgb-trim-permanent-roofline-rgb-pixel-install.md",
+      "why": "Wrong word",
+      "from": "The silicon wire is flexible and easy to work with",
+      "to": "The silicone wire is flexible and easy to work with"
+    },
+    {
+      "file": "content/posts/2023/03/20/mattos-rgb-trim-permanent-roofline-rgb-pixel-install.md",
+      "why": "Product name",
+      "from": "For wiring I ran 14/3 SJWT [extension cords]",
+      "to": "For wiring I ran 14/3 SJTW [extension cords]"
+    },
+    {
+      "file": "content/posts/2023/03/20/mattos-rgb-trim-permanent-roofline-rgb-pixel-install.md",
+      "why": "Grammar",
+      "from": "I did not even think of taking pictures, wish I did",
+      "to": "I did not even think of taking pictures, wish I had"
+    },
+    {
+      "file": "content/posts/2024/05/29/yet-another-cloudflare-traefik-lets-encrypt-guide.md",
+      "why": "Wrong word",
+      "from": "to point to your traffic container at",
+      "to": "to point to your Traefik container at"
+    },
+    {
+      "file": "content/posts/2024/05/29/yet-another-cloudflare-traefik-lets-encrypt-guide.md",
+      "why": "Grammar",
+      "from": "LinkedIn, GitHub requires minimal additional configuration",
+      "to": "LinkedIn, GitHub require minimal additional configuration"
+    },
+    {
+      "file": "content/posts/2024/05/29/yet-another-cloudflare-traefik-lets-encrypt-guide.md",
+      "why": "Spelling",
+      "from": "can be served by any identify provider",
+      "to": "can be served by any identity provider"
+    },
+    {
+      "file": "content/posts/2024/05/29/yet-another-cloudflare-traefik-lets-encrypt-guide.md",
+      "why": "Missing or extra word",
+      "from": "easy enough to convert to the Task files and variables",
+      "to": "easy enough to convert the Task files and variables"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Import artifact",
+      "from": "---\nUntitled Page\n\nI am sharing",
+      "to": "---\nI am sharing"
+    },
+    {
+      "file": "content/posts/2009/06/14/dell-2408wfp-and-spyder-3-elite.md",
+      "why": "Product name",
+      "from": "with iMatch",
+      "to": "with i1Match"
+    },
+    {
+      "file": "content/posts/2010/12/31/trend-micro-safesync-neat-but-unreliable.md",
+      "why": "Wrong word",
+      "from": "I logout,",
+      "to": "I log out,"
+    },
+    {
+      "file": "content/posts/2010/12/31/trend-micro-safesync-neat-but-unreliable.md",
+      "why": "Wrong word",
+      "from": "to logout and",
+      "to": "to log out and"
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Wrong word",
+      "from": "you login.",
+      "to": "you log in."
+    },
+    {
+      "file": "content/posts/2010/07/21/ncp-vpn-not-quite-windows-7-compatible.md",
+      "why": "Wrong word",
+      "from": "you login the",
+      "to": "you log in the"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Wrong word",
+      "from": "fingerprint to lookup the",
+      "to": "fingerprint to look up the"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Wrong word",
+      "from": "is used to lookup the disc",
+      "to": "is used to look up the disc"
+    },
+    {
+      "file": "content/posts/2011/04/22/archiving-my-cd-dvd-and-bd-collection.md",
+      "why": "Wrong word",
+      "from": "[IMDB](http://www.imdb.com/) to lookup the",
+      "to": "[IMDB](http://www.imdb.com/) to look up the"
+    },
+    {
+      "file": "content/posts/2012/07/22/xbmc-for-android-on-pivos-xios-ds.md",
+      "why": "Wrong word",
+      "from": "compared to a [XIOS",
+      "to": "compared to an [XIOS"
+    },
+    {
+      "file": "content/posts/2012/06/19/looks-can-be-deceiving.md",
+      "why": "Grammar",
+      "from": "and entered a PIN",
+      "to": "and enter a PIN"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Wrong word",
+      "from": "to login at",
+      "to": "to log in at"
+    },
+    {
+      "file": "content/posts/2013/08/22/panasonic-lumix-wifi-dissapoints.md",
+      "why": "Wrong word",
+      "from": "manually login",
+      "to": "manually log in"
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Product name",
+      "from": "\"Areca ARC1680ix-16",
+      "to": "\"Areca ARC1680ix-12"
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Product name",
+      "from": "Areca ARC1680ix-16, SATA-II",
+      "to": "Areca ARC1680ix-12, SATA-II"
+    },
+    {
+      "file": "content/posts/2009/09/21/western-digital-re4-gp-2tb-drive.md",
+      "why": "Product name",
+      "from": "Areca ARC1680ix-16, SATA-I /",
+      "to": "Areca ARC1680ix-12, SATA-I /"
+    },
+    {
+      "file": "content/posts/2009/10/11/hitachi-a7k2000-and-seagate-barracude.md",
+      "why": "Product name",
+      "from": "\"Areca ARC1680ix-16",
+      "to": "\"Areca ARC1680ix-12"
+    },
+    {
+      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
+      "why": "Wrong word",
+      "from": "V7900](http://amzn.to/LZehYW) graphic cards,",
+      "to": "V7900](http://amzn.to/LZehYW) graphics cards,"
+    },
+    {
+      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
+      "why": "Wrong word",
+      "from": "new graphic cards,",
+      "to": "new graphics cards,"
+    },
+    {
+      "file": "content/posts/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller.md",
+      "why": "Wrong word",
+      "from": "graphic cards",
+      "to": "graphics cards"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "graphic cards",
+      "to": "graphics cards"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "the graphic card to",
+      "to": "the graphics card to"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "the graphic card in",
+      "to": "the graphics card in"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "- Graphic card: [NVidia Quadro 5000](http://amzn.to/RrHg9L)",
+      "to": "- Graphics card: [NVidia Quadro 5000](http://amzn.to/RrHg9L)"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "- Graphic card: [NVidia Quadro 4000](http://amzn.to/Q6lGGc)",
+      "to": "- Graphics card: [NVidia Quadro 4000](http://amzn.to/Q6lGGc)"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "- Graphic card: [NVidia GeForce",
+      "to": "- Graphics card: [NVidia GeForce"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "- Graphic card: [ATI FirePro",
+      "to": "- Graphics card: [ATI FirePro"
+    },
+    {
+      "file": "content/posts/2012/08/23/windows-8-video_tdr_failure-madness.md",
+      "why": "Wrong word",
+      "from": "- Graphic card: [ATI Radeon",
+      "to": "- Graphics card: [ATI Radeon"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Spelling",
+      "from": "\"Kingston 2GB SODIM RAM\") [KVR",
+      "to": "\"Kingston 2GB SODIMM RAM\") [KVR"
+    },
+    {
+      "file": "content/posts/2010/05/14/zotac-zboxhd-id11-first-impressions.md",
+      "why": "Spelling",
+      "from": "\"Kingston 2GB SODIM RAM\"))",
+      "to": "\"Kingston 2GB SODIMM RAM\"))"
+    },
+    {
+      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
+      "why": "Wrong word",
+      "from": "that the graphic subsystem was restarted",
+      "to": "that the graphics subsystem was restarted"
+    },
+    {
+      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
+      "why": "Wrong word",
+      "from": "the in-box graphic drivers that crash",
+      "to": "the in-box graphics drivers that crash"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "my [QNap TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146)",
+      "to": "my [QNAP TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146)"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "replace the QNap, to",
+      "to": "replace the QNAP, to"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "and the QNap, so",
+      "to": "and the QNAP, so"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "QNap models available, like the [TS-859 Pro+](http://www.qnap.com/pro_detail_feature.asp?p_id=180) ([Amazon](http://amzn.to/LpvAO6)) with a faster processor, or the [TS-659 Pro II](http://www.qnap.com/pro_detail_feature.asp?p_id=167) ([Amazon](http://amzn.to/LdoEIw)) with a faster processor and SATA3 support, so it is not totally fair to compare the TS-859 Pro performance against the newer DS1511+. But, the newer QNap",
+      "to": "QNAP models available, like the [TS-859 Pro+](http://www.qnap.com/pro_detail_feature.asp?p_id=180) ([Amazon](http://amzn.to/LpvAO6)) with a faster processor, or the [TS-659 Pro II](http://www.qnap.com/pro_detail_feature.asp?p_id=167) ([Amazon](http://amzn.to/LdoEIw)) with a faster processor and SATA3 support, so it is not totally fair to compare the TS-859 Pro performance against the newer DS1511+. But, the newer QNAP"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "The QNap iSCSI",
+      "to": "The QNAP iSCSI"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": " QNap setup:",
+      "to": " QNAP setup:"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "- [QNap TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146),",
+      "to": "- [QNAP TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146),"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "QNap](http://www.qnap.com/pro_application.asp?ap_id=135) iSCSI documentation, and more specifically the MPIO documentation for [Windows](http://download.microsoft.com/download/3/0/4/304083f1-11e7-44d9-92b9-2f3cdbf01048/mpio.doc), [Synology](http://forum.synology.com/wiki/index.php/How_to_use_iSCSI_Targets_on_Windows_computers_with_Multipath_I/O) and [QNap",
+      "to": "QNAP](http://www.qnap.com/pro_application.asp?ap_id=135) iSCSI documentation, and more specifically the MPIO documentation for [Windows](http://download.microsoft.com/download/3/0/4/304083f1-11e7-44d9-92b9-2f3cdbf01048/mpio.doc), [Synology](http://forum.synology.com/wiki/index.php/How_to_use_iSCSI_Targets_on_Windows_computers_with_Multipath_I/O) and [QNAP"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "QNap MPIO documentation shows that LAN-1 and LAN-2 are in a trunked configuration. As far as I could tell the best practices documentation from Microsoft, DELL, Synology, and other SAN vendors, say that trunking and MPIO should not be mixed. As such I did not trunk the LAN ports on the QNap",
+      "to": "QNAP MPIO documentation shows that LAN-1 and LAN-2 are in a trunked configuration. As far as I could tell the best practices documentation from Microsoft, DELL, Synology, and other SAN vendors, say that trunking and MPIO should not be mixed. As such I did not trunk the LAN ports on the QNAP"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "the QNap or",
+      "to": "the QNAP or"
     }
   ]
 }

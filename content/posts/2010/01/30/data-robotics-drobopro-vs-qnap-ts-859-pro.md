@@ -117,7 +117,7 @@ Creating a new volume:
 
 
 
-As the dashboard software starts creating the volume, Windows will detect a new RAW volume being mounted, and asked if it should be formatted.
+As the dashboard software starts creating the volume, Windows will detect a new RAW volume being mounted, and ask if it should be formatted.
 
 Just leave that dialog open and let the dashboard finish.
 
@@ -241,7 +241,7 @@ Unlike the DroboPro that shows no diagnostics, and generates an encrypted diagno
 
 
 
-Unlike the DroboPro, email alerts are generated from the device and does not require any client software.
+Unlike the DroboPro, email alerts are generated from the device and do not require any client software.
 
 
 
@@ -305,7 +305,7 @@ I received instructions from the forum on how to use SSH to diagnose the drive, 
 
 
 
-What I really wanted to do was compare performance, and to keep things fair I setup a configuration that had all machines connected at the same time.
+What I really wanted to do was compare performance, and to keep things fair I set up a configuration that had all machines connected at the same time.
 
 This way I could run the tests one by one on the various devices, without needing to change configurations.
 
@@ -375,13 +375,13 @@ DroboPro iSCSI:
 
 
 
-TS-589 Pro (1500 MTU) iSCSI:
+TS-859 Pro (1500 MTU) iSCSI:
 
 ![](http://docs.google.com/File?id=dcmzmbww_996qkgmff6_b)
 
 
 
-TS-589 Pro Jumbo Frame (9000 MTU) iSCSI:
+TS-859 Pro Jumbo Frame (9000 MTU) iSCSI:
 
 [![](http://docs.google.com/File?id=dcmzmbww_100hsf37tgh_b)](http://docs.google.com/File?id=dcmzmbww_100hsf37tgh_b)
 
@@ -459,7 +459,7 @@ Server SMB:
 
 
 
-TS-589 Pro SMB:
+TS-859 Pro SMB:
 
 **Fileset****Run 1 (B/s)****Run 2 (B/s)****Run 3 (B/s)****Average (B/s)**Ghost64295886654866176349473564425746JPG52988736526332395317786452933279XP14345937157032441550645615185212Total131630559133823100132179055**132,544,238**
 
@@ -484,7 +484,7 @@ For SMB the W2K8R2 server is the fastest.
 
 If we look at the system load graphs we can see that the DroboPro network throughput is frequently stalling, while the TS-859 is consistently smooth.
 
-This phenomena has been a topic of discussion on the DroboPro forum for some time, and the speculation is that the hardware cannot keep up with the network load.
+This phenomenon has been a topic of discussion on the DroboPro forum for some time, and the speculation is that the hardware cannot keep up with the network load.
 
 Further speculation is that because the BeyondRAID technology is filesystem aware, it requires more processing power compared to a traditional block level RAID that is filesystem agnostic.
 
@@ -498,13 +498,13 @@ The TS-859 Pro and the DroboPro are about the same price, around $1500.
 
 The TS-859 Pro is a little louder than the DroboPro (with the DroboPro cover on).
 
-The TS-859 Pro is not as pretty as the DroboPro, arguable.
+The TS-859 Pro is not as pretty as the DroboPro, arguably.
 
-The TS-859 Pro has ample diagnostics and remote managament capabilities, the DroboPro has none.
+The TS-859 Pro has ample diagnostics and remote management capabilities, the DroboPro has none.
 
 The TS-859 Pro has loads of features, the DroboPro provides only basic storage.
 
-The TS-859 Pro is easy to setup, the DroboPro requires a USB connection and still fails to correctly configure, requiring manual intervention.
+The TS-859 Pro is easy to set up, the DroboPro requires a USB connection and still fails to correctly configure, requiring manual intervention.
 
 The TS-859 Pro outperforms the DroboPro by 52%.
 

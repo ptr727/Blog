@@ -16,7 +16,7 @@ post_id: '100'
 In my previous post I discussed [my initial impressions of the Zotac ZBOXHD-ID11](/2010/05/zotac-zboxhd-id11-first-impressions.html).   
 In this post I continue my review, focusing on fan speed and noise.   
 
-This is second post in a [series of posts related to the Zotac ZBOX ZBOXHD-ID11](/2010/05/zotac-zbox-mini-pc-zboxhd-id11.html).
+This is the second post in a [series of posts related to the Zotac ZBOX ZBOXHD-ID11](/2010/05/zotac-zbox-mini-pc-zboxhd-id11.html).
 
 
 Summary:   
@@ -25,7 +25,7 @@ Summary:
 \- Need DXVA capable player for video playback.   
 
 \[Update: 26 May 2010\]   
-I [tested the Beta BIOS](/2010/05/zotac-zboxhd-id11-beta-bios-reduces-fan.html), and produced significantly better results. Effectively the new BIOS runs the CPU at 65C vs. 50C, as such you may be able to achieve the same results with the current BIOS by simply changing the CPU temperature threshold to 65C.
+I [tested the Beta BIOS](/2010/05/zotac-zboxhd-id11-beta-bios-reduces-fan.html), and it produced significantly better results. Effectively the new BIOS runs the CPU at 65C vs. 50C, as such you may be able to achieve the same results with the current BIOS by simply changing the CPU temperature threshold to 65C.
 
 Last time I tried [Lavalys EVEREST](http://www.lavalys.com/) and [SpeedFan](http://www.almico.com/speedfan.php) to measure the CPU/GPU temperature and fan speed, but neither application was able to detect the fan, and both applications produced questionable results for the CPU temperature.   
 A [Media-Portal forum](http://forum.team-mediaportal.com/barebones-commercial-htpcs-352/zotac-zbox-hd-id11-81693/index3.html) reader responded, and said I should try [CPUID Hardware Monitor](http://www.cpuid.com/hwmonitor.php), which I did, and it works. Actually, I used [CPUID Hardware Monitor Pro](http://www.cpuid.com/hwmonitorpro.php), this way I can capture values over time, and easily produce graphs.
@@ -37,7 +37,7 @@ My test methodology is to measure from power on, idle, under load, and back to i
 I let the ID11 reach room temperature (73F / 23C), I cold booted, and after logging in, immediately started Hardware Monitor Pro (HWMP). I let the ID11 sit idle for a few minutes. The fan remained very slow and very quiet, almost impossible to hear.   
 The idle fan speed is around 180RPM.
 
-Next I launched EVEREST system stability test, this placed the CPU under load, I ran this for a few minutes. Almost immediately the fan speed increased, and became very loud.   
+Next I launched the EVEREST system stability test, this placed the CPU under load, I ran this for a few minutes. Almost immediately the fan speed increased, and became very loud.   
 The high fan speed is around 5300RPM.   
 The case reached a temperature of 112F / 44C.
 
@@ -74,7 +74,7 @@ Below are two OSD captures, one from the ID11, and one from my [DELL Core i7 XPS
 ![](/external/e2e89fa476af650b.png)  
 ![](/external/8ada2e7cd345c95d.png)
 
-The default XBMC does not work on the ID11. A little bit of searching revealed that the internal decoders used by XBMC do not support GPU acceleration, and instead relies on the CPU to the rendering.   
+The default XBMC does not work on the ID11. A little bit of searching revealed that the internal decoders used by XBMC do not support GPU acceleration, and instead rely on the CPU to do the rendering.   
 There is a Windows specific port of XBMC using DirectShow codecs that do support [DirectX Video Hardware Acceleration (DXVA)](http://en.wikipedia.org/wiki/DirectX_Video_Acceleration), called [DSPlayer](http://forum.xbmc.org/showthread.php?t=61355).
 
 When I do a more elaborate video performance test I will use only DXVA capable players.

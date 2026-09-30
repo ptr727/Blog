@@ -41,7 +41,7 @@ I've been looking for MR16 LED's for some time now, same problem as 3 years ago,
 During my research I've made a few important observations:
 
 - US electrical code requires the use of GU10 bi-pin twist-lock lamp bases for new construction, and GU10 will eventually replace all E26 style screw in bases. In the past months I found that there is a much wider supply of 110V [GU10](https://en.wikipedia.org/wiki/Multifaceted_reflector) base MR16 dimmable LED bulbs compared to [GU5.3](https://en.wikipedia.org/wiki/Multifaceted_reflector) 12V bulbs. This is especially true for the no-name brand Chinese suppliers on eBay. I am assuming that the electronic circuitry used is similar to that used in the widely available regular E26 / A21 110V dimmable LED bulbs, and that the only difference is the MR16 housing construction. Keeping in mind that most installed AC [dimmers](http://amzn.to/1LqtiRN) are forward phase, and support a large variety of load types, while an LED is a constant current device that typically uses pulse width modulation for dimming. Thus a line voltage forward phase dimmer to pulse width modulated LED driver circuit is non-trivial, adding a 12V AC transformer in the mix, and supporting both 12V AC and 12V DC loads further complicates the circuitry, especially when dimming is required.
-- Just like there is an expanding variety of dimmable GU10 [line voltage](http://amzn.to/1BIkJi0) MR16's, there is an equal growing number of line voltage dimmable [retrofit](http://amzn.to/1dcQ2Wh) LED housings, that are near the cost of a MR16 bulb. These housings replace the old recessed can with an integrated AC LED driver and LED bulb array.
+- Just like there is an expanding variety of dimmable GU10 [line voltage](http://amzn.to/1BIkJi0) MR16's, there is an equally growing number of line voltage dimmable [retrofit](http://amzn.to/1dcQ2Wh) LED housings, that are near the cost of an MR16 bulb. These housings replace the old recessed can with an integrated AC LED driver and LED bulb array.
 - Today, as was the case 3 years ago, commercial and residential LED recessed lights separate the enclosure from the LED driver, allowing for different color and brightness LED's to be used, and to optimize the electronic circuitry for the type of dimmer being used. The prices are much lower compared to 3 years ago, but still high comparing a [$40](http://amzn.to/1J1a3dY) halogen enclosure to a similar style [$150](http://amzn.to/1dcM8g5) LED enclosure. It is possible to replace the entire enclosure, but it is a big job requiring ripping out ceiling drywall.
 - 12V MR16's can be powered by 12V AC electromagnetic transformers or electronic low voltage drivers. ELV drivers offer much higher efficiencies, but require compatible dimmers, and sometimes dimmers specifically designed for ELV drivers. Halogens are almost always powered by electromagnetic transformers due to the reduced cost and complexity. It is possible to replace the electromagnetic transformers in the enclosure with an ELV transformer, I've seen the electrician replace a blown transformer, he had to bring in the "small hand guy" from his crew and even then it took a lot of blind finger fiddling.
 - I use a [Vantage Controls InFusion](http://www.vantagecontrols.com/solutions/lighting-automation/infusion-system.aspx) home automation lighting control system in my house. The system supports line-voltage forward phase and reverse phase dimmer modules, 0-10V control, and PWM control [LED dimming](http://www.vantagecontrols.com/solutions/lighting-automation/led-lighting.aspx). All loads in my installation are dimmed using forward phase dimmers. The recommended LED control setup is to use the 0-10V or PWM circuits, i.e. the dimming control and power lines are separate. The [0-10V / PWM](http://dealer.vantagecontrols.com/products/details.php?category=a0M800000049qPcEAI&id=01tC00000039IhXIAU) control modules are about the same cost per line as AC [dimmer](http://dealer.vantagecontrols.com/products/details.php?category=a0M800000049qfSEAQ&id=01tC00000038yCqIAI) modules, but the real cost is again in LED driver circuitry.
@@ -82,7 +82,7 @@ Here are some pictures of the Elco enclosure, this will give you an idea of how 
 {{< figure src="/media/2015/06/elco-7.jpg" title="Elco-7" alt="Elco-7" >}}  
 {{< /gallery >}}  
 
-The DV-603P is a vanilly halogen and incandescent dimmer, it works just fine with the magnetic transformer and halogen bulbs in my house, but the MR16 LED manufacturer's compatibility guide require the use of specific low voltage magnetic or electronic low voltage dimmers. So I also bought:
+The DV-603P is a vanilla halogen and incandescent dimmer, it works just fine with the magnetic transformer and halogen bulbs in my house, but the MR16 LED manufacturer's compatibility guide requires the use of specific low voltage magnetic or electronic low voltage dimmers. So I also bought:
 
 - A [Lutron DVELV-303P](http://amzn.to/1JY7aZx) electronic low voltage dimmer.
 - A [Lutron DVLV-603P](http://amzn.to/1LX8sbD) magnetic low voltage dimmer.
@@ -120,7 +120,7 @@ For bulbs, I bought a variety of models from Amazon, eBay, and 1000bulbs:
 - [Sylvania 58327](http://assets.sylvania.com/assets/documents/hal_pib2.36e21a03-4ab5-42a4-9d6c-4a092930aad8.pdf): 50W Halogen MR16, 3000K, 35 Degree, 1450 CBCP.  
 These are the halogen bulbs I currently use, about $2.20 per bulb.
 - [Torchstar TS010](http://www.torchstar.us/4w-dimmable-mr16-led-bulb-spotlight.html): Dimmable, 12V 4W MR16 LED, 6000K Daylight, 50 Watt Equivalent, 330 Lumen, 60 Degree Beam Angle.  
-I ordered a 10-pack from [Amazon,](http://amzn.to/1Ib9Czh) the price worked out at about $5.50 per bulb. The packaging is generic, with a black marker dot indicating this to be a "pure white" variant. The bulb itself contains no markings, other than a small Torchstar sticker on the base. The bulb color is very blueish, like that of a daylight compact fluorescent bulb. I found the color to be very displeasing and distracting in my office environment, it made my color calibrated monitor screen appear yellow.
+I ordered a 10-pack from [Amazon,](http://amzn.to/1Ib9Czh) the price worked out at about $5.50 per bulb. The packaging is generic, with a black marker dot indicating this to be a "pure white" variant. The bulb itself contains no markings, other than a small Torchstar sticker on the base. The bulb color is very bluish, like that of a daylight compact fluorescent bulb. I found the color to be very displeasing and distracting in my office environment, it made my color calibrated monitor screen appear yellow.
 - [Torchstar TS010](http://www.torchstar.us/4w-dimmable-mr16-led-bulb-spotlight.html): Dimmable, 12V 4W MR16 LED, 3200K Warm White, 50 Watt Equivalent, 330 Lumen, 60 Degree Beam Angle  
 I ordered a 10-pack from [Amazon,](http://amzn.to/1Ib9Czh) the price worked out to about $5.70 per bulb. Like the daylight version, the packaging is generic, with a black marker dot indicating this to be a "warm white" variant. The bulb itself contains no markings, other than a small Torchstar sticker on the base. The bulb color is pleasing, pretty close to the halogen.
 - [Soraa Brilliant 00965](http://www.soraa.com/public/docs/Spec-Sheets-GU5.3-US/3.0/Soraa%20SM16%209W.pdf): Dimmable, 12V 9W MR16 LED, 75 Watt Equivalent, 3000K, CRI 80, CBCP 1540, 590 Lumen  
@@ -242,7 +242,7 @@ Here are the results for the Advance Lite TC60W ELV transformer:
 {{< figure src="/media/2015/08/elv2%5Fmax%5Ftorchstar.png" title="ELV2\_Max\_Torchstar" alt="ELV2\_Max\_Torchstar" >}}  
 {{< /gallery >}}  
 
-Looking at the results we can see that the response waveforms for the halogen bulb is, not surprisingly, near that of the resistor. We can see that the magnetic transformer and LED load has all sorts of inductive goodness going on. And we can see that the RL12-60W and TC60W ELV transformers are not nearly as well behaved as the RS12-60M-LED ELV that is specifically designed for LED loads.
+Looking at the results we can see that the response waveforms for the halogen bulb are, not surprisingly, near that of the resistor. We can see that the magnetic transformer and LED load have all sorts of inductive goodness going on. And we can see that the RL12-60A and TC60W ELV transformers are not nearly as well behaved as the RS12-60M-LED ELV that is specifically designed for LED loads.
 
 I then proceeded to test the dimmability of the various LED bulbs, I summarize my subjective findings below:
 
@@ -275,19 +275,19 @@ eBay CREE COB:
 Magnetic: Good dimming range, switches off before end of dim range  
 RS12-60M-LED: Good dimming range, slight transformer buzzing
 
-I was surprised that the cheap $3 eBay CREE COB MR16 LED bulbs worked as well as they did. Only downside is they switch off at around 20% when using the magnetic transformer, but dim down well. I don't know if they really contain [CREE COB LED's](http://www.cree.com/LED-Components-and-Modules/Landing-pages/CXA), but the COB array arrangement of LED's provide an even light source.
+I was surprised that the cheap $3 eBay CREE COB MR16 LED bulbs worked as well as they did. Only downside is they switch off at around 20% when using the magnetic transformer, but dim down well. I don't know if they really contain [CREE COB LED's](http://www.cree.com/LED-Components-and-Modules/Landing-pages/CXA), but the COB array arrangement of LED's provides an even light source.
 
-The [Torchstar](http://amzn.to/1Ib9Czh) bulbs have a slight flicker at the low end, but dims down all the way, a bit more expensive compared to the eBay bulbs, but US based Torchstar support may be worth the extra 1$ per bulb.
+The [Torchstar](http://amzn.to/1Ib9Czh) bulbs have a slight flicker at the low end, but dim down all the way, a bit more expensive compared to the eBay bulbs, but US based Torchstar support may be worth the extra 1$ per bulb.
 
 The RS12-60M-LED ELV transformer performed well with halogen and LED loads, but the buzzing sound with or without load was a disappointment. I tested with two units, both buzz. I contacted the manufacturer to find out if this is normal, or if the units I bought on eBay are faulty.
 
-I have yet to find a MR16 LED that can be driven by a magnetic transformer that performs like halogens, my search continues.
+I have yet to find an MR16 LED that can be driven by a magnetic transformer that performs like halogens, my search continues.
 
 7 years later...
 
-I was looking for replacement baffles as many were discoloring from heat, and my attempts at spray painting with heat resistant paint was not very successful.
+I was looking for replacement baffles as many were discoloring from heat, and my attempts at spray painting with heat resistant paint were not very successful.
 
-One day I was shown a build.com ad on Facebook, assuming due to my search history, a win, for an [Elco EL140CT5](https://elcolighting.com/products/4-led-bi-pin-retrofit-insert-reflector-trims) retrofit insert that is CA Title 24 compliant, sold by [Build.com](https://www.build.com/elco-el140ct5/s1762241?uid=4160681) or [Amazon](https://amzn.to/3h1mimL) for about $33. Not cheap, but about the same price as just a replacement metal baffle, that now needs to be special ordered.
+One day I was shown a build.com ad on Facebook, presumably due to my search history, a win, for an [Elco EL140CT5](https://elcolighting.com/products/4-led-bi-pin-retrofit-insert-reflector-trims) retrofit insert that is CA Title 24 compliant, sold by [Build.com](https://www.build.com/elco-el140ct5/s1762241?uid=4160681) or [Amazon](https://amzn.to/3h1mimL) for about $33. Not cheap, but about the same price as just a replacement metal baffle, that now needs to be special ordered.
 
 The retrofit replaces the entire baffle and lamp, using the old lamp connector, and has an adjustable color switch 2700K-5000K. They were easy to install, and they look great. I used 3000K for most of the house, and 4000K for bathrooms, closets, and work rooms. It cost me a pretty sum, but I replaced every single bulb (where I could reach without needing to get scaffolding built e.g. above the staircase).
 

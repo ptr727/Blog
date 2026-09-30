@@ -21,7 +21,7 @@ I have been aware of the [Drobo](http://www.drobo.com/ "Drobo") storage devices 
 
 Recently a coworker's large home RAID system had a controller failure, and after recovering the data, he migrated to a [DroboPro](http://www.drobo.com/products/drobopro/index.php "DroboPro") using [iSCSI](http://en.wikipedia.org/wiki/ISCSI "iSCSI").
 
-After he told me how quite the device is, and how little power it uses, I wanted to try one out myself.
+After he told me how quiet the device is, and how little power it uses, I wanted to try one out myself.
 
 
 
@@ -157,7 +157,7 @@ Several users replied saying they have similar problems with the dashboard servi
 
 
 
-I deleted the two test volumes using the dashboard, it did appear to unmount them, and then reboot.
+I deleted the two test volumes using the dashboard, it did appear to unmount them, and then rebooted.
 
 Still, one would expect the Drobo service to correctly respond to device removal notifications.
 
@@ -171,9 +171,9 @@ The dashboard does not display any diagnostic information, no drive power state,
 
 When you right click on the dashboard tray icon there is an option to create a diagnostic report.
 
-At first it seemed like the diagnostic report dialog hanged, then I noticed that DDService.exe crashed.
+At first it seemed like the diagnostic report dialog hung, then I noticed that DDService.exe crashed.
 
-I restarted the dashboard and the service, and this time the report file was created on the desktop, to my surprised the file was encrypted.
+I restarted the dashboard and the service, and this time the report file was created on the desktop, to my surprise the file was encrypted.
 
 Not allowing me access to any diagnostic information is highly unusual.
 
@@ -183,7 +183,7 @@ I found an old [forum post](http://www.drobousers.com/forum/index.php?topic=16.0
 
 But since the forum is closed the post was no longer available, fortunately the [google cache](http://74.125.155.132/search?q=cache:XM3JhcPl7Z4J:www.drobousers.com/forum/index.php%3Ftopic%3D16.0+drobo+log+decrypt&cd=1&hl=en&ct=clnk&gl=us "google cache") still has the information.
 
-Unfortunately it turns out that the encryption on newer models have changed.
+Unfortunately it turns out that the encryption on newer models has changed.
 
 
 
@@ -201,15 +201,15 @@ Ok, I can understand not wanting to give away the secret sauce, but not making a
 
 I was now ready to switch to iSCSI.
 
-The PDF included on the CD was not much help, but the [KB articles](http://support.datarobotics.com/app/answers/detail/a_id/240/kw/iscsi/r_id/100004 "KB articles") on the Drobo support site was helpful.
+The PDF included on the CD was not much help, but the [KB articles](http://support.datarobotics.com/app/answers/detail/a_id/240/kw/iscsi/r_id/100004 "KB articles") on the Drobo support site were helpful.
 
-The steps calls for; power up with USB only, configure using dashboard, power down using dashboard, disconnect USB, connect Ethernet, power up, dashboard will reconnect after a few minutes.
+The steps call for; power up with USB only, configure using dashboard, power down using dashboard, disconnect USB, connect Ethernet, power up, dashboard will reconnect after a few minutes.
 
 
 
-The steps say that for DroboPro connected to a switch you cannot use automatic IP configuration, and you must use a static IP.  
+The steps say that for a DroboPro connected to a switch you cannot use automatic IP configuration, and you must use a static IP.  
 
-I could not see why no, so I ignored the steps and used automatic configuration, for whatever reason, it does not work.
+I could not see why not, so I ignored the steps and used automatic configuration, for whatever reason, it does not work.
 
 I went back to USB, selected a static IP, rebooted, and this time after a few minutes the dashboard connected to the DroboPro, and the drive I had previously created re-appeared.
 
@@ -217,7 +217,7 @@ I went back to USB, selected a static IP, rebooted, and this time after a few mi
 
 I assumed that the dashboard is configuring iSCSI targets for me,
 
-I opened the Windows iSCSI Initiator, and as expected the target and device was already configured.
+I opened the Windows iSCSI Initiator, and as expected the target and device were already configured.
 
 
 
@@ -293,7 +293,7 @@ And not that I expect enterprise level reliability or performance in a consumer 
 - No raw volume management, must be a supported file system, must be managed by dashboard app.
 - I have to trust DroboPro with my data, but there is no diagnostic or health status.
 - I have to trust Data Robotics, but the forum is closed and diagnostic logs are encrypted.
-- Email alerts requires a user to be logged in, if I was logged in I would not need an email alert.
+- Email alerts require a user to be logged in, if I was logged in I would not need an email alert.
 - Software that is not fully Vista compatible, even after Windows 7 already shipped.
 - Software that shipped with known problems that could cause data corruption.
 

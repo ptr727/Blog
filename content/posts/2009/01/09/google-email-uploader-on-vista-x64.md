@@ -18,11 +18,11 @@ The utility installed fine on my Vista x64 system, but it found no mailboxes to 
 
 Since Google kindly publishes the [source](http://code.google.com/p/google-email-uploader/) for the tool, I decided to have a look. Turns out it was a relatively simple fix to get it to work.
 
-The main application is a C# .NET application, with the build properties for the target set to "Any CPU". This means that on a x86 / WIN32 system it will be a 32bit process and on x64 / WIN64 system it will be a 64bit process.
+The main application is a C# .NET application, with the build properties for the target set to "Any CPU". This means that on an x86 / WIN32 system it will be a 32bit process and on an x64 / WIN64 system it will be a 64bit process.
 
 The problem is that the application also uses two mixed mode DLLs, and these DLLs are compiled for x86 / WIN32. When running the main EXE on Vista x64, the process is a 64bit process, and that fails to load the 32bit DLLs. The fix was simple, change the build target from "Any CPU" to "x86".
 
-I also had to fix a couple other small things in order to get the "Release" build to compile correctly. The DLLs are written in C++, but for some reason the developers used .MH and .MCC extensions instead of the standard .H and .CPP extensions. The "Debug" build had set custom build properties for .MCC files, and associated the files with the C++ compiler. Once I did the same for the "Release" build, the project compiled.
+I also had to fix a couple of other small things in order to get the "Release" build to compile correctly. The DLLs are written in C++, but for some reason the developers used .MH and .MCC extensions instead of the standard .H and .CPP extensions. The "Debug" build had set custom build properties for .MCC files, and associated the files with the C++ compiler. Once I did the same for the "Release" build, the project compiled.
 
 The last change was to set the Outlook import DLL linker options to delay load MAPI32.DLL.
 

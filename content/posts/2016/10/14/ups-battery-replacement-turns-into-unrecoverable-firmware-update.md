@@ -16,7 +16,7 @@ As the saying goes, if it is not broken do not fix it, especially when it comes 
 
 I have a couple [APC Smart-UPS](http://www.apc.com/smartups/)'s at my house, same as the models I like to use at the office. I use the [SMT750](http://amzn.to/2eq5PHJ) models with [AP9631](http://amzn.to/2e8ppnk) [Network Monitoring Cards](http://www.apc.com/shop/us/en/categories/power/uninterruptible-power-supply-ups-/ups-management/ups-network-management-cards/_/N-1x4urig). The problem started when we had a short power outage, and the UPS that powers the home network switch, cell repeater, alarm internet connection, and PoE IP cameras, unexpectedly died. A battery replacement led to the opportunity to do a UPS firmware update, which led to an unrecoverable firmware update.
 
-It started when I woke up one morning and it was obvious the power had been out, first indicator is the kitchen appliances have blinking clocks, second are the numerous power failure email notifications, and the emails that stood out were from the alarm system that says it lost power and internet connectivity. The alarm has it's own backup battery, the network switches and FiOS internet have their own battery backups, and the outage was only about 4 minutes.  So how is it that the UPS died, killing the switch, disconnecting the internet, especially when the outage was only 4 minutes, and typical runtimes on the UPS should be about an hour?
+It started when I woke up one morning and it was obvious the power had been out, first indicator is the kitchen appliances have blinking clocks, second are the numerous power failure email notifications, and the emails that stood out were from the alarm system that says it lost power and internet connectivity. The alarm has its own backup battery, the network switches and FiOS internet have their own battery backups, and the outage was only about 4 minutes.  So how is it that the UPS died, killing the switch, disconnecting the internet, especially when the outage was only 4 minutes, and typical runtimes on the UPS should be about an hour?
 
 Here is the UPS outage log produced by the NMC card:
 
@@ -66,7 +66,7 @@ Here is where I should have stopped and called it a day, but no. I knew that the
 11\. Repaired an occasional math error in the battery replacement date algorithm that resulted in incorrect dates.\[/code\]
 I update the UPS, where I just replaced the battery, [instructions](http://www.schneider-electric.us/en/faqs/FA170679/) are pretty simple. Only hassle is I have to bypass the network equipment to be mains powered so I can turn the UPS outputs off while updating the firmware, while maintaining network connectivity.
 
-I did the same for my office UPS, PC and office switch on mains power, and when I power down the output, I made sure to not notify [PowerChute Network Shutdown](http://www.apc.com/shop/us/en/categories/power/ups/ups-management/powerchute-network-shutdown/_/N-auzzn7) (PCNS) clients, as my PC had the PowerChute client installed to receive power state via the network. I start the firmware update over the network, and a few seconds later I get a Windows message that shutdown had been initiated by PCNS, what? I sit there in frustration, nothing to do but watch my PC shutdown while it is still delivering the firmware update.
+I did the same for my office UPS, PC and office switch on mains power, and when I power down the output, I made sure to not notify [PowerChute Network Shutdown](http://www.apc.com/shop/us/en/categories/power/ups/ups-management/powerchute-network-shutdown/_/N-auzzn7) (PCNS) clients, as my PC had the PowerChute client installed to receive power state via the network. I start the firmware update over the network, and a few seconds later I get a Windows message that shutdown had been initiated by PCNS, what? I sit there in frustration, nothing to do but watch my PC shut down while it is still delivering the firmware update.
 
 On rebooting my PC, NMC comes up, but reports the UPS has stopped communicating. I pull AC power from the UPS, no change, I also pull the batteries, and when I plug the batteries and mains back on, beeeeeeeeeep. NMC now reports no UPS found, the UPS LCD panel reports all is fine. And still beeeeeeeeeep, and no way to stop the beeeeeeeeeep.
 
@@ -74,7 +74,7 @@ Here is the NMC status page:
 
 ![apc-3](/media/2016/10/apc-3.png)
 
-I try to do [Firmware Upgrade Wizard](ftp://178.165.81.38/firmware/APC/FA164737_EN_US_31.0.pdf) update via USB, plug a USB cable in, PC sees UPS, reports critical condition, but the upgrade wizard reports no UPS found on USB.
+I try to do a [Firmware Upgrade Wizard](ftp://178.165.81.38/firmware/APC/FA164737_EN_US_31.0.pdf) update via USB, plug a USB cable in, PC sees UPS, reports critical condition, but the upgrade wizard reports no UPS found on USB.
 
 Here is the wizard error page:
 
