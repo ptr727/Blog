@@ -37,6 +37,8 @@ params:
   defaultTheme: auto
   disableThemeToggle: true
   showReadingTime: true
+  # The theme otherwise renders the newest post as an unboxed hero, which reads as page chrome rather than as a post.
+  disableSpecial1stPost: true
   showToc: true
   tocOpen: false
   showBreadCrumbs: true
