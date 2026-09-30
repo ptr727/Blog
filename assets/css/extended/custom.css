@@ -68,3 +68,27 @@ body {
 .gallery-cols-6 figure {
     width: 16.666666666%;
 }
+
+.about-profile {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.about-portrait {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.about-profile .post-content {
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .about-profile {
+        flex-direction: column;
+        align-items: center;
+    }
+}
