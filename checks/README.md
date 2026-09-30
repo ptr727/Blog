@@ -39,7 +39,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Attachment pages, nested | 216 | Redirect to the parent post |
 | Per-term comment feeds | 192 | Redirect to the term archive |
 | `?p=<id>` shortlinks | 110 | Redirect to the permalink, via `p-ids.map` |
-| Attachment pages, root level | 105 | Redirect to the parent post, via `slugs.map` |
+| Attachment pages, root level | 105 | Redirect to the parent post, via `slugs.map`, or to `/` for the 20 with no parent found |
 | Per-post comment feeds | 107 | Redirect to the parent post |
 | Date archives | 83 | Redirect to `/all/`, since **Hugo has no built-in year or month archive**. The matcher accepts any date, including dates absent from the list |
 | Blogger permalinks | 59 | Redirect to the current post, via `blogger.map` |
@@ -52,7 +52,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Site and section feeds | 3 | `/feed/`, `/about/feed/`, `/comments/feed/` |
 | Retired pages | 1 | `/viljoen-family/` to `https://viljoen.family/`, via `slugs.map` |
 
-An **attachment page** is the page the old platform generated per uploaded image, served at both `/YYYY/MM/DD/post/attachment/` and a bare `/attachment/`. That makes a bare slug ambiguous with a real page, and the sitemap resolves it, since it lists exactly the posts and pages. A bare slug the sitemap omits and no Caddyfile rule covers lands in `slugs.map`. Every entry there is an attachment page except the three the table counts apart, the two root files and the retired page. The images themselves keep their `wp-content/uploads/` paths and are covered separately by `golden-media-legacy.txt`.
+An **attachment page** is the page the old platform generated per uploaded image, served at both `/YYYY/MM/DD/post/attachment/` and a bare `/attachment/`. That makes a bare slug ambiguous with a real page. The old platform's sitemap resolved it when the capture was split, since it listed exactly the posts and pages. A bare slug in `redirect-urls.txt` that no Caddyfile rule covers lands in `slugs.map`. Every entry there is an attachment page except the three the table counts apart, the two root files and the retired page. The images themselves keep their `wp-content/uploads/` paths and are covered separately by `golden-media-legacy.txt`.
 
 A **retired page** is one the site no longer renders because another site replaced it. Its URL moves from the render list to this one rather than leaving the contract, so it keeps answering.
 
