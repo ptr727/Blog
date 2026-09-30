@@ -131,8 +131,8 @@ Secrets and variables, per environment. The App-token pair is repository-scoped 
 | `DEPLOY_SSH_HOST`, `DEPLOY_SSH_USER`, `DEPLOY_SSH_KNOWN_HOSTS` | variable |
 | `SITE_BASE_URL` | variable |
 | `SITE_AUTH_TOKEN_ID`, `SITE_AUTH_TOKEN` | secret, staging only |
-| `FAMILY_SITE_BASE_URL` | variable |
-| `FAMILY_SITE_AUTH_TOKEN_ID`, `FAMILY_SITE_AUTH_TOKEN` | secret, staging only |
+| `SITE_EXTRA_BASE_URL` | variable |
+| `SITE_EXTRA_AUTH_TOKEN_ID`, `SITE_EXTRA_AUTH_TOKEN` | secret, staging only |
 | `CODEGEN_APP_CLIENT_ID`, `CODEGEN_APP_PRIVATE_KEY` | secret, both stores |
 
 `DEPLOY_SSH_PRIVATE_KEY` holds the same key in both environments. The environment split still carries the base URL, the SSH endpoint, and the staging-only token pair, so it is not decorative.

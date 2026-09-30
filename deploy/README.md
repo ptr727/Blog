@@ -146,16 +146,17 @@ Three more check the family site, whose host is a proxy resource of its own:
 
 | Variable | Effect |
 | --- | --- |
-| `FAMILY_SITE_BASE_URL` | The family site's base URL. Unset, the family site is not checked, and a family pair set without it is refused. |
-| `FAMILY_SITE_AUTH_TOKEN_ID` | The family resource's access token id, sent as `P-Access-Token-Id`. |
-| `FAMILY_SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
+| `SITE_EXTRA_BASE_URL` | The family site's base URL. Unset, the family site is not checked, and a family pair set without it is refused. |
+| `SITE_EXTRA_AUTH_TOKEN_ID` | The family resource's access token id, sent as `P-Access-Token-Id`. |
+| `SITE_EXTRA_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
 
 The family pair follows the same rules as the blog's, and goes to the family origin alone. A
 token opens exactly one proxy resource, so the blog's pair cannot open the family host. The
 check requests `/`, `/en/`, and `/af/` after the URL contract and asserts each page's `<title>`,
 since a hostname the family block does not name falls through to the blog with a `200`. Where
 `EXPECT_SITE_ENV` is set, each page's `X-Blog-Env` must match it too, because the family host is
-a proxy rule of its own. A family failure is recorded with the rest rather than stopping the run.
+a proxy rule of its own. Where `EXPECT_RELEASE` is set, each page's `X-Blog-Release` must match it.
+A family failure is recorded with the rest rather than stopping the run.
 
 ## Reloading without a restart
 
