@@ -172,6 +172,8 @@ done
 AUTH=(-K "$CHECKRC")
 [ -n "$CURLRC" ] && AUTH+=(-K "$CURLRC")
 
+# Every curl call passes -q first, the only position where curl skips the user's .curlrc.
+
 # Invoked indirectly, through `export -f` and the `xargs bash -c` calls below.
 # shellcheck disable=SC2329
 check_render() {

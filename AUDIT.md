@@ -2,7 +2,7 @@
 
 How an agent audits **this repository** against its ground truth and reports drift. The audit is read-only: it never edits this repo, and it reads the hub only, never writes to it or any other repository.
 
-The ground truth is the hub's committed `repo-config/` payloads and secrets manifest, neither of which this repo carries a copy of, and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md)). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
+The ground truth is the hub's committed `repo-config/` payloads and secrets manifest, neither of which this repo carries a copy of, and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md), [`ENVIRONMENT.md`](./ENVIRONMENT.md)). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
 
 ## Scope
 
@@ -16,7 +16,7 @@ Both are deliberate deviations from what the fleet spec would predict, recorded 
 Three dimensions, each independently checkable:
 
 1. **Settings and rulesets**, against the hub's committed `repo-config/` payloads.
-2. **Secrets**, by name only, against the hub's manifest for the repository scope and against this file for the environment scope.
+2. **Secrets**, by name only, against the hub's manifest for the repository scope and against [`ENVIRONMENT.md`](./ENVIRONMENT.md) for the environment scope.
 3. **The URL contract**, which is this repo's own reason to exist.
 
 ## 1. Settings and Rulesets
@@ -67,7 +67,7 @@ One key covers both environments, a deliberate decision recorded in `OPERATIONS.
 python3 checks/check-github-env.py
 ```
 
-It compares in both directions and reports three findings. A store lacks a declared name, a store holds a name the table does not list, or a value is held as the wrong kind. The second is the one presence-checking misses. A Pangolin access token on `production` is reported as unlisted rather than passed as a harmless extra. Production answers unauthenticated, so a token there means a check could pass through a gate production is not supposed to have.
+It compares in both directions and reports three kinds of finding. A store lacks a declared name, a store holds a name the table does not list, or a value is held as the wrong kind. The second is the one presence-checking misses. A Pangolin access token on `production` is reported as unlisted rather than passed as a harmless extra. Production answers unauthenticated, so a token there means a check could pass through a gate production is not supposed to have.
 
 It needs a `gh` login that can administer the repository, since listing environment secrets requires that. Exit 2 means GitHub could not be read, which is not a pass. The deploy root is deliberately not declared. The rsync destination is anchored at the deploy key's confinement root, and the workflow names an environment rather than a host path.
 

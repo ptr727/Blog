@@ -52,7 +52,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Site and section feeds | 3 | `/feed/`, `/about/feed/`, `/comments/feed/` |
 | Retired pages | 1 | `/viljoen-family/` to `https://viljoen.family/`, via `slugs.map` |
 
-An **attachment page** is the page the old platform generated per uploaded image, served at both `/YYYY/MM/DD/post/attachment/` and a bare `/attachment/`. That makes a one-segment URL ambiguous with a real page, and the sitemap resolves it: the sitemap lists exactly the posts and pages, so a one-segment URL absent from it is an attachment page. The two root files are the one exception. The images themselves keep their `wp-content/uploads/` paths and are covered separately by `golden-media-legacy.txt`.
+An **attachment page** is the page the old platform generated per uploaded image, served at both `/YYYY/MM/DD/post/attachment/` and a bare `/attachment/`. That makes a one-segment URL ambiguous with a real page, and the sitemap resolves it: the sitemap lists exactly the posts and pages, so a one-segment URL absent from it is an attachment page. The images themselves keep their `wp-content/uploads/` paths and are covered separately by `golden-media-legacy.txt`.
 
 A **retired page** is one the site no longer renders because another site replaced it. Its URL moves from the render list to this one rather than leaving the contract, so it keeps answering.
 
