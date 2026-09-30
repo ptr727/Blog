@@ -155,7 +155,8 @@ token opens exactly one proxy resource, so the blog's pair cannot open the famil
 check requests `/`, `/en/`, and `/af/` after the URL contract and asserts each page's `<title>`,
 since a hostname the family block does not name falls through to the blog with a `200`. Where
 `EXPECT_SITE_ENV` is set, each page's `X-Blog-Env` must match it too, because the family host is
-a proxy rule of its own. A family failure is recorded with the rest rather than stopping the run.
+a proxy rule of its own. Where `EXPECT_RELEASE` is set, each page's `X-Blog-Release` must match it.
+A family failure is recorded with the rest rather than stopping the run.
 
 ## Reloading without a restart
 
