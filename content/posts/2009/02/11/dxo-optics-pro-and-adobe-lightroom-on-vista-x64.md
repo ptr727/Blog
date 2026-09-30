@@ -18,7 +18,7 @@ Not too long after I purchased DxO, they changed their licensing model, and inst
 
 
 
-In the mean time I switched to using [Adobe Lightroom](http://www.adobe.com/products/photoshoplightroom/) version 1, and DxO fell in disuse. Every now and again I did come across an article or forum post with less than flattering reports of the poor product quality in DxO version 4.5, and very poor quality in version 5. The other thing I read, and confirmed with DxO tech support, is that DxO did not support x64 editions of Vista, and since I had switched to Vista Ultimate x64 edition, this would be a problem.
+In the meantime I switched to using [Adobe Lightroom](http://www.adobe.com/products/photoshoplightroom/) version 1, and DxO fell into disuse. Every now and again I did come across an article or forum post with less than flattering reports of the poor product quality in DxO version 4.5, and very poor quality in version 5. The other thing I read, and confirmed with DxO tech support, is that DxO did not support x64 editions of Vista, and since I had switched to Vista Ultimate x64 edition, this would be a problem.
 
 
 
@@ -26,7 +26,7 @@ I switched from taking mostly JPG images to mostly RAW images, and manual correc
 
 
 
-In standalone mode DxO 5.3.2 worked great, but the integration with LR was not so great. The problem is that [DxO does not support integration with the x64 edition of LR](http://forum.dxo.com/showthread.php?t=2265), when calling DxO from x64 LR nothing happens. The DxO installer is also not fully x64 compatible, it creates a start menu shortcut to the "DxO Download Manager v5", but it sets the path to "C:\\Program Files\\DxO Labs\\DxO Download Manager v5\\DxODownloadManager.exe" instead of "C:\\Program Files (x86)\\DxO Labs\\DxO Download Manager v5\\DxODownloadManager.exe", obviously a hardcoded path instead of dynamically discovered path.
+In standalone mode DxO 5.3.2 worked great, but the integration with LR was not so great. The problem is that [DxO does not support integration with the x64 edition of LR](http://forum.dxo.com/showthread.php?t=2265), when calling DxO from x64 LR nothing happens. The DxO installer is also not fully x64 compatible, it creates a start menu shortcut to the "DxO Download Manager v5", but it sets the path to "C:\\Program Files\\DxO Labs\\DxO Download Manager v5\\DxODownloadManager.exe" instead of "C:\\Program Files (x86)\\DxO Labs\\DxO Download Manager v5\\DxODownloadManager.exe", obviously a hardcoded path instead of a dynamically discovered path.
 
 
 
@@ -50,11 +50,11 @@ Since DxO does not have a way of explicitly launching in plugin mode, they infer
 
 
 
-So why does DxO not work when launched from the x64 edition of LR? When launching DxO from x64 LR the DxO process starts and immediately terminates without showing any UI. It appears that DxO fails to determine information about the parent process when the parent process is a x64 process. I am speculating, but this is probably related to the technique that DxO is using to determine information about the parent process. Typically one would use the PS API or ToolHelp API's, along with NtQueryInformationProcess(), but when mixing x86 and x64 process types, they do not provide consistent information, and extra handling is required by using IsWow64Process(). A more portable, but less reliable, alternative is to use WMI. DxO is not a native application, it is written in .NET, presumable C#, but it apparently still suffers from some x64 related problem.
+So why does DxO not work when launched from the x64 edition of LR? When launching DxO from x64 LR the DxO process starts and immediately terminates without showing any UI. It appears that DxO fails to determine information about the parent process when the parent process is an x64 process. I am speculating, but this is probably related to the technique that DxO is using to determine information about the parent process. Typically one would use the PS API or ToolHelp API's, along with NtQueryInformationProcess(), but when mixing x86 and x64 process types, they do not provide consistent information, and extra handling is required by using IsWow64Process(). A more portable, but less reliable, alternative is to use WMI. DxO is not a native application, it is written in .NET, presumably C#, but it apparently still suffers from some x64 related problem.
 
 
 
-So how do we solve the problem? You can install both the x64 and the x86 editions of LR on your x64 system, and when you want to work with DxO you can use the x86 edition of LR. This however is not very convenient. My solution was to create a x86 proxy process that looks like LR, is discoverable by DxO, and convinces DxO to enter plugin mode. LR is then configured to launch the proxy process instead of DxO, the proxy process launches DxO and passes the same commandline parameters as passed by LR to DxO, waits for DxO to terminate, and returns the exit code to LR.
+So how do we solve the problem? You can install both the x64 and the x86 editions of LR on your x64 system, and when you want to work with DxO you can use the x86 edition of LR. This however is not very convenient. My solution was to create an x86 proxy process that looks like LR, is discoverable by DxO, and convinces DxO to enter plugin mode. LR is then configured to launch the proxy process instead of DxO, the proxy process launches DxO and passes the same commandline parameters as passed by LR to DxO, waits for DxO to terminate, and returns the exit code to LR.
 
 
 
@@ -70,15 +70,15 @@ At this point I have to remind you that I have absolutely no connection with DxO
 
 
 
-I compared the behavior of DxO on a x86 system with the behavior on a x64 system, and I noticed that on the x86 system the DxO process opens the LR executable file on disk. Looking at the call stack I noticed that DxO calls the.NET runtime calls the GetFileVersionInfoW() API. On the x64 system DxO never attempts to open the LR executable. I installed the x86 version of LR on the x64 system, and noticed a similar behavior to the x86 system.
+I compared the behavior of DxO on an x86 system with the behavior on an x64 system, and I noticed that on the x86 system the DxO process opens the LR executable file on disk. Looking at the call stack I noticed that DxO calls the .NET runtime, which calls the GetFileVersionInfoW() API. On the x64 system DxO never attempts to open the LR executable. I installed the x86 version of LR on the x64 system, and noticed a similar behavior to the x86 system.
 
 
 
-I created a C++ project in Visual Studio 2008, and wrote code to take the input commandline parameters and call the DxO executable with the same parameters as passed in by LR. I built a x86 binary, renamed the output file Lightroom.exe, and when I run "Lightroom.exe c:\\test\\test-edit.tif", DxO would open in plugin mode, but would not load the original test.cr2 file. I added version information to the proxy project, and matched the version information contents to that of the real LR binary. Repeating the test, DxO now believes that it was called by LR and it opens in plugin mode and it finds the correct RAW file.
+I created a C++ project in Visual Studio 2008, and wrote code to take the input commandline parameters and call the DxO executable with the same parameters as passed in by LR. I built an x86 binary, renamed the output file Lightroom.exe, and when I run "Lightroom.exe c:\\test\\test-edit.tif", DxO would open in plugin mode, but would not load the original test.cr2 file. I added version information to the proxy project, and matched the version information contents to that of the real LR binary. Repeating the test, DxO now believes that it was called by LR and it opens in plugin mode and it finds the correct RAW file.
 
 
 
-The source and binary file is available [here](https://docs.google.com/uc?id=0B_YiDruAPkKzNzUyNzBiMGItNGZkMi00ODkyLTk5YTEtNGVhNDg4ZmNiYzc1&export=download&hl=en).
+The source and binary files are available [here](https://docs.google.com/uc?id=0B_YiDruAPkKzNzUyNzBiMGItNGZkMi00ODkyLTk5YTEtNGVhNDg4ZmNiYzc1&export=download&hl=en).
 
 Please remember that I provide no warranty at all, I did minimal testing, so use at your own risk.
 

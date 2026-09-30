@@ -34,7 +34,7 @@ Some background on the old machine...
 
 
 
-The HD 2600XT GPU fan was very load, too loud for a HTPC.
+The HD 2600XT GPU fan was very loud, too loud for an HTPC.
 
 I replaced the stock HD 2600XT fan with a [Zalman VF900-Cu](http://www.zalman.co.kr/ENG/product/Product_Read.asp?Idx=144 "Zalman VF900-Cu") fan, and this made it much quieter.
 
@@ -96,7 +96,7 @@ I am not particular to any one brand of motherboard, but I normally use either [
 
 I chose the [Intel DP45SG](http://www.intel.com/products/desktop/motherboards/DP45SG/DP45SG-overview.htm "Intel DP45SG") because it has already undergone several revisions to iron out the kinks, and it provided the basic functionality I needed without any additional bells and whistles I don't need.
 
-With the release of the i5 and i7 processors, and P55 chipsets, I chose to stay with the P45 chipset because the Core processors and dual-channel DDR3 memory is reasonably cheap.
+With the release of the i5 and i7 processors, and P55 chipsets, I chose to stay with the P45 chipset because the Core processors and dual-channel DDR3 memory are reasonably cheap.
 
 I went with an [Intel Core 2 Quad Q9650 3GHz](http://processorfinder.intel.com/details.aspx?sSpec=SLB8W "Intel Core 2 Quad Q9650 3GHz") processor, and [Kingston KHX1333C7D3K2](http://www.ec.kingston.com/ecom/configurator_new/PartsInfo.asp?ktcpartno=KHX1333C7D3K2/4G "Kingston KHX1333C7D3K2") memory.
 
@@ -106,7 +106,7 @@ I went with an [Intel Core 2 Quad Q9650 3GHz](http://processorfinder.intel.com/d
 
 I haven't used [NVidia](http://www.nvidia.com/ "NVidia") graphic cards in a long time, compared to the [ATI HD series](http://www.amd.com/US/PRODUCTS/DESKTOP/GRAPHICS/Pages/desktop-graphics.aspx "ATI HD series") cards, the NVidia equivalents are just too expensive.
 
-I chose the [ATI Sapphire HD 5750](http://www.sapphiretech.com/presentation/product/?psn=000101&pid=289 "ATI Sapphire HD 5750") because it has an HDMI connecter, thus no need for a DVI to HDMI adapter, and it is quiet.
+I chose the [ATI Sapphire HD 5750](http://www.sapphiretech.com/presentation/product/?psn=000101&pid=289 "ATI Sapphire HD 5750") because it has an HDMI connector, thus no need for a DVI to HDMI adapter, and it is quiet.
 
 I could have gone with the 5770, but the 5750 is sufficient for my needs, primarily watching movies, and is quieter and uses less power.
 
@@ -126,7 +126,7 @@ The DP45SG BIOS supports temperature feedback fan control.
 
 But with this option enabled, the two stock Lian-Li 80mm rear fans would not run at all.
 
-If I disable fan control, meaning the fans are on all the time, the fans worked fine.
+If I disable fan control, meaning the fans are on all the time, the fans work fine.
 
 I replaced the two stock fans with [Scythe S-Flex 80mm 1500rpm](http://www.scythe-usa.com/product/acc/062/sflf80_detail.html "Scythe S-Flex 1500rpm") fans, and they worked perfectly, and silently, at low RPM.
 
@@ -136,7 +136,7 @@ When I ordered the 80mm fans, I also ordered a [Scythe Kaze Maru 140mm 1200rpm](
 
 When I tried to install it, I realized that this was really a 120mm fan, or at least the mounting holes were for a 120mm fan.
 
-There is a little piece of text on Scythe site that I missed:
+There is a little piece of text on Scythe's site that I missed:
 
 "\*Only Compatible to 120mm fan Slots!!\*"
 
@@ -196,7 +196,7 @@ I did find [this document](http://www.microsoft.com/whdc/system/platform/firmwar
 
 Everything is now up and running with Windows 7 Ultimate x64.
 
-The new HTPC replaced the old one in our living room, all that is left to do are the final tweaks for power profiles, remote control only login, codec's, etc.
+The new HTPC replaced the old one in our living room, all that is left to do are the final tweaks for power profiles, remote control only login, codecs, etc.
 
 I normally use [Media-Portal](http://www.team-mediaportal.com/ "Media-Portal") for a media frontend, but I've been playing with [XBMC](http://xbmc.org/ "XBMC"), and I think I'll give that a try instead.
 
@@ -274,9 +274,9 @@ Then adjust the overscan.
 
 It was interesting to note that the default value, in Windows 7 at least, is to underscan.
 
-When I first hooked up my HTPC running Vista to my plasma TV, fixing the overscan is the first thing I tried to do so that I could see the entire desktop.
+When I first hooked up my HTPC running Vista to my plasma TV, fixing the overscan was the first thing I tried to do so that I could see the entire desktop.
 
-Usability wise it makes sense to have a default that will let you see the entire desktop, vs. a default that cuts of parts of the screen.
+Usability wise it makes sense to have a default that will let you see the entire desktop, vs. a default that cuts off parts of the screen.
 
 My preference is to just let the TV overscan and not let the graphic card scale the output to compensate for overscan.
 
@@ -326,7 +326,7 @@ A common response was to wait for the new Catalyst 9.12 drivers.
 
 I was still using the 9.11 drivers, so I waited, and when released, I installed 9.12, but the same problem.
 
-The [ATI forum](http://forums.amd.com/game/messageview.cfm?catid=260&threadid=121063 "ATI forum") reported the same, the 9.12 driver, and the 9.12 driver hotfix does not address this problem.
+The [ATI forum](http://forums.amd.com/game/messageview.cfm?catid=260&threadid=121063 "ATI forum") reported the same, the 9.12 driver, and the 9.12 driver hotfix do not address this problem.
 
 
 

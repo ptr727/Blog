@@ -19,7 +19,7 @@ tags:
 post_id: '106'
 ---
 In a [previous post](/2010/05/zotac-zboxhd-id11-fan-speed-and-noise.html) I measured the fan speed and noise under load, and I found it to be unacceptably high.   
-Zotac support notified me that a new Beta BIOS is available that address the issue.   
+Zotac support notified me that a new Beta BIOS is available that addresses the issue.   
 In this post I measure the difference between the release BIOS and the Beta BIOS.
 
 This is the fourth post in a [series of posts related to the Zotac ZBOX ZBOXHD-ID11](/2010/05/zotac-zbox-mini-pc-zboxhd-id11.html).
@@ -73,7 +73,7 @@ Below are two graphs showing fan speed under load, first the Beta BIOS, then the
 
 [![CPUFANIN0.Stability](/external/18acf1b0c5bc4392.png)](/external/ac32f68dd6673058.png)
 
-Comparing the graphs, the Beta BIOS maximum fans speed is around 2400RPM, while the current BIOS maximum fan speed is around 5300RPM. The Beta BIOS made a significant improvement in reducing fan speed and noise.
+Comparing the graphs, the Beta BIOS maximum fan speed is around 2400RPM, while the current BIOS maximum fan speed is around 5300RPM. The Beta BIOS made a significant improvement in reducing fan speed and noise.
 
 Below are two graphs showing CPU temperature under load, first the Beta BIOS, then the current BIOS:   
 [![CPUTIN.Beta.Stability](/external/95aa5e630c988301.png)](/external/219b9a895c92f36f.png)

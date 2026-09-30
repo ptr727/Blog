@@ -15,7 +15,7 @@ post_id: '164'
 ---
 I've been using [CrashPlan](http://www.crashplan.com/) as an online backup solution for quite some time, and it works really well.
 
-I like the fact that I can subscribe to the consumer plan, with almost 3.5TB of data backed up, and that the backup client installs on a server OS. Many of the other "unlimited" backup providers I tested have restrictions in place that makes such a setup impossible.
+I like the fact that I can subscribe to the consumer plan, with almost 3.5TB of data backed up, and that the backup client installs on a server OS. Many of the other "unlimited" backup providers I tested have restrictions in place that make such a setup impossible.
 
 CrashPlan sends email notifications about backup status, and I noticed that something was wrong with the backup:
 [![CrashPlan.Email](/media/2012/07/crashplan-email_thumb.png)](/media/2012/07/crashplan-email_.png)
@@ -61,15 +61,15 @@ I looked for a newer version, but 3.2.1 was the latest version. I logged a suppo
 
 So it seems that the service is running out of memory. I now had a few good keywords to search on, and I found [this post](http://leftcall.com/2012/06/12/technology-the-crashplan-backup-service-entered-the-stopped-state/) of a user with the same problem. At about the same time I received a reply from CrashPlan support, not bad for weekend service, with the same solution.
 
-The CrashPlan backup service and desktop applications are Java apps, and as such the maximum amount of memory they use are capped by configuration. I have had similar problems with other memory hungry Java apps, like [Jaikoz](http://www.jthink.net/jaikoz/), that simply fail unless you increase the memory limit.
+The CrashPlan backup service and desktop applications are Java apps, and as such the maximum amount of memory they use is capped by configuration. I have had similar problems with other memory hungry Java apps, like [Jaikoz](http://www.jthink.net/jaikoz/), that simply fail unless you increase the memory limit.
 
-To fix the problem, shutdown the service, open the CrashPlanService.ini file in the program directory, and increase the maximum memory utilization parameter to 2GB, the default is 512MB, and restart the service:
+To fix the problem, shut down the service, open the CrashPlanService.ini file in the program directory, and increase the maximum memory utilization parameter to 2GB, the default is 512MB, and restart the service:
 
 `Virtual Machine Parameters=-Xrs -Xms15M -Xmx2048M`
 
 After upping the memory all seemed well, and the service has been running for more than a day. But, I wanted to know just how much memory is CrashPlan using, and it turns out to be insane.
 
-Here are the current stats for the amount of data I backup, as well as the resource utilization by the backup service and desktop app:
+Here are the current stats for the amount of data I back up, as well as the resource utilization by the backup service and desktop app:
 
 [![CrashPlan.Size](/media/2012/07/crashplan-size_thumb.png)](/media/2012/07/crashplan-size_.png)[![CrashPlan.Memory.Desktop](/media/2012/07/crashplan-memory-desktop_thumb.png)](/media/2012/07/crashplan-memory-desktop.png)[![CrashPlan.Memory.Service](/media/2012/07/crashplan-memory-service_thumb.png)](/media/2012/07/crashplan-memory-service.png)
 

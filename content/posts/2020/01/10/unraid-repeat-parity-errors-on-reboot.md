@@ -14,7 +14,7 @@ cover:
   alt: IMG_5864
   image: /media/2020/01/img_5864.jpg
 ---
-This post started with a quick experiment, but after hardware incompatibilities forced me to swap SSD drives, and subsequently losing a data volume, it turned into a much bigger effort.
+This post started with a quick experiment, but after hardware incompatibilities forced me to swap SSD drives, and subsequently lose a data volume, it turned into a much bigger effort.
 
 My two Unraid servers have been running nonstop without any issues for many months, last I looked the uptime on v6.7.2 was around 240 days. We recently experienced an extended power failure, and I noticed 5 parity errors, on both servers, after the servers were restarted.
 
@@ -44,11 +44,11 @@ Jan  3 10:03:07 Server-2 kernel: md: recovery thread: P corrected, sector=196293
 Jan  3 10:03:07 Server-2 kernel: md: recovery thread: P corrected, sector=1962934200
 ```
 
-I searched the Unraid forums, and I found that there are other reports of similar repeat parity errors. In [some](https://forums.unraid.net/topic/56262-resolved-5-errors-after-every-parity-check/) instances attributed to a Marvel chipset, or a Supermicro AOC-SASLP-MV8 controller, or the SASLP2 driver. My systems use Adaptec RAID cards, [7805Q](https://amzn.to/37ypFai) SAS2 and [81605ZQ](https://amzn.to/2FosaQe) SAS3, in HBA mode, so no Marvel chipset and no SASLP2 driver, but the same symptoms.
+I searched the Unraid forums, and I found that there are other reports of similar repeat parity errors. In [some](https://forums.unraid.net/topic/56262-resolved-5-errors-after-every-parity-check/) instances attributed to a Marvell chipset, or a Supermicro AOC-SASLP-MV8 controller, or the SASLP2 driver. My systems use Adaptec RAID cards, [7805Q](https://amzn.to/37ypFai) SAS2 and [81605ZQ](https://amzn.to/2FosaQe) SAS3, in HBA mode, so no Marvell chipset and no SASLP2 driver, but the same symptoms.
 
-An all too common forum reply to storage problems is to switch to a LSI HBA, and I got the same reply when I [reported](https://forums.unraid.net/topic/86793-errors-during-parity-check-after-clean-restart) the parity problem with my Adaptec hardware.
+An all too common forum reply to storage problems is to switch to an LSI HBA, and I got the same reply when I [reported](https://forums.unraid.net/topic/86793-errors-during-parity-check-after-clean-restart) the parity problem with my Adaptec hardware.
 
-I was sceptical, causation vs. correlation. As example, take the SQLite corruption bug introduced in v6.7 and for the longest time it was blamed on hardware or 3rd party apps, but it eventually turns out to be an Unraid [bug](https://forums.unraid.net/bug-reports/prereleases/sqlite-data-corruption-testing-r664/).
+I was sceptical, causation vs. correlation. As an example, take the SQLite corruption bug introduced in v6.7 and for the longest time it was blamed on hardware or 3rd party apps, but it eventually turned out to be an Unraid [bug](https://forums.unraid.net/bug-reports/prereleases/sqlite-data-corruption-testing-r664/).
 
 Arguing my case on a community support forum is not productive, and I just want the parity problem resolved, so I decided to switch to LSI HBA cards. I really do have a love hate relationship with community support, especially when I pay for a product, like Unraid or Plex Pass, but have no avenue to dedicated support.
 
@@ -67,7 +67,7 @@ I replaced the 7805Q with the SAS9340 in Server-2, and noticed that none of my S
 {{< figure src="/media/2020/01/img%5F5873.jpg" title="IMG\_5873" alt="IMG\_5873" >}}  
 {{< /gallery >}}  
 
-The problem seemed to be limited to my Samsung EVO drives. I reached out to Art of Server for help, and although he was very responsive, he had not seen or heard of this problem. I looked at the LSI hardware [compatibility](https://techdocs.broadcom.com/content/broadcom/techdocs/us/en/ca-enterprise-software/other/HBA_93xx_12Gb_s_SAS_Storage_Adapter_Drive_Compatibility_Report_Selection_Guide/v23688813/v26850575.html#v26850575) list, and the EVO drives were listed. Some more searching, and I found a LSI KB [article](https://www.broadcom.com/support/knowledgebase/1211161496937/trim-and-sgunmap-support-for-lsi-hbas-and-raid-controllers) mentioning TRIM support not being supported on Samsung Pro 850 drives. It seems that the LSI HBA's need TRIM to support DRAT (Deterministic Read After TRIM) / (Data Set Management TRIM supported (limit 8 blocks)), and RZAT (Deterministic read ZEROs after TRIM). The [Wikipedia](https://en.wikipedia.org/wiki/Trim_(computing)) article on TRIM mentions specific drives for faulty TRIM implementations, including the Samsung 840 and 850 (without specifying Pro or EVO), and the Linux [kernel](https://github.com/torvalds/linux/blob/master/drivers/ata/libata-core.c) has special handling for Samsung 840 and 850 drives.
+The problem seemed to be limited to my Samsung EVO drives. I reached out to Art of Server for help, and although he was very responsive, he had not seen or heard of this problem. I looked at the LSI hardware [compatibility](https://techdocs.broadcom.com/content/broadcom/techdocs/us/en/ca-enterprise-software/other/HBA_93xx_12Gb_s_SAS_Storage_Adapter_Drive_Compatibility_Report_Selection_Guide/v23688813/v26850575.html#v26850575) list, and the EVO drives were listed. Some more searching, and I found an LSI KB [article](https://www.broadcom.com/support/knowledgebase/1211161496937/trim-and-sgunmap-support-for-lsi-hbas-and-raid-controllers) mentioning TRIM support not being supported on Samsung Pro 850 drives. It seems that the LSI HBA's need TRIM to support DRAT (Deterministic Read After TRIM) / (Data Set Management TRIM supported (limit 8 blocks)), and RZAT (Deterministic read ZEROs after TRIM). The [Wikipedia](https://en.wikipedia.org/wiki/Trim_(computing)) article on TRIM mentions specific drives for faulty TRIM implementations, including the Samsung 840 and 850 (without specifying Pro or EVO), and the Linux [kernel](https://github.com/torvalds/linux/blob/master/drivers/ata/libata-core.c) has special handling for Samsung 840 and 850 drives.
 
 ```
 	/* devices that don't properly handle queued TRIM commands */
@@ -93,7 +93,7 @@ The problem seemed to be limited to my Samsung EVO drives. I reached out to Art 
 
 This is all still circumstantial, as it does not explain why the LSI controller would not mount the 840 EVO drives, but will mount the 850 Pro drive, when both are listed as problematic, and both are included on the LSI hardware compatibility list. I do not have EVO 850's to test with, so I can not confirm if the problem is limited to EVO 840's.
 
-I still had the original parity problem to deal with, and to verify that a LSI HBA will resolve the problem, so I needed a working Unraid with LSI HBA system. Server-1 had two EVO 840's, a 850 Pro, and a 860 Pro for the BTRFS cache volume. I pulled a Pro 850 and a Pro 860 drive from another system, and proceeded to replace the two EVO 840's. Per the Unraid [FAQ](https://forums.unraid.net/topic/46802-faq-for-unraid-v6/?tab=comments#comment-480419), I should be able to replace the drives one at a time, waiting for the BTRFS volume to rebuild. I replaced the first disk, it took about a day to rebuild, I replaced the second disk using the same procedure, but something went wrong, and my cache volume would not mount, and reported being corrupt.
+I still had the original parity problem to deal with, and to verify that an LSI HBA will resolve the problem, so I needed a working Unraid with LSI HBA system. Server-1 had two EVO 840's, an 850 Pro, and an 860 Pro for the BTRFS cache volume. I pulled a Pro 850 and a Pro 860 drive from another system, and proceeded to replace the two EVO 840's. Per the Unraid [FAQ](https://forums.unraid.net/topic/46802-faq-for-unraid-v6/?tab=comments#comment-480419), I should be able to replace the drives one at a time, waiting for the BTRFS volume to rebuild. I replaced the first disk, it took about a day to rebuild, I replaced the second disk using the same procedure, but something went wrong, and my cache volume would not mount, and reported being corrupt.
 
 ```
 Jan  6 07:25:41 Server-1 kernel: BTRFS info (device sdf1): allowing degraded mounts
@@ -141,7 +141,7 @@ root@Server-2:~# hdparm -I /dev/sdc | grep TRIM
 * Data Set Management TRIM supported (limit 8 blocks)
 ```
 
-The BTRFS volume consisting 4 x Pro 860 drives reported trimming what looks like all disks, 3.2 TiB:
+The BTRFS volume consisting of 4 x Pro 860 drives reported trimming what looks like all disks, 3.2 TiB:
 
 ```
 root@Server-1:~# fstrim -v /mnt/cache
@@ -159,7 +159,7 @@ In summary, Samsung EVO 840 no good, Samsung Pro 850 avoid, [Samsung Pro 860](ht
 
 Server-2 uses SFF-8643 to SATA breakout cables with sideband [SGPIO](https://en.wikipedia.org/wiki/SGPIO) connectors, controlling the drive bay lights. With the Adaptec controller the drive bay lights worked fine, but with the LSI the lights do not appear to work. I am really tempted to replace the chassis with a SAS expander, alleviating the need for the breakout cables, but that is a project for another day.
 
-After I recreated the cache volume, reinstalled the Duplicacy web container and tried to restore my now week old backup file. I could not get the web UI to restore the 240GB backup file, either the session timed out or the network connection was dropped. I reverted to using the CLI, and with a few retries, eventually restored the file. It was [disappointing](https://forum.duplicacy.com/t/how-to-view-restore-progress-in-web-ui/3025/5) to learn that the web UI must remain open during the restore, and that the CLI does not automatically retry on network failures. Fortunately Duplicacy will do block-based restores and can resume restoring large files.
+After I recreated the cache volume, I reinstalled the Duplicacy web container and tried to restore my now week old backup file. I could not get the web UI to restore the 240GB backup file, either the session timed out or the network connection was dropped. I reverted to using the CLI, and with a few retries, eventually restored the file. It was [disappointing](https://forum.duplicacy.com/t/how-to-view-restore-progress-in-web-ui/3025/5) to learn that the web UI must remain open during the restore, and that the CLI does not automatically retry on network failures. Fortunately Duplicacy will do block-based restores and can resume restoring large files.
 
 ```
 2020/01/06 07:59:01 Created restore session 1o8nqw

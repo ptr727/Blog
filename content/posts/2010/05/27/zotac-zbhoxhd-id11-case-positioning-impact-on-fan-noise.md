@@ -1,5 +1,5 @@
 ---
-title: Zotac ZBHOXHD-ID11 Case Positioning Impact on Fan Noise
+title: Zotac ZBOXHD-ID11 Case Positioning Impact on Fan Noise
 date: '2010-05-27T19:55:00+00:00'
 url: /2010/05/27/zotac-zbhoxhd-id11-case-positioning-impact-on-fan-noise/
 categories:

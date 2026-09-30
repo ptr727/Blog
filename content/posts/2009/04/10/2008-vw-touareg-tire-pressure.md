@@ -31,7 +31,7 @@ I posted my findings on the [Club Touareg Forum](http://www.clubtouareg.com/foru
 
 I opened a support case with VW USA asking what the correct recommended tire pressure is.
 
-VW's said that the label is correct.
+VW said that the label is correct.
 
 I explained that the recommended pressure exceeds the maximum pressure, they said they would get back to me.
 
@@ -77,7 +77,7 @@ The person informed me that this is a known issue of the tires being mislabeled,
 
 
 
-I was told that the correct maximum pressure of the tires are 51PSI, and that I should follow the recommended rating on the VW door sticker of 39PSI front and 46PSI rear.
+I was told that the correct maximum pressure of the tires is 51PSI, and that I should follow the recommended rating on the VW door sticker of 39PSI front and 46PSI rear.
 
 
 
@@ -90,7 +90,7 @@ This is the label on the driver side door body pillar, rear tire pressure is 46P
 
 
 
-This is the label is on the side of the door, underneath the latch, note the discrepancy with the other label, rear tire pressure is 44PSI:
+This is the label on the side of the door, underneath the latch, note the discrepancy with the other label, rear tire pressure is 44PSI:
 
 [  
 ![Click for large image.](/external/ef34bb6746615485.jpg)](/external/4a88622a5ab2c089.jpg)

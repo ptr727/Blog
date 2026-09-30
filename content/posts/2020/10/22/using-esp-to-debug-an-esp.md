@@ -38,9 +38,9 @@ Using network logging I can observe that the restart reason is due to the hardwa
 
 The Arduino IDE includes the ability to [debug crashes](https://arduino-esp8266.readthedocs.io/en/latest/faq/a02-my-esp-crashes.html), but in ESPHome [stack tracing](https://github.com/esphome/esphome/blob/dev/esphome/__main__.py#L76-L102) can only be done when actively logging over UART, i.e. no postmortem debugging capability in ESPHome.
 
-So how do I get a local COM port mapped to a remote UART port? I know there are commercial remote COM and USB over network solutions, but I was wondering if I could use one ESP to monitor another ESP. I started looking for code examples, and this lead me to the open source [JeeLabs Esp-Link](https://github.com/jeelabs/esp-link), that was exactly what I needed.
+So how do I get a local COM port mapped to a remote UART port? I know there are commercial remote COM and USB over network solutions, but I was wondering if I could use one ESP to monitor another ESP. I started looking for code examples, and this led me to the open source [JeeLabs Esp-Link](https://github.com/jeelabs/esp-link), that was exactly what I needed.
 
-I bought a [ESP-01S](https://amzn.to/3jlg9gi) and [programmer](https://amzn.to/37vB3qx), the ESP-01S is small enough to fit inside the enclosure with the TH10, and can be powered by the TH10. The initial firmware flashing [instructions](https://github.com/jeelabs/esp-link/blob/master/FLASHING.md#initial-serial-flashing) were a bit sketchy, specifically what offsets to use for various hardware types. Once I figured the tool options out, I found programming from Ubuntu on Win10 running WSL2 was really easy, as the physical USB programmer port is transparently available in Ubuntu.
+I bought an [ESP-01S](https://amzn.to/3jlg9gi) and [programmer](https://amzn.to/37vB3qx), the ESP-01S is small enough to fit inside the enclosure with the TH10, and can be powered by the TH10. The initial firmware flashing [instructions](https://github.com/jeelabs/esp-link/blob/master/FLASHING.md#initial-serial-flashing) were a bit sketchy, specifically what offsets to use for various hardware types. Once I figured the tool options out, I found programming from Ubuntu on Win10 running WSL2 was really easy, as the physical USB programmer port is transparently available in Ubuntu.
 
 ```
 # sudo apt update

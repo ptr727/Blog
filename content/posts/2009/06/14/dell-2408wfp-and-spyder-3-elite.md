@@ -39,23 +39,23 @@ You can read more about "gamut" on [Wikipedia](http://en.wikipedia.org/wiki/Gamu
 
 With these displays the problem is basically that there is a big difference in appearance between an application that is color managed, such as Photoshop, and an application that is not color managed, such as the Windows desktop. The problem is more noticeable when it comes to web browsers since none of the major browsers support color management.
 
-Here is a [page](http://www.gballard.net/psd/go_live_page_profile/embeddedJPEGprofiles.html "page") to test your browser's color manangement behavior.
+Here is a [page](http://www.gballard.net/psd/go_live_page_profile/embeddedJPEGprofiles.html "page") to test your browser's color management behavior.
 
 
 
-When I got the DELL 3007WFP-HC I purchased a [X-Rite i1Display 2](http://www.xrite.com/product_overview.aspx?ID=788 "X-Rite i1Display 2") [calorimeter](http://en.wikipedia.org/wiki/Colorimeter "calorimeter") to calibrate the display, and the results were pretty good.
-
-
-
-
-
-I tried the 1iDisplay 2 again with the 2408WFP displays, but I was just not happy with the color, and I could not get the two monitors to match. I also sometimes had various problems getting the iMatch software to work correctly when calibrating the secondary display or correctly detecting the calorimeter.
+When I got the DELL 3007WFP-HC I purchased an [X-Rite i1Display 2](http://www.xrite.com/product_overview.aspx?ID=788 "X-Rite i1Display 2") [colorimeter](http://en.wikipedia.org/wiki/Colorimeter "colorimeter") to calibrate the display, and the results were pretty good.
 
 
 
 
 
-Searching the web I found that many people were having trouble calibrating the 2408WFP monitors, and of those that were happy, several were using the [Datacolor Spyder 3 Elite](http://spyder.datacolor.com/product-mc-s3elite.php "Datacolor Spyder 3 Elite") calorimeter. I ordered a Spyder 3 Elite in the hopes that it would produce better results, or at least be more convenient to use in a dual monitor setup.
+I tried the i1Display 2 again with the 2408WFP displays, but I was just not happy with the color, and I could not get the two monitors to match. I also sometimes had various problems getting the i1Match software to work correctly when calibrating the secondary display or correctly detecting the colorimeter.
+
+
+
+
+
+Searching the web I found that many people were having trouble calibrating the 2408WFP monitors, and of those that were happy, several were using the [Datacolor Spyder 3 Elite](http://spyder.datacolor.com/product-mc-s3elite.php "Datacolor Spyder 3 Elite") colorimeter. I ordered a Spyder 3 Elite in the hopes that it would produce better results, or at least be more convenient to use in a dual monitor setup.
 
 
 
@@ -148,19 +148,19 @@ It detected both monitors, allowed me to pick which monitor to calibrate, and as
 
 
 
-In contrast with iMatch you had to launch the software, then move the window to the monitor you want to calibrate, then start the calibration.
+In contrast with i1Match you had to launch the software, then move the window to the monitor you want to calibrate, then start the calibration.
 
 
 
 
 
-I followed the wizard and calibrated both monitors, the colors looked "ok", not "great", and two monitors were not matched.
+I followed the wizard and calibrated both monitors, the colors looked "ok", not "great", and the two monitors were not matched.
 
 
 
 
 
-After closing the Spyder3Elite calibration software a tray icon remains running and it periodically monitors the ambient light, and also reminds you when the monitor needs to be re-calibrated. This time I am nitpicking, but they could really have picked a better looking tray icon than the blank white square, especially for a graphics company, or maybe since this is Windows and not Mac, the graphics does not really matter, right ;)
+After closing the Spyder3Elite calibration software a tray icon remains running and it periodically monitors the ambient light, and also reminds you when the monitor needs to be re-calibrated. This time I am nitpicking, but they could really have picked a better looking tray icon than the blank white square, especially for a graphics company, or maybe since this is Windows and not Mac, the graphics do not really matter, right ;)
 
 
 
@@ -184,7 +184,7 @@ The installer installed several drivers that were not [Windows Hardware Quality 
 
 
 
-The software supports multiple calorimeter devices, I picked the Spyder 3 from the list, and performed a calibration.  
+The software supports multiple colorimeter devices, I picked the Spyder 3 from the list, and performed a calibration.  
 
 The 2408WFP monitor is supposed to support DDC, and the ColorEyes software is supposed to be able to control the monitor alleviating the need to perform manual adjustments, but for some unknown reason this did not work, so I had to make adjustments manually.
 
@@ -219,7 +219,7 @@ I was interested in knowing if the monitor really did support DDC, so I tried th
 
 The results confirmed that the monitor did support DDC, and I could control color, brightness, reset, etc. using the utility.
 
-I replied to Integrated Color Corporation with this information, since EnTech provides a SDK, maybe they can use it to really support DDC.
+I replied to Integrated Color Corporation with this information, since EnTech provides an SDK, maybe they can use it to really support DDC.
 
 
 
@@ -235,11 +235,11 @@ I wanted to try the advanced calibration options using the Spyder3Elite software
 
 I performed the StudioMatch calibration, calibrating both monitors to 6500K, 2.2 Gamma, and 140cd/m², and I set both monitors to the RGB color profile.
 
-Using the mControl software it was very easy to make changes to the monitor settings without needing to use monitor's buttons.
+Using the mControl software it was very easy to make changes to the monitor settings without needing to use the monitor's buttons.
 
 
 
-Event at a brightness of 0 the luminance was too high, and I had to lower the RGB values to reach the 140cd/m² mark.
+Even at a brightness of 0 the luminance was too high, and I had to lower the RGB values to reach the 140cd/m² mark.
 
 The results were pretty good, both monitors ended up looking very similar, with just a slight difference in brightness between the two.
 
@@ -253,7 +253,7 @@ I also found that the Spyder3Elite software fails to load the profiles created b
 
 I repeated the calibration this time using ColorEyes to calibrate both monitors, I used the same target values of 6500K, 2.2 Gamma, and 140cd/m².
 
-This time I had not problems, and the results were about the same, again with one monitor appearing slightly brighter. I am actually beginning to wonder if the difference in observed brightness is really the monitor, or maybe the viewing angle or environment that makes it appear brighter.
+This time I had no problems, and the results were about the same, again with one monitor appearing slightly brighter. I am actually beginning to wonder if the difference in observed brightness is really the monitor, or maybe the viewing angle or environment that makes it appear brighter.
 
 
 
@@ -311,7 +311,7 @@ I think that if ColorEyes Pro actually performed the DDC adjustments automatical
 
 \[Update: 17 July 2009\]
 
-I found that my DELL 2408WFP monitors kept loosing their settings when they wake from sleep, and this kept invalidating the calibration results.
+I found that my DELL 2408WFP monitors kept losing their settings when they wake from sleep, and this kept invalidating the calibration results.
 
 Read about the problem and the solution [here](/2009/07/dell-2408wfp-loosing-settings-on-power.html).
 

@@ -23,7 +23,7 @@ By the time we started building our house, now about 10 years ago, I'd watched c
 
 #### Problem
 
-Over the of twenty or so years I've lived in this area, the number of very hot days have steadily increased, notably so the last few years, and this summer we broke the record for hottest day ever recorded. The impact can be seen in the summer months with many HVAC company trucks around the neighborhood adding cooling to heating only forced air systems, or installing inverter split units.
+Over the twenty or so years I've lived in this area, the number of very hot days has steadily increased, notably so the last few years, and this summer we broke the record for hottest day ever recorded. The impact can be seen in the summer months with many HVAC company trucks around the neighborhood adding cooling to heating only forced air systems, or installing inverter split units.
 
 Our bedrooms are upstairs, with an open staircase and skylights, so always much hotter than downstairs, and located on different sides of the house, so sun and shade, and one over the garage so impacted by hot cars and unconditioned space. Most of the year this is not an issue with mild temperatures, but when it does get cold, or hot like this record breaking summer, it is common to experience very large temperature differences between rooms, and this is a problem for a single zone HVAC system.
 
@@ -41,7 +41,7 @@ This year I actually scheduled home visits from two [Mitsubishi Diamond Contract
 
 I anticipated the cost being "not cheap"; all new equipment, Covid premiums, new line sets (inverter needs supply and return lines insulated), new electrical (I have 30A per compressor they need 50A), ceiling recessed units (no wall warts), drywall opened, ceilings opened, ducting, venting, condensate drainage, labor, labor, and labor. But, I was not quite prepared for just how $$$ expensive, and I decided to evaluate some of the less optimal but cheaper alternatives.
 
-I am not completely foregoing the idea of a complete retrofit, but maybe not by itself, but as part of a larger renovation that justifies the cost of the finishing work (finish carpentry, drywall, and painting not included in quotes). And to be clear, if I were to build a new house today, I would not hesitate to install a multi-zone split unit variable speed inverter system. The immediate comfort and long term energy savings would absolutely be worth it, and installing it as part of a new construction shares much of the cost that has to be double paid when retrofitting.
+I am not completely forgoing the idea of a complete retrofit, but maybe not by itself, but as part of a larger renovation that justifies the cost of the finishing work (finish carpentry, drywall, and painting not included in quotes). And to be clear, if I were to build a new house today, I would not hesitate to install a multi-zone split unit variable speed inverter system. The immediate comfort and long term energy savings would absolutely be worth it, and installing it as part of a new construction shares much of the cost that has to be double paid when retrofitting.
 
 #### Smart Vents
 
@@ -81,7 +81,7 @@ I created a post in the Flair [community forum](https://support.flair.co/hc/en-u
 
 By the time support responded, I had already found my way around the KB articles, and a specific article that explains the [Set Point Controller](https://support.flair.co/hc/en-us/articles/360000533631-Set-Point-Controller) modes. In short, either Ecobee or Flair can be in control of the HVAC operation, but Flair always controls vents.
 
-I either didn't pay attention during the iOS onboarding steps, or I wasn't asked to select a controller, or the Flair UI was not in sync with the system. I did noticed the UI state would sometimes randomly change between heat and cool, weird. Either way, an important configuration step that I missed.
+I either didn't pay attention during the iOS onboarding steps, or I wasn't asked to select a controller, or the Flair UI was not in sync with the system. I did notice the UI state would sometimes randomly change between heat and cool, weird. Either way, an important configuration step that I missed.
 
 #### Vents
 
@@ -89,7 +89,7 @@ Next up was replacing a few of my vents with Flair vents, and I started in my of
 
 The Flair vents are longer but narrower than my current vents, and that was a big problem; I had different color paint or unpainted drywall exposed, rough ridges from previously painted vents, wall scratches, and the most troublesome was drywall openings larger than the Flair vents.
 
-I ended up removing the old vents, and visited my paint store several times to color match various wall or ceiling colors, I sanded, caulked, and patched drywall spaces around ducts. It took several weekends of my time, I am not a great at drywalling or painting, the result is not very pretty, but the vents are up.
+I ended up removing the old vents, and visited my paint store several times to color match various wall or ceiling colors, I sanded, caulked, and patched drywall spaces around ducts. It took several weekends of my time, I am not great at drywalling or painting, the result is not very pretty, but the vents are up.
 
 
 {{< gallery cols="1" caption="FLAIR vent construction" >}}  
@@ -113,7 +113,7 @@ I ended up removing the old vents, and visited my paint store several times to c
 With all the trouble caused by the too narrow vents, I wondered if there was a standard to sizes, and if so, if Flair was following it. I researched vent sizes across several HVAC supply sites and hardware stores, and my conclusion is that the Flair [vents](https://www.flair.co/smart-vent-engineering-and-dimensional-data-public) are always longer and narrower than standard wall/ceiling vent sizes (I did not compare floor vent sizes).
 
 
-{{< gallery cols="1" caption="FLAIR vent sizes vs. standard vents sizes" >}}  
+{{< gallery cols="1" caption="FLAIR vent sizes vs. standard vent sizes" >}}  
 {{< figure src="/media/2022/10/screenshot-2022-10-13-210638.png?w=1024" alt="" caption="" >}}
 
 {{< figure src="/media/2022/10/screenshot-2022-10-13-210202.png?w=949" alt="" caption="" >}}
@@ -136,7 +136,7 @@ Whistling vent
 {{< figure src="/media/2022/10/img%5F1684.jpg?w=768" alt="" caption="" >}}  
 {{< /gallery >}}  
 
-A day or so later I heard a familiar whistling noise again, and I found a vent that I did caulk and seal was now also whistling when closed. I removed the vent, double checked that it was properly caulked and sealed, it was. Thus this noise must be coming either from air blowing between the vent flange and the drywall, or from the screw slots on the long sides of the vent flange, or from the mechanical vent veins themselves. I can't do anything about noisy vent veins, but I can try to seal the flange. I applied some soft thin foam weatherstripping around the edge of the vent flange, creating a tight seal between the vent flange and the drywall, and also covering the unused and open flange screw holes.
+A day or so later I heard a familiar whistling noise again, and I found a vent that I did caulk and seal was now also whistling when closed. I removed the vent, double checked that it was properly caulked and sealed, it was. Thus this noise must be coming either from air blowing between the vent flange and the drywall, or from the screw slots on the long sides of the vent flange, or from the mechanical vent vanes themselves. I can't do anything about noisy vent vanes, but I can try to seal the flange. I applied some soft thin foam weatherstripping around the edge of the vent flange, creating a tight seal between the vent flange and the drywall, and also covering the unused and open flange screw holes.
 
 My initial attempt at using 3/8" thick foam from my local hardware store was unsuccessful, the foam compresses very well, but not enough to sit flush with the wall. I tried again using 1/4" thick [foam](https://amzn.to/3Sw5f8U), and that compressed well enough to seal the unused screw holes and sit flush with the drywall.
 
@@ -149,7 +149,7 @@ My initial attempt at using 3/8" thick foam from my local hardware store was uns
 
 #### Flanges
 
-As I was patching and painting, I wondered if there wasn't an easier way to obscure the exposed paint problem, and I though of creating a thin flange to fit under or around the Flair vent, restoring the coverage to the original vent size, and thus obscuring any drywall damage or paint mismatches. If needed the piece could be painted to match the wall color, or left white to match the vent color.
+As I was patching and painting, I wondered if there wasn't an easier way to obscure the exposed paint problem, and I thought of creating a thin flange to fit under or around the Flair vent, restoring the coverage to the original vent size, and thus obscuring any drywall damage or paint mismatches. If needed the piece could be painted to match the wall color, or left white to match the vent color.
 
 I used [Fusion 360](https://www.autodesk.com/products/fusion-360/) to create a prototype flange for a 12x6 vent that could be laser cut from thin rigid plastic.
 
@@ -162,7 +162,7 @@ I used [Fusion 360](https://www.autodesk.com/products/fusion-360/) to create a p
 {{< figure src="/media/2022/10/2022-10-25-1.png?w=1024" alt="" caption="" >}}  
 {{< /gallery >}}  
 
-I looked for vendors with reasonable pricing and thin white paintable plastic material, [Xometry](https://www.xometry.com/) was too expensive, [SendCutSend](https://sendcutsend.com/) did not offer anything thinner than 3mm, so I used [Ponoko](https://www.ponoko.com/) to cut a 1.5mm thick White Acrylic flange. The 0.8mm White Delrin will be thinner but is more than double the price of 1.5mm White Acrylic. I received the piece in a bout a week, and as designed it is just a tad larger than the original vent to help cover edge damage. As I already did it the hard way by patching and painting, I did not use the flange in my own installation, but I did test fit it and it would have worked fine.
+I looked for vendors with reasonable pricing and thin white paintable plastic material, [Xometry](https://www.xometry.com/) was too expensive, [SendCutSend](https://sendcutsend.com/) did not offer anything thinner than 3mm, so I used [Ponoko](https://www.ponoko.com/) to cut a 1.5mm thick White Acrylic flange. The 0.8mm White Delrin will be thinner but is more than double the price of 1.5mm White Acrylic. I received the piece in about a week, and as designed it is just a tad larger than the original vent to help cover edge damage. As I already did it the hard way by patching and painting, I did not use the flange in my own installation, but I did test fit it and it would have worked fine.
 
 
 {{< gallery cols="4" caption="Laser cut white acrylic flange" >}}  
@@ -181,7 +181,7 @@ Flair could always include a color matched flange with the vent kit, similar to 
 
 #### Setpoint Controller
 
-Now that all the vents were installed, I wanted to configure the system for optimum use of the sensors and vents, and I assumed that Flair as setpoint controller would be superior to using Ecobee, but disappointingly Flair, just like Ecobee, uses the [average temperature](https://support.flair.co/hc/en-us/community/posts/5544971127053-Why-average-temperature-) of all sensors. I am no HVAC or thermodynamics expert, but having the ability monitor per room temperatures and control per room vents, even with only one HVAC system, this sure seems like a missed opportunity to improve upon Ecobee.
+Now that all the vents were installed, I wanted to configure the system for optimum use of the sensors and vents, and I assumed that Flair as setpoint controller would be superior to using Ecobee, but disappointingly Flair, just like Ecobee, uses the [average temperature](https://support.flair.co/hc/en-us/community/posts/5544971127053-Why-average-temperature-) of all sensors. I am no HVAC or thermodynamics expert, but having the ability to monitor per room temperatures and control per room vents, even with only one HVAC system, this sure seems like a missed opportunity to improve upon Ecobee.
 
 If it is not already obvious, let's look at a simplified example demonstrating the problem of using average temperatures:
 
@@ -204,13 +204,13 @@ If it is not already obvious, let's look at a simplified example demonstrating t
 
 By adding vent control the excessive cooling in Room2 can be reduced, and the delta temperature between the rooms should be lower.
 
-Given that the use of Flair as setpoint controller requires disabling Ecobee comfort settings and deleting Ecobee schedules, and then recreating schedules in Flair, and Flair offering nothing more than also jsut averaging temperatures, I saw no benefit worth the effort, and left the Ecobees to control the setpoint.
+Given that the use of Flair as setpoint controller requires disabling Ecobee comfort settings and deleting Ecobee schedules, and then recreating schedules in Flair, and Flair offering nothing more than also just averaging temperatures, I saw no benefit worth the effort, and left the Ecobees to control the setpoint.
 
 #### Operating Mode
 
 As winter approached it was getting colder at night, and one morning it was too cold downstairs and I switched the downstairs HVAC from cooling to heating mode, while leaving upstairs in cooling mode. Yes, it is a bit weird to have different modes enabled, but it was 55°F (13°C) at night and 77°F (25°C) in the day, so too cold downstairs in the morning and too hot upstairs at night. And at the time convenient to just change the mode on the Ecobee controller vs. getting my phone and switching both units to auto mode.
 
-Later the day I wondered how Flair will treat the different modes, and after I logged in I observed that the UI was confused, switching from red and heating mode one moment to blue and cooling mode the next. I verified that Ecobee was correct, heating downstairs and cooling upstairs, so something weird with Flair. In looking at the Flair UI one can see that there is only one operating mode reported, while each of the Ecobee thermostats can individually control heat/cool/auto/off modes.
+Later that day I wondered how Flair will treat the different modes, and after I logged in I observed that the UI was confused, switching from red and heating mode one moment to blue and cooling mode the next. I verified that Ecobee was correct, heating downstairs and cooling upstairs, so something weird with Flair. In looking at the Flair UI one can see that there is only one operating mode reported, while each of the Ecobee thermostats can individually control heat/cool/auto/off modes.
 
 
 {{< gallery cols="1" caption="FLAIR is confused between heating and cooling" >}}  
@@ -223,7 +223,7 @@ Later the day I wondered how Flair will treat the different modes, and after I l
 
 I posted my concern on the Flair [forum](https://support.flair.co/hc/en-us/community/posts/10111024260877-Flair-is-confused-when-one-system-is-on-heat-and-the-other-is-on-cool), and support responded that I have to create multiple logical homes if I want to run the units in different modes. This does not make sense, imagine I have multiple mini-split units, do I need to create a home for each mini-split? I contacted support directly, and they confirmed that all HVAC units must be set to the same mode. If this is a requirement, and the UI gets confused when not correctly set, I'd expect Flair to at least give a warning of an unsupported configuration.
 
-With both Ecobee thermostats set back to Auto, I change the mode from within the Flair UI to Heat, expecting both Ecobees to switch to Heat mode. Instead the Ecobees switched to Heat and a Hold at 75°F, where 75°F seems to have been the current measured temperature. I had to manually remove the hold from both Ecobees to resume normal scheduled operation. This was again confusing and unexpected behavior.
+With both Ecobee thermostats set back to Auto, I changed the mode from within the Flair UI to Heat, expecting both Ecobees to switch to Heat mode. Instead the Ecobees switched to Heat and a Hold at 75°F, where 75°F seems to have been the current measured temperature. I had to manually remove the hold from both Ecobees to resume normal scheduled operation. This was again confusing and unexpected behavior.
 
 
 {{< gallery cols="1" caption="FLAIR changed the Ecobee mode to Heat and Hold" >}}  
@@ -248,7 +248,7 @@ I'll summarize my experience and opinions as follows:
 - Flair as setpoint controller only offers temperature averaging, nothing more advanced. I was disappointed that more advanced capabilities, at least room prioritization was not offered, I feel this is a missed opportunity.
 - Multiple independent (heat/cool/auto/off) HVAC systems are configurable, but not functional in the same house when using different operating modes. The Flair UI gets confused when mixing modes, and Flair requires all HVAC units to be in the same operating mode at the same time, but does not warn of such a misconfiguration. I feel this is a major oversight, imagine using split units and needing to create a logical home for each unit, weird.
 - Controlling the Ecobee as setpoint controller from the Flair app results in weird states, e.g. changing Ecobee from Auto to Heat results in a heat mode and hold at whatever the current temperature was, requiring a mode reset from the Ecobee app in order to resume expected operation. I'd suggest not to make any changes from the Flair app unless Flair is the setpoint controller.
-- High pitched wind noise when the vents close, caused by air leaks between the duct and drywall, and gaps between the vent and drywall, and vent veins. Caulking the gaps between the duct and drywall, and adding foam seal to the vent flange alleviates most of the whistling noises.
+- High pitched wind noise when the vents close, caused by air leaks between the duct and drywall, and gaps between the vent and drywall, and vent vanes. Caulking the gaps between the duct and drywall, and adding foam seal to the vent flange alleviates most of the whistling noises.
 - The biggest issue, in my opinion, is that the Flair vents are smaller than standard sized wall and ceiling vents, exposing drywall and paint damage covered by the old vents, so be ready to patch and paint. My installation could have been so much easier if the Flair vents were the same size or a bit larger, or if Flair included a flange plate, made me wonder if Flair actually tested installing their vents under real conditions. If your drywall and paint looks like mine, I'd suggest using the laser cut flanges to conceal the ugly spots vs. more troublesome patch and paint.
 - On the plus side, early indications are that the vents are resulting in more even room temperatures, which is the ultimate goal.
 
@@ -257,4 +257,4 @@ There is opportunity for improvement, especially in vent sizing and setpoint con
 If ordering from Flair use my [referral code](http://flair.refr.cc/pieterviljoen) for 10% off and free shipping, or order from [Amazon](https://amzn.to/3N4RxbY) for Free Prime Shipping.
 
 _Update - 20 January 2025:_  
-It has now been more than 3 years since I installed the vents, I've done multiple summer and winter seasons, and they work amazingly well. I did end up replacing two vents that kept whistling. Flair did send me the silicone strip kits to glue on and try to remedy, I tried one vent, was not very successful, so just replaced the vents and problem solved. I also replaced the pucks with gateways, was hoping for better signal coverage, but ended up having to add as many gateways as I had pucks to prevent vents dropping out. So all in very happy.
+It has now been more than 2 years since I installed the vents, I've done multiple summer and winter seasons, and they work amazingly well. I did end up replacing two vents that kept whistling. Flair did send me the silicone strip kits to glue on and try to remedy, I tried one vent, was not very successful, so just replaced the vents and problem solved. I also replaced the pucks with gateways, was hoping for better signal coverage, but ended up having to add as many gateways as I had pucks to prevent vents dropping out. So all in very happy.

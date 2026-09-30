@@ -17,7 +17,7 @@ I've been using [DELL Precision Workstations](http://www.dell.com/us/business/p/
 
 Rather than buying a pre-configured and tested machine, I opted for the more exciting, sometimes rewarding, often frustrating, option of building my own. In order not to spend too much time on the project, I opted to use a chassis and motherboard combo, and just add peripherals. I chose the [SuperMicro SuperWorkstation 7047A-T](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-T.cfm), containing the [X9DAi](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DAi.cfm) motherboard. I specifically picked this model because it has eight hot-swap drive bays, is low noise, has a high efficiency PSU, and supports dual [Intel Xeon E5-2600](http://www.intel.com/content/www/us/en/processors/xeon/xeon-processor-5000-sequence.html) processors.
 
-I used 32GB [Kingston KVR1600D3D4R11SK4/32GI](http://www.kingston.com/dataSheets/KVR1600D3D4R11SK4_32GI.pdf) memory, two [Xeon E5-2660](http://amzn.to/LvYhbX) processors, and an [NVidia Quadro 4000](http://amzn.to/Mbv3AI) graphic card.
+I used 32GB [Kingston KVR1600D3D4R11SK4/32GI](http://www.kingston.com/dataSheets/KVR1600D3D4R11SK4_32GI.pdf) memory, two [Xeon E5-2660](http://amzn.to/LvYhbX) processors, and an [NVidia Quadro 4000](http://amzn.to/Mbv3AI) graphics card.
 
 I prepared a USB key with Windows 8 x64 Release Preview. Microsoft does provide [a tool to convert ISO images to USB keys](http://www.microsoftstore.com/store/msstore/html/pbPage.Help_Win7_usbdvd_dwnTool), but I've been doing this by hand since long before the tool existed, and it is really easy and ultimately quicker to update.
 
@@ -66,4 +66,4 @@ I use a KVM switch, and as I switched back to the machine while it was applying 
 
 [![NVIDIA](/media/2012/07/nvidia_thumb.jpg)](/media/2012/07/nvidia.jpg)
 
-I am very disappointed that my brand new machine can only run Windows 7 and not Windows 8. I have yet to hear from SuperMicro support, but I hope they can resolve the problem with a BIOS update before Windows 8 and Windows Server 2012 is released [in August](http://windowsteamblog.com/windows/b/bloggingwindows/archive/2012/07/09/upcoming-windows-milestones-shared-with-partners-at-wpc.aspx).
+I am very disappointed that my brand new machine can only run Windows 7 and not Windows 8. I have yet to hear from SuperMicro support, but I hope they can resolve the problem with a BIOS update before Windows 8 and Windows Server 2012 are released [in August](http://windowsteamblog.com/windows/b/bloggingwindows/archive/2012/07/09/upcoming-windows-milestones-shared-with-partners-at-wpc.aspx).

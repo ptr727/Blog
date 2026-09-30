@@ -19,10 +19,10 @@ I finally figured out why I kept on getting VIDEO\_TDR\_FAILURE BSOD's when inst
 
 Some history on my adventures with [Windows 8](http://windows.microsoft.com/en-US/windows/home) and [SuperMicro SuperWorkstations](http://www.supermicro.com/products/nfo/superworkstation.cfm):  
 I got [ACPI\_BIOS\_ERROR BSOD](/2012/07/19/windows-8-and-server-2012-on-supermicro-results-in-acpi_bios_error-bsod/)'s while installing Windows 8, SuperMicro [provided a Beta BIOS](/2012/07/30/supermicro-beta-bios-supports-windows-8-and-server-2012/) that resolved the problem.  
-The Windows 8 [install hangs](/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller/) if installing to a SSD drive on a [LSI 2308](http://www.lsi.com/products/storagecomponents/Pages/LSISAS2308.aspx) SAS controller, that issue is still unresolved, but can be worked around by connecting the SSD to the Intel SATA controller.  
-I got [VIDEO\_TDR\_ERROR BSOD](/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000/)'s while installing Windows 8 with a NVidia Quadro 5000 graphic card, same with an ATI FirePro V7900 or a NVidia GeForce GTX 680 or an ATI HD 7970. And this post is about resolving that problem.
+The Windows 8 [install hangs](/2012/08/05/windows-8-install-hangs-booting-from-lsi-2308-sas-controller/) if installing to an SSD drive on an [LSI 2308](http://www.lsi.com/products/storagecomponents/Pages/LSISAS2308.aspx) SAS controller, that issue is still unresolved, but can be worked around by connecting the SSD to the Intel SATA controller.  
+I got [VIDEO\_TDR\_FAILURE BSOD](/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000/)'s while installing Windows 8 with an NVidia Quadro 5000 graphics card, same with an ATI FirePro V7900 or an NVidia GeForce GTX 680 or an ATI HD 7970. And this post is about resolving that problem.
 
-SuperMicro released v1.0a [BIOS updates](http://www.supermicro.com/support/bios/) for the [X9DAi](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DAi.cfm) and [X9DA7](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DA7.cfm) motherboards used in the [7470A-T](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-T.cfm) and [7470A-73](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-73.cfm) SuperWorkstations. I was hoping this will resolve the [VIDEO\_TDR\_FAILURE](http://msdn.microsoft.com/en-us/library/windows/hardware/ff557263(v=VS.85).aspx) BSOD's, but no.
+SuperMicro released v1.0a [BIOS updates](http://www.supermicro.com/support/bios/) for the [X9DAi](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DAi.cfm) and [X9DA7](http://www.supermicro.com/products/motherboard/Xeon/C600/X9DA7.cfm) motherboards used in the [7047A-T](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-T.cfm) and [7047A-73](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-73.cfm) SuperWorkstations. I was hoping this would resolve the [VIDEO\_TDR\_FAILURE](http://msdn.microsoft.com/en-us/library/windows/hardware/ff557263(v=VS.85).aspx) BSOD's, but no.
 
 The X9DA7 BIOS updated without issue, but the X9DAi update reported an error at the end of the update process; "Error when sending Enable Message to ME".
 
@@ -32,7 +32,7 @@ I contacted SuperMicro support, and they asked me to make sure that there is no 
 
 Unlike the [ACPI\_BIOS\_ERROR](http://msdn.microsoft.com/en-us/library/windows/hardware/ff560114(v=vs.85).aspx) BSOD that happens during the WinPE phase of the install, the [VIDEO\_TDR\_FAILURE](http://msdn.microsoft.com/en-us/library/windows/hardware/ff557263(v=VS.85).aspx) BSOD happens on the first boot after the install, during the hardware detection and driver install phase. This means that the [technique I used to kernel debug the initial boot phase](/2012/07/20/debugging-windows-8-install-bsod/) will not work, as the second boot is using the BCD already deployed to the target hard drive. I had to modify the BCD of the already installed image, prior to the install continuing after the reboot.
 
-I tested many permutations of graphic cards and configurations, and it quickly became very annoying to have to type my Win8 product key every single time I boot and install. To avoid this I created configuration files in the sources directory on the install media, and this bypassed the key question. You can read more about the meaning of the file contents [here](http://technet.microsoft.com/en-us/library/hh824952.aspx):
+I tested many permutations of graphics cards and configurations, and it quickly became very annoying to have to type my Win8 product key every single time I boot and install. To avoid this I created configuration files in the sources directory on the install media, and this bypassed the key question. You can read more about the meaning of the file contents [here](http://technet.microsoft.com/en-us/library/hh824952.aspx):
 
 EI.cfg:
 
@@ -50,7 +50,7 @@ Value=XXXXX-XXXXX-XXXXX-XXXXX-XXXXX`
 
 To modify the BCD of the installed image, and be able to easily repeat the second phase of install testing, I installed a second hard drive, and deployed WinPE to the second drive. By using F11 during boot to choose the boot drive, I could select booting from the second drive at any time.
 
-I have a variety WinPE v3 (Win7) based utility images, and I updated them to use WinPE v4 (Win8). In the process I lost the boot menu, and the first image in the menu automatically started booting. After some trial and error, I found the bootmenupolicy BCD option, and when set to legacy mode, the old style menu is back:
+I have a variety of WinPE v3 (Win7) based utility images, and I updated them to use WinPE v4 (Win8). In the process I lost the boot menu, and the first image in the menu automatically started booting. After some trial and error, I found the bootmenupolicy BCD option, and when set to legacy mode, the old style menu is back:
 
 `bcdedit /set {default} bootmenupolicy legacy`
 
@@ -71,18 +71,18 @@ But unlike the [dbgsettings](http://msdn.microsoft.com/en-us/library/windows/har
 
 While still in WinPE, I captured the state of the primary Win8 drive by making a drive image using Symantec Ghost, the [real Ghost](http://en.wikipedia.org/wiki/Ghost_(software)), currently sold as [Symantec Ghost Solution Suite](http://www.symantec.com/ghost-solution-suite), not the same named but volume snapshot based [Norton Ghost](http://us.norton.com/ghost/) or [Symantec System Recovery](http://www.symantec.com/system-recovery-desktop-edition). By saving a drive image, I can easily change hardware or configurations, test the install starting at the second phase, reboot to the secondary WinPE drive using F11, restore the entire drive image, and try again, while leaving the kernel debug options intact.
 
-I tested with following hardware configurations in various permutations:
+I tested with the following hardware configurations in various permutations:
 
 - Workstation: [SuperMicro 7047A-T](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-T.cfm)
 - Workstation: [SuperMicro 7047A-73](http://www.supermicro.com/products/system/4U/7047/SYS-7047A-73.cfm)
 - Processor: Dual [Intel Xeon E5-2660](http://amzn.to/Qvh3Wo)
 - Memory: [Kingston DDR3 32GB KVR1600D3D4R11SK4/32GI](http://www.kingston.com/dataSheets/KVR1600D3D4R11SK4_32GI.pdf)
 - Memory: [Kingston DDR3L 32GB KVR13LR9D4/8HC](http://amzn.to/QvhfoC)
-- Graphic card: [NVidia Quadro 5000](http://amzn.to/RrHg9L)
-- Graphic card: [NVidia Quadro 4000](http://amzn.to/Q6lGGc)
-- Graphic card: [NVidia GeForce GTX 680](http://amzn.to/PF9fyJ)
-- Graphic card: [ATI FirePro V7900](http://amzn.to/LZehYW)
-- Graphic card: [ATI Radeon HD 7970](http://amzn.to/SsswX7)
+- Graphics card: [NVidia Quadro 5000](http://amzn.to/RrHg9L)
+- Graphics card: [NVidia Quadro 4000](http://amzn.to/Q6lGGc)
+- Graphics card: [NVidia GeForce GTX 680](http://amzn.to/PF9fyJ)
+- Graphics card: [ATI FirePro V7900](http://amzn.to/LZehYW)
+- Graphics card: [ATI Radeon HD 7970](http://amzn.to/SsswX7)
 - Hard drive: [Intel 330 Series 60GB SSD SSDSC2CT060A3K5](http://amzn.to/Pf88FD)
 - Hard drive: [Intel 520 Series 480GB SSD SSDSC2CW480A3K5](http://amzn.to/OK2k7c)
 
@@ -192,14 +192,14 @@ fffff880`009b5c60 00000000`00000000 : fffff880`009b6000 fffff880`009b0000 000000
 ACPI!PnpBiosGetDeviceResourceList+15e
 fffff880`012c3c2a cd2c int 2ChSYMBOL_STACK_INDEX: 0SYMBOL_NAME: ACPI!PnpBiosGetDeviceResourceList+15eFOLLOWUP_NAME: MachineOwnerMODULE_NAME: ACPIIMAGE_NAME: ACPI.sysDEBUG_FLR_IMAGE_TIMESTAMP: 50109dd0BUCKET_ID_FUNC_OFFSET: 15eFAILURE_BUCKET_ID: 0x0_ACPI!PnpBiosGetDeviceResourceListBUCKET_ID: 0x0_ACPI!PnpBiosGetDeviceResourceList ``
 
-This is interesting, the kernel ASSERT's on a problem reported by the BIOS.
+This is interesting, the kernel ASSERTs on a problem reported by the BIOS.
 
 I contacted SuperMicro support, they said they will investigate the BIOS failure, and they suggested I try to use PCIe slot #3 instead of slot #5. The motherboard [manual](http://www.supermicro.com/manuals/motherboard/C606_602/MNL-1275.pdf) mentions that slots #1, #2, and #3 are to be used if CPU #1 is installed, and slots #4, #5, and #6 to be used only if CPU #2 is installed.
 
 [![PCIe](/media/2012/08/pcie_thumb.png)](/media/2012/08/pcie.png)
 
-I have both processors installed, so not using the more conveniently located slot #5 never came to mind. I moved the graphic card to CPU #1 slot #3, and voila, install succeeded and Windows 8 was up and running!
+I have both processors installed, so not using the more conveniently located slot #5 never came to mind. I moved the graphics card to CPU #1 slot #3, and voila, install succeeded and Windows 8 was up and running!
 
-I repeated the checked build test with the graphic card in slot #3, and the same BIOS ASSERT error was reported, so the BIOS ASSERT seems to be unrelated to the ACPI\_TDR\_FAILURE error.
+I repeated the checked build test with the graphics card in slot #3, and the same BIOS ASSERT error was reported, so the BIOS ASSERT seems to be unrelated to the VIDEO\_TDR\_FAILURE error.
 
 This was a very frustrating problem, and I still don't understand the root cause, but I am happy to be able to finally switch both workstations to Windows 8.

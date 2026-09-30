@@ -81,4 +81,4 @@ The finished product:
 {{< figure src="/media/2021/08/img%5F8181.jpg?w=768" alt="" caption="" >}}  
 {{< /gallery >}}  
 
-I find that the vent louvers do restrict the airflow somewhat, but the fans do make an affective difference, when parking hot cars in the garage I no longer have to leave the garage door open.
+I find that the vent louvers do restrict the airflow somewhat, but the fans do make an effective difference, when parking hot cars in the garage I no longer have to leave the garage door open.

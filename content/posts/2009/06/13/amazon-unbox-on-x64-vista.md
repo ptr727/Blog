@@ -10,9 +10,9 @@ tags:
 - x64
 post_id: '89'
 ---
-While shopping on Amazon I noticed that they were offering the Pilot of the [Showtime series Nurse Jackie in HD](http://www.amazon.com/gp/product/B002BEF75G?pf_rd_p=481507571&pf_rd_s=center-2&pf_rd_t=1401&pf_rd_i=1000128561&pf_rd_m=ATVPDKIKX0DER&pf_rd_r=1YPJ8P20JGC64Y7W0F9Y "HBO series Nurse Jackie in HD") for free, so I decided to give it a try.
+While shopping on Amazon I noticed that they were offering the Pilot of the [Showtime series Nurse Jackie in HD](http://www.amazon.com/gp/product/B002BEF75G?pf_rd_p=481507571&pf_rd_s=center-2&pf_rd_t=1401&pf_rd_i=1000128561&pf_rd_m=ATVPDKIKX0DER&pf_rd_r=1YPJ8P20JGC64Y7W0F9Y "Showtime series Nurse Jackie in HD") for free, so I decided to give it a try.
 
-The install (version 2.0.1.95) went smoothly, and the 1.3GB downloaded also completed pretty quickly, and I watched the show.
+The install (version 2.0.1.95) went smoothly, and the 1.3GB download also completed pretty quickly, and I watched the show.
 
 
 
@@ -55,7 +55,7 @@ I gave them the benefit of the doubt and tried to update the DRM components, it 
 
 
 
-I suspected I know what the problem was, and this problem reminded me of a similar problem with the [Google Email Uploader on Vista x64](/2009/01/google-email-uploader-on-vista-x64.html "Google Email Uploader on Vista x64").
+I suspected I knew what the problem was, and this problem reminded me of a similar problem with the [Google Email Uploader on Vista x64](/2009/01/google-email-uploader-on-vista-x64.html "Google Email Uploader on Vista x64").
 
 My suspicions were confirmed after I used [CorFlags](http://msdn.microsoft.com/en-us/library/ms164699(VS.80).aspx "CorFlags") to inspect the binaries:
 
@@ -89,7 +89,7 @@ Signed : 1
 
 The output indicated that the EXE file was compiled to run natively on any platform, i.e. x64 on x64 and x86 on x86, but the DLL was compiled to be x86 only.
 
-Thus the EXE runs as x64 and tries to load a x86 binary, not allowed, causing the crash.
+Thus the EXE runs as x64 and tries to load an x86 binary, not allowed, causing the crash.
 
 
 
@@ -111,7 +111,7 @@ To fix the problem I have to change the EXE attributes to only run in 32bit:
 
 The "Force" flag is required because the binary is Authenticode signed, and after the header change the Authenticode signature is now invalid.
 
-"CorFlags" is parts of the .NET / Platform SDK and can be [downloaded from Microsoft](http://www.microsoft.com/downloads/details.aspx?displaylang=en&FamilyID=e6e1c3df-a74f-4207-8586-711ebe331cdc "downloaded from Microsoft").
+"CorFlags" is part of the .NET / Platform SDK and can be [downloaded from Microsoft](http://www.microsoft.com/downloads/details.aspx?displaylang=en&FamilyID=e6e1c3df-a74f-4207-8586-711ebe331cdc "downloaded from Microsoft").
 
 
 

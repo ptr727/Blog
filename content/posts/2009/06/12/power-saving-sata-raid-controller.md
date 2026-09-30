@@ -20,7 +20,7 @@ I've been a longtime user of Adaptec SATA RAID cards ([3805](http://www.adaptec.
 
 
 
-My workstations are normally running in the "Balanced" power mode so that they will go to sleep after an hour, but sometimes I need to run computationally intensive tasks that leaves the machines running 24/7.
+My workstations are normally running in the "Balanced" power mode so that they will go to sleep after an hour, but sometimes I need to run computationally intensive tasks that leave the machines running 24/7.
 
 
 
@@ -28,11 +28,11 @@ During these periods the disks don't need to be on and I want the disks to spin 
 
 
 
-I was building a new system with 4 drives in RAID10, and I decided to the try a 3Ware / AMCC SATA [9690SA-4I](http://www.3ware.com/products/sas-9690SA.asp) RAID controller. Their sales support confirmed that the card does support native Windows power management.
+I was building a new system with 4 drives in RAID10, and I decided to try a 3Ware / AMCC SATA [9690SA-4I](http://www.3ware.com/products/sas-9690SA.asp) RAID controller. Their sales support confirmed that the card does support native Windows power management.
 
 
 
-I also ordered a battery backup unit with the card, and my first impressions of installing the battery backup unit was less than impressive. The BBU comes with 4 plastic screws with pillars, but the 9690SA card only had one mounting hole. After inserting the BBU in the IDC header I had to pull it back out and adjust it so that it would align properly.
+I also ordered a battery backup unit with the card, and my first impressions of installing the battery backup unit were less than impressive. The BBU comes with 4 plastic screws with pillars, but the 9690SA card only had one mounting hole. After inserting the BBU in the IDC header I had to pull it back out and adjust it so that it would align properly.
 
 
 
@@ -44,7 +44,7 @@ Getting back to installation, the 3Ware BIOS utility is very rudimentary (compar
 
 
 
-I installed Vista Ultimate x64 on the boot volume, and used the other of the volume for data. I also installed the 3DM2 management utility, and the client tray alerting application. The client utility does not work on Vista because it requires elevation, and elevation s not allowed for auto start items. The 3DM2 utility is a web server and you connect using your web browser.
+I installed Vista Ultimate x64 on the boot volume, and used the rest of the volume for data. I also installed the 3DM2 management utility, and the client tray alerting application. The client utility does not work on Vista because it requires elevation, and elevation is not allowed for auto start items. The 3DM2 utility is a web server and you connect using your web browser.
 
 
 
@@ -72,15 +72,15 @@ I know the Adaptec Storage Manager (ASM) utility does support volume expansion, 
 
 
 
-I never got to the point of actually trying the expansion procedure. After swapping the last drive I ran a verify, and one of the mirror units would not go past 22%. Support told me to try various things, disable scheduling, enable scheduling, stop the verify, restart the verify. When they eventually told me it seems there are some timeouts, and that the cause was Native Command Queuing (NCQ) and a bad BBU, I decided I had enough.
+I never got to the point of actually trying the expansion procedure. After swapping the last drive I ran a verify, and one of the mirror units would not go past 22%. Support told me to try various things, disable scheduling, enable scheduling, stop the verify, restart the verify. When they eventually told me it seems there are some timeouts, and that the cause was Native Command Queuing (NCQ) and a bad BBU, I decided I had had enough.
 
 
 
-The new Adaptec 5-series cards do support [power management](http://www.adaptec.com/en-us/_common/ipm/?hpBan=IPMHEROswf-US&utm_source=hp&utm_medium=banner&utm_campaign=IPMHERO-US), but unlike the 9690SA card they do not support native Windows power management, and requires power savings to be enabled through the ASM utility.
+The new Adaptec 5-series cards do support [power management](http://www.adaptec.com/en-us/_common/ipm/?hpBan=IPMHEROswf-US&utm_source=hp&utm_medium=banner&utm_campaign=IPMHERO-US), but unlike the 9690SA card they do not support native Windows power management, and require power savings to be enabled through the ASM utility.
 
 
 
-I ordered an Adaptec [5445](http://www.adaptec.com/en-US/products/Controllers/Hardware/sas/performance/SAS-5445/) card, booted my system with the 9690SA still in place from WinPE, made an image backups using Symantec Ghost Solution Suite (SGSS), installed the 5445 card, created new RAID10 volumes, booted from WinPE, restored the images using Ghost, and Vista booted just fine.
+I ordered an Adaptec [5445](http://www.adaptec.com/en-US/products/Controllers/Hardware/sas/performance/SAS-5445/) card, booted my system with the 9690SA still in place from WinPE, made image backups using Symantec Ghost Solution Suite (SGSS), installed the 5445 card, created new RAID10 volumes, booted from WinPE, restored the images using Ghost, and Vista booted just fine.
 
 
 

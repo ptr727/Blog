@@ -11,7 +11,7 @@ tags:
 - wordpress
 post_id: '241'
 ---
-Part of the research I did before [migrating from Blogger to WordPress.com](/2012/07/15/from-blogger-to-wordpress/), was to make sure that current Blogger permalinks will resolve correctly once the old posts were imported into WordPress.com. At the time all seemed fine, but soon after migrating, I received alerts from [Google Webmaster Tools](http://www.google.com/webmasters/tools/) that there is an increase in site errors, specifically 404 errors.
+Part of the research I did before [migrating from Blogger to WordPress.com](/2012/07/15/from-blogger-to-wordpress/), was to make sure that current Blogger permalinks would resolve correctly once the old posts were imported into WordPress.com. At the time all seemed fine, but soon after migrating, I received alerts from [Google Webmaster Tools](http://www.google.com/webmasters/tools/) that there is an increase in site errors, specifically 404 errors.
 
 Some background: [Permalinks](http://en.wikipedia.org/wiki/Permalink) are the URL's that point directly to specific posts on the blog. These URL's are known by search engines, are shared on forums, and are basically the static address of posts. Blogger and WordPress.com use different styles of permalinks. WordPress.com allows some [customization of permalinks](http://codex.wordpress.org/Using_Permalinks), but unlike WordPress.org, there is no support for custom plugins to handle rewrites for permalinks, 302's or 404's.
 
@@ -25,7 +25,7 @@ Search engines will know the link using the old blogger style URL, and both styl
 `/2012/06/19/looks-can-be-deceiving
 /2012/06/looks-can-be-deceiving.html`
 
-So why is it that Google Webmaster Tools reported a suddenly spike in 404's?
+So why is it that Google Webmaster Tools reported a sudden spike in 404's?
 
 [![Google.404.1](/media/2012/08/google-404-1_thumb.png)](/media/2012/08/google-404-1.png)
 

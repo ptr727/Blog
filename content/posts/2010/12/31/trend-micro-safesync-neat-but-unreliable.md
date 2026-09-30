@@ -17,7 +17,7 @@ I wanted to write about [Trend Micro SafeSync](http://us.trendmicro.com/us/produ
 
 SafeSync is another online backup and sync and share application. Actually, they offer both online storage through a mapped drive, and syncing folders online, this makes it unique compared to many existing offerings.
 
-I have used almost all online backup and sync and share type applications out there, my favorite remains [DropBox](http://www.dropbox.com/). SafeSync used to be [Humyo](http://en.wikipedia.org/wiki/Humyo), before being acquired by Trend. I have used Humyo when they were in Beta, it was just ok, but between then and now their product seem to have come a long way.
+I have used almost all online backup and sync and share type applications out there, my favorite remains [DropBox](http://www.dropbox.com/). SafeSync used to be [Humyo](http://en.wikipedia.org/wiki/Humyo), before being acquired by Trend. I used Humyo when they were in Beta, it was just ok, but between then and now their product seems to have come a long way.
 
 Of all the online backup and sync and share applications, a few things remain constant;   
 Free is unsustainable, somebody has to pay for the staff, the bandwidth, the disks, and the infrastructure. These vendors are running on venture capital, waiting for acquisition, for paid customers, for indirect monetization, or failure.   
@@ -55,8 +55,8 @@ Here are some explorer screenshots of a mapped drive using SafeSync, Windows, an
 
 So this all sounds great, well, not so great, the client application has serious stability issues.
 
-On two machines, every time I logout of Windows, Windows reports that SafeSync is not responding, after a minute or so, Windows eventually logs out.   
-On one machine, every time I logout, Windows paints the logging out screen, and never completes, requiring a power cycle.
+On two machines, every time I log out of Windows, Windows reports that SafeSync is not responding, after a minute or so, Windows eventually logs out.   
+On one machine, every time I log out, Windows paints the logging out screen, and never completes, requiring a power cycle.
 
 SafeSync interferes with applications that are accessing files in a shared folder. It appears that SafeSync notices a file modification, then opens the file, and does not allow other applications access to the file. As an example, I create backups of my CD collection using [dbPoweramp](http://www.dbpoweramp.com/), and I shared the output folder in SafeSync. While dbPoweramp is still using the files, SafeSync opens the file and dbPoweramp fails. This is not a problem with dbPoweramp, and other sync applications, like DropBox, work just fine in the same situation.   
 [![dBPoweramp.Error.Writing](/external/0f10c13980dede96.png)](/external/6b280149315843db.png)
@@ -65,7 +65,7 @@ Adobe PhotoShop CS4 x64 crashes every time I open an image that is located in a 
 FAULTING\_IP:   
 HrfsShellExtension!DllUnregisterServer+202ef
 
-If a sync is in progress, and the machine goes to sleep, then later wakes up, SafeSync does not reconnect, instead it reports that the server is unavailable. In order to resolve this you have to logout and log back in.
+If a sync is in progress, and the machine goes to sleep, then later wakes up, SafeSync does not reconnect, instead it reports that the server is unavailable. In order to resolve this you have to log out and log back in.
 
 I added a folder to sync, this folder was very large, the status window indicated it would take several days to complete, I wanted to remove the mapping. On clicking the remove button, I received this funny error message, "Unexpected and unknown error, it is possible a logical error". The only way to stop the sync was to uninstall.   
 [![SafeSync.Logical.Error](/external/3a25fab79c71dfb2.png)](/external/98d84413bf424b21.png)

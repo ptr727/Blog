@@ -12,7 +12,7 @@ I have now moved all old archived content from my website to this blog, the old 
 
 
 
-I was using the standard Blogger "Tic-Tac" template, but the readable area was not wide enough to fit many of the images I embed in articles, and this would either skew the text, or cut of the images.
+I was using the standard Blogger "Tic-Tac" template, but the readable area was not wide enough to fit many of the images I embed in articles, and this would either skew the text, or cut off the images.
 
 
 

@@ -10,11 +10,11 @@ post_id: '566'
 ---
 Almost two years ago I pre-ordered some [bitcoin](https://bitcoin.org/en/) mining hardware from [Butterfly Labs](http://www.butterflylabs.com/), what a waste. After countless delays, more than a year late, they finally shipped the hardware, and given the low probability of ever recovering the money through mining, I immediately sold the hardware on eBay, for a little profit.
 
-In the mean time USB stick miners became available, outperforming GPU mining, and easy to setup and run. I've had a couple of ASICMiner Block Erupter's running under my desk for some time, in the early days I saw some fractions of coins coming in, but in recent months they are so under-powered against the current hash-rates that they do little more than blink lights.
+In the meantime USB stick miners became available, outperforming GPU mining, and easy to set up and run. I've had a couple of ASICMiner Block Erupter's running under my desk for some time, in the early days I saw some fractions of coins coming in, but in recent months they are so under-powered against the current hash-rates that they do little more than blink lights.
 
 There is a resurgence in [USB stick mining hardware](https://bitcointalk.org/index.php?topic=464496), specifically the Bitfury type devices, many based on the [NanoFury](https://github.com/nanofury/NanoFury) open source project that provided software, design, and PCB schematics.
 
-I got myself a [Red Fury](https://bitcointalk.org/index.php?topic=321551), an [Nano Fury II](https://bitcointalk.org/index.php?topic=526925), and a [Hex Fury](https://bitcointalk.org/index.php?topic=523063). Compared to the 300MH/s of my little Block Erupters, these run at 2GH/s, 4GH/s, and 11GH/s respectively. There is still no way to ever make a profit in mining (at this scale), but I was really interested in seeing how these newer generation devices worked, especially since the publication of the NanoFury open source project, where in theory I could build my own.
+I got myself a [Red Fury](https://bitcointalk.org/index.php?topic=321551), a [Nano Fury II](https://bitcointalk.org/index.php?topic=526925), and a [Hex Fury](https://bitcointalk.org/index.php?topic=523063). Compared to the 300MH/s of my little Block Erupters, these run at 2GH/s, 4GH/s, and 11GH/s respectively. There is still no way to ever make a profit in mining (at this scale), but I was really interested in seeing how these newer generation devices worked, especially since the publication of the NanoFury open source project, where in theory I could build my own.
 
 So what does this have to do with self signed drivers, well, my mining tool of choice is [CGMiner](https://github.com/ckolivas/cgminer), but CGMiner currently only runs Nano Fury II's at half speed, requiring the use of [BFGMiner](https://github.com/luke-jr/bfgminer) to go full speed. But unlike CGMiner that accesses all USB devices via [Zadig](http://zadig.akeo.ie/) installed WinUSB drivers, BFGMiner requires native Windows drivers, and neither the Red Fury nor the Hex Fury drivers are signed, so no installation on Windows 8 x64 (without disabling driver signing on every boot).
 
@@ -30,7 +30,7 @@ I tested on Windows 8.1 Update 1 x64:
 
 Install the Windows 8.1 [SDK](http://msdn.microsoft.com/en-us/windows/desktop/bg162891.aspx) and [WDK](http://msdn.microsoft.com/en-us/windows/hardware/gg454513.aspx).
 Get the original "[Bitfury BF1](http://cryptoware.co.uk/pages/red-fury)" and "[bi•fury](http://cryptostore.io/?page_id=550)" INF files.
-The bf1.inf file is saved in \*NIX format (CR), convert it to Windows format (CRLF).
+The bf1.inf file is saved in \*NIX format (LF), convert it to Windows format (CRLF).
 Create a self signed certificate:
 
 ```

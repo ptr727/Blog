@@ -23,7 +23,7 @@ Following are basic setup steps, refer to detailed online guides for specific co
   - DNS for `home.foo.net` will be served by your local DNS server. Typically most services will be `CNAME` entries pointing to an `A` record for the docker host or the Traefik server.
   - Other `VLAN` s would be on different subdomains, e.g. `guests.foo.net`, and can be routed accordingly.
 - [Traefik](https://traefik.io/) configured and deployed on your homelab docker server.
-  - Local DNS should be configured with a `CNAME` or `A` record to point to your traffic container at `traefik.home.foo.net`.
+  - Local DNS should be configured with a `CNAME` or `A` record to point to your Traefik container at `traefik.home.foo.net`.
   - Configure [TLS](https://doc.traefik.io/traefik/routing/entrypoints/#tls) domains. Set `main` as `foo.net`, and `sans` as `*.foo.net`, `*.home.foo.net`, `*.lab.foo.net`. This will be used when creating the SSL certificate.
   - Configure [ACME certificate resolvers](https://doc.traefik.io/traefik/https/acme/) for Cloudflare DNS. Set `delayBeforeCheck: 60` and `disablePropagationCheck: true` to avoid timeouts during domain ownership validation when using Cloudflare.
   - Configure a [WhoAmI](https://hub.docker.com/r/containous/whoami) container fronted by Traefik, we will use this for testing and Tunnel bootstrapping. Set ``traefik.http.routers.whoami.rule: "PathPrefix(`/whoami`) || Host(`whoami.home.foo.net`) || Host(`whoami.foo.net`) || Host(`whoami.lab.foo.net`)"`` This will allow the container to service traffic destined to `whoami.foo.net`, `whoami.lab.foo.net`, and `whoami.home.foo.net`.
@@ -37,8 +37,8 @@ Following are basic setup steps, refer to detailed online guides for specific co
   - [Create a Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) and deploy as a docker container. Other than the auth token required in the docker configuration, all other configuration for the tunnel is done remotely using the Cloudflare console.
 - [Cloudflare Access](https://www.cloudflare.com/zero-trust/products/access/) configured to authenticate remote access.
   - Configure Access before configuring public hostname tunnels so that any public hostname can be protected by Access when it gets created and before it goes live.
-  - Configure identity providers in [Authentication](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/) settings, OTP is the easiest and requires no setup, other providers like Google, Facebook, LinkedIn, GitHub requires minimal additional configuration.
-  - Create an Access Group to simplify configuration management. Create a group using emails as Selector and add all your allowed email addresses, e.g. your personal emails and work email. The email addresses can be served by any identify provider that authenticates using that email address, e.g. a GMail email can be used with OTP or Google or GitHub or LinkedIn or Facebook, etc.
+  - Configure identity providers in [Authentication](https://developers.cloudflare.com/cloudflare-one/identity/idp-integration/) settings, OTP is the easiest and requires no setup, other providers like Google, Facebook, LinkedIn, GitHub require minimal additional configuration.
+  - Create an Access Group to simplify configuration management. Create a group using emails as Selector and add all your allowed email addresses, e.g. your personal emails and work email. The email addresses can be served by any identity provider that authenticates using that email address, e.g. a GMail email can be used with OTP or Google or GitHub or LinkedIn or Facebook, etc.
 - Create a `whoami.foo.net` [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) to the WhoAmI container.
   - Creating this tunnel first helps with the later wildcard tunnel configuration, as the Cloudflare tunnel workflow does not directly support wildcard tunnel DNS setup.
   - In the Tunnel configuration create a new public hostname for `whoami.foo.net` and point it to `https://whoami.home.foo.net`.
@@ -58,7 +58,7 @@ The Cloudflare configuration is now set, and all further changes can be made loc
 
 E.g. to expose your [Portainer](https://github.com/portainer/portainer) instance to the internet, just modify the HTTP routers rule to include the `lab.foo.net` domain, no Cloudflare changes required, i.e. ``traefik.http.routers.portainer.rule: "Host(`portainer.home.foo.net`) || Host(`portainer.lab.foo.net`)"``. Portainer will now be accessible from the internet via `https://portainer.lab.foo.net` with authenticated access, and locally via `https://portainer.home.foo.net` without authentication required.
 
-Following are configuration code snippets. I use Ansible for deployment, easy enough to convert to the Task files and variables to Docker Compose.
+Following are configuration code snippets. I use Ansible for deployment, easy enough to convert the Task files and variables to Docker Compose.
 
 Traefik static YAML config:
 

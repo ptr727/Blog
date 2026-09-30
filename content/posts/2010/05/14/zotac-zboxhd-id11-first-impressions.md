@@ -14,14 +14,12 @@ tags:
 - zotac
 post_id: '99'
 ---
-Untitled Page
-
 I am sharing my experiences and first impressions of the [Zotac ZBOXHD-ID11-U](http://www.zotacusa.com/zotac-zboxhd-id11-u-intel-atom-d510-1-66-ghz-dual-core-all-in-one-mini-pc.html "Zotac ZBOXHD-ID11-U") mini PC.
 
 In the coming days I will connect the device to my home theater, and review the behavior running [Windows Media Center](http://www.microsoft.com/windows/windows-media-center/get-started/default.aspx "Windows Media Center"), [XBMC](http://xbmc.org/ "XBMC"), and [Media-Portal](http://www.team-mediaportal.com/ "Media-Portal").
 
 
- This is first post in a [series of posts](/2010/05/zotac-zbox-mini-pc-zboxhd-id11.html) related to the [Zotac ZBOX ZBOXHD-ID11](http://amzn.to/M2SUnB).
+ This is the first post in a [series of posts](/2010/05/zotac-zbox-mini-pc-zboxhd-id11.html) related to the [Zotac ZBOX ZBOXHD-ID11](http://amzn.to/M2SUnB).
 
 
  Summary:   
@@ -36,7 +34,7 @@ In the coming days I will connect the device to my home theater, and review the 
 After reading about the new ID11 on several news sites, I was eagerly awaiting its availability.   
  As soon as the ID11 became available, I ordered three units from [NewEgg](http://www.newegg.com/Product/Product.aspx?Item=N82E16856173005 "NewEgg").
 
-I am currently using a two self built HTPC's, one is in a [Lian-Li media center case](/2010/01/intel-dp45sg-and-lian-li-pc-c33b-htpc.html "full size Lian-Li media center case"), and the other is an [AOpen miniPC MP945-VDR](http://usa.aopen.com/products_detail.aspx?Auno=2370 "AOpen miniPC MP945-VDR").   
+I am currently using two self built HTPC's, one is in a [Lian-Li media center case](/2010/01/intel-dp45sg-and-lian-li-pc-c33b-htpc.html "full size Lian-Li media center case"), and the other is an [AOpen miniPC MP945-VDR](http://usa.aopen.com/products_detail.aspx?Auno=2370 "AOpen miniPC MP945-VDR").   
 
 I am particularly interested in the ID11 because of the small form factor, the HDMI output, and the ability to reliably play 1080p content.
 
@@ -70,7 +68,7 @@ This did not seem safe to me, I contacted Zotac support, and they said they will
 
 The ID11 comes with everything included, except for a hard drive and memory.
 
-I installed a [80GB Intel SSD (SSDSA2MH080G2R5](http://www.intel.com/design/flash/nand/mainstream/index.htm "80GB Intel SSD")) hard drive, and a [Kingston 2GB (](http://www.valueram.com/datasheets/default.asp#DDR2 SODIMMs "Kingston 2GB SODIM RAM") [KVR800D2S5/2G](http://www.valueram.com/datasheets/default.asp#DDR2 SODIMMs "Kingston 2GB SODIM RAM")) SODIM RAM module, I ordered the [SSD](http://www.amazon.com/Intel-Mainstream-Retail-Package-SSDSA2MH080G2R5/dp/B002IJA1EG/ref=sr_1_1?ie=UTF8&s=electronics&qid=1273880908&sr=1-1 "SSD") and the [RAM](http://www.amazon.com/Kingston-ValueRAM-Notebook-KVR800D2S5-2G/dp/B00102A066/ref=sr_1_1?ie=UTF8&s=electronics&qid=1273880741&sr=8-1 "RAM") from Amazon.
+I installed an [80GB Intel SSD (SSDSA2MH080G2R5](http://www.intel.com/design/flash/nand/mainstream/index.htm "80GB Intel SSD")) hard drive, and a [Kingston 2GB (](http://www.valueram.com/datasheets/default.asp#DDR2 SODIMMs "Kingston 2GB SODIMM RAM") [KVR800D2S5/2G](http://www.valueram.com/datasheets/default.asp#DDR2 SODIMMs "Kingston 2GB SODIMM RAM")) SODIMM RAM module, I ordered the [SSD](http://www.amazon.com/Intel-Mainstream-Retail-Package-SSDSA2MH080G2R5/dp/B002IJA1EG/ref=sr_1_1?ie=UTF8&s=electronics&qid=1273880908&sr=1-1 "SSD") and the [RAM](http://www.amazon.com/Kingston-ValueRAM-Notebook-KVR800D2S5-2G/dp/B00102A066/ref=sr_1_1?ie=UTF8&s=electronics&qid=1273880741&sr=8-1 "RAM") from Amazon.
 
 
 
@@ -94,7 +92,7 @@ On booting there is just a Zotac logo, no BIOS instructions or POST messages.
 
 The instruction manual included in the box makes no mention of how to enter the BIOS.
 
-I tried a variety of keys that normally lets you enter the BIOS; ESC, DEL, F2, F10, F12, and eventually I was able to enter the BIOS.
+I tried a variety of keys that normally let you enter the BIOS; ESC, DEL, F2, F10, F12, and eventually I was able to enter the BIOS.
 
 I changed the BIOS configuration to not show the logo, and on the next boot I could see that F11 lets me choose a boot device, and DEL enters the BIOS setup.
 
@@ -170,7 +168,7 @@ Below is a picture of playback devices after the driver updates:
 Graphics: 4.5 to 4.6   
  Hard Disk: 5.9 to 7.7
 
-The ID11 is supposed to be used as a HTPC, and as such it needs to be very quiet.   
+The ID11 is supposed to be used as an HTPC, and as such it needs to be very quiet.   
 
 At boot the fan is quiet but during normal operation the fan gets louder, and under load the fan gets very loud. The small physical size of the fan probably contributes to the high pitch of the fan noise and makes it more noticeable.
 
@@ -195,7 +193,7 @@ I changed the value of \[CPUFAN TargetTemp Value\] from 45C to 50C.
 
 
 
-The fan is quieter, but not quite, and the case is getting hotter.
+The fan is quieter, but not quiet, and the case is getting hotter.
 
 It seems that the fan is not very effective at cooling, and still does not run as quiet as I would like even at the higher thresholds.
 
@@ -234,11 +232,11 @@ Two worked fine, but the third one had a video corruption problem on the BIOS an
 
 I tried various outputs; DVI-D, DVI-I, VGA, and various monitors, same problem.
 
-I filed a RMA with NewEgg, and returned the on ID11 for an exchange.
+I filed an RMA with NewEgg, and returned the one ID11 for an exchange.
 
 
 
-Below is picture of the screen corruption:
+Below is a picture of the screen corruption:
 
 [![](http://docs.google.com/File?id=dcmzmbww_119gwqzfxcn_b)](http://docs.google.com/File?id=dcmzmbww_119gwqzfxcn_b)
 

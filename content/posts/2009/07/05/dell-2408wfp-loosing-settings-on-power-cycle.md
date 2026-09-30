@@ -1,5 +1,5 @@
 ---
-title: DELL 2408WFP loosing settings on power cycle
+title: DELL 2408WFP losing settings on power cycle
 date: '2009-07-05T21:39:00+00:00'
 url: /2009/07/05/dell-2408wfp-loosing-settings-on-power-cycle/
 categories:
@@ -13,7 +13,7 @@ After calibration, and changing the monitor settings, the monitors looked pretty
 
 It turns out that the monitors reverted to their default settings, invalidating the calibration.
 
-It seems to me that as soon as my PC goes to sleep, or the monitors go into power saving mode, or powers off, that on turning back on they revert to default settings.
+It seems to me that as soon as my PC goes to sleep, or the monitors go into power saving mode, or power off, that on turning back on they revert to default settings.
 
 I found a relatively simple solution using [EnTech mControl](http://forums.entechtaiwan.com/index.php?topic=6725.0 "EnTech mControl"), not completely automated but close.
 
@@ -37,7 +37,7 @@ I solved this by creating a text script file called "Monitor.Restore.Profile.cmd
 
 Now whenever the monitor settings need to be fixed, I just run this script and the settings are restored.
 
-This seems to be a problem with the DELL 2408WFP monitors, and I would like to know if this is specific my to my setup, or if this happens to other people, leave me a comment and let me know.
+This seems to be a problem with the DELL 2408WFP monitors, and I would like to know if this is specific to my setup, or if this happens to other people, leave me a comment and let me know.
 
 \[Update: 17 July 2009\]
 
