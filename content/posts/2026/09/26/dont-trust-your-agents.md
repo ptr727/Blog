@@ -162,7 +162,7 @@ Instructions alone are only guidelines, not enforcement. Every incident here hap
 
 Hooks do enforce, but they are a complex and cumbersome way to get there. The write guard is over 4,500 lines of Python. About half of it is self-tests, and most of the rest parses shell commands to decide what a command is actually about to do. Each hook needs its own tests and its own installer. The guard code also has to be written again for every agent, since each agent has its own hook API, or none. So far I have only written guard code for Claude Code. Codex and OpenCode get the same rules as guidelines, and nothing enforces them. Use a hook only where the bad outcome is truly detrimental, the failure recurs after the rule was read, and the command shape can be decided without judgment.
 
-The rules, skills, and hooks are all in my hub repo, and the hooks and their spec are under `host-setup/agent-safety`.
+The rules, skills, and hooks are all in my hub repo, and the hooks and their spec are under [`host-setup/agent-safety`](https://github.com/ptr727/ProjectTemplate/tree/main/host-setup/agent-safety).
 
 My agents treat instructions the way Captain Barbossa treats the pirate's code, in [Pirates of the Caribbean: The Curse of the Black Pearl](https://www.imdb.com/title/tt0325980/quotes/):
 
