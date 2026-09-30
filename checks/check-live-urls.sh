@@ -66,7 +66,7 @@ fi
 # Validated before it is written, because this lands in a curl config file and a curl config file is a list of options rather than a list of headers.
 # A value carrying a newline ends the header line and starts a new directive, so an override could add an option nobody typed.
 # A value carrying a double quote ends the quoted string with the same result.
-# Neither is a legal HTTP header value either, so refusing both loses nothing.
+# A tag never needs either, so refusing both loses nothing.
 #
 # The shape is enforced and not merely described, because the whole value of provenance over a boolean is that the log can be grouped by source, and `select(.tag | startswith("github/"))` is only reliable if every tag actually has a source half.
 # A charset check alone would accept `smoke`, `/smoke` and `a/b/c`, each of which reads as conforming and breaks that query.
@@ -111,15 +111,15 @@ token_rc() {
 	local id_name="$1" token_name="$2" rc_name="$3" name
 	if [ -n "${!id_name:-}" ] && [ -n "${!token_name:-}" ]; then
 		# Same hazard as CHECK_TAG above and the same reason, but a narrower rule, because the grammar of a credential is the issuer's to define and not this script's.
-		# Only the characters that break out of a quoted config line are refused, and none is legal in an HTTP header value, so a token containing one is a paste accident rather than a token.
+		# Only a line ending is refused, since no HTTP header value can carry one, so a token containing one is a paste accident rather than a token.
 		# Reported without echoing the value, since it is a secret and the finding is its shape.
 		#
 		# Carriage return counts as a line ending here as much as newline does.
 		# Header injection is classically CRLF, and a lone CR is enough on its own, so refusing LF while allowing CR would leave the shape this guard exists for.
 		for name in "$id_name" "$token_name"; do
 			case "${!name}" in
-			*'"'* | *$'\n'* | *$'\r'*)
-				echo "FAIL $name contains a quote, a newline, or a carriage return, none of which can appear in an HTTP header value" >&2
+			*$'\n'* | *$'\r'*)
+				echo "FAIL $name contains a newline or a carriage return, neither of which can appear in an HTTP header value" >&2
 				return 2
 				;;
 			esac
@@ -127,10 +127,11 @@ token_rc() {
 		# Assigned before the token is written, so no file holding a token escapes the exit trap.
 		printf -v "$rc_name" '%s' "$(mktemp)"
 		chmod 600 "${!rc_name}"
-		# A backslash is legal in a header, but curl reads it as an escape inside a quoted config value, so it is doubled rather than refused.
+		# A backslash or a double quote is legal in a header, but curl reads each as special inside a quoted config value, so each is escaped rather than refused.
 		local id_value="${!id_name}" token_value="${!token_name}"
+		id_value="${id_value//\\/\\\\}" token_value="${token_value//\\/\\\\}"
 		printf 'header = "P-Access-Token-Id: %s"\nheader = "P-Access-Token: %s"\n' \
-			"${id_value//\\/\\\\}" "${token_value//\\/\\\\}" >"${!rc_name}"
+			"${id_value//\"/\\\"}" "${token_value//\"/\\\"}" >"${!rc_name}"
 	elif [ -n "${!id_name:-}" ] || [ -n "${!token_name:-}" ]; then
 		# Half a credential is a typo rather than a choice, and it would otherwise fail as an outage.
 		echo "FAIL set both $id_name and $token_name, or neither" >&2
@@ -171,12 +172,14 @@ done
 AUTH=(-K "$CHECKRC")
 [ -n "$CURLRC" ] && AUTH+=(-K "$CURLRC")
 
+# Every curl call passes -q first, the only position where curl skips the user's .curlrc.
+
 # Invoked indirectly, through `export -f` and the `xargs bash -c` calls below.
 # shellcheck disable=SC2329
 check_render() {
 	local url="$1" code auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
-	code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$BASE$url")
+	code=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$BASE$url")
 	[ "$code" = "200" ] || echo "render $url expected 200, got $code" >>"$FAILED"
 }
 
@@ -195,10 +198,10 @@ check_media() {
 	target_auth=("${auth[@]}")
 	# One hop is followed rather than passed to curl -L, because -L would carry the credential to wherever the rule points.
 	# The legacy /wp-content/uploads/ entries reach the image through the @uploads rule, and what this proves is that the image arrives, not that the hop happened.
-	code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$target")
+	code=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$target")
 	case "$code" in
 	301 | 308)
-		target=$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${auth[@]}" "$target")
+		target=$(curl -q -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${auth[@]}" "$target")
 		# A 301 carrying no usable Location leaves this empty, and fetching an empty URL would be reported below as a transport error, which names the wrong problem.
 		if [ -z "$target" ]; then
 			echo "media $url answered $code with no usable Location" >>"$FAILED"
@@ -221,7 +224,7 @@ check_media() {
 	# `read` assigns the whole remainder of the line to its final variable, which is what lets a value containing spaces survive intact.
 	# A field added after it would be swallowed into the type instead.
 	local out rc=0
-	out=$(curl -s -o /dev/null \
+	out=$(curl -q -s -o /dev/null \
 		-w '%{http_code} %{size_download} %{content_type}\n' \
 		--max-time 30 "${target_auth[@]}" "$target") || rc=$?
 	read -r code len type <<<"$out"
@@ -248,7 +251,7 @@ check_media() {
 check_redirect() {
 	local url="$1" code dest dcode auth=(-K "$CHECKRC") dest_auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
-	code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$BASE$url")
+	code=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$BASE$url")
 	case "$code" in
 	301 | 308) ;;
 	*)
@@ -257,7 +260,7 @@ check_redirect() {
 		;;
 	esac
 	# A redirect to a 404 is a broken redirect, so the destination is followed rather than trusted.
-	dest=$(curl -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${auth[@]}" "$BASE$url")
+	dest=$(curl -q -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${auth[@]}" "$BASE$url")
 	# The credential is only ever sent to the origin it belongs to.
 	# A rule that one day redirects off-site must not mail the token there.
 	# The match needs an origin boundary, since a bare prefix also accepts a host that merely starts with this one, such as a lookalike registered as an attacker's subdomain.
@@ -266,7 +269,7 @@ check_redirect() {
 		"$BASE" | "$BASE"/*) dest_auth+=(-K "$CURLRC") ;;
 		esac
 	fi
-	dcode=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest")
+	dcode=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest")
 	# The media rule lands on an image, and a directory gains a trailing slash, so both answers are accepted.
 	case "$dcode" in
 	200 | 301 | 308) ;;
@@ -282,7 +285,7 @@ echo "==> $BASE"
 # One request before the rest, because an auth gate turns a bad credential into a total failure.
 # Otherwise the output reads as a vanished site rather than a wrong token.
 # Transport failures are separated from HTTP ones, since a name that does not resolve otherwise reports as a status code and gets diagnosed as a credential or a symlink.
-if ! preflight_headers=$(curl -sS -o /dev/null -D- -w '%{http_code}' --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR"); then
+if ! preflight_headers=$(curl -q -sS -o /dev/null -D- -w '%{http_code}' --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR"); then
 	echo "FAIL preflight: $BASE/ could not be reached, so nothing below was checked" >&2
 	sed 's/^/     /' "$CURLERR" >&2
 	exit 1
@@ -328,7 +331,7 @@ fi
 # Collapsing the two would report an unreachable host as a config that never reloaded.
 read_release() {
 	local headers
-	headers=$(curl -sS -o /dev/null -D- --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR") || return 1
+	headers=$(curl -q -sS -o /dev/null -D- --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR") || return 1
 	printf '%s' "$headers" | grep -i '^x-blog-release:' | tr -d '\r' | sed 's/^[^:]*: *//'
 	# Explicit, because pipefail carries grep's no-match status out of the function, which would report a reachable host serving no release header as unreachable.
 	return 0
@@ -400,7 +403,7 @@ if [ -n "$FAMILY_BASE" ]; then
 		page_path="${page%%|*}"
 		title="${page#*|}"
 		n_family=$((n_family + 1))
-		if ! code=$(curl -sS -o "$FAMILY_BODY" -D "$FAMILY_HEAD" -w '%{http_code}' --max-time 30 "${family_auth[@]}" "$FAMILY_BASE$page_path" 2>"$CURLERR"); then
+		if ! code=$(curl -q -sS -o "$FAMILY_BODY" -D "$FAMILY_HEAD" -w '%{http_code}' --max-time 30 "${family_auth[@]}" "$FAMILY_BASE$page_path" 2>"$CURLERR"); then
 			echo "family $page_path could not be reached: $(head -1 "$CURLERR")" >>"$FAILED"
 		elif [ "$code" != "200" ]; then
 			# The gate answers a missing or wrong token by redirecting to its login page.

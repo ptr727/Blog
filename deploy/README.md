@@ -339,7 +339,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@term_feed` | 192 | `/tag/<t>/feed/` and `/category/<c>/feed/` -> the term archive |
 | `@post_id` | 110 | `/?p=<id>` -> the permalink, via `p-ids.map` |
 | `@post_child_feed` | 107 | `/YYYY/MM/DD/post/<child>/feed/` -> the post, ordered **before** `@post_child` |
-| `@mapped` via `slugs.map` | 108 | bare `/<attachment-slug>/` -> best destination, and a retired page -> the site that replaced it |
+| `@mapped` via `slugs.map` | 108 | bare `/<attachment-slug>/` -> best destination, `/robots.txt/` -> the file, `/osd.xml/` -> `/`, and a retired page -> the site that replaced it |
 | `@date_archive` | 83 | `/YYYY/`, `/YYYY/MM/`, and their pagination -> `/all/`. The matcher accepts any date, including dates absent from the list |
 | `@mapped` via `blogger.map` | 59 | `/YYYY/MM/slug.html` -> the current post |
 | `@blogger_archive` | 21 | `/YYYY_MM_01_archive.html` -> `/all/`, any date, including ones never covered |
