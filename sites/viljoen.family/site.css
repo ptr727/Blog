@@ -234,6 +234,7 @@ footer {
   font: italic 500 1.125rem/1.5 "Cormorant Garamond", serif;
   color: var(--ink-soft);
 }
+footer span { white-space: nowrap; }
 
 @media (max-width: 68.75em) {
   .stub { padding: 2px 8px 3px; font-size: .95rem; }
