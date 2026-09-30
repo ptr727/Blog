@@ -1457,9 +1457,9 @@
     },
     {
       "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
-      "why": "Grammar",
+      "why": "Grammar and Product name",
       "from": "Both the QNap and Synology exhibits weird LAN traffic behavior",
-      "to": "Both the QNap and Synology exhibit weird LAN traffic behavior"
+      "to": "Both the QNAP and Synology exhibit weird LAN traffic behavior"
     },
     {
       "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
@@ -3788,6 +3788,66 @@
       "why": "Wrong word",
       "from": "the in-box graphic drivers that crash",
       "to": "the in-box graphics drivers that crash"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "my [QNap TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146)",
+      "to": "my [QNAP TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146)"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "replace the QNap, to",
+      "to": "replace the QNAP, to"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "and the QNap, so",
+      "to": "and the QNAP, so"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "QNap models available, like the [TS-859 Pro+](http://www.qnap.com/pro_detail_feature.asp?p_id=180) ([Amazon](http://amzn.to/LpvAO6)) with a faster processor, or the [TS-659 Pro II](http://www.qnap.com/pro_detail_feature.asp?p_id=167) ([Amazon](http://amzn.to/LdoEIw)) with a faster processor and SATA3 support, so it is not totally fair to compare the TS-859 Pro performance against the newer DS1511+. But, the newer QNap",
+      "to": "QNAP models available, like the [TS-859 Pro+](http://www.qnap.com/pro_detail_feature.asp?p_id=180) ([Amazon](http://amzn.to/LpvAO6)) with a faster processor, or the [TS-659 Pro II](http://www.qnap.com/pro_detail_feature.asp?p_id=167) ([Amazon](http://amzn.to/LdoEIw)) with a faster processor and SATA3 support, so it is not totally fair to compare the TS-859 Pro performance against the newer DS1511+. But, the newer QNAP"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "The QNap iSCSI",
+      "to": "The QNAP iSCSI"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": " QNap setup:",
+      "to": " QNAP setup:"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "- [QNap TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146),",
+      "to": "- [QNAP TS-859 Pro](http://www.qnap.com/pro_detail_feature.asp?p_id=146),"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "QNap](http://www.qnap.com/pro_application.asp?ap_id=135) iSCSI documentation, and more specifically the MPIO documentation for [Windows](http://download.microsoft.com/download/3/0/4/304083f1-11e7-44d9-92b9-2f3cdbf01048/mpio.doc), [Synology](http://forum.synology.com/wiki/index.php/How_to_use_iSCSI_Targets_on_Windows_computers_with_Multipath_I/O) and [QNap",
+      "to": "QNAP](http://www.qnap.com/pro_application.asp?ap_id=135) iSCSI documentation, and more specifically the MPIO documentation for [Windows](http://download.microsoft.com/download/3/0/4/304083f1-11e7-44d9-92b9-2f3cdbf01048/mpio.doc), [Synology](http://forum.synology.com/wiki/index.php/How_to_use_iSCSI_Targets_on_Windows_computers_with_Multipath_I/O) and [QNAP"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "QNap MPIO documentation shows that LAN-1 and LAN-2 are in a trunked configuration. As far as I could tell the best practices documentation from Microsoft, DELL, Synology, and other SAN vendors, say that trunking and MPIO should not be mixed. As such I did not trunk the LAN ports on the QNap",
+      "to": "QNAP MPIO documentation shows that LAN-1 and LAN-2 are in a trunked configuration. As far as I could tell the best practices documentation from Microsoft, DELL, Synology, and other SAN vendors, say that trunking and MPIO should not be mixed. As such I did not trunk the LAN ports on the QNAP"
+    },
+    {
+      "file": "content/posts/2011/07/06/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.md",
+      "why": "Product name",
+      "from": "the QNap or",
+      "to": "the QNAP or"
     }
   ]
 }
