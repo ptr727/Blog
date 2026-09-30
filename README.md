@@ -27,7 +27,9 @@ The blog's public address is [blog.insanegenius.com][blog-link].
 
 **Summary**:
 
-- The blog moved from WordPress to a Hugo site built and verified by GitHub Actions and served by Caddy. The public address cuts over separately.
+- The blog moved from WordPress to a Hugo site built and verified by GitHub Actions and served by Caddy.
+- The Viljoen family page moved off the blog to its own site at viljoen.family, shipped and deployed with the blog.
+- The public addresses cut over separately.
 
 See [Release History][history] for complete release notes and older versions.
 
@@ -35,6 +37,7 @@ See [Release History][history] for complete release notes and older versions.
 
 - [Overview](#overview)
 - [Migration from WordPress](#migration-from-wordpress)
+- [The Family Site](#the-family-site)
 - [How a Change Reaches the Site](#how-a-change-reaches-the-site)
   - [Keeping Personal Data Off the Site](#keeping-personal-data-off-the-site)
   - [What Happens While the Site Runs](#what-happens-while-the-site-runs)
@@ -61,6 +64,14 @@ Deployment is a release directory plus a symlink. A build is installed alongside
 The site has served the same domain since 2008, across three platforms: Blogger until 2012, WordPress until 2026, and Hugo from then on. Converting the posts took an afternoon. Preserving sixteen years of inbound links was the work, and it is why this repository carries a URL contract and gates it rather than trusting the build.
 
 How it was done is in [`capture/README.md`][capture-readme], and the account of it is a post on the site, [Moving This Blog From WordPress to Hugo][migration-post]. It covers what a WordPress export holds and what it leaves out, why the sitemap named barely a tenth of the addresses the site was actually serving, how the Blogger-era permalinks resolve through a lookup table rather than a pattern, why media fetched over HTTP is not the same bytes as the media in the export and only a content hash tells them apart, and which Hugo default moves every taxonomy archive to a new address without reporting anything.
+
+## The Family Site
+
+The Viljoen family page, once a page on this blog, is its own site at [viljoen.family][family-link]. It is a single hand-written page in English and Afrikaans with no build step, and its source is [`sites/viljoen.family/`][family-site]. [GENEALOGY.md][genealogy] defines the lineage notation it uses.
+
+It ships with the blog rather than beside it. The release script copies it into the blog's bundle, and the same Caddy container serves it from its own site block. A family change therefore deploys and rolls back as a blog release. The site block sends a browser whose first language is Afrikaans from `/` to `/af/`. The blog's old `/viljoen-family/` address and its short link redirect to the new site. The live gate checks both languages when `FAMILY_SITE_BASE_URL` is set. That check is run by hand, since the deploy workflow's own check covers the blog alone.
+
+[OPERATIONS.md][operations-family] holds its host names, its web-server block, and the rollback caveats. Its own [README][family-readme] covers previewing it locally.
 
 ## How a Change Reaches the Site
 
@@ -164,6 +175,7 @@ flowchart LR
 | [`hugo.yaml`][hugo-config] | site configuration, taxonomy URLs, and the feed name |
 | [`checks/`][checks] | the URL contract and the gates that enforce it |
 | [`deploy/`][deploy] | the release script, the web-server config, and the redirect maps |
+| [`sites/viljoen.family/`][family-site] | the family site, served beside the blog from the same release |
 | [`capture/`][capture] | the migration's provenance tooling, and how the site was derived from the old platform's exports |
 | [`ENVIRONMENT.md`][environment] | every configuration value, described once |
 
@@ -241,6 +253,9 @@ Licensed under the [MIT License][license]\
 [deploy-readme]: ./deploy/README.md
 [env-example]: ./.secrets/example.env
 [environment]: ./ENVIRONMENT.md
+[family-readme]: ./sites/viljoen.family/README.md
+[family-site]: ./sites/viljoen.family/
+[genealogy]: ./GENEALOGY.md
 [history]: ./HISTORY.md
 [hugo-config]: ./hugo.yaml
 [license]: ./LICENSE
@@ -248,11 +263,13 @@ Licensed under the [MIT License][license]\
 [migration-post]: ./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md
 [normalize-media]: ./scripts/normalize-media.py
 [operations]: ./OPERATIONS.md
+[operations-family]: ./OPERATIONS.md#the-family-site
 [workflow]: ./WORKFLOW.md
 
 <!-- External -->
 
 [blog-link]: https://blog.insanegenius.com
 [caddy-link]: https://caddyserver.com
+[family-link]: https://viljoen.family
 [hugo-link]: https://gohugo.io
 [papermod-link]: https://github.com/adityatelange/hugo-PaperMod
