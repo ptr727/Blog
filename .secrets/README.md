@@ -14,7 +14,7 @@ refuses a traversing one, and defaults to `~/.secrets/blog.local.production.env`
 `ENV_FILE` is honored as given rather than resolved against `~/.secrets/`, an escape hatch rather
 than the documented shape.
 `~/.secrets/` is shared across every repo on the host, so each of this repo's files carries the
-`Blog.` prefix:
+`blog.` prefix:
 
 | File | Selects |
 | --- | --- |

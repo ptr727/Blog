@@ -27,7 +27,7 @@ MTIME_MIN=2025.08
 # ENV_FILE selects the environment, because `set -a` overwrites a value the caller exported.
 # The first argument overrides the root, being read after this.
 # Files are named ~/.secrets/blog.<server>.<environment>.env, both words spelled out, so the default names the environment it actually selects rather than being the one file whose name says nothing.
-# The leading Blog segment disambiguates this repo's files in ~/.secrets, since other repos on the same host also write there.
+# The leading blog segment disambiguates this repo's files in ~/.secrets, since other repos on the same host also write there.
 DEFAULT_ENV_FILE="$HOME/.secrets/blog.local.production.env"
 ENV_FILE="${ENV_FILE:-$DEFAULT_ENV_FILE}"
 # A relative name resolves against ~/.secrets, so it means the same from any working directory.
