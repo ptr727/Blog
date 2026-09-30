@@ -28,7 +28,7 @@ Date precision is one of exact, year only, about, before, or after. Keep the dat
 - **Birth order.** Children are numbered in birth order, whatever their sex. Where only baptism dates are known, baptism order stands in for birth order.
 - **No living people.** A line stops at people born before about 1925. A later person does not appear, even as a count.
 - **Signs are accessible.** Each sign or abbreviation sits inside `<abbr title="...">`. The visible sign is `aria-hidden`, and a visually hidden word (class `vh`) follows it for screen readers. The legend spells each word out already, so its signs carry no hidden word.
-- **ASCII source.** A non-ASCII sign is written as an HTML entity or a numeric reference, never as the literal character.
+- **ASCII source.** A non-ASCII character in the page, a sign or a letter of a name, is written as an HTML entity or a numeric reference, never as the literal character. This file writes a name with its own letters, so an example here shows the letter the page encodes.
 - **Facts follow the Familiebond.** Each fact is published as the Familiebond's pages state it, and the page note names that source. Where another source differs, the Familiebond's pages win.
 
 ## South African Notation (de Villiers/Pama)
