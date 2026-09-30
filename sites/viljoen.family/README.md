@@ -90,7 +90,7 @@ The Familiebond's pages are the source of truth. Prof. H.C. (Christo) Viljoen ma
   - b2 Anna: baptized Cape Town 1678-05-19, married 1691-12-09 Heinrich Venter
   - b3 Henning: baptized Cape Town 1682-05-19, married 1707 Margaretha de Savoye. She was the daughter of Jacques de Savoye and Marie Madeleine le Clerq, who arrived in 1688 on the Oosterlandt.
   - b4 Johannes: baptized Cape Town 1684-09-24, married 1708-08-14 Catharina Snyman
-  - b5 Cornelia: baptized Stellenbosch 1686-10-13, married 1702 Hercul&eacute; du Preez, then 1722 Christian Maasdorp
+  - b5 Cornelia: baptized Stellenbosch 1686-10-13, married 1702 Herculé du Preez, then 1722 Christian Maasdorp
   - b6 Francina: baptized Stellenbosch 1689-04-24, married Jacob Cloete
 - **The name** was carried forward only through Henning b3 and Johannes b4, each through one son of the same name, b3c4 and b4c2. It took its present spelling, Viljoen, in the second generation.
 - **Next generation**, not yet on the page: Henning b3c4 married Susanna Durand on 1732-11-06 and had 12 children. Johannes b4c2 married Aletta Olivier on 1744-03-08 and had 8 children. The same page lists both families in full.
