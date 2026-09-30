@@ -1,5 +1,5 @@
 # Blog's own deploy hook, run by the hub's deploy-site-task.yml in build, prune, and verify modes.
-# The hub task forwards SITE_BASE_URL and the token pairs as plain process env vars, not through this composite action's own expression context.
+# The hub task forwards SITE_BASE_URL, SITE_EXTRA_BASE_URL, and both token pairs as plain process env vars, not through this composite action's own expression context.
 # This hook therefore reads them as $SITE_BASE_URL and so on in its run: steps, never as ${{ env.* }}.
 # Both deploy/make-release.sh and checks/check-live-urls.sh read these same names directly.
 # The bridge to Hugo's own HUGO_BASEURL convention happens inside make-release.sh, since only Hugo requires that name.
@@ -86,7 +86,7 @@ runs:
 
     # The only step that observes the running site.
     # The token pairs are set on staging alone, since production answers unauthenticated.
-    # The hub names the family site's values SITE_EXTRA_*, and the check reads them as FAMILY_SITE_*.
+    # Both environments serve the family site, so an empty SITE_EXTRA_BASE_URL is a missing variable, and the check would skip the family host.
     - name: Verify URL contract step
       if: inputs.mode == 'verify'
       shell: bash
@@ -95,7 +95,8 @@ runs:
         EXPECT_RELEASE: ${{ inputs.release-id }}
       run: |
         set -Eeuo pipefail
-        FAMILY_SITE_BASE_URL="${SITE_EXTRA_BASE_URL:-}" \
-          FAMILY_SITE_AUTH_TOKEN_ID="${SITE_EXTRA_AUTH_TOKEN_ID:-}" \
-          FAMILY_SITE_AUTH_TOKEN="${SITE_EXTRA_AUTH_TOKEN:-}" \
-          checks/check-live-urls.sh "$SITE_BASE_URL"
+        if [ -z "${SITE_EXTRA_BASE_URL:-}" ]; then
+          echo "::error::SITE_EXTRA_BASE_URL is missing or empty on '$EXPECT_SITE_ENV', so the family site would go unchecked."
+          exit 1
+        fi
+        checks/check-live-urls.sh "$SITE_BASE_URL"

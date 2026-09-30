@@ -146,9 +146,9 @@ Three more check the family site, whose host is a proxy resource of its own:
 
 | Variable | Effect |
 | --- | --- |
-| `FAMILY_SITE_BASE_URL` | The family site's base URL. Unset, the family site is not checked, and a family pair set without it is refused. |
-| `FAMILY_SITE_AUTH_TOKEN_ID` | The family resource's access token id, sent as `P-Access-Token-Id`. |
-| `FAMILY_SITE_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
+| `SITE_EXTRA_BASE_URL` | The family site's base URL. Unset, the family site is not checked, and a family pair set without it is refused. |
+| `SITE_EXTRA_AUTH_TOKEN_ID` | The family resource's access token id, sent as `P-Access-Token-Id`. |
+| `SITE_EXTRA_AUTH_TOKEN` | The token itself, sent as `P-Access-Token`. |
 
 The family pair follows the same rules as the blog's, and goes to the family origin alone. A
 token opens exactly one proxy resource, so the blog's pair cannot open the family host. The
