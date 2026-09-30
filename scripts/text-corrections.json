@@ -3776,6 +3776,18 @@
       "why": "Spelling",
       "from": "\"Kingston 2GB SODIM RAM\"))",
       "to": "\"Kingston 2GB SODIMM RAM\"))"
+    },
+    {
+      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
+      "why": "Wrong word",
+      "from": "that the graphic subsystem was restarted",
+      "to": "that the graphics subsystem was restarted"
+    },
+    {
+      "file": "content/posts/2012/08/06/windows-8-install-crash-with-nvidia-quadro-5000.md",
+      "why": "Wrong word",
+      "from": "the in-box graphic drivers that crash",
+      "to": "the in-box graphics drivers that crash"
     }
   ]
 }

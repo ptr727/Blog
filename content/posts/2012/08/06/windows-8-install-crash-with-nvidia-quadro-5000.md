@@ -19,7 +19,7 @@ I was running my two workstations with [ATI FirePro V7900](http://amzn.to/LZehYW
 
 I replaced my FirePro V7900 with the Quadro 5000, and started the Windows 8 x64 RTM install. All went well, until the first reboot during the install, and the machine would blue screen crash with a [VIDEO\_TDR\_FAILURE](http://msdn.microsoft.com/en-us/library/windows/hardware/ff557263(v=VS.85).aspx). During the install process the hardware is identified, the appropriate drivers extracted, and on the reboot those drivers are started. It appears that soon after the NVidia driver loads, that it crashes.
 
-The [Timeout Detection and Recovery (TDR)](http://msdn.microsoft.com/en-us/library/windows/hardware/ff570087(v=vs.85).aspx) feature was added to Windows Vista, and was a way for the OS to recover from a renderer failure without the need to restart the machine. Typically the user will [see a notification](http://msdn.microsoft.com/en-us/library/windows/hardware/ff569917(v=vs.85).aspx) that the graphic subsystem was restarted, but in cases where the restart fails, a [VIDEO\_TDR\_FAILURE](http://msdn.microsoft.com/en-us/library/windows/hardware/ff557263(v=VS.85).aspx) blue screen crash is generated.
+The [Timeout Detection and Recovery (TDR)](http://msdn.microsoft.com/en-us/library/windows/hardware/ff570087(v=vs.85).aspx) feature was added to Windows Vista, and was a way for the OS to recover from a renderer failure without the need to restart the machine. Typically the user will [see a notification](http://msdn.microsoft.com/en-us/library/windows/hardware/ff569917(v=vs.85).aspx) that the graphics subsystem was restarted, but in cases where the restart fails, a [VIDEO\_TDR\_FAILURE](http://msdn.microsoft.com/en-us/library/windows/hardware/ff557263(v=VS.85).aspx) blue screen crash is generated.
 
 The web is full of reports of NVidia VIDEO\_TDR\_FAILURE crashes, and solutions typically involve replacing the hardware or updating drivers. In my case I had two new machines, and two new graphics cards, and a brand new operating system, and both cards on both machines crashed.
 
@@ -31,7 +31,7 @@ I also contacted PNY support, as PNY is the manufacturer of the NVidia Quadro 50
 
 Not very helpful at all, and their concept of Windows 8 release timing, and their responsibility, is way out there.
 
-The real problem here is that it is the in-box NVidia drivers that are crashing, not drivers I install later. And as it is the in-box graphic drivers that crash, there is no (easy) way to update the drivers used by the Windows 8 install media.
+The real problem here is that it is the in-box NVidia drivers that are crashing, not drivers I install later. And as it is the in-box graphics drivers that crash, there is no (easy) way to update the drivers used by the Windows 8 install media.
 
 I had previously used a Quadro 4000 card on the same machines, and they installed without incident, so it appears to be something unique to the Quadro 5000 cards.
 
