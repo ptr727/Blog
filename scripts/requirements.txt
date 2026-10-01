@@ -1,4 +1,5 @@
 # The redaction output is reproducible byte for byte only under this exact Pillow and the codecs its wheel bundles.
+# A Pillow bump that changes the redaction output is held rather than merged.
 pillow==11.3.0
 pytest
 pytest-cov
