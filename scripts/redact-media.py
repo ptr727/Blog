@@ -23,11 +23,12 @@ Restore the file's original with `git checkout <revision> -- <file>`, normalize 
 with `scripts/normalize-media.py --apply`, edit its entry, and run with `--record`.
 A restored file whose hash any committed revision of the manifest records as a result
 is refused, since it already carries an earlier round's fills.
-Dependabot moves the pin in `scripts/requirements.txt`, and the bump merges once
-checks pass, since no check re-runs a redaction. A file already at its result is left
-alone, so a bump changes no committed file. An output the new Pillow changes shows only
-when a restored original is run, which then fails against its recorded result hash
-unless its entry was edited and is re-recorded.
+Dependabot moves the pin in `scripts/requirements.txt`, and the unit tests redact
+fixed synthetic images against committed result hashes, so a bump that moves the output
+fails. A file already at its result is left alone, so a bump changes no committed file.
+Accepting such a bump means updating the fixtures' hashes, and each entry is re-recorded
+when it is next run from its original. Delete the entry's `declared` digest and run with
+`--record`, which takes the restored original as its source again.
 A Pillow other than the pinned one is refused.
 
 A JPEG is written with its own quantization tables and chroma subsampling, which keeps

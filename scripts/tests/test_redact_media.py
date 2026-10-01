@@ -139,6 +139,17 @@ class RedactMediaTests(unittest.TestCase):
         self.assertIn("does not match its result hash", out)
         self.assertEqual(self.manifest_path.read_bytes(), before)
 
+    def test_deleted_digest_re_records_an_unchanged_entry(self) -> None:
+        data = jpeg()
+        entry = {"fill": [[8, 8, 24, 24]], "source": sha256(data), "result": "0" * 64}
+        path = self.add("a.jpg", data, entry)
+        code, out = self.run_script("--record")
+        self.assertEqual(code, 0, out)
+        recorded = self.manifest()["files"]["static/a.jpg"]
+        self.assertEqual(recorded["source"], sha256(data))
+        self.assertEqual(sha256(path.read_bytes()), recorded["result"])
+        self.assertEqual(recorded["declared"], redact.check.declared(recorded))
+
     def test_changed_entry_needs_a_normalized_source(self) -> None:
         self.add("a.png", png(pnginfo=text_chunk()), {"fill": [[8, 8, 24, 24]]})
         code, out = self.run_script("--record")
@@ -295,6 +306,24 @@ class RedactMediaTests(unittest.TestCase):
         data[sof + 11] = 0x12
         with self.assertRaisesRegex(ValueError, "subsampling"):
             redact.redact(bytes(data), {"fill": [[1, 1, 4, 4]]})
+
+
+class PinnedOutputTests(unittest.TestCase):
+    """The fixtures are fixed bytes, so a different result can only come from the installed Pillow."""
+
+    def test_fixtures_redact_to_their_committed_results(self) -> None:
+        fixtures = SCRIPTS / "tests" / "redact-fixtures"
+        files = json.loads((fixtures / "expected.json").read_text())["files"]
+        self.assertTrue(files)
+        for name, entry in files.items():
+            with self.subTest(name=name):
+                data = (fixtures / name).read_bytes()
+                self.assertEqual(sha256(data), entry["source"], "fixture edited")
+                self.assertEqual(
+                    sha256(redact.redact(data, entry)),
+                    entry["result"],
+                    f"Pillow {redact.PIL.__version__} redacts {name} differently",
+                )
 
 
 def text_chunk() -> object:

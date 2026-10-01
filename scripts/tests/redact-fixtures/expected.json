@@ -1,0 +1,80 @@
+{
+  "files": {
+    "jpeg-420-icc.jpg": {
+      "fill": [
+        [
+          5,
+          7,
+          29,
+          21
+        ]
+      ],
+      "crop": null,
+      "source": "3957d88fb758549724a35da84f8bfe6af0ba4cf4a865e2da4e98565213bdd326",
+      "result": "a25c9b6bba19d4ca66da3722d6d29662cab8ec3779eed46a783a5814fbeba84f"
+    },
+    "jpeg-444-icc-crop.jpg": {
+      "fill": [],
+      "crop": [
+        3,
+        2,
+        59,
+        45
+      ],
+      "source": "0fd19b095b46566137ad4d2690829cd45c03f7a0a51327f6de41796ac6560204",
+      "result": "f8dc429ffe7feaa473b3a122eafa2e8082d715fd877fedd22137392c166ebdf6"
+    },
+    "png-rgb-srgb.png": {
+      "fill": [
+        [
+          5,
+          7,
+          29,
+          21
+        ]
+      ],
+      "crop": null,
+      "source": "c78f5d3369bdf911c8cd2e34198c75abd626da92974c80ec3198021832160b09",
+      "result": "b917af28074123fe5fc339469967c51c8635df045ebddde2e4e6e111208c3ce2"
+    },
+    "png-rgb-icc-chrm.png": {
+      "fill": [
+        [
+          5,
+          7,
+          29,
+          21
+        ]
+      ],
+      "crop": null,
+      "source": "17eb919cabf00d0f25b48e4e3264b50da1d60d3b931c9eebd5a3e8d14f07c2ae",
+      "result": "93060d21c2912c770d7d0bfdc850f2799d6d2b5d8a3b9278bc1519b34a6d1333"
+    },
+    "png-rgba-srgb.png": {
+      "fill": [
+        [
+          5,
+          7,
+          29,
+          21
+        ]
+      ],
+      "crop": null,
+      "source": "cd50516343f5bf15939c511761adbe816a7fde1d1ae419ba621128044297d3b6",
+      "result": "b2f487187db51fb19ef4289cbab715782bcf77d92001788626c6ce9a3325e9ca"
+    },
+    "png-rgba-icc.png": {
+      "fill": [
+        [
+          5,
+          7,
+          29,
+          21
+        ]
+      ],
+      "crop": null,
+      "source": "5249d2e5a0a8b410ca49767cd3090dff5700dd79b62cf27dc174a1934b9ea8d2",
+      "result": "0877b3e19840bd9a6804c72dd3fc7738c68c98e0e93ddf6b1dbf0fd14d30383e"
+    }
+  }
+}
