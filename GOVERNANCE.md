@@ -272,7 +272,7 @@ Every repo's GitHub repository details (the About panel) follow a fixed conventi
 - [`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md), [`AUDIT.md`](./AUDIT.md): the governance, operations, and audit docs. This file is the cross-cutting-rules authority.
 - [`content/`](./content/): the posts and pages, one file per URL. An imported archive that keeps its own voice. Its only text changes are what `scripts/normalize-text.py` applies: ASCII character substitutions, and a manifest of doubled-word and grammar corrections, a title's HTML entity, and two links that located the home. A blockquote, a fenced code block, and front matter keep the characters they were written with. [`CONTENT.md`](./CONTENT.md) is the contract for writing a new one.
 - [`static/`](./static/): the media the posts reference, verified by content hash against the source export.
-- [`layouts/`](./layouts/), [`themes/`](./themes/), [`assets/`](./assets/), [`i18n/`](./i18n/): the theme and the template overrides that keep a strict build warning-free.
+- [`layouts/`](./layouts/), [`themes/`](./themes/), [`assets/`](./assets/): the theme and the template overrides that keep a strict build warning-free.
 - [`checks/`](./checks/): the URL contract and the gates that enforce it, covering both the built output and a running server.
 - [`deploy/`](./deploy/): the release script, the web-server config, and the redirect maps.
 - [`sites/`](./sites/): other static sites that ship inside the release bundle and are served by their own host block, one directory per site. [`GENEALOGY.md`](./GENEALOGY.md) is the contract for writing lineage on the family site.
