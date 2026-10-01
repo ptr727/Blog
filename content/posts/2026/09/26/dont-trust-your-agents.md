@@ -16,7 +16,7 @@ I have various repos on GitHub: private and public, C# and Python, NuGet and PyP
 
 Keeping repos in top shape is not my day job. I have to balance the time I spend on upkeep with being responsive on my open source projects, and with my personal interest in new projects and features.
 
-## How it started
+## I started with a repo of example projects
 
 I created a single repo containing my best-of patterns in the form of example projects. I created a workspace with one of each of the project types I often use: a C# CLI console app, a C# NuGet package, a Python PyPI package, a multi-stage Docker container, and a docs-only project.
 
@@ -68,7 +68,7 @@ Then one day the agent told me, like they do when they screw up, that it had pos
 
 It did not fail. GitHub node IDs are encoded database keys, not random tokens, so the made-up ID resolved to a real review thread on a stranger's PR. My account posted a reply there with the body `placeholder`. The write succeeded under my own credentials, because my `gh` login can write to any repo I can reach. The [incident write-up](https://github.com/ptr727/ProjectTemplate/issues/364) is in the hub.
 
-## Adding cross-repo write safety hooks
+## A hook keeps writes inside my own repos
 
 It is not feasible to tell a real ID from one that was guessed. What I can do is restrict writes to my own fleet, and deny the unsafe command shapes outright.
 
@@ -124,7 +124,7 @@ The worker went on to pass its tests, get a clean review, merge its PR, and repo
 
 Allowing my user account and user processes to consume all memory is my fault, for not configuring user account resource limits. But this was another example where the agents need protection from themselves. The auto mode classifier let the agent create a self-recursion bomb, and nothing in the agent's own permission layer had stopped the write in somebody else's repo either. The [issue](https://github.com/ptr727/ProjectTemplate/issues/1890) has the full sequence.
 
-## Adding resource usage constraints
+## Every tool call now runs under a process and memory cap
 
 The write guard reads command text, and it could not have caught this one. The recursion lived in a script file that the command only named.
 
