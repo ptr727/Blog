@@ -1,0 +1,4 @@
+# The redaction output is reproducible byte for byte only under this exact Pillow and the codecs its wheel bundles.
+pillow==11.3.0
+pytest
+pytest-cov

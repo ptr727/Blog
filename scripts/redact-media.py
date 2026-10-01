@@ -1,12 +1,10 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.12"
-# dependencies = ["pillow==11.3.0"]
-# ///
+#!/usr/bin/env python3
 """Apply the redactions declared in `checks/media-redactions.json` to carried media.
 
-Run on demand with `uv run scripts/redact-media.py`, rather than in CI, because it
-rewrites files. `checks/check-media-redactions.py` is the gate that proves the result.
+Run on demand with
+`uv run --no-project --with-requirements scripts/requirements.txt scripts/redact-media.py`,
+rather than in CI, because it rewrites files.
+`checks/check-media-redactions.py` is the gate that proves the result.
 
 **The manifest is the whole of the decision.** Each entry names a file, the flat
 opaque fills and the crop it takes, and why, so a redaction is reviewed as data and
@@ -17,8 +15,8 @@ the normalized original, and the hash of the file it produces. A file already at
 result is left alone, a file at its source is redacted and must land on its result,
 and a file at neither is an error rather than a guess. An entry also records a digest
 of its fills and crop, so an edit to them that was never rerun fails the gate. The
-pinned Pillow version, with the codecs its wheel bundles for the platform, is what
-makes the output reproducible byte for byte.
+Pillow version pinned in `scripts/requirements.txt`, with the codecs its wheel bundles
+for the platform, is what makes the output reproducible byte for byte.
 
 **A redacted file no longer holds its source, so changing one starts from history.**
 Restore the file's original with `git checkout <revision> -- <file>`, normalize it
@@ -61,16 +59,22 @@ PNG_COLOR_CHUNKS = (b"gAMA", b"cHRM", b"sRGB")
 _spec = importlib.util.spec_from_file_location(
     "normalize", REPO / "scripts" / "normalize-media.py"
 )
+if _spec is None or _spec.loader is None:
+    raise ImportError("cannot load normalize-media.py")
 normalize = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(normalize)
 _spec = importlib.util.spec_from_file_location(
     "check", REPO / "checks" / "check-media-redactions.py"
 )
+if _spec is None or _spec.loader is None:
+    raise ImportError("cannot load check-media-redactions.py")
 check = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(check)
 _spec = importlib.util.spec_from_file_location(
     "gate", REPO / "checks" / "check-media-metadata.py"
 )
+if _spec is None or _spec.loader is None:
+    raise ImportError("cannot load check-media-metadata.py")
 gate = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(gate)
 
@@ -147,7 +151,7 @@ def redact(data: bytes, entry: dict) -> bytes:
     options = {}
     if source.info.get("icc_profile"):
         options["icc_profile"] = source.info["icc_profile"]
-    if source.format == "JPEG":
+    if source.format == "JPEG" and isinstance(source, JpegImagePlugin.JpegImageFile):
         image.save(
             out,
             "JPEG",

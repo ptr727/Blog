@@ -41,12 +41,15 @@ import warnings
 import zipfile
 import zlib
 from collections.abc import Callable, Iterable, Iterator
+from typing import Any
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
 
 def load(name: str, path: pathlib.Path):
     spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {path.name}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -200,7 +203,7 @@ def png_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str | b
     ]
     if color == 0 and depth < 16:
         planted.append((b"tRNS", b"\xff\xff", "tRNS gray past its depth", REFUSED))
-    out = [
+    out: list[tuple[bytes, str, str | bytes]] = [
         (bare[:33] + png_chunk(chunk, body) + bare[33:], what, expect)
         for chunk, body, what, expect in planted
     ]
@@ -430,7 +433,7 @@ def gif_field_plants(data: bytes, parts: list) -> list[tuple[bytes, str, str | b
     """
     if len(data) < 13:
         return []
-    out = [
+    out: list[tuple[bytes, str, str | bytes]] = [
         (data[:12] + b"p" + data[13:], "aspect ratio byte not zero", data),
         (data[:11] + b"p" + data[12:], "background index not zero", data),
         (
@@ -863,6 +866,7 @@ def plants(kind: str, data: bytes) -> list[tuple]:
     before any of them, between two scans included, is one the decoder reads.
     """
     out: list[tuple] = []
+    expect: str | bytes
     if kind == "jpeg":
         parts, _ = gate.jpeg_parts(data)
         comment = jpeg_segment(0xFE, PLANT_TEXT)
@@ -1284,7 +1288,7 @@ class Report:
         self.failures[key] = (count + 1, first)
 
 
-def attempt(call: Callable[[], object]) -> tuple[object, str | None]:
+def attempt(call: Callable[[], object]) -> tuple[Any, str | None]:
     """Run one parser call, returning its result or the name of what it raised."""
     try:
         return call(), None

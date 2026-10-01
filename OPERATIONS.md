@@ -73,6 +73,24 @@ Expect a `PASS` naming the number of URLs honored. That is the three lists' comb
 
 A documentation-only or workflow-only change does not need this. A change to the four paths above does, because for those CI's green is not evidence.
 
+**The Python gates run per directory, the way CI runs them.** The validator gates [`checks/`](./checks/) and [`scripts/`](./scripts/), the two directories the workflows declare in its `python-directories` input, with ruff, mypy, and a test suite under coverage. `checks/` is standard library only, so its tools run through `uvx` and its suite runs under `unittest`. `scripts/` installs Pillow, pytest, and pytest-cov from its `requirements.txt`, which holds the one Pillow pin, and runs its suite under pytest. [`capture/`](./capture/) is not declared, because it is one-shot WordPress migration tooling that has already run and owes no test suite, so the validator's warning about its files is expected.
+
+```sh
+set -e
+cd checks
+uvx ruff@latest check .
+uvx ruff@latest format --check .
+uvx mypy@latest
+uvx coverage@latest run -m unittest discover -s tests
+cd ../scripts
+uv venv --clear --python 3.13
+uv pip install -r requirements.txt
+uvx ruff@latest check .
+uvx ruff@latest format --check .
+uvx mypy@latest --python-executable .venv/bin/python
+.venv/bin/python -m pytest
+```
+
 ## Runbooks
 
 The procedures that change what the servers are serving. Read [Local Verification](#local-verification) first, since every one of them starts from a release that has already passed its gates.

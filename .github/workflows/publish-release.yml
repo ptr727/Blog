@@ -39,6 +39,12 @@ jobs:
       # Its own floating-tag action pins are never locally edited to satisfy this repo's sha-pin gate.
       repo-gate-exclude-globs: |
         themes/*/**
+      # The capture/ directory is one-shot WordPress migration tooling that has already run, so it owes no test suite and stays undeclared.
+      python-directories: |
+        checks
+        scripts
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # Publish the dispatched branch, where main is a release and develop a prerelease.
   # NBGV computes the tag; the release is the tag plus the auto source archive, README, and LICENSE.

@@ -59,6 +59,7 @@ Every variable and secret this repository stores for GitHub Actions, Dependabot,
 | `SITE_EXTRA_AUTH_TOKEN` | secret | `staging` | the family resource's token, as above, forwarded the same way |
 | `CODEGEN_APP_CLIENT_ID` | secret | `repository`, `dependabot` | the merge bot's GitHub App client id, read by `merge-bot-pull-request.yml` |
 | `CODEGEN_APP_PRIVATE_KEY` | secret | `repository`, `dependabot` | the merge bot's GitHub App private key, read the same way |
+| `CODECOV_TOKEN` | secret | `repository`, `dependabot` | the Codecov upload token, passed by every workflow that calls the hub validator. Its coverage upload is best-effort, so an empty token skips the upload and fails nothing. The `dependabot` copy is what a Dependabot pull request's run reads |
 
 **[`checks/check-github-env.py`](./checks/check-github-env.py) compares this table against GitHub.** It reads the names those stores hold, never a value, and leaves the Codespaces secret store unread. It reports a value missing from a store, held on a store the table does not name, or held as the wrong kind. Every environment GitHub has is read, so an environment the table never names must hold nothing. Run it after changing a value on GitHub or a row here. It needs a `gh` login that can administer the repository, since listing environment secrets requires that. A workflow's `GITHUB_TOKEN` cannot, so CI does not run it.
 
