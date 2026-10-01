@@ -2,8 +2,8 @@
 """Fail when a file declared in `media-redactions.json` is not its redacted result.
 
 The manifest records the hash each redaction produces, so this needs no image
-decoder. A file replaced by its original, re-exported, or edited by hand fails here,
-and so does an entry whose fills or crop changed after its result was recorded.
+decoder. A file replaced by its original, re-exported, or edited by hand fails here.
+So does an entry whose declared digest is missing or no longer matches its fills and crop.
 `scripts/redact-media.py` is what brings either back.
 """
 
@@ -33,7 +33,7 @@ def main() -> int:
             failures.append(f"{name}: not its redacted result")
         elif declared(entry) != entry.get("declared"):
             failures.append(
-                f"{name}: fills or crop changed since the result was recorded"
+                f"{name}: declared digest missing or stale since the result was recorded"
             )
     for line in failures:
         print(line)
