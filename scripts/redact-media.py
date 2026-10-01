@@ -26,7 +26,8 @@ is refused, since it already carries an earlier round's fills.
 Dependabot moves the pin in `scripts/requirements.txt`, and the bump merges once
 checks pass, since no check re-runs a redaction. A file already at its result is left
 alone, so a bump changes no committed file. An output the new Pillow changes shows only
-when a restored original is run, which then fails against its recorded result hash.
+when a restored original is run, which then fails against its recorded result hash
+unless its entry was edited and is re-recorded.
 A Pillow other than the pinned one is refused.
 
 A JPEG is written with its own quantization tables and chroma subsampling, which keeps
