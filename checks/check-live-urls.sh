@@ -176,7 +176,8 @@ AUTH=(-K "$CHECKRC")
 
 # Invoked indirectly, through `export -f` and the `xargs bash -c` calls below.
 # shellcheck disable=SC2329
-# Retries once, and only when no status line arrived, since a live server drops the odd connection while a status that recovers on a second try is what this check reports.
+# Retries only a request that got no status line, since a live server drops the odd connection.
+# A real status is never retried, because one that clears on a second try is still a fault this check reports.
 curl_retry() {
 	local out rc=0
 	out=$(curl "$@") || rc=$?
@@ -193,7 +194,6 @@ curl_retry() {
 
 # Invoked indirectly, the same way as curl_retry above.
 # shellcheck disable=SC2329
-# Prints why a transfer failed, or nothing when a status arrived and the transfer completed.
 transfer_failure() {
 	local code="$1" rc="$2"
 	if [ "${code:-000}" = "000" ]; then
@@ -228,7 +228,7 @@ check_render() {
 check_media() {
 	local url="$1" what="media $1" out code len target type why rc=0 auth=(-K "$CHECKRC") target_auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
-	# One field per line, because an empty redirect URL or a type containing spaces would shift space-separated fields.
+	# The redirect URL gets a line of its own, because an empty one would let read shift the type into its place.
 	local format='%{http_code} %{size_download}\n%{redirect_url}\n%{content_type}\n'
 	# Command substitution rather than `read < <(...)`, because process substitution discards curl's exit status.
 	out=$(curl_retry -q -s -o /dev/null -w "$format" --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
