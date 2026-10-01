@@ -124,7 +124,7 @@ The worker went on to pass its tests, get a clean review, merge its PR, and repo
 
 Allowing my user account and user processes to consume all memory is my fault, for not configuring user account resource limits. But this was another example where the agents need protection from themselves. The auto mode classifier let the agent create a self-recursion bomb, and nothing in the agent's own permission layer had stopped the write in somebody else's repo either. The [issue](https://github.com/ptr727/ProjectTemplate/issues/1890) has the full sequence.
 
-## Every tool call now runs under a process and memory cap
+## Every Bash tool call runs under a process and memory cap
 
 The write guard reads command text, and it could not have caught this one. The recursion lived in a script file that the command only named.
 
