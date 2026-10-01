@@ -39,7 +39,8 @@ def main() -> int:
         print(line)
     if failures:
         print(
-            f"\n{len(failures)} file(s) fail. Run scripts/redact-media.py, see CONTENT.md."
+            f"\n{len(failures)} file(s) fail. Run scripts/redact-media.py"
+            " under scripts/requirements.txt, see CONTENT.md."
         )
         return 1
     print(f"redactions: {len(files)} file(s), every one at its redacted result")

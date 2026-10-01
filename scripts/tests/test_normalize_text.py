@@ -8,6 +8,8 @@ SCRIPTS = pathlib.Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
     "normalize_text", SCRIPTS / "normalize-text.py"
 )
+if _spec is None or _spec.loader is None:
+    raise ImportError("cannot load normalize-text.py")
 normalize_text = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(normalize_text)
 

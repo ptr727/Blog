@@ -1,6 +1,6 @@
 """Tests for `scripts/redact-media.py`, on images built here rather than taken from the archive.
 
-Run with `uv run --no-project --with-requirements scripts/redact-media.py python -m unittest discover -s scripts/tests`.
+Run with `uv run --no-project --with-requirements scripts/requirements.txt python -m pytest scripts`.
 """
 
 import contextlib
@@ -19,6 +19,8 @@ from PIL import Image
 
 SCRIPTS = pathlib.Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location("redact", SCRIPTS / "redact-media.py")
+if _spec is None or _spec.loader is None:
+    raise ImportError("cannot load redact-media.py")
 redact = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(redact)
 
@@ -47,15 +49,12 @@ class RedactMediaTests(unittest.TestCase):
         (self.repo / "checks").mkdir()
         (self.repo / "static").mkdir()
         self.manifest_path = self.repo / "checks" / "media-redactions.json"
-        self.saved = redact.REPO, redact.MANIFEST
-        redact.REPO, redact.MANIFEST = self.repo, self.manifest_path
-        self.addCleanup(self.restore)
+        paths = mock.patch.multiple(redact, REPO=self.repo, MANIFEST=self.manifest_path)
+        paths.start()
+        self.addCleanup(paths.stop)
         self.git("init", "-q")
 
-    def restore(self) -> None:
-        redact.REPO, redact.MANIFEST = self.saved
-
-    def add(self, name: str, data: bytes, entry: dict) -> pathlib.Path:
+    def add(self, name: str, data: bytes, entry: dict | None) -> pathlib.Path:
         path = self.repo / "static" / name
         path.write_bytes(data)
         files = self.manifest()["files"] if self.manifest_path.exists() else {}
@@ -191,6 +190,13 @@ class RedactMediaTests(unittest.TestCase):
         code, out = self.run_script("--record")
         self.assertEqual(code, 1)
         self.assertIn("not a list", out)
+
+    def test_pillow_other_than_the_pin_is_refused(self) -> None:
+        self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]], "crop": None})
+        with mock.patch.object(redact.PIL, "__version__", "0.0.0"):
+            code, out = self.run_script("--record")
+        self.assertEqual(code, 1)
+        self.assertIn("not the version requirements.txt pins", out)
 
     def test_entry_that_is_not_an_object_is_an_error(self) -> None:
         self.add("a.jpg", jpeg(), None)

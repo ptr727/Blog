@@ -21,6 +21,7 @@ Both directions matter and they catch different mistakes:
 
 Read-only. Exit 1 on any finding.
 """
+
 from __future__ import annotations
 
 import re
@@ -118,13 +119,17 @@ def main() -> int:
 
     for name in undocumented:
         where = ", ".join(sorted(declared[name]))
-        print(f"undocumented: {name} declared in {where} but not described in {DOC.name}")
+        print(
+            f"undocumented: {name} declared in {where} but not described in {DOC.name}"
+        )
     for name in unused:
         print(f"unused: {name} described in {DOC.name} but declared nowhere")
 
     total = len(undocumented) + len(unused)
     if total:
-        print(f"\n{total} finding(s). Describe the value in {DOC.name}, or remove the row.")
+        print(
+            f"\n{total} finding(s). Describe the value in {DOC.name}, or remove the row."
+        )
         return 1
 
     print(f"{len(declared)} configuration value(s), all described in {DOC.name}")

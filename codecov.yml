@@ -1,0 +1,9 @@
+# Coverage is reported and trended, never a gate, so a coverage delta never blocks a pull request.
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true

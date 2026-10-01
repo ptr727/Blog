@@ -1,12 +1,10 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.12"
-# dependencies = ["pillow==11.3.0"]
-# ///
+#!/usr/bin/env python3
 """Apply the redactions declared in `checks/media-redactions.json` to carried media.
 
-Run on demand with `uv run scripts/redact-media.py`, rather than in CI, because it
-rewrites files. `checks/check-media-redactions.py` is the gate that proves the result.
+Run on demand with
+`uv run --no-project --with-requirements scripts/requirements.txt scripts/redact-media.py`,
+rather than in CI, because it rewrites files.
+`checks/check-media-redactions.py` is the gate that proves the result.
 
 **The manifest is the whole of the decision.** Each entry names a file, the flat
 opaque fills and the crop it takes, and why, so a redaction is reviewed as data and
@@ -17,16 +15,20 @@ the normalized original, and the hash of the file it produces. A file already at
 result is left alone, a file at its source is redacted and must land on its result,
 and a file at neither is an error rather than a guess. An entry also records a digest
 of its fills and crop, so an edit to them that was never rerun fails the gate. The
-pinned Pillow version, with the codecs its wheel bundles for the platform, is what
-makes the output reproducible byte for byte.
+Pillow version pinned in `scripts/requirements.txt`, with the codecs its wheel bundles
+for the platform, is what makes the output reproducible byte for byte.
 
 **A redacted file no longer holds its source, so changing one starts from history.**
 Restore the file's original with `git checkout <revision> -- <file>`, normalize it
 with `scripts/normalize-media.py --apply`, edit its entry, and run with `--record`.
 A restored file whose hash any committed revision of the manifest records as a result
 is refused, since it already carries an earlier round's fills.
-The same restore, run without `--record`, is how a Pillow upgrade is checked, since a
-changed output is then reported against the recorded result.
+Dependabot moves the pin in `scripts/requirements.txt`, and the bump merges once
+checks pass, since no check re-runs a redaction. A file already at its result is left
+alone, so a bump changes no committed file. An output the new Pillow changes shows only
+when a restored original is run, which then fails against its recorded result hash
+unless its entry was edited and is re-recorded.
+A Pillow other than the pinned one is refused.
 
 A JPEG is written with its own quantization tables and chroma subsampling, which keeps
 the generation loss outside a fill to a level or two, and a crop off the block grid
@@ -50,10 +52,12 @@ import struct
 import subprocess
 import sys
 
+import PIL
 from PIL import Image, ImageDraw, JpegImagePlugin
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "checks" / "media-redactions.json"
+REQUIREMENTS = pathlib.Path(__file__).resolve().with_name("requirements.txt")
 FILL = (0, 0, 0)
 PNG_COLOR_CHUNKS = (b"gAMA", b"cHRM", b"sRGB")
 
@@ -61,16 +65,22 @@ PNG_COLOR_CHUNKS = (b"gAMA", b"cHRM", b"sRGB")
 _spec = importlib.util.spec_from_file_location(
     "normalize", REPO / "scripts" / "normalize-media.py"
 )
+if _spec is None or _spec.loader is None:
+    raise ImportError("cannot load normalize-media.py")
 normalize = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(normalize)
 _spec = importlib.util.spec_from_file_location(
     "check", REPO / "checks" / "check-media-redactions.py"
 )
+if _spec is None or _spec.loader is None:
+    raise ImportError("cannot load check-media-redactions.py")
 check = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(check)
 _spec = importlib.util.spec_from_file_location(
     "gate", REPO / "checks" / "check-media-metadata.py"
 )
+if _spec is None or _spec.loader is None:
+    raise ImportError("cannot load check-media-metadata.py")
 gate = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(gate)
 
@@ -147,7 +157,7 @@ def redact(data: bytes, entry: dict) -> bytes:
     options = {}
     if source.info.get("icc_profile"):
         options["icc_profile"] = source.info["icc_profile"]
-    if source.format == "JPEG":
+    if source.format == "JPEG" and isinstance(source, JpegImagePlugin.JpegImageFile):
         image.save(
             out,
             "JPEG",
@@ -229,6 +239,15 @@ def main() -> int:
     )
     args = parser.parse_args()
     apply = args.apply or args.record
+
+    # The output is reproducible only under the pinned Pillow, which running this file directly does not install.
+    pins = {line.strip().lower() for line in REQUIREMENTS.read_text().splitlines()}
+    if f"pillow=={PIL.__version__}" not in pins:
+        print(f"Pillow {PIL.__version__} is not the version {REQUIREMENTS.name} pins.")
+        print(
+            "Run with `uv run --no-project --with-requirements scripts/requirements.txt scripts/redact-media.py`."
+        )
+        return 1
 
     manifest = json.loads(MANIFEST.read_text())
     done, errors = 0, []

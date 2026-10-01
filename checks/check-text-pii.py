@@ -178,8 +178,9 @@ def is_coordinate(
             return False
         lat, lon = (a, b) if first_hemi in "NS" else (b, a)
         return lat <= 90 and lon <= 180
-    if first_hemi or second_hemi:
-        first_is_lat = first_hemi in "NS" if first_hemi else second_hemi in "EW"
+    hemi = first_hemi or second_hemi
+    if hemi:
+        first_is_lat = hemi in ("NS" if first_hemi else "EW")
         lat, lon = (a, b) if first_is_lat else (b, a)
         return lat <= 90 and lon <= 180
     if a <= 90 and b <= 180:
