@@ -48,10 +48,12 @@ import struct
 import subprocess
 import sys
 
+import PIL
 from PIL import Image, ImageDraw, JpegImagePlugin
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "checks" / "media-redactions.json"
+REQUIREMENTS = pathlib.Path(__file__).resolve().with_name("requirements.txt")
 FILL = (0, 0, 0)
 PNG_COLOR_CHUNKS = (b"gAMA", b"cHRM", b"sRGB")
 
@@ -233,6 +235,15 @@ def main() -> int:
     )
     args = parser.parse_args()
     apply = args.apply or args.record
+
+    # The output is reproducible only under the pinned Pillow, which running this file directly does not install.
+    pins = {line.strip().lower() for line in REQUIREMENTS.read_text().splitlines()}
+    if f"pillow=={PIL.__version__}" not in pins:
+        print(f"Pillow {PIL.__version__} is not the version {REQUIREMENTS.name} pins.")
+        print(
+            "Run with `uv run --no-project --with-requirements scripts/requirements.txt scripts/redact-media.py`."
+        )
+        return 1
 
     manifest = json.loads(MANIFEST.read_text())
     done, errors = 0, []

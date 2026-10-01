@@ -191,6 +191,13 @@ class RedactMediaTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("not a list", out)
 
+    def test_pillow_other_than_the_pin_is_refused(self) -> None:
+        self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]], "crop": None})
+        with mock.patch.object(redact.PIL, "__version__", "0.0.0"):
+            code, out = self.run_script("--record")
+        self.assertEqual(code, 1)
+        self.assertIn("not the version requirements.txt pins", out)
+
     def test_entry_that_is_not_an_object_is_an_error(self) -> None:
         self.add("a.jpg", jpeg(), None)
         code, out = self.run_script()
