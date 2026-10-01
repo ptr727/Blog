@@ -23,8 +23,9 @@ Restore the file's original with `git checkout <revision> -- <file>`, normalize 
 with `scripts/normalize-media.py --apply`, edit its entry, and run with `--record`.
 A restored file whose hash any committed revision of the manifest records as a result
 is refused, since it already carries an earlier round's fills.
-The same restore, run without `--record`, is how a Pillow upgrade is checked, since a
-changed output is then reported against the recorded result.
+The same restore, run without `--record` after the pin in `scripts/requirements.txt`
+moves, is how a Pillow upgrade is checked, since a changed output is then reported
+against the recorded result. A Pillow other than the pinned one is refused.
 
 A JPEG is written with its own quantization tables and chroma subsampling, which keeps
 the generation loss outside a fill to a level or two, and a crop off the block grid
