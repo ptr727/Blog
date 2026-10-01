@@ -65,6 +65,22 @@ Nothing is carried, so an update is a replace: delete `PaperMod/`, drop the new 
 
 Check the two root `layouts/` overrides at the same time. They exist only because upstream lags Hugo's deprecations, so an update is the moment one of them may become removable.
 
+Re-check the override table above while it still names the old commit, so before the replace. Each overridden file is a comment-only hook upstream today, so if upstream adds content to one, the local override hides it without any build failure. The exception is `blank.css`, which the head partial bundles beside `custom.css` rather than shadowing, so added rules there still ship and a diff only means checking for duplication. Use the clone from the `diff -r` check above, or make a fresh one, and diff the file each row replaces between the commit in the table and the new commit. A comment-only diff needs no action. Added markup or rules mean porting them into the override, or deciding they are unwanted.
+
+```sh
+OLD=154d006e0182dfc7da38008323976b02e6bfab4a
+NEW=<new upstream commit>
+git -C /tmp/papermod fetch origin
+git -C /tmp/papermod diff "$OLD" "$NEW" -- \
+  assets/css/extended/blank.css \
+  layouts/_partials/extend_head.html \
+  layouts/_partials/extend_post_content.html
+git -C /tmp/papermod grep -n -e extend_head -e extend_post_content "$NEW" -- layouts
+git -C /tmp/papermod checkout "$NEW"
+```
+
+Set `OLD` to the commit in the table, and update the table afterwards. The `grep` confirms upstream still calls each hook, since a hook upstream stops calling leaves an override that renders nothing and an empty diff. The `checkout` leaves the clone at the new commit for the `diff -r` run. Add a path to the `diff` command when a row joins the table, taking the path from the last column of the table, and add the partial's name, without its directory, to the `grep` when the row is a partial, and confirm each path exists at the new commit with `git -C /tmp/papermod cat-file -e "$NEW:<path>"`, since a diff of a mistyped path prints nothing, the same as an unchanged file.
+
 No bot watches this. `.github/dependabot.yml` covers GitHub Actions only, since a vendored copy has no manifest to track, so an update is a deliberate act.
 
 Fetching the theme rather than copying it is the way to get a bot, and only one of the two mechanisms would work here. Dependabot's `gitsubmodule` ecosystem tracks a ref and needs no tags, so a submodule would be watched. Hugo Modules would not: PaperMod tags releases as `v8.0`, which is not valid semver, so Go can only pin it as a pseudo-version, and Dependabot does not upgrade pseudo-versions. Either mechanism first requires the tree to carry no local edits, which is now true. Weigh it against what a bot would have found: between 2026-05-10 and 2026-08-06, upstream's only commit edited its own README.
