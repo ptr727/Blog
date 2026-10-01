@@ -176,10 +176,44 @@ AUTH=(-K "$CHECKRC")
 
 # Invoked indirectly, through `export -f` and the `xargs bash -c` calls below.
 # shellcheck disable=SC2329
+# Retries once, and only when no status line arrived, since a live server drops the odd connection while a status that recovers on a second try is what this check reports.
+curl_retry() {
+	local out rc=0
+	out=$(curl "$@") || rc=$?
+	case "$out" in
+	'' | 000*)
+		sleep 2
+		rc=0
+		out=$(curl "$@") || rc=$?
+		;;
+	esac
+	printf '%s\n' "$out"
+	return "$rc"
+}
+
+# Invoked indirectly, the same way as curl_retry above.
+# shellcheck disable=SC2329
+# Prints why a transfer failed, or nothing when a status arrived and the transfer completed.
+transfer_failure() {
+	local code="$1" rc="$2"
+	if [ "${code:-000}" = "000" ]; then
+		echo "gave no HTTP response after one retry: curl exit $rc, transport error or timeout"
+	elif [ "$rc" -ne 0 ]; then
+		echo "answered $code but the transfer failed: curl exit $rc"
+	fi
+}
+
+# Invoked indirectly, the same way as curl_retry above.
+# shellcheck disable=SC2329
 check_render() {
-	local url="$1" code auth=(-K "$CHECKRC")
+	local url="$1" code why rc=0 auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
-	code=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$BASE$url")
+	code=$(curl_retry -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
+	why=$(transfer_failure "$code" "$rc")
+	if [ -n "$why" ]; then
+		echo "render $url $why" >>"$FAILED"
+		return
+	fi
 	[ "$code" = "200" ] || echo "render $url expected 200, got $code" >>"$FAILED"
 }
 
@@ -192,74 +226,77 @@ check_render() {
 # The byte count catches the remaining case, a file that arrived truncated to nothing, which still answers 200.
 # Content type is asserted because a server misconfigured into serving an error page for a missing asset answers 200 as well.
 check_media() {
-	local url="$1" code len type target auth=(-K "$CHECKRC") target_auth=()
+	local url="$1" what="media $1" out code len target type why rc=0 auth=(-K "$CHECKRC") target_auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
-	target="$BASE$url"
-	target_auth=("${auth[@]}")
+	# One field per line, because an empty redirect URL or a type containing spaces would shift space-separated fields.
+	local format='%{http_code} %{size_download}\n%{redirect_url}\n%{content_type}\n'
+	# Command substitution rather than `read < <(...)`, because process substitution discards curl's exit status.
+	out=$(curl_retry -q -s -o /dev/null -w "$format" --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
+	{
+		read -r code len
+		read -r target
+		read -r type
+	} <<<"$out"
 	# One hop is followed rather than passed to curl -L, because -L would carry the credential to wherever the rule points.
 	# The legacy /wp-content/uploads/ entries reach the image through the @uploads rule, and what this proves is that the image arrives, not that the hop happened.
-	code=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$target")
 	case "$code" in
 	301 | 308)
-		target=$(curl -q -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${auth[@]}" "$target")
-		# A 301 carrying no usable Location leaves this empty, and fetching an empty URL would be reported below as a transport error, which names the wrong problem.
+		why=$(transfer_failure "$code" "$rc")
+		if [ -n "$why" ]; then
+			echo "$what $why" >>"$FAILED"
+			return
+		fi
 		if [ -z "$target" ]; then
-			echo "media $url answered $code with no usable Location" >>"$FAILED"
+			echo "$what answered $code with no usable Location" >>"$FAILED"
 			return
 		fi
 		# Same origin boundary as check_redirect, and for the same reason: a rule that one day points off-site must not mail the token there.
 		# A bare prefix would also accept a lookalike host registered as an attacker's subdomain.
-		target_auth=(-K "$CHECKRC")
 		if [ -n "$CURLRC" ]; then
 			case "$target" in
 			"$BASE" | "$BASE"/*) target_auth+=(-K "$CURLRC") ;;
 			esac
 		fi
+		what="media $url -> $target"
+		rc=0
+		out=$(curl_retry -q -s -o /dev/null -w "$format" --max-time 30 "${target_auth[@]}" "$target") || rc=$?
+		{
+			read -r code len
+			read -r _
+			read -r type
+		} <<<"$out"
 		;;
 	esac
-	# Command substitution rather than `read < <(...)`, because process substitution discards curl's exit status.
-	# It still fails closed either way, since curl writes 000 for http_code on a transport error, measured against a refused connection, a DNS failure and a timeout.
-	# What the status buys is a message that says which of the two happened, rather than leaving a reader to infer it from a bare 000.
-	# The `content_type` field stays LAST in this format.
-	# `read` assigns the whole remainder of the line to its final variable, which is what lets a value containing spaces survive intact.
-	# A field added after it would be swallowed into the type instead.
-	local out rc=0
-	out=$(curl -q -s -o /dev/null \
-		-w '%{http_code} %{size_download} %{content_type}\n' \
-		--max-time 30 "${target_auth[@]}" "$target") || rc=$?
-	read -r code len type <<<"$out"
-	if [ "$rc" -ne 0 ] || [ "${code:-000}" = "000" ]; then
-		echo "media $url no HTTP response: curl exit $rc, transport error or timeout" >>"$FAILED"
+	why=$(transfer_failure "$code" "$rc")
+	if [ -n "$why" ]; then
+		echo "$what $why" >>"$FAILED"
 		return
 	fi
 	if [ "$code" != "200" ]; then
-		echo "media $url expected 200, got $code" >>"$FAILED"
+		echo "$what expected 200, got $code" >>"$FAILED"
 		return
 	fi
 	if [ "${len:-0}" -eq 0 ]; then
-		echo "media $url answered 200 with an empty body" >>"$FAILED"
+		echo "$what answered 200 with an empty body" >>"$FAILED"
 		return
 	fi
 	case "$type" in
 	image/*) ;;
-	*) echo "media $url answered 200 as $type, expected an image" >>"$FAILED" ;;
+	*) echo "$what answered 200 as $type, expected an image" >>"$FAILED" ;;
 	esac
 }
 
 # Invoked indirectly, the same way as check_render above.
 # shellcheck disable=SC2329
 check_redirect() {
-	local url="$1" out code dest dcode rc=0 auth=(-K "$CHECKRC") dest_auth=(-K "$CHECKRC")
+	local url="$1" out code dest dcode why rc=0 auth=(-K "$CHECKRC") dest_auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
 	# One request reads both fields, so a second fetch failing in transit cannot pass an empty destination on as a broken target.
-	out=$(curl -q -s -o /dev/null -w '%{http_code} %{redirect_url}\n' --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
+	out=$(curl_retry -q -s -o /dev/null -w '%{http_code} %{redirect_url}\n' --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
 	read -r code dest <<<"$out"
-	if [ "${code:-000}" = "000" ]; then
-		echo "redirect $url no HTTP response: curl exit $rc, transport error or timeout" >>"$FAILED"
-		return
-	fi
-	if [ "$rc" -ne 0 ]; then
-		echo "redirect $url answered $code but the transfer failed: curl exit $rc" >>"$FAILED"
+	why=$(transfer_failure "$code" "$rc")
+	if [ -n "$why" ]; then
+		echo "redirect $url $why" >>"$FAILED"
 		return
 	fi
 	case "$code" in
@@ -283,13 +320,10 @@ check_redirect() {
 		esac
 	fi
 	rc=0
-	dcode=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest") || rc=$?
-	if [ "${dcode:-000}" = "000" ]; then
-		echo "redirect $url -> $dest destination gave no HTTP response: curl exit $rc, transport error or timeout" >>"$FAILED"
-		return
-	fi
-	if [ "$rc" -ne 0 ]; then
-		echo "redirect $url -> $dest destination answered $dcode but the transfer failed: curl exit $rc" >>"$FAILED"
+	dcode=$(curl_retry -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest") || rc=$?
+	why=$(transfer_failure "$dcode" "$rc")
+	if [ -n "$why" ]; then
+		echo "redirect $url -> $dest destination $why" >>"$FAILED"
 		return
 	fi
 	# The media rule lands on an image, and a directory gains a trailing slash, so both answers are accepted.
@@ -299,7 +333,7 @@ check_redirect() {
 	esac
 }
 
-export -f check_render check_redirect check_media
+export -f curl_retry transfer_failure check_render check_redirect check_media
 export BASE FAILED CURLRC CHECKRC
 
 echo "==> $BASE"
