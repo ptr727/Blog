@@ -36,7 +36,17 @@ Two files did carry edits, in extension points the theme documents for the purpo
 
 The first two belong together: the font the CSS selects is the font the partial loads. Neither is a fork of theme logic, and moving them changed no rendered byte. The third was added later rather than moved out of the tree, and it renders nothing on a post that sets no `discussions` URL, which is every archive post.
 
-Separately, `layouts/` at the repository root also overrides two theme templates, for the reason recorded in [`TODO.md`](../TODO.md): PaperMod uses APIs Hugo deprecated in 0.158, and `--panicOnWarning` would otherwise fail on the theme rather than on content. Those are a workaround for upstream lag rather than site customization, which is why they are not in the table above. Whether they are still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
+Separately, `layouts/` at the repository root overrides three theme templates, for the reason recorded in [`TODO.md`](../TODO.md). PaperMod uses APIs Hugo deprecated in 0.158, and `--panicOnWarning` would otherwise fail on the theme rather than on content. Each is a full copy of the theme's template at the commit recorded here, with the deprecated call swapped for its replacement:
+
+| Override | Deprecated call | Replacement |
+| --- | --- | --- |
+| [`layouts/baseof.html`](../layouts/baseof.html) | `.Language.LanguageDirection` | `.Language.Direction` |
+| [`layouts/rss.xml`](../layouts/rss.xml) | `site.Language.LanguageCode` | `site.Language.Locale` |
+| [`layouts/_partials/templates/opengraph.html`](../layouts/_partials/templates/opengraph.html) | `site.Language.LanguageCode` | `site.Language.Locale` |
+
+Each replaces the theme template at the same path under `PaperMod/`. These are a workaround for upstream lag rather than site customization, so they are not in the table above. `rss.xml` also changes each item's `<guid>`. It marks the GUID `isPermaLink="false"`, and it emits a post's `guid` front matter value in place of the permalink when one is set. No post sets `guid`, so every item's GUID is its permalink. That change is site behavior, so `rss.xml` stays even once upstream makes its swap.
+
+Whether each is still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
 
 ## Customization points
 
@@ -63,7 +73,7 @@ The content width is unchanged from the theme default, deliberately. 720px at th
 
 Nothing is carried, so an update is a replace: delete `PaperMod/`, drop the new upstream tree in its place, update the table above, and confirm the site still builds under `--panicOnWarning`, which is the gate the theme has failed before. Run the `diff -r` above afterwards, so the next reader inherits the same guarantee.
 
-Check the two root `layouts/` overrides at the same time. They exist only because upstream lags Hugo's deprecations, so an update is the moment one of them may become removable.
+Check the three root `layouts/` overrides in the same pass. Each exists because upstream lags Hugo's deprecations, so an update is the moment one may become removable. The `diff` below covers them too. Any change there is upstream editing a template an override hides. Port it into the override, and keep the swap and the `rss.xml` GUID change. An override whose deprecated call upstream has replaced is removable, except `rss.xml`, which its GUID change keeps.
 
 Re-check the override table above while it still names the old commit, so before the replace. Each overridden file is a comment-only hook upstream today, so if upstream adds content to one, the local override hides it without any build failure. The exception is `blank.css`, which the head partial bundles beside `custom.css` rather than shadowing, so added rules there still ship and a diff only means checking for duplication. Use the clone from the `diff -r` check above, or make a fresh one, and diff the file each row replaces between the commit in the table and the new commit. A comment-only diff needs no action. Added markup or rules mean porting them into the override, or deciding they are unwanted.
 
@@ -74,12 +84,15 @@ git -C /tmp/papermod fetch origin
 git -C /tmp/papermod diff "$OLD" "$NEW" -- \
   assets/css/extended/blank.css \
   layouts/_partials/extend_head.html \
-  layouts/_partials/extend_post_content.html
+  layouts/_partials/extend_post_content.html \
+  layouts/baseof.html \
+  layouts/rss.xml \
+  layouts/_partials/templates/opengraph.html
 git -C /tmp/papermod grep -n -e extend_head -e extend_post_content "$NEW" -- layouts
 git -C /tmp/papermod checkout "$NEW"
 ```
 
-Set `OLD` to the commit in the table, and update the table afterwards. The `grep` confirms upstream still calls each hook, since a hook upstream stops calling leaves an override that renders nothing and an empty diff. The `checkout` leaves the clone at the new commit for the `diff -r` run. Add a path to the `diff` command when a row joins the table, taking the path from the last column of the table, and add the partial's name, without its directory, to the `grep` when the row is a partial, and confirm each path exists at the new commit with `git -C /tmp/papermod cat-file -e "$NEW:<path>"`, since a diff of a mistyped path prints nothing, the same as an unchanged file.
+Set `OLD` to the commit in the table, and update the table afterwards. The `grep` confirms upstream still calls each hook, since a hook upstream stops calling leaves an override that renders nothing and an empty diff. The `checkout` leaves the clone at the new commit for the `diff -r` run. Add a path to the `diff` command when a row joins either table. Take it from the last column of the first table, or from the override's own path in the second. Add the partial's name, without its directory, to the `grep` when the row is a partial. Confirm each path exists at the new commit with `git -C /tmp/papermod cat-file -e "$NEW:<path>"`. A diff of a mistyped path prints nothing, the same as an unchanged file.
 
 No bot watches this. `.github/dependabot.yml` covers GitHub Actions only, since a vendored copy has no manifest to track, so an update is a deliberate act.
 
