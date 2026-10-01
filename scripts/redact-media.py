@@ -237,7 +237,7 @@ def main() -> int:
     parser.add_argument(
         "--record",
         action="store_true",
-        help="for each entry whose declared digest is missing or stale, take the file as its source and record the result",
+        help="for each entry whose declared digest is missing or stale, take the file, which must be its original, as the source and record the result",
     )
     args = parser.parse_args()
     apply = args.apply or args.record
