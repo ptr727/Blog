@@ -24,9 +24,10 @@ with `scripts/normalize-media.py --apply`, edit its entry, and run with `--recor
 A restored file whose hash any committed revision of the manifest records as a result
 is refused, since it already carries an earlier round's fills.
 Dependabot moves the pin in `scripts/requirements.txt`, and the bump merges once
-checks pass, since no check re-runs a redaction. The next run under the new pin reports
-any entry whose output moved against its recorded result, and that entry may need to
-be re-recorded from its restored original. A Pillow other than the pinned one is refused.
+checks pass, since no check re-runs a redaction. A file already at its result is left
+alone, so a bump changes no committed file. An output the new Pillow changes shows only
+when a restored original is run, which then fails against its recorded result hash.
+A Pillow other than the pinned one is refused.
 
 A JPEG is written with its own quantization tables and chroma subsampling, which keeps
 the generation loss outside a fill to a level or two, and a crop off the block grid
