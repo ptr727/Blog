@@ -249,9 +249,19 @@ check_media() {
 # Invoked indirectly, the same way as check_render above.
 # shellcheck disable=SC2329
 check_redirect() {
-	local url="$1" code dest dcode auth=(-K "$CHECKRC") dest_auth=(-K "$CHECKRC")
+	local url="$1" out code dest dcode rc=0 auth=(-K "$CHECKRC") dest_auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
-	code=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$BASE$url")
+	# One request reads both fields, so a second fetch failing in transit cannot pass an empty destination on as a broken target.
+	out=$(curl -q -s -o /dev/null -w '%{http_code} %{redirect_url}\n' --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
+	read -r code dest <<<"$out"
+	if [ "${code:-000}" = "000" ]; then
+		echo "redirect $url no HTTP response: curl exit $rc, transport error or timeout" >>"$FAILED"
+		return
+	fi
+	if [ "$rc" -ne 0 ]; then
+		echo "redirect $url answered $code but the transfer failed: curl exit $rc" >>"$FAILED"
+		return
+	fi
 	case "$code" in
 	301 | 308) ;;
 	*)
@@ -259,8 +269,11 @@ check_redirect() {
 		return
 		;;
 	esac
+	if [ -z "$dest" ]; then
+		echo "redirect $url answered $code with no usable Location" >>"$FAILED"
+		return
+	fi
 	# A redirect to a 404 is a broken redirect, so the destination is followed rather than trusted.
-	dest=$(curl -q -s -o /dev/null -w '%{redirect_url}' --max-time 30 "${auth[@]}" "$BASE$url")
 	# The credential is only ever sent to the origin it belongs to.
 	# A rule that one day redirects off-site must not mail the token there.
 	# The match needs an origin boundary, since a bare prefix also accepts a host that merely starts with this one, such as a lookalike registered as an attacker's subdomain.
@@ -269,7 +282,16 @@ check_redirect() {
 		"$BASE" | "$BASE"/*) dest_auth+=(-K "$CURLRC") ;;
 		esac
 	fi
-	dcode=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest")
+	rc=0
+	dcode=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest") || rc=$?
+	if [ "${dcode:-000}" = "000" ]; then
+		echo "redirect $url -> $dest destination gave no HTTP response: curl exit $rc, transport error or timeout" >>"$FAILED"
+		return
+	fi
+	if [ "$rc" -ne 0 ]; then
+		echo "redirect $url -> $dest destination answered $dcode but the transfer failed: curl exit $rc" >>"$FAILED"
+		return
+	fi
 	# The media rule lands on an image, and a directory gains a trailing slash, so both answers are accepted.
 	case "$dcode" in
 	200 | 301 | 308) ;;
