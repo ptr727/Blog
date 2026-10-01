@@ -65,6 +65,20 @@ Nothing is carried, so an update is a replace: delete `PaperMod/`, drop the new 
 
 Check the two root `layouts/` overrides at the same time. They exist only because upstream lags Hugo's deprecations, so an update is the moment one of them may become removable.
 
+Re-check the override table above against the new upstream before replacing the tree. Each overridden file is an empty hook upstream today, so if upstream puts markup in one, the local override hides it without any build failure. In a clone of upstream, diff the file each row replaces between the commit in the table and the new commit. An empty diff means the override still hides nothing. A non-empty diff means porting the new upstream content into the override.
+
+```sh
+OLD=154d006e0182dfc7da38008323976b02e6bfab4a
+NEW=<new upstream commit>
+git -C /tmp/papermod fetch origin
+git -C /tmp/papermod diff "$OLD" "$NEW" -- \
+  assets/css/extended/blank.css \
+  layouts/_partials/extend_head.html \
+  layouts/_partials/extend_post_content.html
+```
+
+Add a path to the command when a row joins the table, and take the paths from the last column of the table.
+
 No bot watches this. `.github/dependabot.yml` covers GitHub Actions only, since a vendored copy has no manifest to track, so an update is a deliberate act.
 
 Fetching the theme rather than copying it is the way to get a bot, and only one of the two mechanisms would work here. Dependabot's `gitsubmodule` ecosystem tracks a ref and needs no tags, so a submodule would be watched. Hugo Modules would not: PaperMod tags releases as `v8.0`, which is not valid semver, so Go can only pin it as a pseudo-version, and Dependabot does not upgrade pseudo-versions. Either mechanism first requires the tree to carry no local edits, which is now true. Weigh it against what a bot would have found: between 2026-05-10 and 2026-08-06, upstream's only commit edited its own README.
