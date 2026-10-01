@@ -48,7 +48,7 @@ The customization table holds hooks the theme leaves empty for a site to fill. F
 
 Each swapped call is one Hugo deprecated in 0.158, for the reason recorded in [`TODO.md`](../TODO.md). `--panicOnWarning` would otherwise fail on the theme rather than on content. A swap is a workaround for upstream lag, so `baseof.html` and `opengraph.html` become removable once upstream makes the same swap. The other changes are site behavior that an update keeps. No post sets `guid`, so every feed item's GUID is its permalink. No post calls the `audio` or `video` shortcode.
 
-Whether each is still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
+Whether each swap is still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
 
 ## Customization points
 
@@ -75,9 +75,9 @@ The content width is unchanged from the theme default, deliberately. 720px at th
 
 Nothing is carried, so an update is a replace. Delete `PaperMod/`, drop the new upstream tree in its place, and update the upstream table at the top of the PaperMod section. Then confirm the site still builds under `--panicOnWarning`, which is the gate the theme has failed before. Run the `diff -r` above afterwards, so the next reader inherits the same guarantee.
 
-Check the root override table in the same pass. The `diff` below covers it too. Any change there is upstream editing a template an override hides. Port it into the override, and keep the change the table records. A row whose only change is a deprecated call becomes removable once upstream makes the same swap. The `--diff-filter=A` listing names templates upstream added. A new template more specific than an overridden one outranks the root override with no diff and no build failure. A `home.rss.xml` beside `rss.xml` is one such case.
-
 Re-check the customization table before the replace, while the upstream table still names the old commit. Each file it overrides is a comment-only hook upstream today. If upstream adds content to one, the local override hides it without any build failure. The exception is `blank.css`, which the head partial bundles beside `custom.css` rather than shadowing. Added rules there still ship, so a diff only means checking for duplication. Use the clone from the `diff -r` check above, or make a fresh one. Diff the file each row replaces between the recorded commit and the new commit. A comment-only diff needs no action. Added markup or rules mean porting them into the override, or deciding they are unwanted.
+
+Check the root override table at the same moment, before the replace. The `diff` below covers it too. Any change there is upstream editing a template an override hides. Port it into the override, and keep the change the table records. A row whose only change is a deprecated call becomes removable once upstream makes the same swap. The `--diff-filter=A` listing names templates upstream added, with `--no-renames` so a moved template shows too. A new template more specific than an overridden one outranks the root override with no diff and no build failure. A `home.rss.xml` beside `rss.xml` is one such case. Also compare each added name against the root `layouts/` tree, reading a root `shortcodes/` file as `_shortcodes/`. A match is a new whole-template override, so it joins the root override table.
 
 ```sh
 OLD=154d006e0182dfc7da38008323976b02e6bfab4a
@@ -92,7 +92,7 @@ git -C /tmp/papermod diff "$OLD" "$NEW" -- \
   layouts/_partials/templates/opengraph.html \
   layouts/_shortcodes/audio.html \
   layouts/_shortcodes/video.html
-git -C /tmp/papermod diff --name-only --diff-filter=A "$OLD" "$NEW" -- layouts
+git -C /tmp/papermod diff --name-only --no-renames --diff-filter=A "$OLD" "$NEW" -- layouts
 git -C /tmp/papermod grep -n -e extend_head -e extend_post_content -e templates/opengraph "$NEW" -- layouts
 git -C /tmp/papermod checkout "$NEW"
 ```
