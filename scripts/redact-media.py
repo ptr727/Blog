@@ -23,12 +23,13 @@ Restore the file's original with `git checkout <revision> -- <file>`, normalize 
 with `scripts/normalize-media.py --apply`, edit its entry, and run with `--record`.
 A restored file whose hash any committed revision of the manifest records as a result
 is refused, since it already carries an earlier round's fills.
-Dependabot moves the pin in `scripts/requirements.txt`, and the unit tests redact
-fixed synthetic images against committed result hashes, so a bump that moves the output
-fails. A file already at its result is left alone, so a bump changes no committed file.
-Accepting such a bump means updating the fixtures' hashes, and each entry is re-recorded
-when it is next run from its original. Delete the entry's `declared` digest and run with
-`--record`, which takes the restored original as its source again.
+Dependabot moves the pin in `scripts/requirements.txt`. The unit tests redact fixed
+synthetic images against committed result hashes, so a bump that moves their output fails.
+A file already at its result is left alone, so a bump changes no committed file.
+Accepting a bump that moves the output means updating the fixtures' hashes.
+Each entry is then re-recorded when it is next run from its original.
+Delete the entry's `declared` digest and run with `--record`, which takes the restored
+original as its source again.
 A Pillow other than the pinned one is refused.
 
 A JPEG is written with its own quantization tables and chroma subsampling, which keeps
@@ -236,7 +237,7 @@ def main() -> int:
     parser.add_argument(
         "--record",
         action="store_true",
-        help="for each entry whose fills or crop changed, take the file as its source and record the result",
+        help="for each entry whose declared digest is missing or stale, take the file as its source and record the result",
     )
     args = parser.parse_args()
     apply = args.apply or args.record
@@ -269,10 +270,14 @@ def main() -> int:
         spec = check.declared(entry)
         changed = spec != entry.get("declared")
         if changed and current == entry.get("result"):
-            errors.append(f"{name}: fills or crop changed, restore its original first")
+            errors.append(
+                f"{name}: declared digest missing or stale, restore its original first"
+            )
             continue
         if changed and not args.record:
-            errors.append(f"{name}: fills or crop changed, rerun with --record")
+            errors.append(
+                f"{name}: declared digest missing or stale, rerun with --record"
+            )
             continue
         if current == entry.get("result"):
             done += 1

@@ -3,78 +3,104 @@
     "jpeg-420-icc.jpg": {
       "fill": [
         [
-          5,
-          7,
-          29,
-          21
+          37,
+          21,
+          141,
+          99
         ]
       ],
       "crop": null,
-      "source": "3957d88fb758549724a35da84f8bfe6af0ba4cf4a865e2da4e98565213bdd326",
-      "result": "a25c9b6bba19d4ca66da3722d6d29662cab8ec3779eed46a783a5814fbeba84f"
+      "source": "31ba9c0d1312b9736962be1591db4599039763f1498d0ea7027200fc37b08875",
+      "result": "d2df6ca112b627e7903eed66a53475edc5d477d60454eb38805c37f2a8975c37"
     },
     "jpeg-444-icc-crop.jpg": {
       "fill": [],
       "crop": [
         3,
         2,
-        59,
-        45
+        251,
+        189
       ],
-      "source": "0fd19b095b46566137ad4d2690829cd45c03f7a0a51327f6de41796ac6560204",
-      "result": "f8dc429ffe7feaa473b3a122eafa2e8082d715fd877fedd22137392c166ebdf6"
+      "source": "951ce1d2b5d719aac5545b6365878cd5bbe5181593822fbc30db484317ebfc35",
+      "result": "8b0fe070a8635840e06d6658006fa4ed93065b4d9d682ac2d78f8b20ed5a0917"
+    },
+    "png-rgb-plain.png": {
+      "fill": [
+        [
+          37,
+          21,
+          141,
+          99
+        ]
+      ],
+      "crop": null,
+      "source": "137d9507f9b14964457d54adbd618ea76fd7b3eaae0bea952b4da573aa5637c1",
+      "result": "84553f7649d7de7d764ddd9a3bde6f096a2d703ceb598e2343645c7175dd7fcf"
     },
     "png-rgb-srgb.png": {
       "fill": [
         [
-          5,
-          7,
-          29,
-          21
+          37,
+          21,
+          141,
+          99
         ]
       ],
       "crop": null,
-      "source": "c78f5d3369bdf911c8cd2e34198c75abd626da92974c80ec3198021832160b09",
-      "result": "b917af28074123fe5fc339469967c51c8635df045ebddde2e4e6e111208c3ce2"
+      "source": "0fdcfc36015aca9155e6ed66fcdfc74d50cadf8643b5b1215150fec13d9abf05",
+      "result": "dfddc07c0c954a1a1e2d3eadd8b3613a68f85f336d060e23f3aeff0226648f29"
     },
     "png-rgb-icc-chrm.png": {
       "fill": [
         [
-          5,
-          7,
-          29,
-          21
+          37,
+          21,
+          141,
+          99
         ]
       ],
       "crop": null,
-      "source": "17eb919cabf00d0f25b48e4e3264b50da1d60d3b931c9eebd5a3e8d14f07c2ae",
-      "result": "93060d21c2912c770d7d0bfdc850f2799d6d2b5d8a3b9278bc1519b34a6d1333"
+      "source": "131ee7e42137ea49ecb814d53d86fed36bcc04e3e517ba07e1020b07bc792cf7",
+      "result": "178b17928d15fe7e127d1eb2eae3e8885468c1587679b4524c92a62c6c4424e7"
     },
     "png-rgba-srgb.png": {
       "fill": [
         [
-          5,
-          7,
-          29,
-          21
+          37,
+          21,
+          141,
+          99
         ]
       ],
       "crop": null,
-      "source": "cd50516343f5bf15939c511761adbe816a7fde1d1ae419ba621128044297d3b6",
-      "result": "b2f487187db51fb19ef4289cbab715782bcf77d92001788626c6ce9a3325e9ca"
+      "source": "0f8070b6e0770161d7384eca8ccc5720c965de68c62f59890fc87095150ebf28",
+      "result": "256c307b216484e27f4e805e4e93e3666755876a830100d1e24a263e383f57c9"
     },
     "png-rgba-icc.png": {
       "fill": [
         [
-          5,
-          7,
-          29,
-          21
+          37,
+          21,
+          141,
+          99
         ]
       ],
       "crop": null,
-      "source": "5249d2e5a0a8b410ca49767cd3090dff5700dd79b62cf27dc174a1934b9ea8d2",
-      "result": "0877b3e19840bd9a6804c72dd3fc7738c68c98e0e93ddf6b1dbf0fd14d30383e"
+      "source": "f484100a7c791197183db287415d246a149441e9a14db0b3f9e895636026cb47",
+      "result": "ac109f66798f5eb555ff9e02019ae65ef03667bffd544fb23b6eb1964f93f1fb"
+    },
+    "png-rgba-icc-dpi.png": {
+      "fill": [
+        [
+          37,
+          21,
+          141,
+          99
+        ]
+      ],
+      "crop": null,
+      "source": "d71de128576ec019be58ead335b4200b96cdc45a65897d7109b7e0dae9d3b35e",
+      "result": "8c9d818d1bbd91b925db4f064803c896804d40af98ce90ca8a70a1c74d978e3c"
     }
   }
 }

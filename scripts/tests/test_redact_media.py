@@ -141,7 +141,7 @@ class RedactMediaTests(unittest.TestCase):
 
     def test_deleted_digest_re_records_an_unchanged_entry(self) -> None:
         data = jpeg()
-        entry = {"fill": [[8, 8, 24, 24]], "source": sha256(data), "result": "0" * 64}
+        entry = {"fill": [[8, 8, 24, 24]], "source": "1" * 64, "result": "0" * 64}
         path = self.add("a.jpg", data, entry)
         code, out = self.run_script("--record")
         self.assertEqual(code, 0, out)
@@ -309,7 +309,7 @@ class RedactMediaTests(unittest.TestCase):
 
 
 class PinnedOutputTests(unittest.TestCase):
-    """The fixtures are fixed bytes, so a different result can only come from the installed Pillow."""
+    """The fixtures are fixed bytes, so a different result comes from Pillow or from the redaction code."""
 
     def test_fixtures_redact_to_their_committed_results(self) -> None:
         fixtures = SCRIPTS / "tests" / "redact-fixtures"
@@ -322,7 +322,7 @@ class PinnedOutputTests(unittest.TestCase):
                 self.assertEqual(
                     sha256(redact.redact(data, entry)),
                     entry["result"],
-                    f"Pillow {redact.PIL.__version__} redacts {name} differently",
+                    f"{name} redacts to other bytes under Pillow {redact.PIL.__version__}",
                 )
 
 
