@@ -312,7 +312,9 @@ def main() -> int:
             entry["source"], entry["declared"] = current, spec
             entry["result"] = sha256(new)
         elif sha256(new) != entry.get("result"):
-            errors.append(f"{name}: redacted output does not match its result hash")
+            errors.append(
+                f"{name}: redacted output does not match its result hash (after a Pillow bump, delete its declared digest and rerun with --record)"
+            )
             continue
         writes.append((path, current, new))
         print(f"{name}: to redact")

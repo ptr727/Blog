@@ -2,8 +2,8 @@
 """Fail when a file declared in `media-redactions.json` is not its redacted result.
 
 The manifest records the hash each redaction produces, so this needs no image
-decoder. A file replaced by its original, re-exported, or edited by hand fails here,
-and so does an entry whose declared digest is missing or no longer matches its fills and crop.
+decoder. A file replaced by its original, re-exported, or edited by hand fails here.
+So does an entry whose declared digest is missing or no longer matches its fills and crop.
 `scripts/redact-media.py` is what brings either back.
 """
 
