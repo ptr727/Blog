@@ -254,8 +254,12 @@ check_redirect() {
 	# One request reads both fields, so a second fetch failing in transit cannot pass an empty destination on as a broken target.
 	out=$(curl -q -s -o /dev/null -w '%{http_code} %{redirect_url}\n' --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
 	read -r code dest <<<"$out"
-	if [ "$rc" -ne 0 ] || [ "${code:-000}" = "000" ]; then
+	if [ "${code:-000}" = "000" ]; then
 		echo "redirect $url no HTTP response: curl exit $rc, transport error or timeout" >>"$FAILED"
+		return
+	fi
+	if [ "$rc" -ne 0 ]; then
+		echo "redirect $url answered $code but the transfer failed: curl exit $rc" >>"$FAILED"
 		return
 	fi
 	case "$code" in
@@ -280,8 +284,12 @@ check_redirect() {
 	fi
 	rc=0
 	dcode=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest") || rc=$?
-	if [ "$rc" -ne 0 ] || [ "${dcode:-000}" = "000" ]; then
+	if [ "${dcode:-000}" = "000" ]; then
 		echo "redirect $url -> $dest destination gave no HTTP response: curl exit $rc, transport error or timeout" >>"$FAILED"
+		return
+	fi
+	if [ "$rc" -ne 0 ]; then
+		echo "redirect $url -> $dest destination answered $dcode but the transfer failed: curl exit $rc" >>"$FAILED"
 		return
 	fi
 	# The media rule lands on an image, and a directory gains a trailing slash, so both answers are accepted.
