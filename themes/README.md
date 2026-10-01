@@ -26,7 +26,7 @@ git -C /tmp/papermod checkout 154d006e0182dfc7da38008323976b02e6bfab4a
 diff -r --exclude=.git /tmp/papermod themes/PaperMod
 ```
 
-Two files did carry edits, in extension points the theme documents for the purpose. They now live outside the vendored tree, where Hugo resolves a project's own `assets/` and `layouts/` ahead of the theme's, and a third override has joined them since:
+Two files did carry edits, in extension points the theme documents for the purpose. They now live outside the vendored tree, where Hugo resolves a project's own `assets/` and `layouts/` ahead of the theme's. A third override has joined them since, and the customization table below lists all three:
 
 | Customization | Now at | Replaces the theme's |
 | --- | --- | --- |
@@ -36,7 +36,19 @@ Two files did carry edits, in extension points the theme documents for the purpo
 
 The first two belong together: the font the CSS selects is the font the partial loads. Neither is a fork of theme logic, and moving them changed no rendered byte. The third was added later rather than moved out of the tree, and it renders nothing on a post that sets no `discussions` URL, which is every archive post.
 
-Separately, `layouts/` at the repository root also overrides two theme templates, for the reason recorded in [`TODO.md`](../TODO.md): PaperMod uses APIs Hugo deprecated in 0.158, and `--panicOnWarning` would otherwise fail on the theme rather than on content. Those are a workaround for upstream lag rather than site customization, which is why they are not in the table above. Whether they are still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
+The customization table holds hooks the theme leaves empty for a site to fill. Five other files at the repository root replace a whole theme template instead, so each hides every upstream change to the template it replaces. Hugo reads a root `layouts/shortcodes/` file as the theme's `_shortcodes/` file of the same name. The root override table below lists all five:
+
+| Override | Replaces the theme's | Change from the theme's template |
+| --- | --- | --- |
+| [`layouts/baseof.html`](../layouts/baseof.html) | `layouts/baseof.html` | `.Language.LanguageDirection` swapped for `.Language.Direction` |
+| [`layouts/rss.xml`](../layouts/rss.xml) | `layouts/rss.xml` | `site.Language.LanguageCode` swapped for `site.Language.Locale`, and each item's `<guid>` marked `isPermaLink="false"`, using a post's `guid` front matter value in place of the permalink when one is set |
+| [`layouts/_partials/templates/opengraph.html`](../layouts/_partials/templates/opengraph.html) | `layouts/_partials/templates/opengraph.html` | `site.Language.LanguageCode` swapped for `site.Language.Locale` |
+| [`layouts/shortcodes/audio.html`](../layouts/shortcodes/audio.html) | `layouts/_shortcodes/audio.html` | Rewritten: not muted, `preload="metadata"`, a `<source>` typed from the file extension, and fallback text |
+| [`layouts/shortcodes/video.html`](../layouts/shortcodes/video.html) | `layouts/_shortcodes/video.html` | Rewritten, the same way as `audio.html` |
+
+Each swapped call is one Hugo deprecated in 0.158, for the reason recorded in [`TODO.md`](../TODO.md). `--panicOnWarning` would otherwise fail on the theme rather than on content. A swap is a workaround for upstream lag, so `baseof.html` and `opengraph.html` become removable once upstream makes the same swap. The other changes are site behavior that an update keeps. No post sets `guid`, so every feed item's GUID is its permalink. No post calls the `audio` or `video` shortcode.
+
+Whether each swap is still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
 
 ## Customization points
 
@@ -61,11 +73,11 @@ The content width is unchanged from the theme default, deliberately. 720px at th
 
 ## Updating
 
-Nothing is carried, so an update is a replace: delete `PaperMod/`, drop the new upstream tree in its place, update the table above, and confirm the site still builds under `--panicOnWarning`, which is the gate the theme has failed before. Run the `diff -r` above afterwards, so the next reader inherits the same guarantee.
+Nothing is carried, so an update is a replace. Delete `PaperMod/`, drop the new upstream tree in its place, and update the upstream table at the top of the PaperMod section. Then confirm the site still builds under `--panicOnWarning`, which is the gate the theme has failed before. Run the `diff -r` above afterwards, so the next reader inherits the same guarantee.
 
-Check the two root `layouts/` overrides at the same time. They exist only because upstream lags Hugo's deprecations, so an update is the moment one of them may become removable.
+Re-check the customization table before the replace, while the upstream table still names the old commit. Each file it overrides is a comment-only hook upstream today. If upstream adds content to one, the local override hides it without any build failure. The exception is `blank.css`, which the head partial bundles beside `custom.css` rather than shadowing. Added rules there still ship, so a diff only means checking for duplication. Use the clone from the `diff -r` check above, or make a fresh one. Diff the file each row replaces between the recorded commit and the new commit. A comment-only diff needs no action. Added markup or rules mean porting them into the override, or deciding they are unwanted.
 
-Re-check the override table above while it still names the old commit, so before the replace. Each overridden file is a comment-only hook upstream today, so if upstream adds content to one, the local override hides it without any build failure. The exception is `blank.css`, which the head partial bundles beside `custom.css` rather than shadowing, so added rules there still ship and a diff only means checking for duplication. Use the clone from the `diff -r` check above, or make a fresh one, and diff the file each row replaces between the commit in the table and the new commit. A comment-only diff needs no action. Added markup or rules mean porting them into the override, or deciding they are unwanted.
+Check the root override table at the same moment, before the replace. The `diff` below covers it too. Any change there is upstream editing a template an override hides. Port it into the override, and keep the change the table records. A row whose only change is a deprecated call becomes removable once upstream makes the same swap. The `--diff-filter=A` listing names templates upstream added, with `--no-renames` so a moved template shows too. A new template more specific than an overridden one outranks the root override with no diff and no build failure. A `home.rss.xml` beside `rss.xml` is one such case. When upstream outranks or deletes an overridden template, move the override to the new path or retire its row. Update the row's paths in the table and the `diff` command to match. Also compare each added name against the root `layouts/` tree, reading a root `shortcodes/` file as `_shortcodes/`. A match is a new whole-template override, so it joins the root override table.
 
 ```sh
 OLD=154d006e0182dfc7da38008323976b02e6bfab4a
@@ -74,12 +86,18 @@ git -C /tmp/papermod fetch origin
 git -C /tmp/papermod diff "$OLD" "$NEW" -- \
   assets/css/extended/blank.css \
   layouts/_partials/extend_head.html \
-  layouts/_partials/extend_post_content.html
-git -C /tmp/papermod grep -n -e extend_head -e extend_post_content "$NEW" -- layouts
+  layouts/_partials/extend_post_content.html \
+  layouts/baseof.html \
+  layouts/rss.xml \
+  layouts/_partials/templates/opengraph.html \
+  layouts/_shortcodes/audio.html \
+  layouts/_shortcodes/video.html
+git -C /tmp/papermod diff --name-only --no-renames --diff-filter=A "$OLD" "$NEW" -- layouts
+git -C /tmp/papermod grep -n -e extend_head -e extend_post_content -e templates/opengraph "$NEW" -- layouts
 git -C /tmp/papermod checkout "$NEW"
 ```
 
-Set `OLD` to the commit in the table, and update the table afterwards. The `grep` confirms upstream still calls each hook, since a hook upstream stops calling leaves an override that renders nothing and an empty diff. The `checkout` leaves the clone at the new commit for the `diff -r` run. Add a path to the `diff` command when a row joins the table, taking the path from the last column of the table, and add the partial's name, without its directory, to the `grep` when the row is a partial, and confirm each path exists at the new commit with `git -C /tmp/papermod cat-file -e "$NEW:<path>"`, since a diff of a mistyped path prints nothing, the same as an unchanged file.
+Set `OLD` to the commit in the upstream table, and update that table afterwards. The `grep` confirms upstream still calls each overridden partial, since a partial upstream stops calling leaves an override that renders nothing and an empty diff. The `checkout` leaves the clone at the new commit for the `diff -r` run. Add a path to the `diff` command when a row joins the customization table or the root override table. Take it from the last column of the customization table, or from the second column of the root override table. Add the partial's path below `_partials/`, without its extension, to the `grep` when the row is a partial. Confirm each path exists at the new commit with `git -C /tmp/papermod cat-file -e "$NEW:<path>"`. A diff of a mistyped path prints nothing, the same as an unchanged file.
 
 No bot watches this. `.github/dependabot.yml` covers GitHub Actions only, since a vendored copy has no manifest to track, so an update is a deliberate act.
 
