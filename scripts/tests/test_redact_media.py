@@ -319,6 +319,7 @@ class PinnedOutputTests(unittest.TestCase):
             with self.subTest(name=name):
                 data = (fixtures / name).read_bytes()
                 self.assertEqual(sha256(data), entry["source"], "fixture edited")
+                self.assertFalse(redact.gate.scan(data), "fixture not gate-clean")
                 self.assertEqual(
                     sha256(redact.redact(data, entry)),
                     entry["result"],

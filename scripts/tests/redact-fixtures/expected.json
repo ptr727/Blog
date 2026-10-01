@@ -10,8 +10,8 @@
         ]
       ],
       "crop": null,
-      "source": "31ba9c0d1312b9736962be1591db4599039763f1498d0ea7027200fc37b08875",
-      "result": "d2df6ca112b627e7903eed66a53475edc5d477d60454eb38805c37f2a8975c37"
+      "source": "18bcc4ca7abe3e5b3b10f659e153b05c9f2380e9377cc2e59baed51b82d3d777",
+      "result": "970f7d14611a52c858c14d9f6d629db140b75f4a781944929e94bad74222af81"
     },
     "jpeg-444-icc-crop.jpg": {
       "fill": [],
@@ -21,8 +21,8 @@
         251,
         189
       ],
-      "source": "951ce1d2b5d719aac5545b6365878cd5bbe5181593822fbc30db484317ebfc35",
-      "result": "8b0fe070a8635840e06d6658006fa4ed93065b4d9d682ac2d78f8b20ed5a0917"
+      "source": "7bc9fd0247e6c330b2ec40b6528ab5445b1a61549f912399ddc4891321c863c6",
+      "result": "1739c6a65d044cb48d26439798af881b2163a1ae7e5eb3824832df27268905d9"
     },
     "png-rgb-plain.png": {
       "fill": [
@@ -60,8 +60,8 @@
         ]
       ],
       "crop": null,
-      "source": "131ee7e42137ea49ecb814d53d86fed36bcc04e3e517ba07e1020b07bc792cf7",
-      "result": "178b17928d15fe7e127d1eb2eae3e8885468c1587679b4524c92a62c6c4424e7"
+      "source": "9809de40b4e14ccf2d9ffda7276e1200a38a3f7b5c520ef79e5ce7e19a65961f",
+      "result": "76513a00c1c4e2641d0a1be9cd1fc3d2ce4dfb514c4fe8709c09e38330b35ed2"
     },
     "png-rgba-srgb.png": {
       "fill": [
@@ -86,8 +86,8 @@
         ]
       ],
       "crop": null,
-      "source": "f484100a7c791197183db287415d246a149441e9a14db0b3f9e895636026cb47",
-      "result": "ac109f66798f5eb555ff9e02019ae65ef03667bffd544fb23b6eb1964f93f1fb"
+      "source": "2b2eb361216e3f6f67f29ebe71e1b2d9861c6b97f3481439001dfb8eb9a6e50c",
+      "result": "9de452790ef949fcdeda8c3751de31ab9a66cc65bf4b7ef9ca959f72c5b63766"
     },
     "png-rgba-icc-dpi.png": {
       "fill": [
@@ -99,8 +99,8 @@
         ]
       ],
       "crop": null,
-      "source": "d71de128576ec019be58ead335b4200b96cdc45a65897d7109b7e0dae9d3b35e",
-      "result": "8c9d818d1bbd91b925db4f064803c896804d40af98ce90ca8a70a1c74d978e3c"
+      "source": "dc82ea715a7bb7f0fcc8b0c16315e9c638c85e741ea149510cadc785445da8b1",
+      "result": "6c6c6e73a858ac9e6d4bd099126f75fb6eedf3fb86a6cee1735a805bd8f68238"
     }
   }
 }
