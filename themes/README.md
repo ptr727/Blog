@@ -79,7 +79,7 @@ git -C /tmp/papermod grep -n -e extend_head -e extend_post_content "$NEW" -- lay
 git -C /tmp/papermod checkout "$NEW"
 ```
 
-Set `OLD` to the commit in the table, and update the table afterwards. The `grep` confirms upstream still calls each hook, since a hook upstream stops calling leaves an override that renders nothing and an empty diff. The `checkout` leaves the clone at the new commit for the `diff -r` run. Add a path to the command and the `grep` when a row joins the table, taking the path from the last column of the table, and check that the diff names a file rather than printing nothing for a mistyped path.
+Set `OLD` to the commit in the table, and update the table afterwards. The `grep` confirms upstream still calls each hook, since a hook upstream stops calling leaves an override that renders nothing and an empty diff. The `checkout` leaves the clone at the new commit for the `diff -r` run. Add a path to the command and the `grep` when a row joins the table, taking the path from the last column of the table, and confirm each path exists at the new commit with `git -C /tmp/papermod cat-file -e "$NEW:<path>"`, since a diff of a mistyped path prints nothing, the same as an unchanged file.
 
 No bot watches this. `.github/dependabot.yml` covers GitHub Actions only, since a vendored copy has no manifest to track, so an update is a deliberate act.
 
