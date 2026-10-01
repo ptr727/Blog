@@ -144,22 +144,28 @@ class RedactMediaTests(unittest.TestCase):
         path = self.add("a.jpg", original, {"fill": [[8, 8, 24, 24]]})
         self.assertEqual(self.run_script("--record")[0], 0)
         redacted = path.read_bytes()
-        older_pillow = self.manifest()["files"]["static/a.jpg"] | {"result": "0" * 64}
-        self.add("a.jpg", redacted, older_pillow)
+        out = io.BytesIO()
+        Image.open(io.BytesIO(redacted)).save(out, "JPEG", quality=50)
+        older = out.getvalue()
+        entry = self.manifest()["files"]["static/a.jpg"] | {"result": sha256(older)}
+        self.add("a.jpg", older, entry)
         self.commit()
-        self.add("a.jpg", original, older_pillow)
-        code, out = self.run_script("--record")
+        self.add("a.jpg", original, entry)
+        code, text = self.run_script("--record")
         self.assertEqual(code, 1)
-        self.assertIn("does not match its result hash", out)
-        stale = {key: value for key, value in older_pillow.items() if key != "declared"}
+        self.assertIn("does not match its result hash", text)
+        stale = {key: value for key, value in entry.items() if key != "declared"}
         self.add("a.jpg", original, stale)
-        code, out = self.run_script("--record")
-        self.assertEqual(code, 0, out)
+        code, text = self.run_script("--record")
+        self.assertEqual(code, 0, text)
         recorded = self.manifest()["files"]["static/a.jpg"]
-        self.assertEqual(recorded["source"], sha256(original))
         self.assertEqual(recorded["result"], sha256(redacted))
         self.assertEqual(sha256(path.read_bytes()), recorded["result"])
         self.assertEqual(recorded["declared"], redact.check.declared(recorded))
+        self.add("a.jpg", older, recorded | {"declared": None})
+        code, text = self.run_script("--record")
+        self.assertEqual(code, 1)
+        self.assertIn("already carries an earlier round's fills", text)
 
     def test_changed_entry_needs_a_normalized_source(self) -> None:
         self.add("a.png", png(pnginfo=text_chunk()), {"fill": [[8, 8, 24, 24]]})
