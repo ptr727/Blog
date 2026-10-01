@@ -4,7 +4,7 @@ Everything in this repository is derived. What it was derived *from* is a captur
 
 The capture's path is `CAPTURE_ROOT`, recorded alongside the other values that name a machine rather than the project. It is environment-independent, so unlike a deploy root it belongs in `~/.secrets/blog.local.production.env` alone rather than in a copy per environment: there is one capture, and four copies of its path is four chances for three of them to be wrong. It is not a git repository, so it has no history to revert to, and it is read-only in normal use. Nothing here writes into it except the steps below that say they do.
 
-**None of this runs in CI, and none of it runs on a schedule.** These are provenance tools, run by hand, and their outputs are committed. That is the whole difference between this directory and [`checks/`](../checks/), which holds gates that run on every change.
+**None of this runs in CI, and none of it runs on a schedule.** These are provenance tools, run by hand, and their outputs are committed. That is the whole difference between this directory and [`checks/`](../checks/), which holds gates that run on every change. This is also why the validator's `python-directories` input does not declare this directory: it is one-shot migration tooling that has already run, so it owes no test suite, and the validator's warning about its files is expected.
 
 ## What is under the capture
 

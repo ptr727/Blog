@@ -1,7 +1,7 @@
 # https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 #
-# The only ecosystem this repo ships is the one for workflow actions.
-# The site has no package manifest, and the theme is vendored rather than pulled by a manager.
+# Workflow actions and the Python tooling in scripts/requirements.txt are the ecosystems tracked here.
+# The theme is vendored rather than pulled by a manager.
 # Both branches are targeted so each stays current independently of the release cadence.
 version: 2
 updates:
@@ -23,5 +23,25 @@ updates:
       interval: "daily"
     groups:
       actions-deps:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "pip"
+    target-branch: "main"
+    directory: "/scripts"
+    schedule:
+      interval: "daily"
+    groups:
+      pip-deps:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "pip"
+    target-branch: "develop"
+    directory: "/scripts"
+    schedule:
+      interval: "daily"
+    groups:
+      pip-deps:
         patterns:
           - "*"

@@ -33,6 +33,7 @@ import struct
 import sys
 import zipfile
 import zlib
+from typing import Any
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 TREES = ("static/media", "static/external")
@@ -375,7 +376,7 @@ TRAILING = frozenset(
 ISO_DEPTH = 16
 
 # A parsed element: its type, where it starts, and where it ends.
-Part = tuple[object, int, int]
+Part = tuple[Any, int, int]
 
 
 def exif_unrecognized(raw: bytes) -> set[str]:

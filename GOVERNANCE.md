@@ -272,13 +272,14 @@ Every repo's GitHub repository details (the About panel) follow a fixed conventi
 - [`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md), [`AUDIT.md`](./AUDIT.md): the governance, operations, and audit docs. This file is the cross-cutting-rules authority.
 - [`content/`](./content/): the posts and pages, one file per URL. An imported archive that keeps its own voice. Its only text changes are what `scripts/normalize-text.py` applies: ASCII character substitutions, and a manifest of doubled-word and grammar corrections, a title's HTML entity, and two links that located the home. A blockquote, a fenced code block, and front matter keep the characters they were written with. [`CONTENT.md`](./CONTENT.md) is the contract for writing a new one.
 - [`static/`](./static/): the media the posts reference, verified by content hash against the source export.
-- [`layouts/`](./layouts/), [`themes/`](./themes/), [`assets/`](./assets/), [`i18n/`](./i18n/): the theme and the template overrides that keep a strict build warning-free.
-- [`checks/`](./checks/): the URL contract and the gates that enforce it, covering both the built output and a running server.
+- [`layouts/`](./layouts/), [`themes/`](./themes/), [`assets/`](./assets/): the site's templates and shortcodes, the vendored theme, and the site styles added to its stylesheet.
+- [`checks/`](./checks/): the URL contract and the gates that enforce it, covering both the built output and a running server. Its `pyproject.toml` holds the ruff, mypy, and coverage config for these standard-library-only gates.
 - [`deploy/`](./deploy/): the release script, the web-server config, and the redirect maps.
 - [`sites/`](./sites/): other static sites that ship inside the release bundle and are served by their own host block, one directory per site. [`GENEALOGY.md`](./GENEALOGY.md) is the contract for writing lineage on the family site.
-- [`scripts/`](./scripts/): tooling run by hand rather than by CI, where a gate reports a problem and a script here resolves it.
+- [`scripts/`](./scripts/): tooling run by hand rather than by CI, where a gate reports a problem and a script here resolves it. Its `requirements.txt` holds the exact Pillow pin and the test tools, and its `pyproject.toml` the ruff, mypy, and pytest coverage config.
 - Branch rulesets and repository settings are hub-hosted rather than carried, so this repo checks and applies them from a hub checkout, per [Hub-Hosted Tooling](#hub-hosted-tooling).
 - [`host-tools.json`](./host-tools.json): the tools a host needs to work on this repo beyond the fleet's own declaration, layered over it tighten-only by the hub's host gate. It declares Hugo, since the URL contract is proven by building the site locally.
+- [`codecov.yml`](./codecov.yml): keeps Codecov's coverage statuses informational, so a coverage delta never blocks a pull request.
 - [`.github/workflows/`](./.github/workflows/): this repo's CI.
 
 After editing a doc, run the linters before commit, per the hub-only "Running the Linters Locally (Known-Working Invocations)" section read in a hub checkout. The Comments, Character Set, and Line Endings rules above are the frequent regressions, so hold them exactly.

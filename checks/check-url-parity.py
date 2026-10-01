@@ -36,7 +36,10 @@ ORPHANED_MEDIA = 99
 # That is what a URL that did not build is, and it is not what a stray node inside a gallery is: those are present, which is the whole complaint.
 # The default stays "missing" so a check added later reads the way the older ones do unless it says otherwise, and it needs no pair because it is already count-neutral.
 # A count is always printed beside the noun, so the pair is (singular, plural) and "1 stray nodes" was the reason for making it a pair rather than a string.
-FAILURE_NOUN = {"gallery": ("stray node", "stray nodes"), "robots": ("problem", "problems")}
+FAILURE_NOUN = {
+    "gallery": ("stray node", "stray nodes"),
+    "robots": ("problem", "problems"),
+}
 
 
 def failure_noun(label, count):
@@ -49,7 +52,9 @@ def load(name):
     urls = [ln for ln in lines if ln]
     floor = FLOORS[name]
     if len(urls) < floor:
-        sys.exit(f"FAIL {name}: {len(urls)} URLs, expected at least {floor} - the list has been truncated")
+        sys.exit(
+            f"FAIL {name}: {len(urls)} URLs, expected at least {floor} - the list has been truncated"
+        )
     return urls
 
 
@@ -87,7 +92,9 @@ def check_media(public):
             missing.append(f"{url} (does not match the @uploads rewrite prefix)")
         elif not (public / rewritten.lstrip("/")).is_file():
             missing.append(url)
-    print(f"media  : {len(legacy) - len(missing)}/{len(legacy)} legacy image URLs resolve after the @uploads rewrite")
+    print(
+        f"media  : {len(legacy) - len(missing)}/{len(legacy)} legacy image URLs resolve after the @uploads rewrite"
+    )
     return missing
 
 
@@ -118,8 +125,10 @@ def check_robots(public):
         # The likely one is enableRobotsTXT, and a partial build or the wrong output directory reach the same state, which is the same reason the orphan messages name both of their causes.
         print("robots : missing")
         return [
-            f"{robots} does not exist - likely enableRobotsTXT is unset in hugo.yaml, "
-            "though a partial build or the wrong output directory look identical here"
+            (
+                f"{robots} does not exist - likely enableRobotsTXT is unset in hugo.yaml, "
+                "though a partial build or the wrong output directory look identical here"
+            )
         ]
 
     origin = site_origin(public)
@@ -129,7 +138,9 @@ def check_robots(public):
     advertised = re.findall(r"(?mi)^\s*Sitemap:\s*(\S+)\s*$", text)
     if not advertised:
         print("robots : built, no Sitemap line")
-        return ["robots.txt carries no Sitemap: line - a crawler will not find the sitemap unaided"]
+        return [
+            "robots.txt carries no Sitemap: line - a crawler will not find the sitemap unaided"
+        ]
 
     wrong = [u for u in advertised if not u.startswith(origin + "/")]
     if wrong:
@@ -141,7 +152,10 @@ def check_robots(public):
     unbuilt = [u for u in advertised if not (public / u[len(origin) + 1 :]).is_file()]
     if unbuilt:
         print(f"robots : built, {len(unbuilt)} advertised sitemap(s) not built")
-        return [f"{u} (advertised, but {u[len(origin) + 1:]} was not built)" for u in unbuilt]
+        return [
+            f"{u} (advertised, but {u[len(origin) + 1 :]} was not built)"
+            for u in unbuilt
+        ]
 
     # Named rather than counted, since there is one today and the line is the thing being checked.
     print(f"robots : built, advertising {advertised[0]}")
@@ -158,11 +172,15 @@ def site_origin(public):
     if not home.is_file():
         sys.exit(f"FAIL: {home} is missing - run hugo first")
     text = home.read_text(encoding="utf-8", errors="ignore")
-    found = re.search(r'rel=["\']?canonical["\']?\s+href=["\']?(https?://[^/"\'>\s]+)', text)
+    found = re.search(
+        r'rel=["\']?canonical["\']?\s+href=["\']?(https?://[^/"\'>\s]+)', text
+    )
     if not found:
         # Without the origin, every absolute reference reads as external and the orphan count inflates by exactly the pages that use one.
         # Guessing would be worse than stopping.
-        sys.exit("FAIL: no canonical link on the home page - cannot determine the site's own origin")
+        sys.exit(
+            "FAIL: no canonical link on the home page - cannot determine the site's own origin"
+        )
     return found.group(1)
 
 
@@ -178,7 +196,9 @@ def collect_refs(public):
     bare = re.compile(r"(?:src|href|srcset)=(/(?:media|external)/[^\s\"'>]+)")
     # Hugo writes an absolute URL wherever a template resolves one against the base, which the entry-cover images on every list page do.
     # Read as external, those files look linked from nowhere while being displayed, and a broken one is never checked at all.
-    absolute = re.compile(re.escape(site_origin(public)) + r'(/(?:media|external)/[^\s"\'>]+)')
+    absolute = re.compile(
+        re.escape(site_origin(public)) + r'(/(?:media|external)/[^\s"\'>]+)'
+    )
     refs = set()
     for page in public.rglob("*.html"):
         text = page.read_text(encoding="utf-8", errors="ignore")
@@ -201,7 +221,9 @@ def check_assets(public, refs):
     Catches a media file renamed, dropped, or never localized.
     """
     missing = [ref for ref in sorted(refs) if not (public / ref_to_path(ref)).is_file()]
-    print(f"assets : {len(refs) - len(missing)}/{len(refs)} local asset references resolve")
+    print(
+        f"assets : {len(refs) - len(missing)}/{len(refs)} local asset references resolve"
+    )
     return missing
 
 
@@ -230,9 +252,13 @@ def check_orphans(public, refs):
     # No media at all is a broken build, not progress.
     # Left to the comparison below it reads as zero orphans, which is fewer than the baseline, and the advice would be to lower ORPHANED_MEDIA to 0, a gate talking the reader into switching it off.
     if carried == 0:
-        print("orphans: no media files in the built site - the output is incomplete or mislocated")
+        print(
+            "orphans: no media files in the built site - the output is incomplete or mislocated"
+        )
         return ["public/media and public/external are both absent or empty"]
-    print(f"orphans: {len(orphaned)} of {carried} carried media files are linked from no page")
+    print(
+        f"orphans: {len(orphaned)} of {carried} carried media files are linked from no page"
+    )
     if len(orphaned) == ORPHANED_MEDIA:
         return []
     # The explanation is printed rather than returned, so the caller's count stays the orphan count.
@@ -240,7 +266,9 @@ def check_orphans(public, refs):
     # A count is all this can observe, and two causes reach each direction.
     # Naming one of them would send a reader looking for a page that never changed.
     if len(orphaned) > ORPHANED_MEDIA:
-        print(f"         expected {ORPHANED_MEDIA} - a page stopped linking media, or unlinked media was added")
+        print(
+            f"         expected {ORPHANED_MEDIA} - a page stopped linking media, or unlinked media was added"
+        )
         return orphaned
     print(
         f"         expected {ORPHANED_MEDIA} - media was linked from a page, or orphaned files were "
@@ -266,9 +294,25 @@ class GalleryScan(HTMLParser):
     """
 
     # A void element never closes, so counting it as an open tag desynchronizes the depth for the rest of the document and every later gallery reads as containing whatever follows it.
-    VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input",
-            "link", "meta", "param", "source", "track", "wbr"}
-    ALLOWED = {"figure", "figcaption"}
+    VOID = frozenset(
+        {
+            "area",
+            "base",
+            "br",
+            "col",
+            "embed",
+            "hr",
+            "img",
+            "input",
+            "link",
+            "meta",
+            "param",
+            "source",
+            "track",
+            "wbr",
+        }
+    )
+    ALLOWED = frozenset({"figure", "figcaption"})
 
     # There is deliberately no handle_startendtag override.
     # HTMLParser's own implementation forwards a self-closing tag to handle_starttag and then handle_endtag, so `<br/>`, `<br />` and `<img/>` are already reported and already leave the depth balanced.
@@ -335,7 +379,9 @@ def check_galleries(public):
         pages += 1
         rel = str(path.relative_to(public)).replace("\\", "/")
         findings += [f"{rel}: {finding}" for finding in scan.findings]
-    print(f"gallery: {pages} pages with galleries, {len(findings)} stray nodes inside one")
+    print(
+        f"gallery: {pages} pages with galleries, {len(findings)} stray nodes inside one"
+    )
     return findings
 
 

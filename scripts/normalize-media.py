@@ -39,6 +39,8 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
     "gate", REPO / "checks" / "check-media-metadata.py"
 )
+if _spec is None or _spec.loader is None:
+    raise ImportError("cannot load check-media-metadata.py")
 gate = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(gate)
 
@@ -234,7 +236,7 @@ def normalize_jpeg(data: bytes) -> bytes | None:
     if trouble or late or len(adobe) > 1 or names.count(b"Exif\x00\x00") > 1:
         return None
     out = bytearray(data[:2])
-    kept: set[bytes] = set()
+    kept: set[bytes | None] = set()
     for (marker, start, end), name in zip(parts, names):
         segment = data[start + 4 : end]
         if name == b"ICC_PROFILE\x00":
@@ -550,11 +552,11 @@ def pixel_payload(data: bytes) -> bytes | None:
         # The descriptor fields the normalizer zeroes are not drawn, so they are compared as it writes them.
         parts, _ = gate.gif_parts(data)
         read = gate.gif_table_read(data, parts)
-        drawn = {
+        fields = {
             "header": lambda b: gate.gif_screen(b, read),
             "image": gate.gif_descriptor,
         }
-        return b"".join(drawn[k](data[s:e]) for k, s, e in parts if k in drawn)
+        return b"".join(fields[k](data[s:e]) for k, s, e in parts if k in fields)
     if kind == "webp":
         parts, _ = gate.webp_parts(data)
         drawn = bytearray()

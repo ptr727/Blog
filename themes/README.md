@@ -46,7 +46,7 @@ The customization table holds hooks the theme leaves empty for a site to fill. O
 | [`layouts/shortcodes/audio.html`](../layouts/shortcodes/audio.html) | `layouts/_shortcodes/audio.html` | Rewritten: not muted, `preload="metadata"`, a `<source>` typed from the file extension, and fallback text |
 | [`layouts/shortcodes/video.html`](../layouts/shortcodes/video.html) | `layouts/_shortcodes/video.html` | Rewritten, the same way as `audio.html` |
 
-Each swapped call is one Hugo deprecated in 0.158, for the reason recorded in [`TODO.md`](../TODO.md). `--panicOnWarning` would otherwise fail on the theme rather than on content. A swap is a workaround for upstream lag, so `baseof.html` and `opengraph.html` become removable once upstream makes the same swap. The other changes are site behavior that an update keeps. No post sets `guid`, so every feed item's GUID is its permalink. No post calls the `audio` or `video` shortcode.
+Each swapped call is one Hugo deprecated in 0.158, for the reason recorded in [`TODO.md`](../TODO.md). `--panicOnWarning` would otherwise fail on the theme rather than on content. A swap is a workaround for upstream lag, so a row whose only change is a swap becomes removable once upstream makes the same swap. The other changes are site behavior that an update keeps. No post sets `guid`, so every feed item's GUID is its permalink. No post calls the `audio` or `video` shortcode.
 
 Whether each swap is still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
 
