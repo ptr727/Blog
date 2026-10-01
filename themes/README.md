@@ -65,7 +65,7 @@ Nothing is carried, so an update is a replace: delete `PaperMod/`, drop the new 
 
 Check the two root `layouts/` overrides at the same time. They exist only because upstream lags Hugo's deprecations, so an update is the moment one of them may become removable.
 
-Re-check the override table above against the new upstream before replacing the tree. Each overridden file is an empty hook upstream today, so if upstream puts markup in one, the local override hides it without any build failure. In a clone of upstream, diff the file each row replaces between the commit in the table and the new commit. An empty diff means the override still hides nothing. A non-empty diff means porting the new upstream content into the override.
+Re-check the override table above while it still names the old commit, so before the replace. Each overridden file is a comment-only hook upstream today, so if upstream adds content to one, the local override hides it without any build failure. The exception is `blank.css`, which the head partial bundles beside `custom.css` rather than shadowing, so added rules there still ship and a diff only means checking for duplication. Use the clone from the `diff -r` check above, or make a fresh one, and diff the file each row replaces between the commit in the table and the new commit. A comment-only diff needs no action. Added markup or rules mean porting them into the override, or deciding they are unwanted.
 
 ```sh
 OLD=154d006e0182dfc7da38008323976b02e6bfab4a
@@ -75,9 +75,11 @@ git -C /tmp/papermod diff "$OLD" "$NEW" -- \
   assets/css/extended/blank.css \
   layouts/_partials/extend_head.html \
   layouts/_partials/extend_post_content.html
+git -C /tmp/papermod grep -n -e extend_head -e extend_post_content "$NEW" -- layouts
+git -C /tmp/papermod checkout "$NEW"
 ```
 
-Add a path to the command when a row joins the table, and take the paths from the last column of the table.
+Set `OLD` to the commit in the table, and update the table afterwards. The `grep` confirms upstream still calls each hook, since a hook upstream stops calling leaves an override that renders nothing and an empty diff. The `checkout` leaves the clone at the new commit for the `diff -r` run. Add a path to the command and the `grep` when a row joins the table, taking the path from the last column of the table, and check that the diff names a file rather than printing nothing for a mistyped path.
 
 No bot watches this. `.github/dependabot.yml` covers GitHub Actions only, since a vendored copy has no manifest to track, so an update is a deliberate act.
 
