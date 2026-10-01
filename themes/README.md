@@ -26,7 +26,7 @@ git -C /tmp/papermod checkout 154d006e0182dfc7da38008323976b02e6bfab4a
 diff -r --exclude=.git /tmp/papermod themes/PaperMod
 ```
 
-Some customizations fill extension points the theme documents for the purpose. They live outside the vendored tree. Hugo resolves a project's `layouts/` file ahead of the theme's at the same path. The head partial bundles a project's `css/extended/` stylesheet beside the theme's. The customization table below lists every one of them:
+Some customizations fill extension points the theme documents for the purpose. They live outside the vendored tree. Hugo resolves a project's `layouts/` file ahead of the theme's at the same path. The head partial bundles a project's `assets/css/extended/` stylesheet beside the theme's. The customization table below lists every one of them:
 
 | Customization | At | Replaces the theme's |
 | --- | --- | --- |
