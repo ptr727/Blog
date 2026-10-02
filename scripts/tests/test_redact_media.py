@@ -332,7 +332,10 @@ class PinnedOutputTests(unittest.TestCase):
         fixtures = SCRIPTS / "tests" / "redact-fixtures"
         files = json.loads((fixtures / "expected.json").read_text())["files"]
         images = {
-            path.name for path in fixtures.iterdir() if path.suffix in (".jpg", ".png")
+            path.name
+            for path in fixtures.iterdir()
+            if path.suffix.lower() in (".jpg", ".jpeg", ".png")
+            and not path.name.startswith(".")
         }
         self.assertTrue(files)
         self.assertEqual(set(files), images)
