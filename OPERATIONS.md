@@ -22,7 +22,8 @@ So verify a production deploy against `blog.insanegenius.net`. A `404` from `blo
 6. Set the same base URL in `~/.secrets/blog.vps.production.env`, which a by-hand check of production reads.
 7. Deploy production, and verify it against `blog.insanegenius.com`.
 8. Once step 7 passes, the host recreates the production container with `SITE_ROBOTS` set to `index, follow`. The Caddyfile reads it from the process environment, so the watcher alone never picks it up. Confirm `.com` answers with `X-Robots-Tag: index, follow`. The container serves `noindex, nofollow` for the rehearsal, because `.net` duplicates a live site. `FAMILY_SITE_ROBOTS` stays as it is, since the family site already serves its final domain.
-9. After 30 clean days, downgrade WordPress.com to the free plan rather than deleting it. That keeps the old media reachable as a safety net, and keeps the ability to export again.
+9. Once `.com` serves cleanly, raise the TTL back to its value from before step 1. A 60-second TTL only shortens how long a wrong record lingers during the flip.
+10. After 30 clean days, downgrade WordPress.com to the free plan rather than deleting it. That keeps the old media reachable as a safety net, and keeps the ability to export again.
 
 Run steps 3 through 8 back to back. Indexing waits for the redeploy, because until then the canonical tags on `.com` point at `.net`. An indexable page carrying them tells a crawler that `.net` is the real site.
 
