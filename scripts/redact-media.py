@@ -23,6 +23,8 @@ Restore the file's original with `git checkout <revision> -- <file>`, normalize 
 with `scripts/normalize-media.py --apply`, edit its entry, and run with `--record`.
 A restored file whose hash any committed revision of the manifest records as a result
 is refused, since it already carries an earlier round's fills.
+A restored file other than the one the entry's `source` hash records is refused too.
+Delete the entry's `source` hash as well to take a deliberately different original.
 Dependabot moves the pin in `scripts/requirements.txt`. The unit tests redact fixed
 synthetic images against committed result hashes, so a bump that moves their output fails.
 A file already at its result is left alone, so a bump changes no committed file.
@@ -237,7 +239,7 @@ def main() -> int:
     parser.add_argument(
         "--record",
         action="store_true",
-        help="for each entry whose declared digest is missing or stale, take the file, which must be its original, as the source and record the result",
+        help="for each entry whose declared digest is missing or stale, take the file, which must be the original its source hash records where the entry has one, as the source and record the result",
     )
     args = parser.parse_args()
     apply = args.apply or args.record
@@ -298,6 +300,11 @@ def main() -> int:
         if changed and (unclean := gate.scan(data)):
             errors.append(
                 f"{name}: not normalized ({', '.join(sorted(unclean))}), run scripts/normalize-media.py --apply"
+            )
+            continue
+        if changed and entry.get("source") not in (None, current):
+            errors.append(
+                f"{name}: not the original its source hash records, restore that one, or delete the entry's source hash to take this file instead"
             )
             continue
         if not changed and current != entry.get("source"):
