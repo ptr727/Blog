@@ -239,7 +239,7 @@ def main() -> int:
     parser.add_argument(
         "--record",
         action="store_true",
-        help="for each entry whose declared digest is missing or stale, take the file, which must be the original its source hash records, as the source and record the result",
+        help="for each entry whose declared digest is missing or stale, take the file, which must be the original its source hash records where the entry has one, as the source and record the result",
     )
     args = parser.parse_args()
     apply = args.apply or args.record
