@@ -196,6 +196,51 @@ class RedactMediaTests(unittest.TestCase):
         code, out = self.run_script("--record")
         self.assertEqual(code, 0, out)
 
+    def test_uncommitted_round_counts_as_history(self) -> None:
+        path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
+        self.assertEqual(self.run_script("--record")[0], 0)
+        redacted = path.read_bytes()
+        copy = self.add("b.jpg", redacted, {"fill": [[32, 8, 48, 24]]})
+        before = self.manifest_path.read_bytes()
+        code, out = self.run_script("--record")
+        self.assertEqual(code, 1)
+        self.assertIn("static/b.jpg: already carries an earlier round's fills", out)
+        self.assertEqual(self.manifest_path.read_bytes(), before)
+        self.assertEqual(copy.read_bytes(), redacted)
+
+    def test_stale_digest_on_a_redacted_file_is_refused(self) -> None:
+        path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
+        self.assertEqual(self.run_script("--record")[0], 0)
+        redacted = path.read_bytes()
+        entry = self.manifest()["files"]["static/a.jpg"]
+        self.add("a.jpg", redacted, entry | {"declared": None})
+        before = self.manifest_path.read_bytes()
+        code, out = self.run_script("--record")
+        self.assertEqual(code, 1)
+        self.assertIn("restore its original first", out)
+        self.assertEqual(self.manifest_path.read_bytes(), before)
+        self.assertEqual(path.read_bytes(), redacted)
+
+    def test_re_record_needs_the_recorded_source(self) -> None:
+        path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
+        self.assertEqual(self.run_script("--record")[0], 0)
+        entry = self.manifest()["files"]["static/a.jpg"] | {"declared": None}
+        other = jpeg((1, 2, 3))
+        self.add("a.jpg", other, entry)
+        before = self.manifest_path.read_bytes()
+        code, out = self.run_script("--record")
+        self.assertEqual(code, 1)
+        self.assertIn("not the original its source hash records", out)
+        self.assertEqual(self.manifest_path.read_bytes(), before)
+        self.assertEqual(path.read_bytes(), other)
+        del entry["source"]
+        self.add("a.jpg", other, entry)
+        code, out = self.run_script("--record")
+        self.assertEqual(code, 0, out)
+        recorded = self.manifest()["files"]["static/a.jpg"]
+        self.assertEqual(recorded["source"], sha256(other))
+        self.assertEqual(sha256(path.read_bytes()), recorded["result"])
+
     def test_unreadable_history_is_an_error(self) -> None:
         path = self.add("a.jpg", jpeg(), {"fill": [[8, 8, 24, 24]]})
         before = path.read_bytes()
