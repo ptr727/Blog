@@ -14,7 +14,7 @@ So verify a production deploy against `blog.insanegenius.net`. A `404` from `blo
 
 **The cutover reverts the rehearsal's interim settings, and each is easy to forget.** The DNS, routing, and TLS for `blog.insanegenius.com` are the host side's, done outside this repository. The steps, in order:
 
-1. The host side points `blog.insanegenius.com` at the VPS and serves it there.
+1. The host side points `blog.insanegenius.com` at the VPS and serves it there. Agree beforehand, through "The Channel Between the Two Sides", that the host performs step 5 as soon as step 4 passes.
 2. Set `SITE_BASE_URL` on the `production` environment back to `https://blog.insanegenius.com/`. The build bakes it into every canonical tag, feed link, and `sitemap.xml`, and the live check runs against it.
 3. Set the same base URL in `~/.secrets/blog.vps.production.env`, which a by-hand check of production reads.
 4. Deploy production, and verify it against `blog.insanegenius.com`.
