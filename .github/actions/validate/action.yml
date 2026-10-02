@@ -66,7 +66,7 @@ runs:
 
     # This is the build and URL-contract gate, not an extra step beside one.
     # The script runs `hugo --panicOnWarning` and check-url-parity itself, so a separate build would repeat both.
-    # --panicOnWarning is the real gate, and two PaperMod templates are overridden in layouts/ so it can stay on.
+    # --panicOnWarning is the real gate, and the swap overrides in layouts/ let it stay on.
     # Every local asset reference must resolve, and every legacy image URL from the WordPress import must too.
     #
     # Running the script here is also the point: it was linted and never run, so a broken caller contract reached a deploy.
