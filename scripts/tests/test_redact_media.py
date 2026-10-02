@@ -331,7 +331,11 @@ class PinnedOutputTests(unittest.TestCase):
     def test_fixtures_redact_to_their_committed_results(self) -> None:
         fixtures = SCRIPTS / "tests" / "redact-fixtures"
         files = json.loads((fixtures / "expected.json").read_text())["files"]
+        images = {
+            path.name for path in fixtures.iterdir() if path.suffix in (".jpg", ".png")
+        }
         self.assertTrue(files)
+        self.assertEqual(set(files), images)
         for name, entry in files.items():
             with self.subTest(name=name):
                 data = (fixtures / name).read_bytes()
