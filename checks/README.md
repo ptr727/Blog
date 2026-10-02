@@ -2,6 +2,17 @@
 
 The URL contract this site must honor. `golden-urls.txt` and `redirect-urls.txt` are ground truth: a URL is listed because a live request confirmed the site answers for it, never because a tool predicted it.
 
+This README covers the URL contract alone. The other checks in this directory each carry their reasoning in their own docstring:
+
+| Check | Fails when |
+| --- | --- |
+| [`check-env-docs.py`](./check-env-docs.py) | a configuration value is declared without a description in `ENVIRONMENT.md`, or described there and declared nowhere |
+| [`check-github-env.py`](./check-github-env.py) | the variables and secrets GitHub holds differ from the ones `ENVIRONMENT.md` lists |
+| [`check-media-metadata.py`](./check-media-metadata.py) | carried media is not in a form the gate can vouch for |
+| [`check-media-redactions.py`](./check-media-redactions.py) | a file declared in `media-redactions.json` is not its redacted result |
+| [`check-text-pii.py`](./check-text-pii.py) | a post outside the imported archive years carries personal data in its text |
+| [`fuzz-media-parsers.py`](./fuzz-media-parsers.py) | malformed input breaks the media gate or its normalizer |
+
 ## Why this exists
 
 A static-site build silently drops URLs. Nothing fails, the site looks right, and the loss surfaces months later as 404s in a log nobody reads. These lists turn that into a CI failure.

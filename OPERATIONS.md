@@ -12,6 +12,17 @@ How this site is built, released, served, and rolled back. [`GOVERNANCE.md`](./G
 
 So verify a production deploy against `blog.insanegenius.net`. A `404` from `blog.insanegenius.com` for a post this repository added is the old site answering, not a failed deploy.
 
+**The cutover reverts two interim settings, and each is easy to forget.** The steps, in order:
+
+1. A day ahead, lower the `blog` A-record TTL to 60 seconds.
+2. Flip the `blog` A-record to the VPS, unproxied.
+3. Set `SITE_BASE_URL` on the `production` environment back to `https://blog.insanegenius.com/`. The build bakes it into every canonical tag, feed link, and `sitemap.xml`, and the live check runs against it.
+4. Have the host set the production container's `SITE_ROBOTS` to `index, follow`. It serves `noindex, nofollow` for the rehearsal, because `.net` duplicates a live site. `FAMILY_SITE_ROBOTS` stays as it is, since the family site already serves its final domain.
+5. Deploy production, and verify it against `blog.insanegenius.com`.
+6. After 30 clean days, downgrade WordPress.com to the free plan rather than deleting it. That keeps the old media reachable as a safety net, and keeps the ability to export again.
+
+No gate here catches a wrong `SITE_BASE_URL`, for the reason in [`checks/README.md`](./checks/README.md) "The robots check, and the one thing no gate here can do". The host's half of the cutover, routing and TLS for the `.com` name, goes through "The Channel Between the Two Sides".
+
 This section describes the state before the cutover, and it is rewritten when the cutover happens, together with the `Production` row under [Environments](#environments) and the pre-cutover line at the top of [`README.md`](./README.md) and [`HISTORY.md`](./HISTORY.md).
 
 ## Local Verification
