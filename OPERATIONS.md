@@ -12,6 +12,19 @@ How this site is built, released, served, and rolled back. [`GOVERNANCE.md`](./G
 
 So verify a production deploy against `blog.insanegenius.net`. A `404` from `blog.insanegenius.com` for a post this repository added is the old site answering, not a failed deploy.
 
+**The cutover reverts the rehearsal's interim settings, and each is easy to forget.** The DNS, routing, and TLS for `blog.insanegenius.com` are the host side's, done outside this repository. The steps, in order:
+
+1. The host side points `blog.insanegenius.com` at the VPS and serves it there. Agree beforehand, through "The Channel Between the Two Sides", that the host performs step 5 as soon as step 4 passes.
+2. Set `SITE_BASE_URL` on the `production` environment back to `https://blog.insanegenius.com/`. The build bakes it into every canonical tag, feed link, and `sitemap.xml`, and the live check runs against it.
+3. Set the same base URL in `~/.secrets/blog.vps.production.env`, which a by-hand check of production reads.
+4. Deploy production, and verify it against `blog.insanegenius.com`.
+5. Once step 4 passes, the host recreates the production container with `SITE_ROBOTS` set to `index, follow`. The Caddyfile reads it from the process environment, so the watcher alone never picks it up. Confirm `.com` answers with `X-Robots-Tag: index, follow`. The container serves `noindex, nofollow` for the rehearsal, because `.net` duplicates a live site. `FAMILY_SITE_ROBOTS` stays as it is, since the family site already serves its final domain.
+6. After 30 clean days, downgrade WordPress.com to the free plan rather than deleting it. That keeps the old media reachable as a safety net, and keeps the ability to export again.
+
+Run steps 2 through 5 right after step 1. Indexing waits for the redeploy, because until then the canonical tags on `.com` point at `.net`. An indexable page carrying them tells a crawler that `.net` is the real site.
+
+No gate here catches a wrong `SITE_BASE_URL`, for the reason in [`checks/README.md`](./checks/README.md) "The robots check, and the one thing no gate here can do".
+
 This section describes the state before the cutover, and it is rewritten when the cutover happens, together with the `Production` row under [Environments](#environments) and the pre-cutover line at the top of [`README.md`](./README.md) and [`HISTORY.md`](./HISTORY.md).
 
 ## Local Verification

@@ -2,6 +2,17 @@
 
 The URL contract this site must honor. `golden-urls.txt` and `redirect-urls.txt` are ground truth: a URL is listed because a live request confirmed the site answers for it, never because a tool predicted it.
 
+This README covers the URL contract alone. The other checks in this directory each carry their reasoning in their own docstring:
+
+| Check | Fails when |
+| --- | --- |
+| [`check-env-docs.py`][check-env-docs] | a configuration value is declared without a description in `ENVIRONMENT.md`, or described there and declared nowhere |
+| [`check-github-env.py`][check-github-env] | the variables and secrets GitHub holds differ from the ones `ENVIRONMENT.md` lists |
+| [`check-media-metadata.py`][check-media-metadata] | carried media is not in a form the gate can vouch for |
+| [`check-media-redactions.py`][check-media-redactions] | a file declared in `media-redactions.json` is not its redacted result |
+| [`check-text-pii.py`][check-text-pii] | a Markdown file under `content/`, outside the imported archive years, carries personal data in its text |
+| [`fuzz-media-parsers.py`][fuzz-media-parsers] | malformed input breaks the media gate or its normalizer |
+
 ## Why this exists
 
 A static-site build silently drops URLs. Nothing fails, the site looks right, and the loss surfaces months later as 404s in a log nobody reads. These lists turn that into a CI failure.
@@ -10,8 +21,8 @@ The contract is enforced by two gates, because one cannot cover both halves:
 
 | Gate | Proves | Runs |
 | --- | --- | --- |
-| [`check-url-parity.py`](./check-url-parity.py) | Every URL that must render exists as a built page, every legacy image URL resolves, every local asset reference points at a real file, and the count of carried media linked from no page still equals its recorded baseline | Against `public/`, in CI and before any release is installed |
-| [`check-live-urls.sh`](./check-live-urls.sh) | Every redirect resolves, and its destination answers | Against a running server, which is the only thing that exercises a redirect |
+| [`check-url-parity.py`][check-url-parity] | Every URL that must render exists as a built page, every legacy image URL resolves, every local asset reference points at a real file, and the count of carried media linked from no page still equals its recorded baseline | Against `public/`, in CI and before any release is installed |
+| [`check-live-urls.sh`][check-live-urls] | Every redirect resolves, and its destination answers | Against a running server, which is the only thing that exercises a redirect |
 
 ## The two lists
 
@@ -60,13 +71,13 @@ A **retired page** is one the site no longer renders because another site replac
 
 **`/search/label/<Label>` is not a redirect.** The old platform answers it with a generic search page that returns 200 for a label that never existed, so the class is a soft 404 that looks alive. It is handled by choice rather than by preservation: `labels.map` sends each label to its term archive, and anything unmatched falls through to `/all/`.
 
-The other property worth knowing belongs to the generator rather than to the contract, so it is in [`capture/README.md`](../capture/README.md): `blogger.map` holds more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms still answer.
+The other property worth knowing belongs to the generator rather than to the contract, so it is in [`capture/README.md`][capture-readme]: `blogger.map` holds more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms still answer.
 
 ## Maintaining the contract
 
 **Adding a URL.** Real traffic finds what the lists missed. When a server log shows a 404 for an address that should work, append it to the appropriate list and add a redirect rule or map entry to cover it. The lists are append-only, per Directionality below.
 
-**Regenerating the maps.** The generator is [`capture/build-redirects.py`](../capture/build-redirects.py), and it lives there rather than here because it generates rather than gates. [`capture/README.md`](../capture/README.md) covers how to run it and how it chooses its input.
+**Regenerating the maps.** The generator is [`capture/build-redirects.py`][capture-build-redirects], and it lives there rather than here because it generates rather than gates. [`capture/README.md`][capture-readme] covers how to run it and how it chooses its input.
 
 **Checking a count.** Every count above is derivable from the files, so check rather than trust:
 
@@ -154,3 +165,16 @@ Three traps in that adjudication, each of which produced a wrong answer first an
 - **A regex cannot read nested elements.** The galleries are `wp-block-gallery` figures containing `wp-block-image` figures, and matching them by pattern reported a fictional 194-figure loss. An HTML parser gives the real number.
 - **Only a surplus in the mirror is a finding.** A mirror page parsed as having *fewer* figures than the markdown means the parser missed that page's markup, never that images were lost.
 - **The old platform generated an attachment page per upload, and a foreign host may also serve `/wp-content/uploads/`.** Counting attachment pages as places an image was displayed makes every unused upload look published, and matching an uploads path without checking its host attributes another site's file to this one. Both were hit here.
+
+<!-- Repo -->
+
+[capture-build-redirects]: ../capture/build-redirects.py
+[capture-readme]: ../capture/README.md
+[check-env-docs]: ./check-env-docs.py
+[check-github-env]: ./check-github-env.py
+[check-live-urls]: ./check-live-urls.sh
+[check-media-metadata]: ./check-media-metadata.py
+[check-media-redactions]: ./check-media-redactions.py
+[check-text-pii]: ./check-text-pii.py
+[check-url-parity]: ./check-url-parity.py
+[fuzz-media-parsers]: ./fuzz-media-parsers.py

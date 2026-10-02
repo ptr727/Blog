@@ -2,21 +2,18 @@
 
 How an agent audits **this repository** against its ground truth and reports drift. The audit is read-only: it never edits this repo, and it reads the hub only, never writes to it or any other repository.
 
-The ground truth is the hub's committed `repo-config/` payloads and secrets manifest, neither of which this repo carries a copy of, and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md), [`ENVIRONMENT.md`](./ENVIRONMENT.md)). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
+The ground truth is the hub's committed `repo-config/` payloads and secrets manifest, neither of which this repo carries a copy of, and the prose authorities ([`GOVERNANCE.md`][governance], [`CODESTYLE.md`][codestyle], [`WORKFLOW.md`][workflow], [`OPERATIONS.md`][operations], [`ENVIRONMENT.md`][environment]). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
 
 ## Scope
 
-This repo declares `types: ["source-only"]` and `workflowModel: release` with `lineEndings: "lf"`.
+This repo declares `types: ["hugo", "source-only", "python"]` and `workflowModel: release` with `lineEndings: "lf"`, the fleet default for a release repo.
 
-Both are deliberate deviations from what the fleet spec would predict, recorded here rather than left to be rediscovered as drift:
-
-- **`lineEndings: "lf"` on a `release` repo.** [`GOVERNANCE.md` "Line Endings"](./GOVERNANCE.md#line-endings) grants the native-platform default to operational repos only and holds `release` repos to the CRLF fleet default. Every consumer here is Linux: Hugo builds in CI, Caddy and OpenSSH read their config on Ubuntu, and the deploy scripts run there. Taking CRLF would mean an LF override for the shell scripts, the workflow YAML, the Caddyfile, the generated Caddy maps, and the content tree, which is the over-normalization that rule exists to prevent. The rule ties the ending to the workflow model when the thing that actually determines it is the consuming platform.
-- **`types: ["source-only"]` rather than `docs`.** `docs` detects a "governance-only repo" and asserts that CI runs linting only with no build. Both are false here, since this repo builds a site with Hugo and gates it on a URL contract. `source-only` detects "no `build-*-task.yml`", which is true, and its checks describe the release shape this repo actually has. Both selectors resolve to the same 24 baseline files, so the choice costs nothing and only one of them is honest.
+One audit finding is expected rather than drift. `capture/` is one-shot migration tooling that has already run, so it is deliberately left out of the declared Python directories. A python-directories finding naming files under `capture/` is that decision, not a gap.
 
 Three dimensions, each independently checkable:
 
 1. **Settings and rulesets**, against the hub's committed `repo-config/` payloads.
-2. **Secrets**, by name only, against the hub's manifest for the repository scope and against [`ENVIRONMENT.md`](./ENVIRONMENT.md) for the environment scope.
+2. **Secrets**, by name only, against the hub's manifest for the repository scope and against [`ENVIRONMENT.md`][environment] for the environment scope.
 3. **The URL contract**, which is this repo's own reason to exist.
 
 ## 1. Settings and Rulesets
@@ -96,3 +93,11 @@ Rank findings most severe first, each with a `file:line` or a command and its ou
 State a verdict: **operational** when every applicable check passes, or **not operational** when any does not. A partial pass is not operational. Record any residual delta rather than leaving it in a session that ends.
 
 Where a rule appears wrong rather than merely unmet, report the discrepancy rather than working around it locally. A local exception to a shared rule is drift that no later audit can distinguish from an oversight.
+
+<!-- Repo -->
+
+[codestyle]: ./CODESTYLE.md
+[environment]: ./ENVIRONMENT.md
+[governance]: ./GOVERNANCE.md
+[operations]: ./OPERATIONS.md
+[workflow]: ./WORKFLOW.md
