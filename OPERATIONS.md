@@ -12,7 +12,7 @@ How this site is built, released, served, and rolled back. [`GOVERNANCE.md`](./G
 
 So verify a production deploy against `blog.insanegenius.net`. A `404` from `blog.insanegenius.com` for a post this repository added is the old site answering, not a failed deploy.
 
-**The cutover reverts interim settings in three places, and each is easy to forget.** The steps, in order:
+**The cutover reverts the rehearsal's interim settings and a temporary TTL, and each is easy to forget.** The steps, in order:
 
 1. A day ahead, lower the TTL to 60 seconds on the `blog` A record, and on its AAAA record if it has one.
 2. Agree a flip time with the host through "The Channel Between the Two Sides". Ahead of it, the host adds a route for `blog.insanegenius.com`. The host also stands ready for step 8.
@@ -22,7 +22,7 @@ So verify a production deploy against `blog.insanegenius.net`. A `404` from `blo
 6. Set the same base URL in `~/.secrets/blog.vps.production.env`, which a by-hand check of production reads.
 7. Deploy production, and verify it against `blog.insanegenius.com`.
 8. Once step 7 passes, the host recreates the production container with `SITE_ROBOTS` set to `index, follow`. The Caddyfile reads it from the process environment, so the watcher alone never picks it up. Confirm `.com` answers with `X-Robots-Tag: index, follow`. The container serves `noindex, nofollow` for the rehearsal, because `.net` duplicates a live site. `FAMILY_SITE_ROBOTS` stays as it is, since the family site already serves its final domain.
-9. Once `.com` serves cleanly, raise the TTL back to its value from before step 1. A 60-second TTL only shortens how long a wrong record lingers during the flip.
+9. Once `.com` serves cleanly, raise the TTL on each record step 1 lowered back to its earlier value. A 60-second TTL only shortens how long a wrong record lingers during the flip.
 10. After 30 clean days, downgrade WordPress.com to the free plan rather than deleting it. That keeps the old media reachable as a safety net, and keeps the ability to export again.
 
 Run steps 3 through 8 back to back. Indexing waits for the redeploy, because until then the canonical tags on `.com` point at `.net`. An indexable page carrying them tells a crawler that `.net` is the real site.
