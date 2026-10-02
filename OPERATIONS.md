@@ -489,7 +489,7 @@ Two container variables belong to it, both part of the [container contract](./de
 | --- | --- |
 | `viljoen.family` | The production container |
 | `viljoen.vps.insanegenius.net` | The staging container, behind the auth gate |
-| The private name in a local mirror's `FAMILY_SITE_ADDRESS`, one per mirror | That local mirror |
+| The private names in a local mirror's `FAMILY_SITE_ADDRESS` | That local mirror |
 
 Pointing these names at their containers is the host side's work, per [Who Owns What](#who-owns-what). So are the DNS records, the certificates, and the redirects that send the family's other domains to `viljoen.family`, and the host side documents them.
 
@@ -502,7 +502,7 @@ The site and the server it runs on are maintained separately, so the boundary is
 | The GitHub Actions workflow | The SSH endpoint and its forced command |
 | `deploy/make-release.sh`, the bundle layout, and the Caddyfile inside it | The bootstrap `import`, the containers, and their environment variables |
 | `checks/check-live-urls.sh` and the URL contract | Config-watchdog and release-prune timers |
-| The release id and the `@@RELEASE@@` stamp | Proxy resources, routing, tokens, TLS, DNS, and redirects between domains |
+| The release id and the `@@RELEASE@@` stamp | Proxy resources, routing, tokens, TLS, DNS, and redirects from other domains |
 | What a release contains | Where a release may be written, and what happens after |
 
 The two meet at the container contract in [`deploy/README.md`](./deploy/README.md#container-contract). A defect on the host side is fixed on the host. A pipeline that needs the contract to say something different asks for a contract change rather than growing a second copy of the other side's work.
