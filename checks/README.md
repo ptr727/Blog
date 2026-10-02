@@ -10,7 +10,7 @@ This README covers the URL contract alone. The other checks in this directory ea
 | [`check-github-env.py`][check-github-env] | the variables and secrets GitHub holds differ from the ones `ENVIRONMENT.md` lists |
 | [`check-media-metadata.py`][check-media-metadata] | carried media is not in a form the gate can vouch for |
 | [`check-media-redactions.py`][check-media-redactions] | a file declared in `media-redactions.json` is not its redacted result |
-| [`check-text-pii.py`][check-text-pii] | a post outside the imported archive years carries personal data in its text |
+| [`check-text-pii.py`][check-text-pii] | a Markdown file under `content/`, outside the imported archive years, carries personal data in its text |
 | [`fuzz-media-parsers.py`][fuzz-media-parsers] | malformed input breaks the media gate or its normalizer |
 
 ## Why this exists
