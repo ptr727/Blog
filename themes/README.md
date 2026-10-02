@@ -30,9 +30,9 @@ Some customizations fill extension points the theme documents for the purpose. T
 
 | Customization | At | Theme hook |
 | --- | --- | --- |
-| Lexend body font, and the `gallery` and `gallery-cols-*` rules the gallery shortcode needs | [`assets/css/extended/custom.css`](../assets/css/extended/custom.css) | `assets/css/extended/blank.css`, a comment-only stylesheet the theme's head partial bundles beside this one |
-| Google Fonts preconnect and stylesheet links for Lexend | [`layouts/_partials/extend_head.html`](../layouts/_partials/extend_head.html) | `layouts/_partials/extend_head.html`, an empty partial the theme's head partial calls |
-| GitHub Discussions link for a post that sets a `discussions` URL in its front matter | [`layouts/_partials/extend_post_content.html`](../layouts/_partials/extend_post_content.html) | `layouts/_partials/extend_post_content.html`, an empty partial the theme's single-page template calls after the post body |
+| Lexend body font, and the `gallery` and `gallery-cols-*` rules the gallery shortcode needs | [`assets/css/extended/custom.css`][custom] | `assets/css/extended/blank.css`, a comment-only stylesheet the theme's head partial bundles beside this one |
+| Google Fonts preconnect and stylesheet links for Lexend | [`layouts/_partials/extend_head.html`][extend-head] | `layouts/_partials/extend_head.html`, an empty partial the theme's head partial calls |
+| GitHub Discussions link for a post that sets a `discussions` URL in its front matter | [`layouts/_partials/extend_post_content.html`][extend-post-content] | `layouts/_partials/extend_post_content.html`, an empty partial the theme's single-page template calls after the post body |
 
 The font rows belong together, since the font `custom.css` selects is the font `extend_head.html` loads. No row forks theme logic. `extend_post_content.html` renders nothing on a post that sets no `discussions` URL, which is every archive post.
 
@@ -40,11 +40,11 @@ The customization table holds hooks the theme leaves empty for a site to fill. O
 
 | Override | Replaces the theme's | Change from the theme's template |
 | --- | --- | --- |
-| [`layouts/baseof.html`](../layouts/baseof.html) | `layouts/baseof.html` | `.Language.LanguageDirection` swapped for `.Language.Direction` |
-| [`layouts/rss.xml`](../layouts/rss.xml) | `layouts/rss.xml` | `site.Language.LanguageCode` swapped for `site.Language.Locale`, and each item's `<guid>` marked `isPermaLink="false"`, using a post's `guid` front matter value in place of the permalink when one is set |
-| [`layouts/_partials/templates/opengraph.html`](../layouts/_partials/templates/opengraph.html) | `layouts/_partials/templates/opengraph.html` | `site.Language.LanguageCode` swapped for `site.Language.Locale` |
-| [`layouts/shortcodes/audio.html`](../layouts/shortcodes/audio.html) | `layouts/_shortcodes/audio.html` | Rewritten: not muted, `preload="metadata"`, a `<source>` typed from the file extension, and fallback text |
-| [`layouts/shortcodes/video.html`](../layouts/shortcodes/video.html) | `layouts/_shortcodes/video.html` | Rewritten: not muted, `preload="metadata"`, a `<source>` typed from the file extension, and fallback text |
+| [`layouts/baseof.html`][baseof] | `layouts/baseof.html` | `.Language.LanguageDirection` swapped for `.Language.Direction` |
+| [`layouts/rss.xml`][rss] | `layouts/rss.xml` | `site.Language.LanguageCode` swapped for `site.Language.Locale`, and each item's `<guid>` marked `isPermaLink="false"`, using a post's `guid` front matter value in place of the permalink when one is set |
+| [`layouts/_partials/templates/opengraph.html`][opengraph] | `layouts/_partials/templates/opengraph.html` | `site.Language.LanguageCode` swapped for `site.Language.Locale` |
+| [`layouts/shortcodes/audio.html`][audio] | `layouts/_shortcodes/audio.html` | Rewritten: not muted, `preload="metadata"`, a `<source>` typed from the file extension, and fallback text |
+| [`layouts/shortcodes/video.html`][video] | `layouts/_shortcodes/video.html` | Rewritten: not muted, `preload="metadata"`, a `<source>` typed from the file extension, and fallback text |
 
 Each swapped call is one Hugo deprecated in 0.158. `--panicOnWarning` would otherwise fail on the theme rather than on content. A swap works around upstream lag. A row whose only change is a swap retires once upstream makes that swap in the row's own template. Whether each swap is still needed is answerable by diffing against the commit recorded here, which is what this record exists for.
 
@@ -65,7 +65,7 @@ Two things about this are easy to get wrong.
 
 **The width is a fixed pixel cap with no responsive term.** `core/zmedia.css` is the theme's only media-query file, and it never touches `--main-width` or `--nav-width`. It changes `--gap` to `14px` below 768px and nothing else. So the content column is 720px from a small laptop to an ultrawide, and widening it means introducing a viewport term the theme does not have. The nav is already 304px wider than the content, so raising `--main-width` past `--nav-width` without raising both puts the content outside the header.
 
-**Override these in [`assets/css/extended/custom.css`](../assets/css/extended/custom.css), never here.** `PaperMod/layouts/_partials/head.html` concatenates the core sheet, `zmedia.css` last within it, and then the `css/extended/*.css` glob after all of it, so a `:root` block in the extended file wins on source order with no `!important` and no theme edit.
+**Override these in [`assets/css/extended/custom.css`][custom], never here.** `PaperMod/layouts/_partials/head.html` concatenates the core sheet, `zmedia.css` last within it, and then the `css/extended/*.css` glob after all of it, so a `:root` block in the extended file wins on source order with no `!important` and no theme edit.
 
 That ordering carries a trap: media queries add no specificity, so a top-level `:root` in the extended file also overrides `zmedia.css` **inside its own breakpoint**. Redefining `--main-width` or `--nav-width` there is safe, because zmedia never sets them. Redefining `--gap` at top level is not, because it silently restores the 24px gutter on phones.
 
@@ -102,3 +102,14 @@ Set `OLD` to the commit in the upstream table, and update that table afterwards.
 No bot watches this. `.github/dependabot.yml` covers GitHub Actions only, since a vendored copy has no manifest to track, so an update is a deliberate act.
 
 Fetching the theme rather than copying it is the way to get a bot, and only one of the two mechanisms would work here. Dependabot's `gitsubmodule` ecosystem tracks a ref and needs no tags, so a submodule would be watched. Hugo Modules would not. PaperMod tags releases as `v8.0`, which is not valid semver, so Go can only pin it as a pseudo-version. Dependabot does not upgrade pseudo-versions. Either mechanism first requires the tree to carry no local edits, and it carries none. Weigh it against what a bot would have found: between 2026-05-10 and 2026-08-06, upstream's only commit edited its own README.
+
+<!-- Repo -->
+
+[audio]: ../layouts/shortcodes/audio.html
+[baseof]: ../layouts/baseof.html
+[custom]: ../assets/css/extended/custom.css
+[extend-head]: ../layouts/_partials/extend_head.html
+[extend-post-content]: ../layouts/_partials/extend_post_content.html
+[opengraph]: ../layouts/_partials/templates/opengraph.html
+[rss]: ../layouts/rss.xml
+[video]: ../layouts/shortcodes/video.html

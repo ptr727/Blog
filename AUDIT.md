@@ -2,7 +2,7 @@
 
 How an agent audits **this repository** against its ground truth and reports drift. The audit is read-only: it never edits this repo, and it reads the hub only, never writes to it or any other repository.
 
-The ground truth is the hub's committed `repo-config/` payloads and secrets manifest, neither of which this repo carries a copy of, and the prose authorities ([`GOVERNANCE.md`](./GOVERNANCE.md), [`CODESTYLE.md`](./CODESTYLE.md), [`WORKFLOW.md`](./WORKFLOW.md), [`OPERATIONS.md`](./OPERATIONS.md), [`ENVIRONMENT.md`](./ENVIRONMENT.md)). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
+The ground truth is the hub's committed `repo-config/` payloads and secrets manifest, neither of which this repo carries a copy of, and the prose authorities ([`GOVERNANCE.md`][governance], [`CODESTYLE.md`][codestyle], [`WORKFLOW.md`][workflow], [`OPERATIONS.md`][operations], [`ENVIRONMENT.md`][environment]). A live setting that disagrees with the hub's payload is drift, and the payload is right until a human decides otherwise.
 
 ## Scope
 
@@ -13,7 +13,7 @@ One audit finding is expected rather than drift. `capture/` is one-shot migratio
 Three dimensions, each independently checkable:
 
 1. **Settings and rulesets**, against the hub's committed `repo-config/` payloads.
-2. **Secrets**, by name only, against the hub's manifest for the repository scope and against [`ENVIRONMENT.md`](./ENVIRONMENT.md) for the environment scope.
+2. **Secrets**, by name only, against the hub's manifest for the repository scope and against [`ENVIRONMENT.md`][environment] for the environment scope.
 3. **The URL contract**, which is this repo's own reason to exist.
 
 ## 1. Settings and Rulesets
@@ -93,3 +93,11 @@ Rank findings most severe first, each with a `file:line` or a command and its ou
 State a verdict: **operational** when every applicable check passes, or **not operational** when any does not. A partial pass is not operational. Record any residual delta rather than leaving it in a session that ends.
 
 Where a rule appears wrong rather than merely unmet, report the discrepancy rather than working around it locally. A local exception to a shared rule is drift that no later audit can distinguish from an oversight.
+
+<!-- Repo -->
+
+[codestyle]: ./CODESTYLE.md
+[environment]: ./ENVIRONMENT.md
+[governance]: ./GOVERNANCE.md
+[operations]: ./OPERATIONS.md
+[workflow]: ./WORKFLOW.md

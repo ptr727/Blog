@@ -15,15 +15,16 @@ So verify a production deploy against `blog.insanegenius.net`. A `404` from `blo
 **The cutover reverts interim settings in three places, and each is easy to forget.** The steps, in order:
 
 1. A day ahead, lower the TTL to 60 seconds on the `blog` A record, and on its AAAA record if it has one.
-2. Agree a flip time with the host through "The Channel Between the Two Sides". Ahead of it, the host adds a route for `blog.insanegenius.com`.
+2. Agree a flip time with the host through "The Channel Between the Two Sides". Ahead of it, the host adds a route for `blog.insanegenius.com`. The host also stands ready for step 8.
 3. Flip the `blog` records to the VPS, unproxied. The host's certificate comes from the HTTP-01 challenge, which issues only once the name resolves to the VPS.
-4. At the flip, the host confirms the certificate issued and sets the production container's `SITE_ROBOTS` to `index, follow`. It serves `noindex, nofollow` for the rehearsal, because `.net` duplicates a live site. `FAMILY_SITE_ROBOTS` stays as it is, since the family site already serves its final domain.
+4. At the flip, the host confirms the certificate issued.
 5. Set `SITE_BASE_URL` on the `production` environment back to `https://blog.insanegenius.com/`. The build bakes it into every canonical tag, feed link, and `sitemap.xml`, and the live check runs against it.
 6. Set the same base URL in `~/.secrets/blog.vps.production.env`, which a by-hand check of production reads.
 7. Deploy production, and verify it against `blog.insanegenius.com`.
-8. After 30 clean days, downgrade WordPress.com to the free plan rather than deleting it. That keeps the old media reachable as a safety net, and keeps the ability to export again.
+8. Once step 7 passes, the host sets the production container's `SITE_ROBOTS` to `index, follow`. It serves `noindex, nofollow` for the rehearsal, because `.net` duplicates a live site. `FAMILY_SITE_ROBOTS` stays as it is, since the family site already serves its final domain.
+9. After 30 clean days, downgrade WordPress.com to the free plan rather than deleting it. That keeps the old media reachable as a safety net, and keeps the ability to export again.
 
-Run steps 3 through 7 back to back. Until step 4 lands, `.com` serves `noindex, nofollow`. Until the redeploy, its canonical tags point at `.net`. Each tells a crawler to drop the site.
+Run steps 3 through 8 back to back. Indexing waits for the redeploy, because until then the canonical tags on `.com` point at `.net`. An indexable page carrying them tells a crawler that `.net` is the real site.
 
 No gate here catches a wrong `SITE_BASE_URL`, for the reason in [`checks/README.md`](./checks/README.md) "The robots check, and the one thing no gate here can do".
 
