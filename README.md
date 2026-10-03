@@ -111,9 +111,9 @@ flowchart LR
     lp --> e3["Human: read production"]
   end
 
-  e1 --> pr
-  rv --> ds
-  e2 --> pm
+  local --> gh
+  gh --> stg
+  stg --> prd
 ```
 
 **1. Write on a branch, and prove the artifact locally.** A post is a Markdown file under `content/posts/`, written on a feature branch with whatever editor the author prefers. [CONTENT.md][content] holds where it goes, what its front matter carries, and how it is written, since no gate has an opinion about the writing. The build treats a warning as fatal, so a deprecated theme API fails it rather than accumulating. The build gate then checks the render half of the contract, which is every address that must return a page.
