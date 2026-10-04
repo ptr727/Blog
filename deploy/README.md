@@ -244,10 +244,9 @@ asking for it explicitly.
 the contract, since checking the contract against the wrong environment proves nothing.
 
 **The family site reads `FAMILY_SITE_ROBOTS` rather than `SITE_ROBOTS`**, with the same default for
-the same reason. The two sites reach production on different schedules: the blog serves under an
-interim hostname that duplicates the live blog until its cutover, while `viljoen.family` is the
-family site's final domain and duplicates nothing. One variable would hold both at the stricter
-value. Set both to `noindex, nofollow` on a staging container, since neither falls back to the other.
+the same reason. The two sites can reach production on different schedules. A site served under
+an interim hostname that duplicates a live one needs `noindex`, while the other does not. One
+variable would hold both at the stricter value. Set both to `noindex, nofollow` on a staging container, since neither falls back to the other.
 No check reads `X-Robots-Tag`, so a missing value shows only in the served header.
 
 ## Trusting the proxy
