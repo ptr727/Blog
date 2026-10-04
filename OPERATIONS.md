@@ -49,7 +49,7 @@ ENV_FILE=~/.secrets/blog.local.staging.env deploy/make-release.sh "" "$RELEASE"
 EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-**There is no restart step, and that depends on one flag.** The container runs `caddy run --watch`, which re-adapts the config on a timer and reloads it in process. Re-adapting re-executes every `import`, so a new release's `Caddyfile` and `maps/*.map` are picked up through the unchanged `/config/Caddyfile` that the watcher actually names. Measured on this host: content is live the instant the symlink moves, and the rules follow within about a quarter of a second.
+**There is no restart step, and that depends on one flag.** The container runs `caddy run --watch`, which re-adapts the config on a timer and reloads it in process. Re-adapting re-executes every `import`, so a new release's `Caddyfile` and `maps/*.map` are picked up through the unchanged `/config/Caddyfile` that the watcher actually names. Content is live the instant the symlink moves, and the rules follow on the watcher's next poll.
 
 **The watcher dies silently after one failed config load.** Verified: a flip to a valid release reloads, a flip to a missing one logs the failure and retains the last good config, and a flip back to a valid release **never reloads again**. Nothing in the log says it has given up. Every later deploy then lands content without its rules, which is the failure this section's release stamp exists to catch, and a restart is the only fix. Anything that breaks `current` even briefly, including a test, ends that container's ability to pick up releases.
 
@@ -112,6 +112,8 @@ The deploy root and the base URL are the only host-specific values. A local run 
 
 **Always set `SITE_BASE_URL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` internally, and the effective value is printed on every build for that reason.
 
+**Never promote a staging build to production.** The base URL is baked into the canonicals, the feeds, and every absolute permalink at build time. A staging artifact served as production points every page at the staging host. Each environment's deploy builds its own release from the ref instead.
+
 **The deploy workflow reaches only the VPS `staging` and `production` sites.** Dispatching it with `environment=staging` deploys `blog.vps.insanegenius.net`, never a local mirror. The two local mirrors are deployed from the maintainer's own machine with `make-release.sh` and nothing else. So "deploy staging" names two different targets depending on who says it. A run reporting that staging deployed says nothing about what a local mirror serves, so check the mirror itself.
 
 **`make-release.sh` builds the working tree, not the commit.** Hugo reads the checkout as it stands, so an uncommitted file ships. The release carries whatever version you pass. The documented local procedure passes a commit SHA, and a VPS deploy passes its run-based id. It defaults to a timestamp when you pass nothing. A SHA then names a commit that does not describe what is served. `EXPECT_RELEASE` still matches, because it compares the stamp against itself rather than against the tree. Commit before deploying, or read the release id as a label rather than a description.
@@ -135,9 +137,9 @@ ln -sfn "releases/<previous>" "<deploy-root>/.current.tmp"
 mv -Tf "<deploy-root>/.current.tmp" "<deploy-root>/current"
 ```
 
-The content reverts on the rename alone, because the container mounts the parent directory and the kernel resolves `current` per request. The rules follow on the watcher's next poll, within about a quarter of a second, since a rollback is a config change like any other and re-adapting re-reads the reverted release's `Caddyfile` and maps.
+The content reverts on the rename alone, because the container mounts the parent directory and the kernel resolves `current` per request. The rules follow on the watcher's next poll. A rollback is a config change like any other, and re-adapting re-reads the reverted release's `Caddyfile` and maps.
 
-**For that fraction of a second the reverted content is served under the newer release's rules.** That is the same window every deploy has, in the other direction, and it is harmless while every rule is a redirect: a stale redirect sends a visitor to a page that exists in both releases. It would stop being harmless if a rule ever *gated* content rather than redirecting it, and at that point the flip has to become a restart again.
+**Until that poll the reverted content is served under the newer release's rules.** That is the same window every deploy has, in the other direction. It is harmless while every rule is a redirect, since a stale redirect sends a visitor to a page that exists in both releases. It would stop being harmless if a rule ever *gated* content rather than redirecting it. At that point the flip has to become a restart again.
 
 Verify with `EXPECT_RELEASE` set to the release being rolled back **to**, which is what proves the rules actually reverted rather than assuming they did.
 
@@ -168,10 +170,9 @@ ssh "$VPS_SSH_HOST" true && echo reachable
 | --- | --- | --- |
 | `VPS_SSH_HOST` | the administrative login | the VPS |
 | `VPS_TRAEFIK_LOG` | today's live access log, still being appended to | the VPS |
-| `VPS_COMMS_DIR` | the two agent channel files | the VPS |
 | `LOG_ARCHIVE_ROOT` | the off-host copy of the rotated logs | the backup host |
 
-**There are two credentials to this host and picking the wrong one is the first mistake to avoid.** `DEPLOY_SSH_USER`, held per environment and used only by the deploy, reaches a confined account behind an `rrsync` forced command that can write one release tree and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for everything on this page. They are deliberately separate credentials with different blast radii, so reaching for the deploy account to read a log fails in a way that reads like an outage, and reaching for the admin account to deploy grants far more than the deploy needs.
+**There are two credentials to this host and picking the wrong one is the first mistake to avoid.** `DEPLOY_SSH_USER` is held per environment and used only by the deploy. It reaches a confined account behind an `rrsync` forced command that can write the release trees and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for everything on this page. They are deliberately separate credentials with different blast radii. Reaching for the deploy account to read a log fails in a way that reads like an outage. Reaching for the admin account to deploy grants far more than the deploy needs.
 
 **The off-host copy, maintained outside this repository, writes the rotated access logs to `LOG_ARCHIVE_ROOT`, and this section covers nothing more about it.** Its installation, how the VPS itself is provisioned, and its trust model are the backup host's own configuration to document, not this repository's. What "Logs and Debugging" needs from its schedule and copy behavior, to read the logs correctly, is covered there instead. Read the unit and its last run on the backup host rather than trusting a schedule written down anywhere, including here.
 
@@ -184,9 +185,7 @@ ls -d "$LOG_ARCHIVE_ROOT"
 
 **Today's traffic is never in the off-host copy, and that is deliberate.** Rotation is what makes a file eligible to be pulled, so a live log would be copied as a torn prefix and fetched again on the next run. An analysis covering today therefore reads `VPS_TRAEFIK_LOG` over SSH and everything older from `LOG_ARCHIVE_ROOT`, and treats the two as one series joined on `StartUTC` rather than on which file a line came from.
 
-**The channel transfers are the one exception, and they must stay literal.** The permission allowlist in `.claude/settings.local.json` matches the text of a command rather than what it expands to, so substituting `"$VPS_SSH_HOST:$VPS_COMMS_DIR/..."` into those two `rsync` lines turns an allowed command into one that prompts, while looking like a tidy-up that changed nothing. Use the values above everywhere else, and leave the two commands under "The Channel Between the Two Sides" spelled out exactly as they are written there.
-
-**What this section does not cover, and where it lives instead.** Reading the logs for content is "Logs and Debugging". Exchanging rounds with the agent that owns the host is "The Channel Between the Two Sides". The boundary of which side fixes what is "Who Owns What". What a rebuild restores, including the host-key step that blocks both deploy and rollback, is "Backup and Recovery".
+**What this section does not cover, and where it lives instead.** Reading the logs for content is "Logs and Debugging". The boundary of which side fixes what is "Who Owns What". What a rebuild restores, including the host-key step that blocks both deploy and rollback, is "Backup and Recovery".
 
 ### Server Hardening
 
@@ -201,6 +200,29 @@ The deploy account exists to receive a release and nothing else.
 - Unattended upgrades run with automatic reboot, which is safe because the site is static and the swap survives a restart.
 
 A deploy key that can write a release can already rewrite the site's Caddy config, because [`deploy/Caddyfile`](./deploy/Caddyfile) ships inside the bundle and the bootstrap imports it. Withholding the container's `/config` directory from the same key therefore protects nothing, which is why the bootstrap stays outside the deploy path for the reason given below and not for a security one.
+
+### The Deploy Key
+
+The deploy key is the one credential CI holds for the host. Each rule below covers a way it has gone wrong or could.
+
+- **Generate the key on the maintainer's workstation, and send the host only the `.pub`.** The private half goes to the GitHub secrets and a vault, never to the server.
+- **Keep a vault copy, because GitHub secrets are write-only.** A secret can be replaced but never read back. Without the vault copy, a lost workstation means rotating rather than recovering.
+- **Rotation swaps one line, in an order that never breaks a deploy.** Add the new key as a second line with the same `restrict` and forced command. Replace the secret in both GitHub Environments, since one key covers both. Then delete the old line.
+- **Test a revocation from the server's log, not from the client's message.** `Permission denied` also appears when the client fails to sign, for example with a mismatched key pair. The server then never verified a signature at all. Before revoking, confirm the test logs `Accepted publickey` for the deploy user. After revoking, confirm the same test reached sshd and logged no `Accepted publickey`. The key's fingerprint on a refusal appears only at `LogLevel VERBOSE`.
+
+**The confinement is testable without the private key.** Running the forced command directly tests authorization apart from authentication. The shape is an `rsync -e` wrapper, which rsync calls with the host and then the remote command. The wrapper drops the host argument and runs `sudo -u <deploy user> env SSH_ORIGINAL_COMMAND="<the remote command>" <the forced command>`, with the forced command copied from `authorized_keys`. The `env` must follow `sudo`, because `sudo` scrubs the environment. An `rrsync error: Not invoked via sshd` means the variable never arrived, not that the guard held. Three results show the confinement holds:
+
+- A write to each environment root succeeds.
+- A path containing `..` is refused.
+- An absolute path is remapped under the confinement root and fails on a missing parent, and `authorized_keys` checksums the same before and after.
+
+Run a `--delete` check separately, by deploying after withdrawing a page. The write checks only overwrite existing files, so they pass with `--delete` broken.
+
+**A transfer by hand with the key meets three client traps.**
+
+- `-i` adds a key rather than replacing the others. An agent holding several keys reaches the server's attempt limit first, failing with `Too many authentication failures`. Pass `-o IdentitiesOnly=yes`.
+- `IdentitiesOnly` still offers every `IdentityFile` a matching `Host` block adds, a `Host *` one included. Read `ssh -G <host>` to list them.
+- `rsync -a` keeps the source mtimes, so an old mtime on the server is not a failed deploy. Read where `current` points instead.
 
 ## Backup and Recovery
 
@@ -236,7 +258,7 @@ A request crosses the proxy before it reaches the site, so no single log answers
 | Tier | Sees | Cannot see |
 | --- | --- | --- |
 | Traefik, or Pangolin's Traefik on the VPS | every request reaching the host, including unknown hostnames, TLS failures, and traffic aimed at names this site does not serve | which release answered, since Traefik logs request headers and not response headers |
-| Pangolin, on the VPS only | requests the auth gate rejected | anything on the local mirrors, which have no gate |
+| Pangolin's request audit log, on the VPS only | which authorization decision the gate made, kept for 7 days | the status, headers, query, and user agent, so a request the gate rejected is read from Traefik's line for it instead |
 | Caddy, per environment | path, status, and the `X-Blog-Release` that answered | anything the tiers above rejected, which never arrives |
 
 **A 404 count taken from Caddy alone is therefore a floor, not a total.** A request the edge refused is a reader who found nothing just as surely, and it appears in no Caddy log. Read the edge for what never arrived and Caddy for what arrived and failed, and treat the two as one answer.
@@ -253,13 +275,14 @@ The outward pass is four filters over the edge log, and each one exists because 
 
 **Exclude this repository's own deploy gate first.** `check-live-urls.sh` requests the whole URL contract on every deploy, so an unfiltered day is mostly a recording of our own `curl`. A count that omits this step is measuring the pipeline rather than the readers, and it will be an order of magnitude too large.
 
-The mechanism is the `X-Blog-Check` request header, which the scripted checks send on every request they make, so `jq 'select(.["request_X-Blog-Check"] == null)'` is the filter. It is only as complete as the tagging is, which is the first bullet below. Its value is a source and an id rather than a boolean, so a run is identifiable rather than merely excludable, and real values look like `github/31322640628-1` from CI, `vps/smoke` from the host side, and `proxmox/media-dev` from here. The shape is enforced by `check-live-urls.sh`, which takes exactly one `/` and only letters, digits, `.`, `_`, `-`, so a placeholder written with angle brackets is a description rather than something to paste.
+The mechanism is the `X-Blog-Check` request header, which the scripted checks send on every request they make, so `jq 'select(.["request_X-Blog-Check"] == null)'` is the filter. It is only as complete as the tagging is, which is the first bullet below. Its value is a source and an id rather than a boolean, so a run is identifiable rather than merely excludable. Real values look like `github/31322640628-1` from CI and `proxmox/media-dev` from here. Older lines also carry `vps/smoke`, sent by a host-side smoke script that is retired. The shape is enforced by `check-live-urls.sh`, which takes exactly one `/` and only letters, digits, `.`, `_`, `-`. A placeholder written with angle brackets is therefore a description rather than something to paste.
 
 - **The field exists only because the edge is configured to log that header**, which is the host side's to hold and not this repository's. An absent field therefore has two meanings, an untagged request or a capture that stopped, and they are not distinguishable from the log alone. Confirm the capture is live before reading a day's absence as a day of real traffic.
 
 - **A hand probe carries it only because whoever runs it adds it.** `check-live-urls.sh` sends it on every request and a bare `curl` sends nothing, so an interactive probe passes `-H "X-Blog-Check: proxmox/media-dev"`. The source half stays `proxmox`, which is where the probe came from, and the id half is where the purpose goes. Two untagged probes turned up against 3,100 tagged ones in the 2026-08-09 deploy window.
 - **Absence is not proof of a human**, since a scanner sends no header either, so this pairs with the scanner-shape filters below rather than replacing them. The field is forgeable and must never reach auth, rate limiting, robots handling, or caching.
 - **Before 2026-08-09 the log carries no such field**, and user agent is the only key for those days: on 2026-08-08, 9,285 of 9,996 requests were `curl/8.5.0`, leaving 711 real ones. That key is a coincidence rather than a rule, since the CI runner's curl and the host's are byte-identical and only the rotating client address separates them, which is why the header exists.
+- **The header won over four alternatives, and each lost for a reason that still holds.** Other consumers read the user agent, and a runner image bumping curl would silently break a filter built on it. A query parameter pollutes the path, which is the analysis key, and collides with the `?p=` redirects. A source address fails because CI runner addresses rotate daily. A separate check hostname would exercise a different router and certificate, so the check would stop testing what production serves.
 
 **A referer does not implicate this site unless it points somewhere else.** The rule worth applying is that a 404 carrying a referer is a broken link and a 404 without one is a typed or probed address, and it fails on scanners, which set `Referer` to the request URL itself. Every one of the 36 referer-bearing site-host 404s on 2026-08-08 was self-referential, so the unrefined rule reported three dozen broken links on a site that had none. Discard the matches before counting, and **normalize the scheme rather than comparing it**, because a scanner reaching an HTTPS site routinely sends an `http://` referer for the same address. Comparing against the request's own scheme therefore matches nothing and leaves every false positive in place: on the 2026-08-08 data the naive form kept all 36 where the normalized form kept none.
 
@@ -495,36 +518,3 @@ The site and the server it runs on are maintained separately, so the boundary is
 | What a release contains | Where a release may be written, and what happens after |
 
 The two meet at the container contract in [`deploy/README.md`](./deploy/README.md#container-contract). A defect on the host side is fixed on the host. A pipeline that needs the contract to say something different asks for a contract change rather than growing a second copy of the other side's work.
-
-#### The Channel Between the Two Sides
-
-The two sides are maintained by two agents that share no filesystem, no repository, and no session. They exchange rounds through two files on the VPS, in `/srv/agent-comms/`, each named for its author rather than for a direction, because every directional word inverts depending on which side reads it:
-
-| File | Author | From this side |
-| --- | --- | --- |
-| `vps-agent.md` | the host | pull it, and never write it |
-| `blog-agent.md` | this repo | pull it, append a round, push it back |
-
-The working copies live in `comms/`, which is gitignored, so they are found by name rather than in whichever session directory last held them:
-
-```sh
-rsync -a root@<vps-host>:/srv/agent-comms/vps-agent.md comms/vps-agent.md
-rsync -a --no-o --no-g --chmod=F644 comms/blog-agent.md root@<vps-host>:/srv/agent-comms/blog-agent.md
-```
-
-**Spell both commands out rather than reading the host and directory from `~/.secrets/`**, which is the opposite of the rule "Working With the VPS" sets for every other path, and is deliberate. These two are allowlisted in `.claude/settings.local.json`, and an allow rule matches the text of the command rather than the value it expands to, so replacing the literals with `$VPS_SSH_HOST` and `$VPS_COMMS_DIR` turns an allowed transfer into one that prompts. The same rule is why neither may be chained behind `cd` or `&&`: an allow rule matches a standalone command only.
-
-**The push suppresses owner and group deliberately.** `-a` implies `-o` and `-g`, and the transfer connects as root, so a plain `rsync -a` carries this workstation's numeric uid onto a host that has no such user and leaves the file owned by a number.
-
-Four rules, each covering a way the channel has already failed or could:
-
-- **Never pass `--delete`.** Nothing in that directory should be removed by a transfer, and no permission scheme prevents it, since both sides connect as root.
-- **Write only the file this side authors.** The other file is read-only here by convention alone.
-- **Re-pull immediately before appending.** Both sides can write in the same minute, so a copy pulled an hour ago is not a base to push from. Pushing this side's file is a read-modify-write, and it is the one operation that can silently drop a round.
-- **Timestamp every round from `date`, and add a changelog row.** Nothing sequences the rounds, so the timestamps are the only thing distinguishing a round that arrived late from a round that disagrees. A guessed timestamp is worse than none: a future-dated round sorts ahead of a genuinely later reply, which is the confusion the header exists to prevent.
-
-**Convention is the only thing protecting either file, so the copies are what matter.** Each side connects as root, so nothing stops either file being overwritten, and one has been. What protects the record is the host's nightly backup, which covers both files and reaches an off-host copy, plus the maintainer's own copy.
-
-**This repository holds the channel's rules and not its contents.** The rounds themselves stay out of git: they carry host detail this repository does not own, and publishing them here would put a second, unreviewed copy of the server's internals in a public repository to gain a backup the host already has.
-
-**A transfer into that directory uses `rsync` rather than `scp` for a reason worth keeping.** The host sets `fs.protected_regular = 2`, which refuses `O_CREAT` on an existing file in a group-writable sticky directory whose owner differs from the file's, and root does not bypass it. `scp` and `sftp` open with `O_CREAT` and fail there. `rsync` writes a temporary file and renames, so it succeeds. The directory's current ownership keeps the rule from applying at all, and the failure returns the moment anyone tightens the permissions.
