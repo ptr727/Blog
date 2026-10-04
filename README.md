@@ -4,8 +4,6 @@ Pieter Viljoen's blog, and the tooling that builds, verifies, and deploys it.
 
 The blog's public address is [blog.insanegenius.com][blog-link].
 
-> Until its DNS records are cut over, that address still serves the old WordPress site, and the site this repository builds is served at `blog.insanegenius.net`.
-
 ## Build and Distribution <!-- omit from toc -->
 
 - **Source Code**: [GitHub][github-link], holding the source, issues, discussions, and CI/CD pipelines.

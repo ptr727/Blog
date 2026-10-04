@@ -2,30 +2,19 @@
 
 How this site is built, released, served, and rolled back. [`GOVERNANCE.md`](./GOVERNANCE.md) holds the cross-cutting rules and [`WORKFLOW.md`](./WORKFLOW.md) the CI contract. This file is the operational procedure, and it is the one to read before touching a server.
 
-## Current State: Before the DNS Cutover
+## Current State
 
-**The public address still serves the old WordPress site.** Until the maintainer cuts over the DNS records, `blog.insanegenius.com` answers from WordPress.com, and nothing this repository builds, releases, or deploys appears there. Its builds are only ever visible in these places, and each one shows a change only after its own deploy:
+**`blog.insanegenius.com` is served by the VPS production site.** Its DNS moved off WordPress.com on 2026-10-04. The `production` environment's `SITE_BASE_URL` is `https://blog.insanegenius.com/`, and the production container serves `X-Robots-Tag: index, follow`. This repository's builds appear in these places, and each one shows a change only after its own deploy:
 
-- The VPS production site at `blog.insanegenius.net`, whose interim `SITE_BASE_URL` for the `production` environment is `https://blog.insanegenius.net/`, updated by `deploy-site.yml` with `environment=production`.
+- The VPS production site at `blog.insanegenius.com`, updated by `deploy-site.yml` with `environment=production`.
 - The VPS staging site at `blog.vps.insanegenius.net`, behind the auth gate, updated by `deploy-site.yml` with `environment=staging`.
 - The two local mirrors on the maintainer's homelab, updated only by `make-release.sh` from the maintainer's machine.
 
-So verify a production deploy against `blog.insanegenius.net`. A `404` from `blog.insanegenius.com` for a post this repository added is the old site answering, not a failed deploy.
+The interim hostname `blog.insanegenius.net` has no DNS record, and no setting here names it.
 
-**The cutover reverts the rehearsal's interim settings, and each is easy to forget.** The DNS, routing, and TLS for `blog.insanegenius.com` are the host side's, done outside this repository. The steps, in order:
-
-1. The host side points `blog.insanegenius.com` at the VPS and serves it there. Agree beforehand, through "The Channel Between the Two Sides", that the host performs step 5 as soon as step 4 passes.
-2. Set `SITE_BASE_URL` on the `production` environment back to `https://blog.insanegenius.com/`. The build bakes it into every canonical tag, feed link, and `sitemap.xml`, and the live check runs against it.
-3. Set the same base URL in `~/.secrets/blog.vps.production.env`, which a by-hand check of production reads.
-4. Deploy production, and verify it against `blog.insanegenius.com`.
-5. Once step 4 passes, the host recreates the production container with `SITE_ROBOTS` set to `index, follow`. The Caddyfile reads it from the process environment, so the watcher alone never picks it up. Confirm `.com` answers with `X-Robots-Tag: index, follow`. The container serves `noindex, nofollow` for the rehearsal, because `.net` duplicates a live site. `FAMILY_SITE_ROBOTS` stays as it is, since the family site already serves its final domain.
-6. After 30 clean days, downgrade WordPress.com to the free plan rather than deleting it. That keeps the old media reachable as a safety net, and keeps the ability to export again.
-
-Run steps 2 through 5 right after step 1. Indexing waits for the redeploy, because until then the canonical tags on `.com` point at `.net`. An indexable page carrying them tells a crawler that `.net` is the real site.
+**The old WordPress.com site is kept rather than deleted.** On or after 2026-11-03, 30 clean days after the cutover, downgrade it to the free plan. That keeps the old media reachable as a safety net, and keeps the ability to export again.
 
 No gate here catches a wrong `SITE_BASE_URL`, for the reason in [`checks/README.md`](./checks/README.md) "The robots check, and the one thing no gate here can do".
-
-This section describes the state before the cutover, and it is rewritten when the cutover happens, together with the `Production` row under [Environments](#environments) and the pre-cutover line at the top of [`README.md`](./README.md) and [`HISTORY.md`](./HISTORY.md).
 
 ## Local Verification
 
@@ -362,7 +351,7 @@ Four environments, in two pairs. Each pair is one publish site and one staging s
 | Local publish mirror | a private hostname, set in `~/.secrets/blog.local.production.env` | Traefik, on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
 | Local staging mirror | a second private hostname, set in `~/.secrets/blog.local.staging.env` | Traefik | Proves that two environments on one host stay independent, before that matters on a server. |
 | Staging | `blog.vps.insanegenius.net`, behind the auth gate, set in `~/.secrets/blog.vps.staging.env` | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
-| Production | `blog.insanegenius.net` until the DNS cutover, then `blog.insanegenius.com`, set in `~/.secrets/blog.vps.production.env` | Pangolin | The public site after the cutover. Until then `blog.insanegenius.com` still serves WordPress, per [Current State](#current-state-before-the-dns-cutover). |
+| Production | `blog.insanegenius.com`, set in `~/.secrets/blog.vps.production.env` | Pangolin | The public site, per [Current State](#current-state). |
 
 The local mirrors are not staging. They run the same bundle against the same web server, so they catch a broken redirect or a bad permission for free, but they exercise none of the routing, authentication, or certificate machinery that only exists on the VPS. Passing locally says the artifact is right. It says nothing about whether the server in front of it is.
 
@@ -483,7 +472,7 @@ A second site block in `deploy/Caddyfile` serves it on the same port, selected b
 
 Two container variables belong to it, both part of the [container contract](./deploy/README.md#container-contract). `FAMILY_SITE_ROBOTS` sets the family site's `X-Robots-Tag` apart from the blog's `SITE_ROBOTS`, for the reason given in [Identifying the environment](./deploy/README.md#identifying-the-environment). `FAMILY_SITE_ADDRESS` adds a local mirror's private name, per [Serving the family site on a local name](./deploy/README.md#serving-the-family-site-on-a-local-name).
 
-**A rollback to a release older than the family block drops it.** Every hostname then reaches the blog block, so `viljoen.family` serves the blog until a release carrying the block is live again, and on production that copy is indexable once the blog's `SITE_ROBOTS` leaves `noindex` at the cutover. A production rollback to a release that predates `FAMILY_SITE_ROBOTS` stamps the family site with the blog's `SITE_ROBOTS` instead, which deindexes it for as long as the blog's rehearsal holds `noindex`. A local mirror rolled back to a release that predates `FAMILY_SITE_ADDRESS` loses its private family name, which then serves the blog.
+**A rollback to a release older than the family block drops it.** Every hostname then reaches the blog block, so `viljoen.family` serves the blog until a release carrying the block is live again. On production that copy is indexable. A production rollback to a release that predates `FAMILY_SITE_ROBOTS` stamps the family site with the blog's `SITE_ROBOTS`. That deindexes it whenever the blog holds `noindex`. A local mirror rolled back to a release that predates `FAMILY_SITE_ADDRESS` loses its private family name, which then serves the blog.
 
 | Hostname | Reaches |
 | --- | --- |
