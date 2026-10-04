@@ -49,7 +49,7 @@ ENV_FILE=~/.secrets/blog.local.staging.env deploy/make-release.sh "" "$RELEASE"
 EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-**There is no restart step, and that depends on one flag.** The container runs `caddy run --watch`, which re-adapts the config on a timer and reloads it in process. Re-adapting re-executes every `import`, so a new release's `Caddyfile` and `maps/*.map` are picked up through the unchanged `/config/Caddyfile` that the watcher actually names. Measured on this host: content is live the instant the symlink moves, and the rules follow within about a quarter of a second.
+**There is no restart step, and that depends on one flag.** The container runs `caddy run --watch`, which re-adapts the config on a timer and reloads it in process. Re-adapting re-executes every `import`, so a new release's `Caddyfile` and `maps/*.map` are picked up through the unchanged `/config/Caddyfile` that the watcher actually names. Content is live the instant the symlink moves, and the rules follow on the watcher's next poll.
 
 **The watcher dies silently after one failed config load.** Verified: a flip to a valid release reloads, a flip to a missing one logs the failure and retains the last good config, and a flip back to a valid release **never reloads again**. Nothing in the log says it has given up. Every later deploy then lands content without its rules, which is the failure this section's release stamp exists to catch, and a restart is the only fix. Anything that breaks `current` even briefly, including a test, ends that container's ability to pick up releases.
 
@@ -137,7 +137,7 @@ ln -sfn "releases/<previous>" "<deploy-root>/.current.tmp"
 mv -Tf "<deploy-root>/.current.tmp" "<deploy-root>/current"
 ```
 
-The content reverts on the rename alone, because the container mounts the parent directory and the kernel resolves `current` per request. The rules follow on the watcher's next poll, well under a second end to end. A rollback is a config change like any other, and re-adapting re-reads the reverted release's `Caddyfile` and maps.
+The content reverts on the rename alone, because the container mounts the parent directory and the kernel resolves `current` per request. The rules follow on the watcher's next poll. A rollback is a config change like any other, and re-adapting re-reads the reverted release's `Caddyfile` and maps.
 
 **For that fraction of a second the reverted content is served under the newer release's rules.** That is the same window every deploy has, in the other direction, and it is harmless while every rule is a redirect: a stale redirect sends a visitor to a page that exists in both releases. It would stop being harmless if a rule ever *gated* content rather than redirecting it, and at that point the flip has to become a restart again.
 
@@ -172,7 +172,7 @@ ssh "$VPS_SSH_HOST" true && echo reachable
 | `VPS_TRAEFIK_LOG` | today's live access log, still being appended to | the VPS |
 | `LOG_ARCHIVE_ROOT` | the off-host copy of the rotated logs | the backup host |
 
-**There are two credentials to this host and picking the wrong one is the first mistake to avoid.** `DEPLOY_SSH_USER`, held per environment and used only by the deploy, reaches a confined account behind an `rrsync` forced command that can write one release tree and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for everything on this page. They are deliberately separate credentials with different blast radii, so reaching for the deploy account to read a log fails in a way that reads like an outage, and reaching for the admin account to deploy grants far more than the deploy needs.
+**There are two credentials to this host and picking the wrong one is the first mistake to avoid.** `DEPLOY_SSH_USER` is held per environment and used only by the deploy. It reaches a confined account behind an `rrsync` forced command that can write the release trees and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for everything on this page. They are deliberately separate credentials with different blast radii. Reaching for the deploy account to read a log fails in a way that reads like an outage. Reaching for the admin account to deploy grants far more than the deploy needs.
 
 **The off-host copy, maintained outside this repository, writes the rotated access logs to `LOG_ARCHIVE_ROOT`, and this section covers nothing more about it.** Its installation, how the VPS itself is provisioned, and its trust model are the backup host's own configuration to document, not this repository's. What "Logs and Debugging" needs from its schedule and copy behavior, to read the logs correctly, is covered there instead. Read the unit and its last run on the backup host rather than trusting a schedule written down anywhere, including here.
 
@@ -205,10 +205,10 @@ A deploy key that can write a release can already rewrite the site's Caddy confi
 
 The deploy key is the one credential CI holds for the host. Each rule below covers a way it has gone wrong or could.
 
-- **Generate the key where it is held, and move only the `.pub`.** The private half never crosses a network, and the host receives one `authorized_keys` line.
-- **Keep the vault copy, because GitHub secrets are write-only.** A secret can be replaced but never read back. Without the vault copy, a lost workstation means rotating rather than recovering.
-- **Rotation replaces one line.** Write the new public key into the existing `authorized_keys` line, keeping `restrict` and the forced command. Then replace the secret in both GitHub Environments, since one key covers both.
-- **Test a revocation from the server's log, not from the client's message.** `Permission denied` also appears when the client fails to sign, for example with a mismatched key pair. The server then never judged the key at all. Before revoking, confirm sshd logs `Accepted publickey` for the deploy user with this key. After revoking, confirm it logs a refusal for the same key.
+- **Generate the key on the maintainer's workstation, and send the host only the `.pub`.** The private half goes to the GitHub secrets and a vault, never to the server.
+- **Keep a vault copy, because GitHub secrets are write-only.** A secret can be replaced but never read back. Without the vault copy, a lost workstation means rotating rather than recovering.
+- **Rotation swaps one line, in an order that never breaks a deploy.** Add the new key as a second line with the same `restrict` and forced command. Replace the secret in both GitHub Environments, since one key covers both. Then delete the old line.
+- **Test a revocation from the server's log, not from the client's message.** `Permission denied` also appears when the client fails to sign, for example with a mismatched key pair. The server then never verified a signature at all. Before revoking, confirm the test logs `Accepted publickey` for the deploy user. After revoking, confirm the same test reached sshd and logged no `Accepted publickey`. The key's fingerprint on a refusal appears only at `LogLevel VERBOSE`.
 
 **The confinement is testable without the private key.** Running the forced command directly tests authorization apart from authentication. The shape is an `rsync -e` wrapper, which rsync calls with the host and then the remote command. The wrapper drops the host argument and runs `sudo -u <deploy user> env SSH_ORIGINAL_COMMAND="<the remote command>" <the forced command>`, with the forced command copied from `authorized_keys`. The `env` must follow `sudo`, because `sudo` scrubs the environment. An `rrsync error: Not invoked via sshd` means the variable never arrived, not that the guard held. Three results show the confinement holds:
 
@@ -218,11 +218,10 @@ The deploy key is the one credential CI holds for the host. Each rule below cove
 
 Run a `--delete` check separately, by deploying after withdrawing a page. The write checks only overwrite existing files, so they pass with `--delete` broken.
 
-**A transfer by hand with the key meets four client traps.**
+**A transfer by hand with the key meets three client traps.**
 
-- Write `$HOME` rather than `~` inside a quoted `-e "ssh -i ..."`, since the shell does not expand a quoted tilde.
 - `-i` adds a key rather than replacing the others. An agent holding several keys reaches the server's attempt limit first, failing with `Too many authentication failures`. Pass `-o IdentitiesOnly=yes`.
-- An `IdentityFile` under an earlier `Host *` block is still offered. Read `ssh -G <host>` to see which identities will actually be tried.
+- `IdentitiesOnly` still offers every `IdentityFile` a matching `Host` block adds, a `Host *` one included. Read `ssh -G <host>` to list them.
 - `rsync -a` keeps the source mtimes, so an old mtime on the server is not a failed deploy. Read where `current` points instead.
 
 ## Backup and Recovery
@@ -276,7 +275,7 @@ The outward pass is four filters over the edge log, and each one exists because 
 
 **Exclude this repository's own deploy gate first.** `check-live-urls.sh` requests the whole URL contract on every deploy, so an unfiltered day is mostly a recording of our own `curl`. A count that omits this step is measuring the pipeline rather than the readers, and it will be an order of magnitude too large.
 
-The mechanism is the `X-Blog-Check` request header, which the scripted checks send on every request they make, so `jq 'select(.["request_X-Blog-Check"] == null)'` is the filter. It is only as complete as the tagging is, which is the first bullet below. Its value is a source and an id rather than a boolean, so a run is identifiable rather than merely excludable. Real values look like `github/31322640628-1` from CI and `proxmox/media-dev` from here. Older lines also carry `vps/smoke` from a host-side smoke script that no longer exists. The shape is enforced by `check-live-urls.sh`, which takes exactly one `/` and only letters, digits, `.`, `_`, `-`. A placeholder written with angle brackets is therefore a description rather than something to paste.
+The mechanism is the `X-Blog-Check` request header, which the scripted checks send on every request they make, so `jq 'select(.["request_X-Blog-Check"] == null)'` is the filter. It is only as complete as the tagging is, which is the first bullet below. Its value is a source and an id rather than a boolean, so a run is identifiable rather than merely excludable. Real values look like `github/31322640628-1` from CI and `proxmox/media-dev` from here. Older lines also carry `vps/smoke`, sent by a host-side smoke script that is retired. The shape is enforced by `check-live-urls.sh`, which takes exactly one `/` and only letters, digits, `.`, `_`, `-`. A placeholder written with angle brackets is therefore a description rather than something to paste.
 
 - **The field exists only because the edge is configured to log that header**, which is the host side's to hold and not this repository's. An absent field therefore has two meanings, an untagged request or a capture that stopped, and they are not distinguishable from the log alone. Confirm the capture is live before reading a day's absence as a day of real traffic.
 

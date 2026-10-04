@@ -84,7 +84,7 @@ Set on the command line for one run rather than stored anywhere.
 
 ## Two credentials to the VPS, and why they are separate
 
-`DEPLOY_SSH_USER` reaches a confined account behind an `rrsync` forced command that can write one release tree and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for reading logs, and reading the archive directory. Reaching for the deploy account to read a log fails in a way that reads like an outage. Reaching for the admin account to deploy grants far more than the deploy needs.
+`DEPLOY_SSH_USER` reaches a confined account behind an `rrsync` forced command that can write the release trees and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for reading logs and the archive directory. Reaching for the deploy account to read a log fails in a way that reads like an outage. Reaching for the admin account to deploy grants far more than the deploy needs.
 
 ## Rules
 

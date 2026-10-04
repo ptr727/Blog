@@ -196,9 +196,9 @@ bounds the wait, and a container that is not watching never converges, which is 
 staleness into a named failure.
 
 **Content and rules do not switch together.** `file_server` resolves `current` per request, so new
-content is live instantly. The rules follow on the next poll, well under a second later, and
-`check-live-urls.sh` waits that window out rather than assuming it. For that window the new content
-is served under the previous release's rules. Harmless while every rule is a redirect, since a stale
+content is live instantly. The rules follow on the next poll, and `check-live-urls.sh` waits that
+window out when given `EXPECT_RELEASE`, as every deploy gives it. For that window the new content is
+served under the previous release's rules. Harmless while every rule is a redirect, since a stale
 redirect lands on a page that exists in both releases. It stops being harmless if a rule ever
 *gates* content rather than redirecting it. At that point the flip has to become a restart again.
 
