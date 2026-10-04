@@ -139,7 +139,7 @@ mv -Tf "<deploy-root>/.current.tmp" "<deploy-root>/current"
 
 The content reverts on the rename alone, because the container mounts the parent directory and the kernel resolves `current` per request. The rules follow on the watcher's next poll. A rollback is a config change like any other, and re-adapting re-reads the reverted release's `Caddyfile` and maps.
 
-**For that fraction of a second the reverted content is served under the newer release's rules.** That is the same window every deploy has, in the other direction, and it is harmless while every rule is a redirect: a stale redirect sends a visitor to a page that exists in both releases. It would stop being harmless if a rule ever *gated* content rather than redirecting it, and at that point the flip has to become a restart again.
+**Until that poll the reverted content is served under the newer release's rules.** That is the same window every deploy has, in the other direction, and it is harmless while every rule is a redirect: a stale redirect sends a visitor to a page that exists in both releases. It would stop being harmless if a rule ever *gated* content rather than redirecting it, and at that point the flip has to become a restart again.
 
 Verify with `EXPECT_RELEASE` set to the release being rolled back **to**, which is what proves the rules actually reverted rather than assuming they did.
 
