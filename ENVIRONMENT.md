@@ -36,7 +36,6 @@ Held in `~/.secrets/blog.<server>.<environment>.env`, one file per environment, 
 | `CAPTURE_AUTHOR_SLUG` | the old platform's author slug, used to backfill the author archive and its pagination | Optional, and an account name rather than a site value, which is why it is a variable at all. Unset, [`capture/classify.py`](./capture/classify.py) skips the backfill and says so, rather than emitting a list that is silently short by the author URLs. Environment-independent. |
 | `VPS_SSH_HOST` | the VPS administrative login | Not the deploy account. See "Two credentials" below. Environment-independent. |
 | `VPS_TRAEFIK_LOG` | today's live access log on the VPS, still being appended to | Never pulled, because rotation is what makes a file eligible. An analysis covering today reads it over SSH. Nothing sources it. |
-| `VPS_COMMS_DIR` | the two agent channel files on the VPS | Nothing sources it, and the transfer commands in `OPERATIONS.md` are spelled out rather than using it. See "The one place indirection is wrong" below. |
 | `LOG_ARCHIVE_ROOT` | the off-host copy of the rotated logs | Written by a pull maintained outside this repository, read by the log review. |
 
 Three more are named in the template but commented out, because CI resolves them from the GitHub Environment and a local run deploys to a path and needs none of them: `DEPLOY_SSH_HOST`, `DEPLOY_SSH_USER`, `DEPLOY_SSH_KNOWN_HOSTS`. They are listed there so the local file and the environment describe the same shape.
@@ -85,11 +84,7 @@ Set on the command line for one run rather than stored anywhere.
 
 ## Two credentials to the VPS, and why they are separate
 
-`DEPLOY_SSH_USER` reaches a confined account behind an `rrsync` forced command that can write one release tree and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for reading logs, reading the archive directory, and moving the channel files. Reaching for the deploy account to read a log fails in a way that reads like an outage, and reaching for the admin account to deploy grants far more than the deploy needs.
-
-## The one place indirection is wrong
-
-The two channel transfers under [`OPERATIONS.md`](./OPERATIONS.md) "The Channel Between the Two Sides" spell out the host and directory rather than using `VPS_SSH_HOST` and `VPS_COMMS_DIR`. The permission allowlist matches the text of a command rather than what it expands to, so substituting the variables turns an allowed transfer into one that prompts, while looking like a tidy-up that changed nothing. The same rule is why neither may be chained behind `cd` or `&&`.
+`DEPLOY_SSH_USER` reaches a confined account behind an `rrsync` forced command that can write one release tree and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for reading logs, and reading the archive directory. Reaching for the deploy account to read a log fails in a way that reads like an outage. Reaching for the admin account to deploy grants far more than the deploy needs.
 
 ## Rules
 
