@@ -46,7 +46,7 @@ FAMILY_HEAD="$(mktemp)"
 trap 'rm -f "$FAILED" "$CURLERR" "$CHECKRC" "$FAMILY_BODY" "$FAMILY_HEAD" ${CURLRC:+"$CURLRC"} ${FAMILY_CURLRC:+"$FAMILY_CURLRC"}' EXIT
 
 # Every request this script makes announces itself as synthetic, so the server's log can be filtered down to real visitors with one clause.
-# Agreed with the host side, whose Traefik captures the field and whose own `ci/smoke.sh` already sends `vps/smoke`.
+# Agreed with the host side, whose Traefik captures the field.
 #
 # The value carries provenance rather than a boolean, `<source>/<id>`, because "which run produced this 404" is then a one-line query against the log.
 #
