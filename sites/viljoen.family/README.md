@@ -24,6 +24,7 @@ The single-page genealogy site for the Viljoen family, served at `viljoen.family
 | `site.js` | The tree-drawing script both pages share |
 | `crest.svg` | The full achievement (crest, helm, mantling, shield, name scroll), viewBox 336x418 |
 | `favicon.svg` | The shield alone, cut from `crest.svg` |
+| `favicon.ico` | 16, 32 and 48 px PNG renders of `favicon.svg`, for browsers and bots that ask for the conventional path |
 | `apple-touch-icon.png` | 180x180, `favicon.svg` on parchment |
 | `og-image.png` | 1200x630 Open Graph image, the crest beside the page title |
 
@@ -45,7 +46,7 @@ The arms derive from the French family Villon de Varennes, whose crest was a gol
 - Each side of the mantling is one group mirrored with `translate(342 0) scale(-1 1)`.
 - The saltire is one filled path clipped to `#shield-clip`, which is built from `#shield-outline`.
 - The lettering is vector paths rather than `<text>`, so it renders the same without the font. The page's `<h1>` is visually hidden text, so the name stays a real heading.
-- `favicon.svg` reuses the shield outline and saltire paths. `apple-touch-icon.png` and `og-image.png` are Chromium renders, and they carry no metadata chunks.
+- `favicon.svg` reuses the shield outline and saltire paths. `apple-touch-icon.png`, `og-image.png`, and the images inside `favicon.ico` are Chromium renders, and they carry no metadata chunks.
 
 ## Page Design
 
