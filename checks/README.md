@@ -43,7 +43,7 @@ The contract is enforced by two gates, because one cannot cover both halves:
 
 The 180 tag archives are exactly the tags the migrated posts carry. Three further terms answer with an empty page and are redirects rather than renders: `brultech` and `phyn`, which no published post uses, and `review`, an empty tag that is also a 12-post category. Hugo generates a term page only where posts exist, which is why the render list is 180 tags rather than 183.
 
-**`redirect-urls.txt`, 918 URLs that must resolve but need not render.** These have no Hugo equivalent. Reproducing them would be absurd, and 404ing them discards real inbound links.
+**`redirect-urls.txt`, 920 URLs that must resolve but need not render.** These have no Hugo equivalent. Reproducing them would be absurd, and 404ing them discards real inbound links.
 
 | Shape | Count | Disposition |
 | --- | --- | --- |
@@ -53,7 +53,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Attachment pages, root level | 105 | Redirect to the parent post, via `slugs.map`, or to `/` for the 20 with no parent found |
 | Per-post comment feeds | 107 | Redirect to the parent post |
 | Date archives | 83 | Redirect to `/all/`, since **Hugo has no built-in year or month archive**. The matcher accepts any date, including dates absent from the list |
-| Blogger permalinks | 59 | Redirect to the current post, via `blogger.map` |
+| Blogger permalinks | 61 | Redirect to the current post, via `blogger.map` |
 | Blogger monthly archives | 21 | Redirect to `/all/` |
 | Author archive and pagination | 12 | Redirect to `/`, a single-author blog duplicating home |
 | Blogger feed | 2 | Redirect to `/feed.xml` |
@@ -71,7 +71,7 @@ A **retired page** is one the site no longer renders because another site replac
 
 **`/search/label/<Label>` is not a redirect.** The old platform answers it with a generic search page that returns 200 for a label that never existed, so the class is a soft 404 that looks alive. It is handled by choice rather than by preservation: `labels.map` sends each label to its term archive, and anything unmatched falls through to `/all/`.
 
-The other property worth knowing belongs to the generator rather than to the contract, so it is in [`capture/README.md`][capture-readme]: `blogger.map` holds more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms still answer.
+The other property worth knowing belongs to the generator rather than to the contract, so it is in [`capture/README.md`][capture-readme]: `blogger.map` holds more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms still answer. A few posts also link to addresses that match neither form.
 
 ## Maintaining the contract
 

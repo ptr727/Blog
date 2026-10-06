@@ -142,7 +142,9 @@
 /2011/07/21/synology-ds2411-performance-review/feed/
 /2011/07/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.html
 /2011/07/synology-ds1511-vs-qnap-ts-859-pro-iscsi.html
+/2011/07/synology-ds1511-vs-qnap-ts-859-pro.html
 /2011/07/synology-ds2411-performance-review.html
+/2011/07/synology-ds2411-performance.html
 /2011/12/
 /2011/12/13/rotation-confuses-face-recognition/feed/
 /2011/12/31/iomega-tv-with-boxee-vs-d-link-boxee/feed/
