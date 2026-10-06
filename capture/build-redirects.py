@@ -255,7 +255,7 @@ def main(argv):
         return 1
 
     print(f"p-ids.map   : {n_pids} entries  (/?p=<id> -> permalink)")
-    print(f"blogger.map : {n_blogger} entries  ({truncated} posts also mapped under a truncated Blogger slug)")
+    print(f"blogger.map : {n_blogger} entries  ({truncated} posts also mapped under a truncated Blogger slug, {len(BLOGGER_ALIASES)} aliases)")
     print(f"labels.map  : {n_labels} entries  ({n_terms} terms, each with a capitalized variant)")
     print(f"terms.map   : {n_empty} entries  (term archives WordPress serves that Hugo will not build)")
     print(f"slugs.map   : {n_slugs} entries")
