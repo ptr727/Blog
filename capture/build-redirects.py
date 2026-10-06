@@ -26,6 +26,13 @@ CHECKS = REPO / "checks"
 # The WordPress importer registers the full slug, and both answer, so both are mapped.
 BLOGGER_SLUG_LIMIT = 40
 
+# Blogger addresses matching neither slug form, which the posts' own links use and readers still request.
+# Each names the Blogger address it stands for, so its destination stays derived from the export.
+BLOGGER_ALIASES = {
+    "/2011/07/synology-ds1511-vs-qnap-ts-859-pro.html": "/2011/07/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.html",
+    "/2011/07/synology-ds2411-performance.html": "/2011/07/synology-ds2411-performance-review.html",
+}
+
 # One-segment URLs whose destination the export cannot supply, which the resolver below would send to the home page.
 # /robots.txt/ names a file served at the root, and /viljoen-family/ moved to its own site, so its shortlink goes there as well.
 # Named here rather than hand-edited into the generated map, because the map is rewritten from the capture and a hand edit does not survive.
@@ -149,6 +156,8 @@ def main(argv):
         if short != name:
             bmap[f"{prefix}/{short}.html"] = dest
             truncated += 1
+    for alias, canonical in BLOGGER_ALIASES.items():
+        bmap[alias] = bmap[canonical]
     n_blogger = write_map(out / "blogger.map", sorted(bmap.items()))
 
     # Blogger label archives, keyed on the label rather than on a path.

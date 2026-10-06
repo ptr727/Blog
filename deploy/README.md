@@ -324,7 +324,7 @@ It forwards `Host` and `Accept-Language` unchanged.
 Everything the site does not render is the web server's job, and the workload constrains which server can serve it. Two requirements are load-bearing, so a replacement has to meet both:
 
 - **The query string must be matchable.** 110 `?p=<id>` shortlinks redirect on the query alone. A server that matches on the path only would resolve `/?p=123` as `/`, redirect the homepage, and carry the query through to it.
-- **There must be a lookup primitive.** 280 of the 918 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 662 entries between them. A linear scan of that many rules per request is the wrong shape.
+- **There must be a lookup primitive.** 282 of the 920 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 664 entries between them. A linear scan of that many rules per request is the wrong shape.
 
 The Caddyfile carries **13 `redir` directives**, reading **5 map files** through **3 `map` blocks**. Ten directives match on a pattern and three resolve through a map lookup, which is used wherever no pattern can derive the destination from the input.
 
@@ -342,7 +342,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@post_child_feed` | 107 | `/YYYY/MM/DD/post/<child>/feed/` -> the post, ordered **before** `@post_child` |
 | `@mapped` via `slugs.map` | 108 | bare `/<attachment-slug>/` -> best destination, `/robots.txt/` -> the file, `/osd.xml/` -> `/`, and a retired page -> the site that replaced it |
 | `@date_archive` | 83 | `/YYYY/`, `/YYYY/MM/`, and their pagination -> `/all/`. The matcher accepts any date, including dates absent from the list |
-| `@mapped` via `blogger.map` | 59 | `/YYYY/MM/slug.html` -> the current post |
+| `@mapped` via `blogger.map` | 61 | `/YYYY/MM/slug.html` -> the current post |
 | `@blogger_archive` | 21 | `/YYYY_MM_01_archive.html` -> `/all/`, any date, including ones never covered |
 | `@author` | 12 | `/author/<name>/`, its pagination and feed -> `/` |
 | `@site_feed` | 3 | `/feed/`, `/comments/feed/`, `/about/feed/` -> `/feed.xml` |
