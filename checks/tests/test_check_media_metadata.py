@@ -642,6 +642,11 @@ class Sites(unittest.TestCase):
         self.link("sites", self.root / "gone")
         self.assertEqual(gate.findings(), [("sites", {"symlink, not read"})])
 
+    def test_file_at_a_tree_name_is_left_alone_by_both(self) -> None:
+        (self.root / "sites").write_bytes(png_with(text_chunk()))
+        self.assertEqual(gate.findings(), [])
+        self.assertIn("0 file(s) to normalize", self.normalize())
+
     def test_tree_under_a_symlinked_directory_is_named_and_not_read(self) -> None:
         target = self.outside()
         (target / "media").mkdir()
