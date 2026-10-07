@@ -570,6 +570,12 @@ def pixel_payload(data: bytes) -> bytes | None:
     return None
 
 
+def judge(path: pathlib.Path, data: bytes) -> set[str]:
+    """What the gate holds against a loose file, by the rule of the tree it sits in."""
+    site = any(path.resolve().is_relative_to(REPO / t) for t in gate.SITE_TREES)
+    return gate.scan_site(data, path.suffix.lower()) if site else gate.scan(data)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -580,7 +586,8 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    roots = [pathlib.Path(p) for p in args.paths] or [REPO / t for t in gate.TREES]
+    trees = gate.TREES + gate.SITE_TREES
+    roots = [pathlib.Path(p) for p in args.paths] or [REPO / t for t in trees]
     targets: list[pathlib.Path] = []
     for root in roots:
         if root.is_dir():
@@ -604,7 +611,7 @@ def main() -> int:
                 changed.append((str(path), ["archive members"], 0))
             continue
         data = path.read_bytes()
-        holds = gate.scan(data)
+        holds = judge(path, data)
         if not holds:
             continue
         if gate.container(data) != "iso":

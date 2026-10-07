@@ -41,7 +41,7 @@ TREES = ("static/media", "static/external")
 # These trees also hold markup, styles and scripts, so a file is read only where it is media.
 SITE_TREES = ("sites",)
 
-# The text a site carries, whose opening word can read as an ISO box name.
+# The text a site carries, whose bytes 4 to 8 can read as an ISO box name.
 SITE_TEXT = frozenset((".html", ".css", ".js", ".svg", ".md", ".txt", ".json", ".xml"))
 
 # Extensions naming a picture or video, read in archives and site trees.
@@ -1336,15 +1336,19 @@ def scan_ico(data: bytes) -> set[str]:
 
 def scan_member(data: bytes, suffix: str) -> set[str]:
     """Name what a file among others holds, where its name or its bytes say it is media."""
-    hit = scan_ico(data) if suffix == ".ico" else scan(data)
+    hit = scan_ico(data) if suffix == ".ico" and data[:4] == ICO_HEADER else scan(data)
     named_media = suffix in MEDIA_SUFFIXES or suffix == ".ico"
     return hit if named_media or hit != {"unrecognized container"} else set()
 
 
 def scan_site(data: bytes, suffix: str) -> set[str]:
-    """Name what a site file holds, where a script opening with "wide" is not video."""
+    """Name what a site file holds, where text such as "let wide" is not video."""
     if suffix in SITE_TEXT and container(data) == "iso":
-        return set()
+        try:
+            data.decode("utf-8")
+            return set()
+        except UnicodeDecodeError:
+            pass
     return scan_member(data, suffix)
 
 

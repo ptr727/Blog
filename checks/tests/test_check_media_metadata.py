@@ -525,6 +525,21 @@ class Sites(unittest.TestCase):
         found = self.found("clip.m4a", b"let wide = matchMedia('');")
         self.assertIn(self.key("clip.m4a"), found)
 
+    def test_site_video_under_a_text_name_is_read(self) -> None:
+        found = self.found("notes.txt", b"\x00\x00\x00\x08ftyp\xa9")
+        self.assertIn(self.key("notes.txt"), found)
+
+    def test_png_named_as_an_icon_is_judged_as_a_png(self) -> None:
+        found = self.found("favicon.ico", png_with(text_chunk()))
+        self.assertNotIn("unrecognized container", found[self.key("favicon.ico")])
+
+    def test_normalizer_judges_a_site_file_by_the_site_rule(self) -> None:
+        page = self.root / "sites" / "example.test" / "index.html"
+        loose = self.root / "static" / "media" / "index.html"
+        with mock.patch.object(normalizer, "REPO", self.root):
+            self.assertEqual(normalizer.judge(page, b"<!doctype html>"), set())
+            self.assertTrue(normalizer.judge(loose, b"<!doctype html>"))
+
     def test_icon_reading_as_an_iso_box_is_read(self) -> None:
         found = self.found("favicon.ico", gate.ICO_HEADER + b"free" + bytes(20))
         self.assertEqual(found[self.key("favicon.ico")], {"ICO directory cut off"})
