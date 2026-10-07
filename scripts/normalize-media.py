@@ -436,6 +436,8 @@ def normalize_member(
     The scratch file keeps the member's extension, because ffmpeg picks the output
     container from it and writes nothing when given a name it cannot infer one from.
     """
+    if gate.is_icon(data, suffix.lower()):
+        return None
     if gate.container(data) == "iso":
         if not shutil.which("ffmpeg"):
             return None
@@ -479,13 +481,8 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
                 # An encrypted or corrupt member is left as it is, and said so.
                 print(f"{path}!{info.filename}: unreadable, {type(exc).__name__}")
                 continue
-            holds = gate.scan(data)
-            named_media = (
-                pathlib.PurePosixPath(info.filename).suffix.lower()
-                in gate.MEDIA_SUFFIXES
-            )
-            unvouched = holds and (named_media or holds != {"unrecognized container"})
-            if unvouched:
+            holds = gate.scan_member(data, member_suffix(info).lower())
+            if holds:
                 if (
                     normalize_member(data, path.parent, False, member_suffix(info))
                     is not None
@@ -575,6 +572,12 @@ def pixel_payload(data: bytes) -> bytes | None:
     return None
 
 
+def judge(path: pathlib.Path, data: bytes) -> set[str]:
+    """What the gate holds against a loose file, by the rule of the tree it sits in."""
+    site = any(path.resolve().is_relative_to(REPO / t) for t in gate.SITE_TREES)
+    return gate.scan_site(data, path.suffix.lower()) if site else gate.scan(data)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -585,7 +588,8 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    roots = [pathlib.Path(p) for p in args.paths] or [REPO / t for t in gate.TREES]
+    trees = gate.TREES + gate.SITE_TREES
+    roots = [pathlib.Path(p) for p in args.paths] or [REPO / t for t in trees]
     targets: list[pathlib.Path] = []
     for root in roots:
         if root.is_dir():
@@ -609,10 +613,13 @@ def main() -> int:
                 changed.append((str(path), ["archive members"], 0))
             continue
         data = path.read_bytes()
-        holds = gate.scan(data)
+        holds = judge(path, data)
         if not holds:
             continue
-        if gate.container(data) != "iso":
+        if gate.is_icon(data, path.suffix.lower()):
+            # Nothing here rewrites an icon, so it is rendered again instead.
+            new = None
+        elif gate.container(data) != "iso":
             new = normalize_bytes(data)
         elif not shutil.which("ffmpeg"):
             # Reported as needing a re-encode, since nothing here can perform one.
@@ -641,11 +648,11 @@ def main() -> int:
         if args.apply and new:
             path.write_bytes(new)
 
-    for name, holds, delta in changed:
+    for name, tags, delta in changed:
         verb = "removed" if args.apply else "would remove"
-        print(f"{name}: {verb} {', '.join(holds)} ({delta} bytes)")
-    for name, holds in reencode:
-        print(f"{name}: needs a re-encode, dropping cannot reach {', '.join(holds)}")
+        print(f"{name}: {verb} {', '.join(tags)} ({delta} bytes)")
+    for name, tags in reencode:
+        print(f"{name}: needs a re-encode, dropping cannot reach {', '.join(tags)}")
 
     print()
     print(
