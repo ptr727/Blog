@@ -94,6 +94,15 @@ def text_chunk() -> bytes:
     return fuzz.png_chunk(b"tEXt", b"Author\x00someone")
 
 
+def iso_with_title() -> bytes:
+    """A file the gate reads as a video, holding a user data box it does not admit."""
+
+    def box(kind: bytes, body: bytes) -> bytes:
+        return struct.pack(">I", 8 + len(body)) + kind + body
+
+    return box(b"ftyp", b"isom\x00\x00\x02\x00isom") + box(b"udta", b"")
+
+
 class Profiles(unittest.TestCase):
     def test_known_jpeg_profile_passes_as_one_chunk(self) -> None:
         segment = fuzz.jpeg_segment(0xE2, fuzz.ICC + PROFILE)
@@ -565,7 +574,7 @@ class Sites(unittest.TestCase):
             mock.patch.object(normalizer.sys, "argv", argv),
             contextlib.redirect_stdout(io.StringIO()) as out,
         ):
-            member = normalizer.normalize_member(data, self.root, False, ".ico")
+            member = normalizer.normalize_member(data, ".ico")
             normalizer.main()
         self.assertIsNone(member)
         self.assertIn("favicon.ico: needs a re-encode", out.getvalue())
@@ -594,6 +603,125 @@ class Sites(unittest.TestCase):
         ):
             self.assertEqual(normalizer.main(), 0)
         self.assertIn("sites: symlink, not followed", out.getvalue())
+
+    def link(self, name: str, target: pathlib.Path) -> pathlib.Path:
+        """A symlink under the scratch repository, or a skip where one needs a privilege."""
+        link = self.root / name
+        link.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            link.symlink_to(target)
+        except OSError as exc:
+            self.skipTest(f"symlinks need a privilege here: {exc}")
+        return link
+
+    def outside(self) -> pathlib.Path:
+        """A directory outside the scratch repository, holding a PNG the gate fails."""
+        held = tempfile.TemporaryDirectory()
+        self.addCleanup(held.cleanup)
+        target = pathlib.Path(held.name).resolve()
+        (target / "held.png").write_bytes(png_with(text_chunk()))
+        return target
+
+    def normalize(self, *argv: str) -> str:
+        args = ["normalize-media.py", *argv]
+        with (
+            mock.patch.object(normalizer, "REPO", self.root),
+            mock.patch.object(normalizer.sys, "argv", args),
+            contextlib.redirect_stdout(io.StringIO()) as out,
+        ):
+            self.assertEqual(normalizer.main(), 0)
+        return out.getvalue()
+
+    def test_symlinked_tree_is_named_and_not_read(self) -> None:
+        self.link("static/media", self.outside())
+        self.assertEqual(dict(gate.findings()), {"static/media": {"symlink, not read"}})
+
+    def test_tree_under_a_symlinked_directory_is_named_and_not_read(self) -> None:
+        target = self.outside()
+        (target / "media").mkdir()
+        (target / "media" / "held.png").write_bytes(png_with(text_chunk()))
+        self.link("static", target)
+        self.assertEqual(gate.findings(), [("static/media", {"symlink, not read"})])
+
+    def test_normalizer_does_not_follow_a_symlinked_root(self) -> None:
+        target = self.outside()
+        before = (target / "held.png").read_bytes()
+        self.link("static/media", target)
+        out = self.normalize("--apply")
+        self.assertIn("static/media: symlink, not followed", out)
+        self.assertIn("0 file(s) normalized", out)
+        self.assertEqual((target / "held.png").read_bytes(), before)
+
+    def test_normalizer_does_not_follow_a_named_root_under_a_symlink(self) -> None:
+        target = self.outside()
+        before = (target / "held.png").read_bytes()
+        self.link("static", target)
+        out = self.normalize("--apply", str(self.root / "static" / "held.png"))
+        self.assertIn("held.png: symlink, not followed", out)
+        self.assertEqual((target / "held.png").read_bytes(), before)
+
+    def test_normalizer_replaces_a_symlink_swapped_in_before_the_write(self) -> None:
+        target = self.outside()
+        before = (target / "held.png").read_bytes()
+        held = self.root / "static" / "media" / "held.png"
+        held.parent.mkdir(parents=True)
+        held.write_bytes(png_with(text_chunk()))
+        judge = normalizer.judge
+
+        def swap(path: pathlib.Path, data: bytes) -> set[str]:
+            path.unlink()
+            try:
+                path.symlink_to(target / "held.png")
+            except OSError as exc:
+                self.skipTest(f"symlinks need a privilege here: {exc}")
+            return judge(path, data)
+
+        with mock.patch.object(normalizer, "judge", swap):
+            out = self.normalize("--apply")
+        self.assertIn("1 file(s) normalized", out)
+        self.assertEqual((target / "held.png").read_bytes(), before)
+        self.assertFalse(held.is_symlink())
+        self.assertEqual(gate.scan(held.read_bytes()), set())
+
+    def test_normalizer_keeps_the_mode_of_a_file_it_rewrites(self) -> None:
+        held = self.root / "static" / "media" / "held.png"
+        held.parent.mkdir(parents=True)
+        held.write_bytes(png_with(text_chunk()))
+        held.chmod(0o640)
+        self.normalize("--apply")
+        self.assertEqual(gate.scan(held.read_bytes()), set())
+        self.assertEqual(held.stat().st_mode & 0o777, 0o640)
+        self.assertEqual(list(held.parent.iterdir()), [held])
+
+    def test_normalizer_reports_a_video_ffmpeg_cannot_write_as_a_re_encode(
+        self,
+    ) -> None:
+        held = self.root / "static" / "media" / "clip.txt"
+        held.parent.mkdir(parents=True)
+        held.write_bytes(iso_with_title())
+        with (
+            mock.patch.object(normalizer.shutil, "which", return_value="ffmpeg"),
+            mock.patch.object(normalizer, "normalize_iso", return_value=False),
+        ):
+            out = self.normalize()
+        self.assertIn("clip.txt: needs a re-encode", out)
+        self.assertNotIn("would remove", out)
+
+    def test_normalizer_reports_a_member_ffmpeg_cannot_write_as_a_re_encode(
+        self,
+    ) -> None:
+        held = self.root / "clips.zip"
+        with zipfile.ZipFile(held, "w") as archive:
+            archive.writestr("clip.txt", iso_with_title())
+        with (
+            mock.patch.object(normalizer.shutil, "which", return_value="ffmpeg"),
+            mock.patch.object(normalizer, "normalize_iso", return_value=False),
+            contextlib.redirect_stdout(io.StringIO()) as out,
+        ):
+            self.assertEqual(normalizer.normalize_archive(held, False), [])
+        self.assertIn(
+            "clips.zip!clip.txt: ISO udta atom -> needs a re-encode", out.getvalue()
+        )
 
     def test_icon_inside_an_archive_is_read(self) -> None:
         held = self.root / "held.zip"

@@ -1356,10 +1356,20 @@ def scan_site(data: bytes, suffix: str) -> set[str]:
     return scan_member(data, suffix)
 
 
+def symlinked(path: pathlib.Path) -> bool:
+    """Whether a path, or a directory between it and the repository, is a symlink."""
+    path = path.absolute()
+    above = [p for p in path.parents if p.is_relative_to(REPO) and p != REPO]
+    return path.is_symlink() or any(p.is_symlink() for p in above)
+
+
 def findings() -> list[tuple[str, set[str]]]:
     out = []
     for tree in TREES + SITE_TREES:
         root = REPO / tree
+        if root.is_symlink() or (root.is_dir() and symlinked(root)):
+            out.append((tree, {"symlink, not read"}))
+            continue
         if not root.is_dir():
             continue
         for path in sorted(root.rglob("*")):
@@ -1425,6 +1435,7 @@ def main() -> int:
     scanned = sum(
         1
         for tree in TREES + SITE_TREES
+        if not symlinked(REPO / tree)
         for p in (REPO / tree).rglob("*")
         if p.is_file() and not p.is_symlink()
     )
