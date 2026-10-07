@@ -643,11 +643,11 @@ def main() -> int:
         if args.apply and new:
             path.write_bytes(new)
 
-    for name, holds, delta in changed:
+    for name, tags, delta in changed:
         verb = "removed" if args.apply else "would remove"
-        print(f"{name}: {verb} {', '.join(holds)} ({delta} bytes)")
-    for name, holds in reencode:
-        print(f"{name}: needs a re-encode, dropping cannot reach {', '.join(holds)}")
+        print(f"{name}: {verb} {', '.join(tags)} ({delta} bytes)")
+    for name, tags in reencode:
+        print(f"{name}: needs a re-encode, dropping cannot reach {', '.join(tags)}")
 
     print()
     print(
