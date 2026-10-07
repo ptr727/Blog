@@ -46,6 +46,7 @@
 /2009/02/dxo-optics-pro-and-adobe-lightroom-on.html
 /2009/04/
 /2009/04/09/broken-symbol-proxy/feed/
+/2009/04/09/broken-symbol-proxy/feed/atom/
 /2009/04/10/2008-vw-touareg-tire-pressure/feed/
 /2009/04/10/archived-content-and-templates/feed/
 /2009/04/2008-vw-touareg-tire-pressure.html
@@ -681,6 +682,7 @@
 /elv_min_torchstar/
 /energyhub_powerstrip_web/
 /feed/
+/feed/atom/
 /feeds/posts/default
 /feeds/posts/default?alt=rss
 /fully_loaded_more_side/
