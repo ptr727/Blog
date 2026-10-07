@@ -570,6 +570,31 @@ class Sites(unittest.TestCase):
         self.assertIsNone(member)
         self.assertIn("favicon.ico: needs a re-encode", out.getvalue())
 
+    def test_normalizer_skips_a_missing_default_root(self) -> None:
+        held = self.root / "static" / "media" / "held.png"
+        held.parent.mkdir(parents=True)
+        held.write_bytes(png_with(text_chunk()))
+        with (
+            mock.patch.object(normalizer, "REPO", self.root),
+            mock.patch.object(normalizer.sys, "argv", ["normalize-media.py"]),
+            contextlib.redirect_stdout(io.StringIO()) as out,
+        ):
+            self.assertEqual(normalizer.main(), 0)
+        self.assertIn("1 file(s) to normalize", out.getvalue())
+
+    def test_normalizer_names_a_dangling_default_root(self) -> None:
+        try:
+            (self.root / "sites").symlink_to(self.root / "gone")
+        except OSError as exc:
+            self.skipTest(f"symlinks need a privilege here: {exc}")
+        with (
+            mock.patch.object(normalizer, "REPO", self.root),
+            mock.patch.object(normalizer.sys, "argv", ["normalize-media.py"]),
+            contextlib.redirect_stdout(io.StringIO()) as out,
+        ):
+            self.assertEqual(normalizer.main(), 0)
+        self.assertIn("sites: symlink, not followed", out.getvalue())
+
     def test_icon_inside_an_archive_is_read(self) -> None:
         held = self.root / "held.zip"
         with zipfile.ZipFile(held, "w") as archive:
