@@ -3,6 +3,7 @@
 import importlib.util
 import pathlib
 import struct
+import tempfile
 import unittest
 import zlib
 from unittest import mock
@@ -73,6 +74,21 @@ def webp_with_profile(flags: int, profile: bytes) -> bytes:
     body += fuzz.riff_chunk(b"ICCP", profile)
     body += fuzz.riff_chunk(b"VP8L", b"\x2f\x00\x00\x00\x00")
     return b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + body
+
+
+def ico_of(*images: bytes, bits: int = 8, tail: bytes = b"") -> bytes:
+    """An icon holding each image in turn, its directory naming a 1x1 picture."""
+    start = 6 + 16 * len(images)
+    entries = b""
+    for image in images:
+        entries += struct.pack("<BBBBHHII", 1, 1, 0, 0, 1, bits, len(image), start)
+        start += len(image)
+    head = gate.ICO_HEADER + struct.pack("<H", len(images))
+    return head + entries + b"".join(images) + tail
+
+
+def text_chunk() -> bytes:
+    return fuzz.png_chunk(b"tEXt", b"Author\x00someone")
 
 
 class Profiles(unittest.TestCase):
@@ -468,6 +484,77 @@ class FreeValues(unittest.TestCase):
         data = fuzz.jpeg_fixture(False).replace(b"\xff\xd0", b"\xff\xff\xd0")
         self.assertIn("JPEG fill bytes inside a scan", gate.scan(data))
         self.assertIsNone(normalizer.normalize_bytes(data))
+
+
+class Sites(unittest.TestCase):
+    def setUp(self) -> None:
+        self._dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._dir.cleanup)
+        self.root = pathlib.Path(self._dir.name)
+        patch = mock.patch.object(gate, "REPO", self.root)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def found(self, name: str, data: bytes) -> dict[str, set[str]]:
+        path = self.root / "sites" / "example.test" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        return dict(gate.findings())
+
+    def test_site_png_holding_text_is_reported(self) -> None:
+        found = self.found("og-image.png", png_with(text_chunk()))
+        self.assertIn("sites/example.test/og-image.png", found)
+
+    def test_site_png_named_otherwise_is_still_read(self) -> None:
+        found = self.found("og-image.bin", png_with(text_chunk()))
+        self.assertIn("sites/example.test/og-image.bin", found)
+
+    def test_site_markup_is_left_alone(self) -> None:
+        self.assertEqual(self.found("index.html", b"<!doctype html>"), {})
+
+    def test_clean_site_png_and_icon_pass(self) -> None:
+        self.found("apple-touch-icon.png", fuzz.png_fixture())
+        self.assertEqual(
+            self.found("favicon.ico", ico_of(*[fuzz.png_fixture()] * 2)), {}
+        )
+
+    def test_icon_entry_holding_text_is_reported(self) -> None:
+        found = self.found("favicon.ico", ico_of(png_with(text_chunk())))
+        tags = found["sites/example.test/favicon.ico"]
+        self.assertTrue(all(tag.startswith("ICO entry 0: ") for tag in tags), tags)
+
+    def test_icon_bytes_outside_its_entries_are_reported(self) -> None:
+        found = self.found("favicon.ico", ico_of(fuzz.png_fixture(), tail=b"note"))
+        self.assertEqual(
+            found["sites/example.test/favicon.ico"], {"ICO bytes past the last entry"}
+        )
+
+    def test_icon_entry_past_the_end_is_reported(self) -> None:
+        data = ico_of(fuzz.png_fixture())
+        found = self.found("favicon.ico", data[:-1])
+        self.assertEqual(
+            found["sites/example.test/favicon.ico"],
+            {"ICO entry 0 not where the last one ends"},
+        )
+
+    def test_icon_entry_not_a_png_is_reported(self) -> None:
+        found = self.found("favicon.ico", ico_of(bytes(40)))
+        self.assertEqual(
+            found["sites/example.test/favicon.ico"], {"ICO entry 0 not a PNG"}
+        )
+
+    def test_icon_directory_disagreeing_with_its_image_is_reported(self) -> None:
+        found = self.found("favicon.ico", ico_of(fuzz.png_fixture(), bits=32))
+        self.assertEqual(
+            found["sites/example.test/favicon.ico"],
+            {"ICO entry 0 directory not its image's own"},
+        )
+
+    def test_unrecognized_icon_is_reported(self) -> None:
+        found = self.found("favicon.ico", b"not an icon")
+        self.assertEqual(
+            found["sites/example.test/favicon.ico"], {"unrecognized container"}
+        )
 
 
 if __name__ == "__main__":
