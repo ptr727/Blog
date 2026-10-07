@@ -20,11 +20,13 @@ No gate here catches a wrong `SITE_BASE_URL`, for the reason in [`checks/README.
 
 What earns hardening effort here, and what does not.
 
-**The only external input is what reaches the server.** Requests to the public sites, from browsers, crawlers, and scanners, are untrusted. So is anything a workflow fetches from outside this repository. Hardening against hostile or malformed input pays for itself there and nowhere else.
+**Two surfaces take input from parties the maintainer does not control.** The first is requests to the public sites, from browsers, crawlers, and scanners. The second is a workflow that acts on a pull request, above all `merge-bot-pull-request.yml`, which runs with the App's secrets. Hardening against hostile or malformed input pays for itself on these two surfaces.
 
-**Everything committed here is the maintainer's own.** The maintainer writes or chooses every post, image, archive, and tool configuration in the tree. No outside party can put a file there. The media gate and the normalizer exist to keep the maintainer's own metadata from leaking, not to defend against a crafted file. A corrupt image, a symlink, a directory junction, a race between writers, or a fuzzer-found parser gap has no path in.
+**A fork's pull request reaches the media gate, and that reach is bounded.** The validation workflow runs the gate and the fuzzer on the files a pull request carries. It runs with a read-only token and no secrets, so a crafted file can at worst fail that pull request's own check. Nothing from a fork reaches `develop` or `main` without the maintainer's merge.
 
-**A hardening finding needs a realistic input before it earns work.** Before fixing a review finding or filing one, name the input from the maintainer's own workflow that reaches it. Where none exists, decline the finding, cite this section, and file nothing. A reviewer, human or bot, can always find one more malformed-input edge, so a correct finding is not by itself a reason to act. A functional gap that a real committed file hits, such as metadata the normalizer cannot remove, is not hardening. Work it like any other defect.
+**The committed tree is not an attack surface for the media tooling.** Its files are the maintainer's posts and images, media the capture scripts fetched, the vendored theme, and the pins Dependabot proposes. None of them is crafted to attack the media gate or the normalizer. Those two keep the maintainer's own metadata from leaking and catch accidental damage, such as a truncated copy. Their existing checks stay, and nothing new is added to defend them against a crafted file.
+
+**A hardening finding needs a realistic input before it earns work.** Before fixing or filing a hardening finding, name the input that reaches it through one of the surfaces above or the maintainer's own workflow. Where none exists, decline it with that absence as the evidence, cite this section, and file nothing. A reviewer, human or bot, can always find one more malformed-input edge, so a correct finding is not by itself a reason to act. A functional gap that a real committed file hits, such as metadata the normalizer cannot remove, is not hardening. Work it like any other defect.
 
 ## Local Verification
 
