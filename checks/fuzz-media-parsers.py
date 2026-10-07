@@ -18,9 +18,10 @@ The properties, each checked on every variant:
 6. The normalizer refuses a picture its Exif turns, or returns one turned the same way.
    Where decoders disagree on the turn, it refuses.
 7. A clean plant, holding only values the gate admits, is reported by nothing and left unchanged.
+8. The icon scanner never raises, and answers the same when a site file or a zip member reaches it.
 
-Seeds are constructed fixtures plus a sample of the carried media, read in memory and
-never written anywhere. The run is deterministic for a given seed and file list, and
+Seeds are constructed fixtures plus a sample of the carried media and site media, read in
+memory and never written anywhere. The run is deterministic for a given seed and file list, and
 bounded by both a case count and a time budget, so it can run in CI.
 """
 
@@ -690,6 +691,19 @@ def iso_fixture() -> bytes:
     return atom(b"ftyp", b"isom\x00\x00\x02\x00isom") + moov + atom(b"mdat", bytes(32))
 
 
+def ico_fixture() -> bytes:
+    """An icon of two PNG entries laid end to end, each directory entry its image's own."""
+    images = ((png_fixture(), 8), (truecolor_png_fixture(), 24))
+    offset = 6 + gate.ICO_ENTRY * len(images)
+    head = gate.ICO_HEADER + struct.pack("<H", len(images))
+    body = b""
+    for image, bits in images:
+        head += struct.pack("<BBBBHHII", 1, 1, 0, 0, 1, bits, len(image), offset)
+        body += image
+        offset += len(image)
+    return head + body
+
+
 def zip_fixture() -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
@@ -713,6 +727,8 @@ def container(data: bytes) -> str:
         return "webp"
     if data[4:8] in (b"ftyp", b"moov", b"wide", b"mdat", b"free", b"skip"):
         return "iso"
+    if data[:4] == gate.ICO_HEADER:
+        return "ico"
     return "other"
 
 
@@ -1419,6 +1435,23 @@ def check_turn(
             report.fail("6 normalizer lost the orientation", kind, what, where)
 
 
+def check_icon(report: Report, data: bytes, where: str) -> None:
+    report.cases += 1
+    found, raised = attempt(lambda: gate.scan_ico(data))
+    if raised:
+        report.fail("1 scanner raised", "ico", raised, where)
+        return
+    for route, call in (
+        ("site file", gate.scan_site),
+        ("zip member", gate.scan_member),
+    ):
+        again, raised = attempt(functools.partial(call, data, ".ico"))
+        if raised:
+            report.fail("8 icon scan raised", "ico", f"{route} {raised}", where)
+        elif again != found:
+            report.fail("8 icon scan answered differently", "ico", route, where)
+
+
 def check_archive(
     report: Report, data: bytes, where: str, scratch: pathlib.Path
 ) -> None:
@@ -1439,9 +1472,9 @@ def carried_seeds(
 ) -> list[tuple[str, bytes]]:
     """A deterministic sample of the carried media, capped in size so the run stays fast."""
     by_kind: dict[str, list[pathlib.Path]] = {}
-    for tree in gate.TREES:
+    for tree in gate.TREES + gate.SITE_TREES:
         root = REPO / tree
-        if not root.is_dir():
+        if gate.symlinked(root) or not root.is_dir():
             continue
         for path in sorted(root.rglob("*"), key=pathlib.Path.as_posix):
             if path.is_symlink() or not path.is_file() or path.suffix.lower() == ".zip":
@@ -1450,6 +1483,10 @@ def carried_seeds(
                 continue
             with path.open("rb") as handle:
                 kind = container(handle.read(12))
+            if tree in gate.SITE_TREES and (
+                kind == "other" or path.suffix.lower() in gate.SITE_TEXT
+            ):
+                continue
             by_kind.setdefault(kind, []).append(path)
     seeds = []
     for kind in sorted(by_kind):
@@ -1497,6 +1534,7 @@ def main() -> int:
         ("fixture:webp", webp_fixture()),
         ("fixture:webp-animated", animated_webp_fixture()),
         ("fixture:iso", iso_fixture()),
+        ("fixture:ico", ico_fixture()),
     ]
     if not args.no_carried:
         seeds += carried_seeds(rng, args.per_kind, args.max_size)
@@ -1514,6 +1552,20 @@ def main() -> int:
             )
     for label, data in seeds:
         kind = container(data)
+        if kind == "ico":
+            if label.startswith("fixture:"):
+                found, raised = attempt(functools.partial(gate.scan_ico, data))
+                if not raised and found:
+                    report.fail(
+                        "0 fixture not clean", kind, ", ".join(sorted(found)), label
+                    )
+            check_icon(report, data, f"{label}: unmodified")
+            for _ in range(args.cases):
+                if time.monotonic() > deadline:
+                    break
+                variant, what = rng.choice(MUTATORS)(rng, data)
+                check_icon(report, variant, f"{label}: {what}")
+            continue
         check_variant(report, kind, data, f"{label}: unmodified")
         if label.startswith("fixture:"):
             found, raised = attempt(functools.partial(gate.scan, data))

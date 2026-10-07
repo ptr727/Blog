@@ -27,6 +27,7 @@ pixels and writing a fresh file that is clean by construction.
 
 import hashlib
 import lzma
+import os
 import pathlib
 import re
 import struct
@@ -1356,10 +1357,28 @@ def scan_site(data: bytes, suffix: str) -> set[str]:
     return scan_member(data, suffix)
 
 
+def symlinked(path: pathlib.Path) -> bool:
+    """Whether a path, or a directory above it inside the repository, is a link.
+
+    A directory counts as inside where the one holding it resolves into the repository,
+    so a path naming the repository through an alias of its own location is still read.
+    """
+
+    def link(p: pathlib.Path) -> bool:
+        return p.is_symlink() or p.is_junction()
+
+    path = path.absolute()
+    above = (p for p in path.parents if p.parent.resolve().is_relative_to(REPO))
+    return link(path) or any(link(p) for p in above)
+
+
 def findings() -> list[tuple[str, set[str]]]:
     out = []
     for tree in TREES + SITE_TREES:
         root = REPO / tree
+        if os.path.lexists(root) and symlinked(root):
+            out.append((tree, {"symlink, not read"}))
+            continue
         if not root.is_dir():
             continue
         for path in sorted(root.rglob("*")):
@@ -1425,6 +1444,7 @@ def main() -> int:
     scanned = sum(
         1
         for tree in TREES + SITE_TREES
+        if not symlinked(REPO / tree)
         for p in (REPO / tree).rglob("*")
         if p.is_file() and not p.is_symlink()
     )
