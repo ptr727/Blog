@@ -4,6 +4,7 @@ import contextlib
 import importlib.util
 import io
 import pathlib
+import random
 import shutil
 import struct
 import subprocess
@@ -653,6 +654,34 @@ class Sites(unittest.TestCase):
         (target / "media" / "held.png").write_bytes(png_with(text_chunk()))
         self.link("static", target)
         self.assertEqual(gate.findings(), [("static/media", {"symlink, not read"})])
+
+    def seeds(self) -> list[str]:
+        """The carried seeds the fuzzer samples from the scratch repository."""
+        with (
+            mock.patch.object(fuzz, "REPO", self.root),
+            mock.patch.object(fuzz.gate, "REPO", self.root),
+        ):
+            seeds = fuzz.carried_seeds(random.Random(0), 9, 1 << 20)
+        return [name for name, _ in seeds]
+
+    def test_fuzzer_samples_a_real_tree(self) -> None:
+        held = self.root / "static" / "media" / "held.png"
+        held.parent.mkdir(parents=True)
+        held.write_bytes(png_with(text_chunk()))
+        self.assertEqual(
+            self.seeds(), [str(pathlib.Path("static", "media", "held.png"))]
+        )
+
+    def test_fuzzer_does_not_sample_a_symlinked_root(self) -> None:
+        self.link("sites", self.outside())
+        self.assertEqual(self.seeds(), [])
+
+    def test_fuzzer_does_not_sample_a_root_under_a_symlink(self) -> None:
+        target = self.outside()
+        (target / "media").mkdir()
+        (target / "media" / "held.png").write_bytes(png_with(text_chunk()))
+        self.link("static", target)
+        self.assertEqual(self.seeds(), [])
 
     def test_normalizer_does_not_follow_a_symlinked_root(self) -> None:
         target = self.outside()
