@@ -436,6 +436,8 @@ def normalize_member(
     The scratch file keeps the member's extension, because ffmpeg picks the output
     container from it and writes nothing when given a name it cannot infer one from.
     """
+    if gate.is_icon(data, suffix.lower()):
+        return None
     if gate.container(data) == "iso":
         if not shutil.which("ffmpeg"):
             return None
@@ -614,7 +616,10 @@ def main() -> int:
         holds = judge(path, data)
         if not holds:
             continue
-        if gate.container(data) != "iso":
+        if gate.is_icon(data, path.suffix.lower()):
+            # Nothing here rewrites an icon, so it is rendered again instead.
+            new = None
+        elif gate.container(data) != "iso":
             new = normalize_bytes(data)
         elif not shutil.which("ffmpeg"):
             # Reported as needing a re-encode, since nothing here can perform one.

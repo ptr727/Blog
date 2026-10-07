@@ -1334,9 +1334,13 @@ def scan_ico(data: bytes) -> set[str]:
     return out
 
 
+def is_icon(data: bytes, suffix: str) -> bool:
+    return suffix == ".ico" and data[:4] == ICO_HEADER
+
+
 def scan_member(data: bytes, suffix: str) -> set[str]:
     """Name what a file among others holds, where its name or its bytes say it is media."""
-    hit = scan_ico(data) if suffix == ".ico" and data[:4] == ICO_HEADER else scan(data)
+    hit = scan_ico(data) if is_icon(data, suffix) else scan(data)
     named_media = suffix in MEDIA_SUFFIXES or suffix == ".ico"
     return hit if named_media or hit != {"unrecognized container"} else set()
 

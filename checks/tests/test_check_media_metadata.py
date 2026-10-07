@@ -493,7 +493,7 @@ class Sites(unittest.TestCase):
     def setUp(self) -> None:
         self._dir = tempfile.TemporaryDirectory()
         self.addCleanup(self._dir.cleanup)
-        self.root = pathlib.Path(self._dir.name)
+        self.root = pathlib.Path(self._dir.name).resolve()
         patch = mock.patch.object(gate, "REPO", self.root)
         patch.start()
         self.addCleanup(patch.stop)
@@ -554,6 +554,21 @@ class Sites(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()) as out:
             normalizer.normalize_archive(held, False)
         self.assertIn("icons.zip!favicon.ico: ICO entry 0: ", out.getvalue())
+
+    def test_normalizer_never_sends_an_icon_to_ffmpeg(self) -> None:
+        data = gate.ICO_HEADER + b"free" + bytes(20)
+        icon = self.root / "favicon.ico"
+        icon.write_bytes(data)
+        argv = ["normalize-media.py", str(icon)]
+        with (
+            mock.patch.object(normalizer.shutil, "which", return_value="ffmpeg"),
+            mock.patch.object(normalizer.sys, "argv", argv),
+            contextlib.redirect_stdout(io.StringIO()) as out,
+        ):
+            member = normalizer.normalize_member(data, self.root, False, ".ico")
+            normalizer.main()
+        self.assertIsNone(member)
+        self.assertIn("favicon.ico: needs a re-encode", out.getvalue())
 
     def test_icon_inside_an_archive_is_read(self) -> None:
         held = self.root / "held.zip"
