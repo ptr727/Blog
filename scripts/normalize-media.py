@@ -24,14 +24,20 @@ list, and "not on the list" is the whole of the reason it goes.
 """
 
 import argparse
+import contextlib
 import importlib.util
+import os
 import pathlib
 import shutil
+import stat
 import struct
 import subprocess
 import sys
+import tempfile
 import zipfile
 import zlib
+from collections.abc import Iterator
+from typing import BinaryIO
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
@@ -409,6 +415,41 @@ def normalize_iso(path: pathlib.Path, destination: pathlib.Path) -> bool:
     return True
 
 
+def remux(data: bytes, suffix: str) -> bytes | None:
+    """Rewrite a video's bytes through `normalize_iso`, in a scratch directory of its own.
+
+    A report runs this too, so a video ffmpeg cannot write under its own name is named
+    as needing a re-encode rather than promised a rewrite the apply then refuses. The
+    scratch files keep the suffix, because ffmpeg picks the output container from it.
+    """
+    with tempfile.TemporaryDirectory(prefix="normalize-media-") as scratch:
+        source = pathlib.Path(scratch, f"in{suffix}")
+        cleaned = pathlib.Path(scratch, f"out{suffix}")
+        source.write_bytes(data)
+        return cleaned.read_bytes() if normalize_iso(source, cleaned) else None
+
+
+@contextlib.contextmanager
+def replacing(path: pathlib.Path) -> Iterator[BinaryIO]:
+    """Write a file in place of `path` by renaming a new one over it.
+
+    A rename replaces a symlink found at `path` rather than rewriting its target, and the
+    new file is created exclusively, so nothing already at its own name is followed either.
+    """
+    handle, name = tempfile.mkstemp(prefix=".normalize-", dir=path.parent)
+    scratch = pathlib.Path(name)
+    try:
+        with os.fdopen(handle, "wb") as stream:
+            yield stream
+        held = path.lstat()
+        if stat.S_ISREG(held.st_mode):
+            os.chmod(scratch, stat.S_IMODE(held.st_mode))
+        scratch.replace(path)
+    except BaseException:
+        scratch.unlink(missing_ok=True)
+        raise
+
+
 NORMALIZERS = {
     "png": normalize_png,
     "jpeg": normalize_jpeg,
@@ -428,29 +469,12 @@ def member_suffix(info: zipfile.ZipInfo) -> str:
     return pathlib.PurePosixPath(info.filename).suffix
 
 
-def normalize_member(
-    data: bytes, scratch_dir: pathlib.Path, apply: bool, suffix: str = ""
-) -> bytes | None:
-    """Normalize one archive member, using a scratch file only for a video.
-
-    The scratch file keeps the member's extension, because ffmpeg picks the output
-    container from it and writes nothing when given a name it cannot infer one from.
-    """
+def normalize_member(data: bytes, suffix: str = "") -> bytes | None:
+    """Normalize one archive member, judged by its bytes and named by its extension."""
     if gate.is_icon(data, suffix.lower()):
         return None
     if gate.container(data) == "iso":
-        if not shutil.which("ffmpeg"):
-            return None
-        if not apply:
-            # A report stands in for the rewrite rather than paying for one.
-            return b""
-        source = scratch_dir / f".normalize-member-in{suffix}"
-        cleaned = scratch_dir / f".normalize-member-out{suffix}"
-        source.write_bytes(data)
-        result = cleaned.read_bytes() if normalize_iso(source, cleaned) else None
-        source.unlink(missing_ok=True)
-        cleaned.unlink(missing_ok=True)
-        return result
+        return remux(data, suffix)
     return normalize_bytes(data)
 
 
@@ -483,10 +507,7 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
                 continue
             holds = gate.scan_member(data, member_suffix(info).lower())
             if holds:
-                if (
-                    normalize_member(data, path.parent, False, member_suffix(info))
-                    is not None
-                ):
+                if normalize_member(data, member_suffix(info)) is not None:
                     removed.append(f"{info.filename}: {', '.join(sorted(holds))}")
                 else:
                     # Named rather than skipped, since the member stays as it is.
@@ -496,10 +517,13 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
         print(f"{path}!{line} -> needs a re-encode, which this does not do for you")
     if not (apply and removed):
         return removed
-    scratch = path.with_name(f".normalize-{path.name}")
+    if gate.symlinked(path):
+        print(f"{path}: symlink, not followed")
+        return []
     with (
+        replacing(path) as stream,
         zipfile.ZipFile(path) as source,
-        zipfile.ZipFile(scratch, "w", zipfile.ZIP_DEFLATED) as target,
+        zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as target,
     ):
         for info in source.infolist():
             if info.file_size > gate.SIZE_LIMIT:
@@ -507,23 +531,13 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
                 with source.open(info) as fsrc, target.open(info, "w") as fdst:
                     shutil.copyfileobj(fsrc, fdst)
                 continue
-            try:
-                data = source.read(info)
-            except gate.ZIP_ERRORS:
-                # A member that cannot be read cannot be repacked, so the rewrite stops.
-                scratch.unlink(missing_ok=True)
-                raise
-            new = (
-                None
-                if info.is_dir()
-                else normalize_member(data, path.parent, True, member_suffix(info))
-            )
+            data = source.read(info)
+            new = None if info.is_dir() else normalize_member(data, member_suffix(info))
             if new is None and not info.is_dir():
                 # Carried over rather than dropped, and never in silence.
                 print(f"{path}!{info.filename}: not normalized, carried over as it was")
             target.writestr(info, new if new else data)
             del data
-    scratch.replace(path)
     return removed
 
 
@@ -590,18 +604,21 @@ def main() -> int:
 
     trees = gate.TREES + gate.SITE_TREES
     defaults = [
-        REPO / t for t in trees if (REPO / t).is_dir() or (REPO / t).is_symlink()
+        REPO / t
+        for t in trees
+        if os.path.lexists(REPO / t)
+        and ((REPO / t).is_dir() or gate.symlinked(REPO / t))
     ]
     roots = [pathlib.Path(p) for p in args.paths] or defaults
     targets: list[pathlib.Path] = []
     for root in roots:
-        if root.is_dir():
+        if gate.symlinked(root):
+            print(f"{root}: symlink, not followed")
+        elif root.is_dir():
             # A symlink is never followed, since an apply would rewrite its target.
             targets.extend(
                 sorted(p for p in root.rglob("*") if p.is_file() and not p.is_symlink())
             )
-        elif root.is_symlink():
-            print(f"{root}: symlink, not followed")
         else:
             targets.append(root)
 
@@ -624,32 +641,29 @@ def main() -> int:
             new = None
         elif gate.container(data) != "iso":
             new = normalize_bytes(data)
-        elif not shutil.which("ffmpeg"):
-            # Reported as needing a re-encode, since nothing here can perform one.
-            new = None
-        elif not args.apply:
-            # A report does not run ffmpeg, so it stands in for the rewrite.
-            new = b""
         else:
-            scratch = path.with_name(f".normalize-{path.name}")
-            new = scratch.read_bytes() if normalize_iso(path, scratch) else None
-            scratch.unlink(missing_ok=True)
+            new = remux(data, path.suffix)
 
         name = str(path.relative_to(REPO)) if path.is_relative_to(REPO) else str(path)
         if new is None:
             reencode.append((name, sorted(holds)))
             continue
-        before, after = pixel_payload(data), pixel_payload(new) if new else None
+        before, after = pixel_payload(data), pixel_payload(new)
         if before is not None and after != before:
             reencode.append((name, [*sorted(holds), "rewrite would not be lossless"]))
             continue
-        if new and gate.scan(new):
+        if gate.scan(new):
             reencode.append((name, [*sorted(holds), "rewrite would still not pass"]))
             continue
-        changed.append((name, sorted(holds), len(data) - len(new) if new else 0))
-        saved += len(data) - len(new) if new else 0
-        if args.apply and new:
-            path.write_bytes(new)
+        if args.apply and gate.symlinked(path):
+            # Checked again, since a link can take the file's place after the walk.
+            print(f"{path}: symlink, not followed")
+            continue
+        changed.append((name, sorted(holds), len(data) - len(new)))
+        saved += len(data) - len(new)
+        if args.apply:
+            with replacing(path) as stream:
+                stream.write(new)
 
     for name, tags, delta in changed:
         verb = "removed" if args.apply else "would remove"
