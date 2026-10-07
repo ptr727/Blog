@@ -1,6 +1,8 @@
 """Tests for the free values check-media-metadata.py pins, every value in them constructed."""
 
+import contextlib
 import importlib.util
+import io
 import pathlib
 import struct
 import tempfile
@@ -518,6 +520,25 @@ class Sites(unittest.TestCase):
 
     def test_site_script_reading_as_an_iso_box_is_left_alone(self) -> None:
         self.assertEqual(self.found("site.js", b"let wide = matchMedia('');"), {})
+
+    def test_site_video_by_a_name_outside_the_text_is_read(self) -> None:
+        found = self.found("clip.m4a", b"let wide = matchMedia('');")
+        self.assertIn(self.key("clip.m4a"), found)
+
+    def test_icon_reading_as_an_iso_box_is_read(self) -> None:
+        found = self.found("favicon.ico", gate.ICO_HEADER + b"free" + bytes(20))
+        self.assertEqual(found[self.key("favicon.ico")], {"ICO directory cut off"})
+
+    def test_binary_opening_like_an_icon_is_left_alone(self) -> None:
+        self.assertEqual(self.found("table.bin", gate.ICO_HEADER + bytes(60)), {})
+
+    def test_normalizer_names_an_icon_it_cannot_clean(self) -> None:
+        held = self.root / "icons.zip"
+        with zipfile.ZipFile(held, "w") as archive:
+            archive.writestr("favicon.ico", ico_of(png_with(text_chunk())))
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            normalizer.normalize_archive(held, False)
+        self.assertIn("icons.zip!favicon.ico: ICO entry 0: ", out.getvalue())
 
     def test_icon_inside_an_archive_is_read(self) -> None:
         held = self.root / "held.zip"

@@ -38,10 +38,13 @@ from typing import Any
 REPO = pathlib.Path(__file__).resolve().parent.parent
 TREES = ("static/media", "static/external")
 
-# These trees also hold markup, styles and scripts, so a file is judged as an archive member is.
+# These trees also hold markup, styles and scripts, so a file is read only where it is media.
 SITE_TREES = ("sites",)
 
-# Extensions that name a picture or a video, read only inside an archive or a site tree.
+# The text a site carries, whose opening word can read as an ISO box name.
+SITE_TEXT = frozenset((".html", ".css", ".js", ".svg", ".md", ".txt", ".json", ".xml"))
+
+# Extensions naming a picture or video, read in archives and site trees.
 # A member is judged by its bytes wherever they are recognized.
 # An unrecognized container is a finding only where the name says the member is media.
 # An archive here also carries source files and binaries, which are not in scope.
@@ -1295,6 +1298,8 @@ ICO_ENTRY = 16
 
 def scan_ico(data: bytes) -> set[str]:
     """Name what an icon holds, where every entry must be a PNG this vouches for."""
+    if data[:4] != ICO_HEADER:
+        return {"unrecognized container"}
     count = struct.unpack("<H", data[4:6])[0] if len(data) >= 6 else 0
     start = 6 + ICO_ENTRY * count
     if count == 0 or len(data) < start:
@@ -1331,14 +1336,14 @@ def scan_ico(data: bytes) -> set[str]:
 
 def scan_member(data: bytes, suffix: str) -> set[str]:
     """Name what a file among others holds, where its name or its bytes say it is media."""
-    hit = scan_ico(data) if data[:4] == ICO_HEADER else scan(data)
+    hit = scan_ico(data) if suffix == ".ico" else scan(data)
     named_media = suffix in MEDIA_SUFFIXES or suffix == ".ico"
     return hit if named_media or hit != {"unrecognized container"} else set()
 
 
 def scan_site(data: bytes, suffix: str) -> set[str]:
-    """Name what a site file holds, where only a name makes it video, since a script can open with "wide"."""
-    if container(data) == "iso" and suffix not in MEDIA_SUFFIXES:
+    """Name what a site file holds, where a script opening with "wide" is not video."""
+    if suffix in SITE_TEXT and container(data) == "iso":
         return set()
     return scan_member(data, suffix)
 

@@ -479,13 +479,8 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
                 # An encrypted or corrupt member is left as it is, and said so.
                 print(f"{path}!{info.filename}: unreadable, {type(exc).__name__}")
                 continue
-            holds = gate.scan(data)
-            named_media = (
-                pathlib.PurePosixPath(info.filename).suffix.lower()
-                in gate.MEDIA_SUFFIXES
-            )
-            unvouched = holds and (named_media or holds != {"unrecognized container"})
-            if unvouched:
+            holds = gate.scan_member(data, member_suffix(info).lower())
+            if holds:
                 if (
                     normalize_member(data, path.parent, False, member_suffix(info))
                     is not None
