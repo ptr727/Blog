@@ -20,13 +20,20 @@ No gate here catches a wrong `SITE_BASE_URL`, for the reason in [`checks/README.
 
 What earns hardening effort here, and what does not.
 
-**Two surfaces take input from parties the maintainer does not control.** The first is requests to the public sites, from browsers, crawlers, and scanners. The second is a workflow that acts on a pull request, above all `merge-bot-pull-request.yml`, which runs with the App's secrets. Hardening against hostile or malformed input pays for itself on these two surfaces.
+**Hostile input reaches three surfaces.**
 
-**A fork's pull request reaches the media gate, and that reach is bounded.** The validation workflow runs the gate and the fuzzer on the files a pull request carries. It runs with a read-only token and no secrets, so a crafted file can at worst fail that pull request's own check. Nothing from a fork reaches `develop` or `main` without the maintainer's merge.
+- Requests to the public sites, from browsers, crawlers, and scanners.
+- A pull request's checks, which run whatever code the pull request carries. A fork's run gets a read-only token and no secrets, so its reach ends with that run.
+- Upstream releases that Dependabot proposes. The merge bot merges each one into `develop` and `main` once the required checks pass, with no human review.
 
-**The committed tree is not an attack surface for the media tooling.** Its files are the maintainer's posts and images, media the capture scripts fetched, the vendored theme, and the pins Dependabot proposes. None of them is crafted to attack the media gate or the normalizer. Those two keep the maintainer's own metadata from leaking and catch accidental damage, such as a truncated copy. Their existing checks stay, and nothing new is added to defend them against a crafted file.
+Hardening pays for itself where a hostile input on one of these surfaces can do damage beyond failing its own check.
 
-**A hardening finding needs a realistic input before it earns work.** Before fixing or filing a hardening finding, name the input that reaches it through one of the surfaces above or the maintainer's own workflow. Where none exists, decline it with that absence as the evidence, cite this section, and file nothing. A reviewer, human or bot, can always find one more malformed-input edge, so a correct finding is not by itself a reason to act. A functional gap that a real committed file hits, such as metadata the normalizer cannot remove, is not hardening. Work it like any other defect.
+**The media tooling is not such a place.** The media gate and the normalizer read the maintainer's own images and captured media. A fork can put a crafted file in front of the gate, and the worst outcome is that its own check fails. The tooling exists to keep the maintainer's metadata from leaking and to catch accidental damage, such as a truncated copy. Its existing checks stay, and nothing new is added to defend it against a crafted file.
+
+**A hardening finding needs damage before it earns work.** Before fixing or filing one, name an input that reaches the code and the damage it does beyond failing its own check. Where there is none, decline the finding with that absence as the evidence, cite this section, and file nothing. A reviewer, human or bot, can always find one more malformed-input edge, so a correct finding is not by itself a reason to act. Two cases are worked anyway, each with the smallest change that settles it:
+
+- A fuzzer failure on the carried media, since it blocks every merge until it passes.
+- A functional gap that a real committed file hits, such as metadata the normalizer cannot remove.
 
 ## Local Verification
 
