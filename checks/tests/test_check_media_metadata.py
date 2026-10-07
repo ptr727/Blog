@@ -638,6 +638,10 @@ class Sites(unittest.TestCase):
         self.link("static/media", self.outside())
         self.assertEqual(dict(gate.findings()), {"static/media": {"symlink, not read"}})
 
+    def test_dangling_symlinked_tree_is_named(self) -> None:
+        self.link("sites", self.root / "gone")
+        self.assertEqual(gate.findings(), [("sites", {"symlink, not read"})])
+
     def test_tree_under_a_symlinked_directory_is_named_and_not_read(self) -> None:
         target = self.outside()
         (target / "media").mkdir()

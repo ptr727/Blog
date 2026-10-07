@@ -603,9 +603,7 @@ def main() -> int:
     args = parser.parse_args()
 
     trees = gate.TREES + gate.SITE_TREES
-    defaults = [
-        REPO / t for t in trees if (REPO / t).is_dir() or (REPO / t).is_symlink()
-    ]
+    defaults = [REPO / t for t in trees if os.path.lexists(REPO / t)]
     roots = [pathlib.Path(p) for p in args.paths] or defaults
     targets: list[pathlib.Path] = []
     for root in roots:

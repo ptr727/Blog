@@ -27,6 +27,7 @@ pixels and writing a fresh file that is clean by construction.
 
 import hashlib
 import lzma
+import os
 import pathlib
 import re
 import struct
@@ -1375,7 +1376,7 @@ def findings() -> list[tuple[str, set[str]]]:
     out = []
     for tree in TREES + SITE_TREES:
         root = REPO / tree
-        if root.is_symlink() or (root.is_dir() and symlinked(root)):
+        if os.path.lexists(root) and symlinked(root):
             out.append((tree, {"symlink, not read"}))
             continue
         if not root.is_dir():
