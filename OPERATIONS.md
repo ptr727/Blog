@@ -16,6 +16,16 @@ The interim hostname `blog.insanegenius.net` has no DNS record, and no setting h
 
 No gate here catches a wrong `SITE_BASE_URL`, for the reason in [`checks/README.md`](./checks/README.md) "The robots check, and the one thing no gate here can do".
 
+## Threat Model
+
+What earns hardening effort here, and what does not.
+
+**The only external input is what reaches the server.** Requests to the public sites, from browsers, crawlers, and scanners, are untrusted. So is anything a workflow fetches from outside this repository. Hardening against hostile or malformed input pays for itself there and nowhere else.
+
+**Everything committed here is the maintainer's own.** The maintainer writes or chooses every post, image, archive, and tool configuration in the tree. No outside party can put a file there. The media gate and the normalizer exist to keep the maintainer's own metadata from leaking, not to defend against a crafted file. A corrupt image, a symlink, a directory junction, a race between writers, or a fuzzer-found parser gap has no path in.
+
+**A hardening finding needs a realistic input before it earns work.** Before fixing a review finding or filing one, name the input from the maintainer's own workflow that reaches it. Where none exists, decline the finding, cite this section, and file nothing. A reviewer, human or bot, can always find one more malformed-input edge, so a correct finding is not by itself a reason to act. A functional gap that a real committed file hits, such as metadata the normalizer cannot remove, is not hardening. Work it like any other defect.
+
 ## Local Verification
 
 What verifying a change here requires, including the half a pipeline cannot reach.
