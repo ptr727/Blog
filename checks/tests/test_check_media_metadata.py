@@ -5,6 +5,7 @@ import pathlib
 import struct
 import tempfile
 import unittest
+import zipfile
 import zlib
 from unittest import mock
 
@@ -495,6 +496,9 @@ class Sites(unittest.TestCase):
         patch.start()
         self.addCleanup(patch.stop)
 
+    def key(self, name: str) -> str:
+        return str(pathlib.Path("sites", "example.test", name))
+
     def found(self, name: str, data: bytes) -> dict[str, set[str]]:
         path = self.root / "sites" / "example.test" / name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -503,14 +507,32 @@ class Sites(unittest.TestCase):
 
     def test_site_png_holding_text_is_reported(self) -> None:
         found = self.found("og-image.png", png_with(text_chunk()))
-        self.assertIn("sites/example.test/og-image.png", found)
+        self.assertIn(self.key("og-image.png"), found)
 
     def test_site_png_named_otherwise_is_still_read(self) -> None:
         found = self.found("og-image.bin", png_with(text_chunk()))
-        self.assertIn("sites/example.test/og-image.bin", found)
+        self.assertIn(self.key("og-image.bin"), found)
 
     def test_site_markup_is_left_alone(self) -> None:
         self.assertEqual(self.found("index.html", b"<!doctype html>"), {})
+
+    def test_site_script_reading_as_an_iso_box_is_left_alone(self) -> None:
+        self.assertEqual(self.found("site.js", b"let wide = matchMedia('');"), {})
+
+    def test_icon_inside_an_archive_is_read(self) -> None:
+        held = self.root / "held.zip"
+        with zipfile.ZipFile(held, "w") as archive:
+            archive.writestr("favicon.ico", ico_of(png_with(text_chunk())))
+        found = self.found("icons.zip", held.read_bytes())
+        self.assertIn(self.key("icons.zip") + "!favicon.ico", found)
+
+    def test_large_icon_entry_states_its_side_as_zero(self) -> None:
+        ihdr = fuzz.png_chunk(b"IHDR", struct.pack(">IIBBBBB", 512, 1, 8, 0, 0, 0, 0))
+        idat = fuzz.png_chunk(b"IDAT", zlib.compress(bytes(513)))
+        image = b"\x89PNG\r\n\x1a\n" + ihdr + idat + fuzz.png_chunk(b"IEND", b"")
+        data = ico_of(image)
+        wide = data[:6] + b"\x00" + data[7:]
+        self.assertEqual(self.found("favicon.ico", wide), {})
 
     def test_clean_site_png_and_icon_pass(self) -> None:
         self.found("apple-touch-icon.png", fuzz.png_fixture())
@@ -520,41 +542,47 @@ class Sites(unittest.TestCase):
 
     def test_icon_entry_holding_text_is_reported(self) -> None:
         found = self.found("favicon.ico", ico_of(png_with(text_chunk())))
-        tags = found["sites/example.test/favicon.ico"]
+        tags = found[self.key("favicon.ico")]
         self.assertTrue(all(tag.startswith("ICO entry 0: ") for tag in tags), tags)
 
     def test_icon_bytes_outside_its_entries_are_reported(self) -> None:
         found = self.found("favicon.ico", ico_of(fuzz.png_fixture(), tail=b"note"))
         self.assertEqual(
-            found["sites/example.test/favicon.ico"], {"ICO bytes past the last entry"}
+            found[self.key("favicon.ico")], {"ICO bytes past the last entry"}
         )
 
     def test_icon_entry_past_the_end_is_reported(self) -> None:
         data = ico_of(fuzz.png_fixture())
         found = self.found("favicon.ico", data[:-1])
         self.assertEqual(
-            found["sites/example.test/favicon.ico"],
+            found[self.key("favicon.ico")],
+            {"ICO entry 0 not where the last one ends"},
+        )
+
+    def test_icon_bytes_before_an_entry_are_reported(self) -> None:
+        image = fuzz.png_fixture()
+        entry = struct.pack("<BBBBHHII", 1, 1, 0, 0, 1, 8, len(image), 26)
+        data = gate.ICO_HEADER + b"\x01\x00" + entry + b"note" + image
+        found = self.found("favicon.ico", data)
+        self.assertEqual(
+            found[self.key("favicon.ico")],
             {"ICO entry 0 not where the last one ends"},
         )
 
     def test_icon_entry_not_a_png_is_reported(self) -> None:
         found = self.found("favicon.ico", ico_of(bytes(40)))
-        self.assertEqual(
-            found["sites/example.test/favicon.ico"], {"ICO entry 0 not a PNG"}
-        )
+        self.assertEqual(found[self.key("favicon.ico")], {"ICO entry 0 not a PNG"})
 
     def test_icon_directory_disagreeing_with_its_image_is_reported(self) -> None:
         found = self.found("favicon.ico", ico_of(fuzz.png_fixture(), bits=32))
         self.assertEqual(
-            found["sites/example.test/favicon.ico"],
+            found[self.key("favicon.ico")],
             {"ICO entry 0 directory not its image's own"},
         )
 
     def test_unrecognized_icon_is_reported(self) -> None:
         found = self.found("favicon.ico", b"not an icon")
-        self.assertEqual(
-            found["sites/example.test/favicon.ico"], {"unrecognized container"}
-        )
+        self.assertEqual(found[self.key("favicon.ico")], {"unrecognized container"})
 
 
 if __name__ == "__main__":

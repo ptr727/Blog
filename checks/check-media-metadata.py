@@ -41,7 +41,7 @@ TREES = ("static/media", "static/external")
 # These trees also hold markup, styles and scripts, so a file is judged as an archive member is.
 SITE_TREES = ("sites",)
 
-# Extensions that name a picture or a video, read only inside an archive.
+# Extensions that name a picture or a video, read only inside an archive or a site tree.
 # A member is judged by its bytes wherever they are recognized.
 # An unrecognized container is a finding only where the name says the member is media.
 # An archive here also carries source files and binaries, which are not in scope.
@@ -1319,7 +1319,7 @@ def scan_ico(data: bytes) -> set[str]:
         side_x, side_y, depth, color = struct.unpack(">IIBB", image[16:26])
         # A directory field no decoder needs is pinned to the value its image states.
         if (
-            (width or 256, height or 256) != (side_x, side_y)
+            (width or 256, height or 256) != (min(side_x, 256), min(side_y, 256))
             or (colors, reserved, planes) != (0, 0, 1)
             or bits != depth * PNG_CHANNELS[color]
         ):
@@ -1329,11 +1329,18 @@ def scan_ico(data: bytes) -> set[str]:
     return out
 
 
-def scan_site(data: bytes, suffix: str) -> set[str]:
-    """Name what a site file holds, where its name or its bytes say it is media."""
+def scan_member(data: bytes, suffix: str) -> set[str]:
+    """Name what a file among others holds, where its name or its bytes say it is media."""
     hit = scan_ico(data) if data[:4] == ICO_HEADER else scan(data)
     named_media = suffix in MEDIA_SUFFIXES or suffix == ".ico"
     return hit if named_media or hit != {"unrecognized container"} else set()
+
+
+def scan_site(data: bytes, suffix: str) -> set[str]:
+    """Name what a site file holds, where only a name makes it video, since a script can open with "wide"."""
+    if container(data) == "iso" and suffix not in MEDIA_SUFFIXES:
+        return set()
+    return scan_member(data, suffix)
 
 
 def findings() -> list[tuple[str, set[str]]]:
@@ -1391,12 +1398,9 @@ def walk_archive(path: pathlib.Path, name: str) -> list[tuple[str, set[str]]]:
                 # Only media is in scope, so a source file or a binary is left alone.
                 # A member named as media counts even where its bytes are unrecognized.
                 # Otherwise the same file fails loose and passes inside a zip.
-                hit = scan(member)
-                named_media = (
-                    pathlib.PurePosixPath(info.filename).suffix.lower()
-                    in MEDIA_SUFFIXES
-                )
-                if hit and (named_media or hit != {"unrecognized container"}):
+                suffix = pathlib.PurePosixPath(info.filename).suffix.lower()
+                hit = scan_member(member, suffix)
+                if hit:
                     out.append((f"{name}!{info.filename}", hit))
     except ZIP_ERRORS as exc:
         out.append((name, {f"unreadable archive: {type(exc).__name__}"}))
@@ -1416,7 +1420,8 @@ def main() -> int:
             print(f"{name}: {', '.join(sorted(tags))}")
         print(
             f"\n{len(found)} file(s) hold something this cannot vouch for."
-            " Run scripts/normalize-media.py, see CONTENT.md."
+            " Run scripts/normalize-media.py on each, see CONTENT.md."
+            " An icon is rendered again instead."
         )
         return 1
     print(
