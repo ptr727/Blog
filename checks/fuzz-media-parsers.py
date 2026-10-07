@@ -1474,7 +1474,7 @@ def carried_seeds(
     by_kind: dict[str, list[pathlib.Path]] = {}
     for tree in gate.TREES + gate.SITE_TREES:
         root = REPO / tree
-        if not root.is_dir():
+        if gate.symlinked(root) or not root.is_dir():
             continue
         for path in sorted(root.rglob("*"), key=pathlib.Path.as_posix):
             if path.is_symlink() or not path.is_file() or path.suffix.lower() == ".zip":
