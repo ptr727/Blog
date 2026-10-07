@@ -717,8 +717,6 @@ def zip_fixture() -> bytes:
 
 
 def container(data: bytes) -> str:
-    if data[:4] == gate.ICO_HEADER:
-        return "ico"
     if data[:2] == b"\xff\xd8":
         return "jpeg"
     if data[:8] == b"\x89PNG\r\n\x1a\n":
@@ -729,6 +727,8 @@ def container(data: bytes) -> str:
         return "webp"
     if data[4:8] in (b"ftyp", b"moov", b"wide", b"mdat", b"free", b"skip"):
         return "iso"
+    if data[:4] == gate.ICO_HEADER:
+        return "ico"
     return "other"
 
 
@@ -1483,7 +1483,9 @@ def carried_seeds(
                 continue
             with path.open("rb") as handle:
                 kind = container(handle.read(12))
-            if kind == "other" and tree in gate.SITE_TREES:
+            if tree in gate.SITE_TREES and (
+                kind == "other" or path.suffix.lower() in gate.SITE_TEXT
+            ):
                 continue
             by_kind.setdefault(kind, []).append(path)
     seeds = []
