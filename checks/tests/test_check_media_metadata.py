@@ -583,7 +583,10 @@ class Sites(unittest.TestCase):
         self.assertIn("1 file(s) to normalize", out.getvalue())
 
     def test_normalizer_names_a_dangling_default_root(self) -> None:
-        (self.root / "sites").symlink_to(self.root / "gone")
+        try:
+            (self.root / "sites").symlink_to(self.root / "gone")
+        except OSError as exc:
+            self.skipTest(f"symlinks need a privilege here: {exc}")
         with (
             mock.patch.object(normalizer, "REPO", self.root),
             mock.patch.object(normalizer.sys, "argv", ["normalize-media.py"]),
