@@ -4,7 +4,9 @@ import contextlib
 import importlib.util
 import io
 import pathlib
+import shutil
 import struct
+import subprocess
 import tempfile
 import unittest
 import zipfile
@@ -660,28 +662,67 @@ class Sites(unittest.TestCase):
         self.assertIn("held.png: symlink, not followed", out)
         self.assertEqual((target / "held.png").read_bytes(), before)
 
-    def test_normalizer_replaces_a_symlink_swapped_in_before_the_write(self) -> None:
+    def swapped(self, swap: pathlib.Path, target: pathlib.Path) -> str:
+        """Apply the normalizer with `swap` turned into a link once the walk has run."""
+        judge = normalizer.judge
+
+        def late(path: pathlib.Path, data: bytes) -> set[str]:
+            shutil.rmtree(swap) if swap.is_dir() else swap.unlink()
+            try:
+                swap.symlink_to(target)
+            except OSError as exc:
+                self.skipTest(f"symlinks need a privilege here: {exc}")
+            return judge(path, data)
+
+        with mock.patch.object(normalizer, "judge", late):
+            return self.normalize("--apply")
+
+    def test_normalizer_refuses_a_file_swapped_for_a_symlink_after_the_walk(
+        self,
+    ) -> None:
         target = self.outside()
         before = (target / "held.png").read_bytes()
         held = self.root / "static" / "media" / "held.png"
         held.parent.mkdir(parents=True)
         held.write_bytes(png_with(text_chunk()))
-        judge = normalizer.judge
-
-        def swap(path: pathlib.Path, data: bytes) -> set[str]:
-            path.unlink()
-            try:
-                path.symlink_to(target / "held.png")
-            except OSError as exc:
-                self.skipTest(f"symlinks need a privilege here: {exc}")
-            return judge(path, data)
-
-        with mock.patch.object(normalizer, "judge", swap):
-            out = self.normalize("--apply")
-        self.assertIn("1 file(s) normalized", out)
+        out = self.swapped(held, target / "held.png")
+        self.assertIn("held.png: symlink, not followed", out)
+        self.assertIn("0 file(s) normalized", out)
         self.assertEqual((target / "held.png").read_bytes(), before)
+
+    def test_normalizer_refuses_a_directory_swapped_for_a_symlink_after_the_walk(
+        self,
+    ) -> None:
+        target = self.outside()
+        before = (target / "held.png").read_bytes()
+        held = self.root / "static" / "media" / "sub" / "held.png"
+        held.parent.mkdir(parents=True)
+        held.write_bytes(png_with(text_chunk()))
+        out = self.swapped(held.parent, target)
+        self.assertIn("held.png: symlink, not followed", out)
+        self.assertEqual((target / "held.png").read_bytes(), before)
+
+    def test_replacing_a_symlink_leaves_its_target_alone(self) -> None:
+        target = self.outside()
+        before = (target / "held.png").read_bytes()
+        held = self.link("static/media/held.png", target / "held.png")
+        with normalizer.replacing(held) as stream:
+            stream.write(b"new")
         self.assertFalse(held.is_symlink())
-        self.assertEqual(gate.scan(held.read_bytes()), set())
+        self.assertEqual(held.read_bytes(), b"new")
+        self.assertEqual((target / "held.png").read_bytes(), before)
+
+    def test_path_through_an_alias_of_the_repository_is_still_checked(self) -> None:
+        target = self.outside()
+        self.link("static/media/linked", target)
+        alias = self.outside() / "alias"
+        try:
+            alias.symlink_to(self.root)
+        except OSError as exc:
+            self.skipTest(f"symlinks need a privilege here: {exc}")
+        named = alias / "static" / "media" / "linked" / "held.png"
+        self.assertTrue(gate.symlinked(named))
+        self.assertFalse(gate.symlinked(alias / "static" / "media"))
 
     def test_normalizer_keeps_the_mode_of_a_file_it_rewrites(self) -> None:
         held = self.root / "static" / "media" / "held.png"
@@ -706,6 +747,31 @@ class Sites(unittest.TestCase):
             out = self.normalize()
         self.assertIn("clip.txt: needs a re-encode", out)
         self.assertNotIn("would remove", out)
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "needs ffmpeg")
+    def test_report_and_apply_agree_on_what_ffmpeg_can_write(self) -> None:
+        clip = self.root / "clip.mov"
+        subprocess.run(
+            [
+                *("ffmpeg", "-loglevel", "error", "-f", "lavfi"),
+                *("-i", "testsrc=duration=0.1:size=16x16:rate=10"),
+                *("-c:v", "mpeg4", "-metadata", "title=example", str(clip)),
+            ],
+            check=True,
+            timeout=60,
+        )
+        media = self.root / "static" / "media"
+        media.mkdir(parents=True)
+        for name in ("clip.mov", "clip.txt"):
+            (media / name).write_bytes(clip.read_bytes())
+        with contextlib.redirect_stderr(io.StringIO()):
+            report, applied = self.normalize(), self.normalize("--apply")
+        for out in (report, applied):
+            self.assertIn("clip.txt: needs a re-encode", out)
+            self.assertIn("1 file(s) ", out)
+        self.assertIn("clip.mov: would remove ISO udta atom", report)
+        self.assertIn("clip.mov: removed ISO udta atom", applied)
+        self.assertEqual(gate.scan((media / "clip.mov").read_bytes()), set())
 
     def test_normalizer_reports_a_member_ffmpeg_cannot_write_as_a_re_encode(
         self,

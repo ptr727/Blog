@@ -29,6 +29,7 @@ import importlib.util
 import os
 import pathlib
 import shutil
+import stat
 import struct
 import subprocess
 import sys
@@ -440,7 +441,9 @@ def replacing(path: pathlib.Path) -> Iterator[BinaryIO]:
     try:
         with os.fdopen(handle, "wb") as stream:
             yield stream
-        shutil.copymode(path, scratch)
+        held = path.lstat()
+        if stat.S_ISREG(held.st_mode):
+            os.chmod(scratch, stat.S_IMODE(held.st_mode))
         scratch.replace(path)
     except BaseException:
         scratch.unlink(missing_ok=True)
@@ -514,6 +517,9 @@ def normalize_archive(path: pathlib.Path, apply: bool) -> list[str]:
         print(f"{path}!{line} -> needs a re-encode, which this does not do for you")
     if not (apply and removed):
         return removed
+    if gate.symlinked(path):
+        print(f"{path}: symlink, not followed")
+        return []
     with (
         replacing(path) as stream,
         zipfile.ZipFile(path) as source,
@@ -645,6 +651,10 @@ def main() -> int:
             continue
         if gate.scan(new):
             reencode.append((name, [*sorted(holds), "rewrite would still not pass"]))
+            continue
+        if args.apply and gate.symlinked(path):
+            # Checked again, since a link can take the file's place after the walk.
+            print(f"{path}: symlink, not followed")
             continue
         changed.append((name, sorted(holds), len(data) - len(new)))
         saved += len(data) - len(new)

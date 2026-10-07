@@ -1357,10 +1357,18 @@ def scan_site(data: bytes, suffix: str) -> set[str]:
 
 
 def symlinked(path: pathlib.Path) -> bool:
-    """Whether a path, or a directory between it and the repository, is a symlink."""
+    """Whether a path, or a directory above it inside the repository, is a link.
+
+    A directory counts as inside where the one holding it resolves into the repository,
+    so a path naming the repository through an alias of its own location is still read.
+    """
+
+    def link(p: pathlib.Path) -> bool:
+        return p.is_symlink() or p.is_junction()
+
     path = path.absolute()
-    above = [p for p in path.parents if p.is_relative_to(REPO) and p != REPO]
-    return path.is_symlink() or any(p.is_symlink() for p in above)
+    above = (p for p in path.parents if p.parent.resolve().is_relative_to(REPO))
+    return link(path) or any(link(p) for p in above)
 
 
 def findings() -> list[tuple[str, set[str]]]:
