@@ -38,7 +38,13 @@ from typing import Any
 REPO = pathlib.Path(__file__).resolve().parent.parent
 TREES = ("static/media", "static/external")
 
-# Extensions that name a picture or a video, read only inside an archive.
+# These trees also hold markup, styles and scripts, so a file is read only where it is media.
+SITE_TREES = ("sites",)
+
+# The text a site carries, whose bytes 4 to 8 can read as an ISO box name.
+SITE_TEXT = frozenset((".html", ".css", ".js", ".svg", ".md", ".txt", ".json", ".xml"))
+
+# Extensions naming a picture or video, read in archives and site trees.
 # A member is judged by its bytes wherever they are recognized.
 # An unrecognized container is a finding only where the name says the member is media.
 # An archive here also carries source files and binaries, which are not in scope.
@@ -1286,9 +1292,73 @@ def scan(data: bytes) -> set[str]:
     return scanner(data) if scanner else {"unrecognized container"}
 
 
+ICO_HEADER = b"\x00\x00\x01\x00"
+ICO_ENTRY = 16
+
+
+def scan_ico(data: bytes) -> set[str]:
+    """Name what an icon holds, where every entry must be a PNG this vouches for."""
+    if data[:4] != ICO_HEADER:
+        return {"unrecognized container"}
+    count = struct.unpack("<H", data[4:6])[0] if len(data) >= 6 else 0
+    start = 6 + ICO_ENTRY * count
+    if count == 0 or len(data) < start:
+        return {"ICO directory cut off"}
+    out: set[str] = set()
+    for n in range(count):
+        width, height, colors, reserved, planes, bits, size, offset = struct.unpack(
+            "<BBBBHHII", data[6 + ICO_ENTRY * n : 6 + ICO_ENTRY * (n + 1)]
+        )
+        # Entries laid end to end leave no byte that no decoder reads.
+        if offset != start or size == 0 or offset + size > len(data):
+            return out | {f"ICO entry {n} not where the last one ends"}
+        image = data[offset : offset + size]
+        start = offset + size
+        if container(image) != "png":
+            out.add(f"ICO entry {n} not a PNG")
+            continue
+        hit = scan_png(image)
+        out.update(f"ICO entry {n}: {tag}" for tag in hit)
+        if hit:
+            continue
+        side_x, side_y, depth, color = struct.unpack(">IIBB", image[16:26])
+        # A directory field no decoder needs is pinned to the value its image states.
+        if (
+            (width or 256, height or 256) != (min(side_x, 256), min(side_y, 256))
+            or (colors, reserved, planes) != (0, 0, 1)
+            or bits != depth * PNG_CHANNELS[color]
+        ):
+            out.add(f"ICO entry {n} directory not its image's own")
+    if start != len(data):
+        out.add("ICO bytes past the last entry")
+    return out
+
+
+def is_icon(data: bytes, suffix: str) -> bool:
+    return suffix == ".ico" and data[:4] == ICO_HEADER
+
+
+def scan_member(data: bytes, suffix: str) -> set[str]:
+    """Name what a file among others holds, where its name or its bytes say it is media."""
+    hit = scan_ico(data) if is_icon(data, suffix) else scan(data)
+    named_media = suffix in MEDIA_SUFFIXES or suffix == ".ico"
+    return hit if named_media or hit != {"unrecognized container"} else set()
+
+
+def scan_site(data: bytes, suffix: str) -> set[str]:
+    """Name what a site file holds, where text such as "let wide" is not video."""
+    if suffix in SITE_TEXT and container(data) == "iso":
+        try:
+            data.decode("utf-8")
+            return set()
+        except UnicodeDecodeError:
+            pass
+    return scan_member(data, suffix)
+
+
 def findings() -> list[tuple[str, set[str]]]:
     out = []
-    for tree in TREES:
+    for tree in TREES + SITE_TREES:
         root = REPO / tree
         if not root.is_dir():
             continue
@@ -1306,7 +1376,12 @@ def findings() -> list[tuple[str, set[str]]]:
             if path.suffix.lower() == ".zip":
                 out.extend(walk_archive(path, name))
                 continue
-            hit = scan(path.read_bytes())
+            data = path.read_bytes()
+            hit = (
+                scan_site(data, path.suffix.lower())
+                if tree in SITE_TREES
+                else scan(data)
+            )
             if hit:
                 out.append((name, hit))
     return out
@@ -1336,12 +1411,9 @@ def walk_archive(path: pathlib.Path, name: str) -> list[tuple[str, set[str]]]:
                 # Only media is in scope, so a source file or a binary is left alone.
                 # A member named as media counts even where its bytes are unrecognized.
                 # Otherwise the same file fails loose and passes inside a zip.
-                hit = scan(member)
-                named_media = (
-                    pathlib.PurePosixPath(info.filename).suffix.lower()
-                    in MEDIA_SUFFIXES
-                )
-                if hit and (named_media or hit != {"unrecognized container"}):
+                suffix = pathlib.PurePosixPath(info.filename).suffix.lower()
+                hit = scan_member(member, suffix)
+                if hit:
                     out.append((f"{name}!{info.filename}", hit))
     except ZIP_ERRORS as exc:
         out.append((name, {f"unreadable archive: {type(exc).__name__}"}))
@@ -1352,7 +1424,7 @@ def main() -> int:
     found = findings()
     scanned = sum(
         1
-        for tree in TREES
+        for tree in TREES + SITE_TREES
         for p in (REPO / tree).rglob("*")
         if p.is_file() and not p.is_symlink()
     )
@@ -1361,10 +1433,13 @@ def main() -> int:
             print(f"{name}: {', '.join(sorted(tags))}")
         print(
             f"\n{len(found)} file(s) hold something this cannot vouch for."
-            " Run scripts/normalize-media.py, see CONTENT.md."
+            " Run scripts/normalize-media.py on each, see CONTENT.md."
+            " An icon is rendered again instead."
         )
         return 1
-    print(f"media   : {scanned} carried file(s), every one in a form this recognizes")
+    print(
+        f"media   : {scanned} carried file(s) read, none holding what this cannot vouch for"
+    )
     return 0
 
 
