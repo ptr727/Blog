@@ -20,7 +20,7 @@ No gate here catches a wrong `SITE_BASE_URL`, for the reason in [`checks/README.
 
 What earns hardening effort here, and what does not.
 
-**Hostile input reaches three surfaces.**
+**Hostile input reaches code in this tree through three surfaces.**
 
 - Requests to the public sites, from browsers, crawlers, and scanners.
 - A pull request's checks, which run whatever code the pull request carries. A fork's run gets a read-only token and no secrets, so its reach ends with that run.
@@ -32,7 +32,7 @@ Hardening pays for itself where a hostile input on one of these surfaces can do 
 
 **A hardening finding needs damage before it earns work.** Before fixing or filing one, name an input that reaches the code and the damage it does beyond failing its own check. Where there is none, decline the finding with that absence as the evidence, cite this section, and file nothing. A reviewer, human or bot, can always find one more malformed-input edge, so a correct finding is not by itself a reason to act. Two cases are worked anyway, each with the smallest change that settles it:
 
-- A fuzzer failure on the carried media, since it blocks every merge until it passes.
+- A fuzzer failure, since it blocks every merge until it passes.
 - A functional gap that a real committed file hits, such as metadata the normalizer cannot remove.
 
 ## Local Verification
