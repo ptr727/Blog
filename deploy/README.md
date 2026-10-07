@@ -324,9 +324,9 @@ It forwards `Host` and `Accept-Language` unchanged.
 Everything the site does not render is the web server's job, and the workload constrains which server can serve it. Two requirements are load-bearing, so a replacement has to meet both:
 
 - **The query string must be matchable.** 110 `?p=<id>` shortlinks redirect on the query alone. A server that matches on the path only would resolve `/?p=123` as `/`, redirect the homepage, and carry the query through to it.
-- **There must be a lookup primitive.** 282 of the 920 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 664 entries between them. A linear scan of that many rules per request is the wrong shape.
+- **There must be a lookup primitive.** 282 of the 922 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 664 entries between them. A linear scan of that many rules per request is the wrong shape.
 
-The Caddyfile carries **13 `redir` directives**, reading **5 map files** through **3 `map` blocks**. Ten directives match on a pattern and three resolve through a map lookup, which is used wherever no pattern can derive the destination from the input.
+The Caddyfile carries **14 `redir` directives**, reading **5 map files** through **3 `map` blocks**. Eleven directives match on a pattern and three resolve through a map lookup. A map serves wherever no pattern can derive the destination from the input.
 
 Directives and URL classes are not one to one, in both directions. `@mapped` is a single directive serving three classes, because their key spaces are disjoint and merging them keeps one lookup on the hot path. `@uploads` is one directive covering a URL set that is gated separately.
 
@@ -349,12 +349,13 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@mapped` via `terms.map` | 3 | the three empty term archives |
 | `@blogger_feed` | 2 | `/feeds/posts/default` -> `/feed.xml`, Blogger's Atom feed |
 | `@blogger_page` | 2 | `/p/<slug>.html` -> `/<slug>/`, Blogger's static-page shape |
+| `@feed_type` | 2 | a WordPress post, attachment, term, author, site, comments, or about feed at `/feed/atom/`, `/feed/rss/`, `/feed/rss2/` or `/feed/rdf/` -> the same feed at `/feed/`, which another row resolves |
 
-**Those thirteen classes account for every line in [`checks/redirect-urls.txt`](../checks/redirect-urls.txt), with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it.
+**Those fourteen classes account for every line in [`checks/redirect-urls.txt`](../checks/redirect-urls.txt), with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it.
 
 `@uploads` is deliberately absent from that table and from the redirect contract. It rewrites `/wp-content/uploads/(.*)` to `/media/$1`, preserving all 778 legacy image URLs, which are gated by `golden-media-legacy.txt` on their own. Counting them here would double-count a set that has its own list.
 
-`@label` is the fourteenth class and is deliberately **not** in the contract. `/search/label/<Label>` was never a redirect: the old platform answered it with a generic search page that returns 200 for a label that never existed, so it is a soft 404 that looks alive. `labels.map` sends each label to its term archive and defaults anything unmatched to `/all/`, which is a choice rather than a preservation.
+`@label` is the fifteenth class and is deliberately **not** in the contract. `/search/label/<Label>` was never a redirect. The old platform answered it with a generic search page that returns 200 for a label that never existed. That makes it a soft 404 that looks alive. `labels.map` sends each label to its term archive and defaults anything unmatched to `/all/`, which is a choice rather than a preservation.
 
 Two orderings are load-bearing. `@post_child_feed` precedes `@post_child` because both match the same shape and the broader one would claim both. No golden URL is five segments under a date, so `@post_child` cannot swallow a page that must render, and `@uploads` rewrites under a prefix no rendered page occupies.
 

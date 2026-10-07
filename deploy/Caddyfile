@@ -61,6 +61,11 @@
 	route {
 		redir @post_id {by_id} 301
 
+		# WordPress served every feed under a type suffix too, so dropping it hands the address to the bare feed's rule.
+		# The prefix admits only shapes that had a feed, so a probe of any other shape still 404s.
+		@feed_type path_regexp ft ^((?:/\d{4}/\d{2}/\d{2}/[^/]+(?:/[^/]+)?|/(?:tag|category|author)/[^/]+|/comments|/about)?)/feed/(?:atom|rss|rss2|rdf)/?$
+		redir @feed_type {re.ft.1}/feed/ 301
+
 		# A per-post comment feed and an attachment page share a shape under a post date.
 		# The longer pattern is tested first, or the broader rule claims both.
 		@post_child_feed path_regexp pcf ^(/\d{4}/\d{2}/\d{2}/[^/]+)/[^/]+/feed/?$
