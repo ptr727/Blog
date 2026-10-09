@@ -498,7 +498,7 @@ Ordering is load-bearing, so every redirect lives in a single `route` block. Out
 | Attachment pages and per-post comment feeds | Two rules, the longer pattern first |
 | Term feeds, date archives, author archives | One rule each, to the term, the archive index, or the home page |
 | Legacy media paths | One rule, mapping the old upload prefix onto the current media tree |
-| Blogger permalinks, pages, feed, and monthly archives | Rules plus `blogger.map` |
+| Blogger permalinks, pages, feeds, per-post comment feeds, and monthly archives | Rules plus `blogger.map` |
 | WordPress shortlinks | `p-ids.map`, keyed on the query string |
 | Bare attachment slugs, root files, and retired pages | `slugs.map` |
 | Blogger label archives | `labels.map`, defaulting to the archive index |
