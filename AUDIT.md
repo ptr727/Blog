@@ -80,6 +80,8 @@ checks/check-url-parity.py public
 checks/check-live-urls.sh <base-url>
 ```
 
+Run the live gate against a local mirror, which checks every URL. Against the VPS production site, set `SAMPLE_CONTRACT=1`, because the edge there bans a client that requests the whole contract.
+
 - **The build gate** proves every URL that must render exists as a built page, that every legacy media URL resolves, and that every local asset reference points at a file that exists.
 - **The live gate** proves the redirects, which the build cannot: a redirect is the web server's job. It follows each redirect to its destination rather than trusting the status code, because a redirect into a hole returns a perfectly healthy 301.
 - **The floor assertions** fail when a list is truncated. Without them a shortened list makes every check below it pass while covering nothing.

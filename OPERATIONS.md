@@ -294,7 +294,7 @@ Two properties of the Caddy side are worth knowing before parsing it. Its access
 
 The outward pass is four filters over the edge log, and each one exists because skipping it produced a wrong answer once.
 
-**Exclude this repository's own deploy gate first.** `check-live-urls.sh` requests the whole URL contract on every deploy, so an unfiltered day is mostly a recording of our own `curl`. A count that omits this step is measuring the pipeline rather than the readers, and it will be an order of magnitude too large.
+**Exclude this repository's own deploy gate first.** `check-live-urls.sh` requests about 30 pages on each production deploy, one per contract class. Archived days from before that sampling carry the whole contract per deploy. An unfiltered day from then is mostly a recording of our own `curl`. A count that omits this step is measuring the pipeline rather than the readers.
 
 The mechanism is the `X-Blog-Check` request header, which the scripted checks send on every request they make, so `jq 'select(.["request_X-Blog-Check"] == null)'` is the filter. It is only as complete as the tagging is, which is the first bullet below. Its value is a source and an id rather than a boolean, so a run is identifiable rather than merely excludable. Real values look like `github/31322640628-1` from CI and `proxmox/media-dev` from here. Older lines also carry `vps/smoke`, sent by a host-side smoke script that is retired. The shape is enforced by `check-live-urls.sh`, which takes exactly one `/` and only letters, digits, `.`, `_`, `-`. A placeholder written with angle brackets is therefore a description rather than something to paste.
 
