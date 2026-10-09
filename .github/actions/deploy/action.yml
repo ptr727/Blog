@@ -87,12 +87,14 @@ runs:
     # The only step that observes the running site.
     # The token pairs are set on staging alone, since production answers unauthenticated.
     # Both environments serve the family site, so an empty SITE_EXTRA_BASE_URL is a missing variable, and the check would skip the family host.
+    # Production samples the contract by class, since its edge bans a runner that crawls it, and staging checks every URL.
     - name: Verify URL contract step
       if: inputs.mode == 'verify'
       shell: bash
       env:
         EXPECT_SITE_ENV: ${{ inputs.environment }}
         EXPECT_RELEASE: ${{ inputs.release-id }}
+        SAMPLE_CONTRACT: ${{ inputs.environment == 'production' && '1' || '' }}
       run: |
         set -Eeuo pipefail
         if [ -z "${SITE_EXTRA_BASE_URL:-}" ]; then

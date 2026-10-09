@@ -129,6 +129,8 @@ The deploy root and the base URL are the only host-specific values. A local run 
 
 **A VPS release is named by its deploy run, never by a commit.** The hub's deploy task names each release `<UTC yyyymmdd-HHMMSS>-<run id>-<run attempt>` and verifies the site against that id itself. To check a VPS site by hand afterwards, pass that id as `EXPECT_RELEASE`. Read it from the **Deploy site job**'s log, where `make-release.sh` prints `==> installing release <id>` with the id ending in the run's own id and attempt. The Validate sources job prints the same line earlier in the run, for a scratch bundle stamped with a bare timestamp, so the first match of a log search is the wrong id. Never copy it from the site's `X-Blog-Release` header, since a stale config still serves the previous id and the check would then pass against it. A short SHA never matches, so the check waits out its timeout and fails.
 
+**Production's deploy checks a sample of the contract, and every other run checks all of it.** The production edge bans a client that requests more than 40 distinct pages in a burst. It also bans one when more than 10 distinct pages answer `404`, `403` or `400`. A full run from the GitHub runner therefore gets it banned. The deploy hook sets `SAMPLE_CONTRACT=1` for `production` alone, and the check then requests one URL from each class. That covers each redirect class, each shape of page that must render, each media tree, and the family pages. It also covers `/all/` and `/feed.xml`, which only a redirect reaches. The script holds that to 30 distinct pages at most, and none is expected to answer an error. Staging and the local mirrors keep the whole contract, which is where it is proven. **A hand run against the VPS production site sets `SAMPLE_CONTRACT=1` too**, for the same reason the hook does. The local production mirror sits behind no such edge and keeps the whole contract. `checks/check-live-urls.sh --print-sample` lists what a sampled run requests without requesting anything. [`deploy/README.md`](./deploy/README.md#environment-variables) carries the budget.
+
 **Always set `SITE_BASE_URL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` internally, and the effective value is printed on every build for that reason.
 
 **Never promote a staging build to production.** The base URL is baked into the canonicals, the feeds, and every absolute permalink at build time. A staging artifact served as production points every page at the staging host. Each environment's deploy builds its own release from the ref instead.
@@ -162,7 +164,7 @@ The content reverts on the rename alone, because the container mounts the parent
 
 Verify with `EXPECT_RELEASE` set to the release being rolled back **to**, which is what proves the rules actually reverted rather than assuming they did.
 
-Verify with `checks/check-live-urls.sh` against the environment before considering the rollback finished.
+Verify with `checks/check-live-urls.sh` against the environment before considering the rollback finished, with `SAMPLE_CONTRACT=1` when that environment is the VPS production site.
 
 ### Retention
 

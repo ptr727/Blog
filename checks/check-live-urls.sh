@@ -1,15 +1,32 @@
 #!/usr/bin/env bash
 # Usage: checks/check-live-urls.sh <base-url>
+#        checks/check-live-urls.sh --print-sample
 # Verifies the URL contract against a running server, which is the only thing that exercises the redirects.
 
 set -uo pipefail
 
+PRINT_SAMPLE=''
 BASE="${1:-}"
-[ -n "$BASE" ] || {
-	echo "usage: $0 <base-url>" >&2
-	exit 2
-}
+if [ "$BASE" = "--print-sample" ]; then
+	PRINT_SAMPLE=1
+	BASE=''
+else
+	[ -n "$BASE" ] || {
+		echo "usage: $0 <base-url> | --print-sample" >&2
+		exit 2
+	}
+fi
 BASE="${BASE%/}"
+
+case "${SAMPLE_CONTRACT:-}" in
+'' | 1) ;;
+*)
+	echo "FAIL SAMPLE_CONTRACT takes 1 or nothing -- got '$SAMPLE_CONTRACT'" >&2
+	exit 2
+	;;
+esac
+SAMPLE="${SAMPLE_CONTRACT:-}"
+[ -n "$PRINT_SAMPLE" ] && SAMPLE=1
 
 CHECKS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARALLEL="${PARALLEL:-16}"
@@ -36,6 +53,156 @@ for list in golden-urls.txt redirect-urls.txt golden-media-live.txt; do
 	fi
 done
 
+FAMILY_PAGES=("/|The Viljoen Family" "/en/|The Viljoen Family" "/af/|Die Viljoen-familie")
+
+# Production's edge bans a client that requests more than 40 distinct pages in a burst, so its deploy checks one URL per class rather than the whole contract.
+# Staging and the local mirrors check every URL, which is where the contract itself is proven.
+SAMPLE_PER_CLASS=1
+SAMPLE_MAX_PATHS=30
+SAMPLE_MAX_STATICS=8
+# Pages only a redirect reaches, so no list names them and a sampled redirect never requests them.
+SAMPLE_DESTINATIONS=(/all/ /feed.xml)
+
+# Each classifier sets CLASS rather than printing it, since a subshell per URL costs seconds across the redirect list.
+# The redirect classes are the rows of deploy/README.md's table, with the map shapes last, since a bare .html test would claim two Blogger rows.
+# shellcheck disable=SC2329 # invoked through sample_list
+redirect_class() {
+	local url="$1" path="${1%%\?*}" query='' date='/[0-9]{4}/[0-9]{2}/[0-9]{2}/[^/]+'
+	[ "$path" = "$url" ] || query="${url#*\?}"
+	local feed_type="^(${date}(/[^/]+)?|/(tag|category|author)/[^/]+|/comments|/about)?/feed/(atom|rss|rss2|rdf)/?$"
+	local post_child_feed="^${date}/[^/]+/feed/?$" post_child="^${date}/[^/]+/?$"
+	local blogger_archive='^/[0-9]{4}_[0-9]{2}_01_archive\.html$' blogger_page='^/p/[^/]+\.html$'
+	local date_archive='^/[0-9]{4}(/[0-9]{2})?(/page/[0-9]+)?/?$' author='^/author/[^/]+(/(page/[0-9]+|feed))?/?$'
+	if [[ "&$query" == *'&p='* ]]; then
+		CLASS='@post_id'
+	elif [[ $path =~ $feed_type ]]; then
+		CLASS='@feed_type'
+	elif [[ $path =~ $post_child_feed ]]; then
+		CLASS='@post_child_feed'
+	elif [[ $path =~ $post_child ]]; then
+		CLASS='@post_child'
+	elif [[ $path =~ ^/(tag|category)/[^/]+/feed/?$ ]]; then
+		CLASS='@term_feed'
+	elif [[ $path =~ ^/(feed|comments/feed|about/feed)/?$ ]]; then
+		CLASS='@site_feed'
+	elif [[ $path =~ ^/feeds/posts/default/?$ ]]; then
+		CLASS='@blogger_feed'
+	elif [[ $path =~ $blogger_archive ]]; then
+		CLASS='@blogger_archive'
+	elif [[ $path =~ $blogger_page ]]; then
+		CLASS='@blogger_page'
+	elif [[ $path =~ $date_archive ]]; then
+		CLASS='@date_archive'
+	elif [[ $path =~ $author ]]; then
+		CLASS='@author'
+	# The four map classes share one directive, and their key shapes tell them apart.
+	elif [[ $path =~ ^/feeds/[^/]+/comments/default/?$ ]]; then
+		CLASS='@mapped via blogger.map (comment feed)'
+	elif [[ $path == *.html ]]; then
+		CLASS='@mapped via blogger.map (post)'
+	elif [[ $path =~ ^/(tag|category)/[^/]+/?$ ]]; then
+		CLASS='@mapped via terms.map'
+	else
+		CLASS='@mapped via slugs.map'
+	fi
+}
+
+# A shape nothing here names lands in its own class, so a new kind of page is sampled rather than skipped.
+# shellcheck disable=SC2329 # invoked through sample_list
+render_class() {
+	local url="$1" post='^/[0-9]{4}/[0-9]{2}/[0-9]{2}/[^/]+/$'
+	if [ "$url" = / ]; then
+		CLASS='home'
+	elif [[ $url =~ ^/page/[0-9]+/$ ]]; then
+		CLASS='home pagination'
+	elif [[ $url =~ $post ]]; then
+		CLASS='post'
+	elif [[ $url =~ ^/tag/[^/]+/$ ]]; then
+		CLASS='tag archive'
+	elif [[ $url =~ ^/category/[^/]+/$ ]]; then
+		CLASS='category archive'
+	elif [[ $url =~ ^/(tag|category)/[^/]+/page/[0-9]+/$ ]]; then
+		CLASS='term pagination'
+	elif [[ $url =~ ^/[^/]+/$ ]]; then
+		CLASS='page'
+	else
+		CLASS='other'
+	fi
+}
+
+# shellcheck disable=SC2329 # invoked through sample_list
+media_class() {
+	case "$1" in
+	/media/*) CLASS='media' ;;
+	/external/*) CLASS='external' ;;
+	/wp-content/uploads/*) CLASS='legacy upload' ;;
+	*) CLASS='other' ;;
+	esac
+}
+
+# Appends "<kind><TAB><class><TAB><class size><TAB><url>" to SAMPLE_PLAN for the first SAMPLE_PER_CLASS URLs of each class.
+# File order rather than a random pick, so two runs of one release request the same URLs and a failure reproduces.
+sample_list() {
+	local kind="$1" classify="$2" file="$3" url class
+	local -A size=() taken=()
+	local -a picks=()
+	while IFS= read -r url; do
+		[ -n "$url" ] || continue
+		"$classify" "$url"
+		size[$CLASS]=$((${size[$CLASS]:-0} + 1))
+		if [ "${taken[$CLASS]:-0}" -lt "$SAMPLE_PER_CLASS" ]; then
+			taken[$CLASS]=$((${taken[$CLASS]:-0} + 1))
+			picks+=("$CLASS"$'\t'"$url")
+		fi
+	done <"$file"
+	for url in "${picks[@]}"; do
+		class="${url%%$'\t'*}"
+		SAMPLE_PLAN+=("$kind"$'\t'"$class"$'\t'"${size[$class]}"$'\t'"${url#*$'\t'}")
+	done
+}
+
+if [ -n "$SAMPLE" ]; then
+	SAMPLE_PLAN=()
+	sample_list render render_class "$CHECKS/golden-urls.txt"
+	sample_list redirect redirect_class "$CHECKS/redirect-urls.txt"
+	for url in "${SAMPLE_DESTINATIONS[@]}"; do
+		SAMPLE_PLAN+=("render"$'\t'"redirect destination"$'\t'"${#SAMPLE_DESTINATIONS[@]}"$'\t'"$url")
+	done
+	sample_list media media_class "$CHECKS/golden-media-live.txt"
+	for page in "${FAMILY_PAGES[@]}"; do
+		SAMPLE_PLAN+=("family"$'\t'"family page"$'\t'"${#FAMILY_PAGES[@]}"$'\t'"${page%%|*}")
+	done
+
+	# The budget counts distinct non-static paths per host, which is never less than the edge counts, with the preflight's / among them.
+	# A sampled redirect is not followed, so each costs one path, and a legacy media URL costs two requests, since it takes a hop.
+	declare -A sample_paths=(["blog /"]=1)
+	sample_statics=0
+	for entry in "${SAMPLE_PLAN[@]}"; do
+		IFS=$'\t' read -r kind class _ url <<<"$entry"
+		case "$kind" in
+		media)
+			sample_statics=$((sample_statics + 1))
+			if [ "$class" = 'legacy upload' ]; then
+				sample_statics=$((sample_statics + 1))
+			fi
+			;;
+		family) sample_paths["family $url"]=1 ;;
+		*) sample_paths["blog $url"]=1 ;;
+		esac
+	done
+	if [ -n "$PRINT_SAMPLE" ]; then
+		printf '%s\n' "${SAMPLE_PLAN[@]}"
+		printf 'budget\tdistinct non-static paths\t%s\t%s\n' "${#sample_paths[@]}" "$SAMPLE_MAX_PATHS"
+		printf 'budget\tstatic requests\t%s\t%s\n' "$sample_statics" "$SAMPLE_MAX_STATICS"
+	fi
+	# Asserted before the first request, so a later edit that grows the sample fails here rather than getting the runner banned.
+	if [ "${#sample_paths[@]}" -gt "$SAMPLE_MAX_PATHS" ] || [ "$sample_statics" -gt "$SAMPLE_MAX_STATICS" ]; then
+		echo "FAIL the sample would request ${#sample_paths[@]} distinct non-static paths and $sample_statics statics, over its budget of $SAMPLE_MAX_PATHS and $SAMPLE_MAX_STATICS" >&2
+		exit 1
+	fi
+	[ -n "$PRINT_SAMPLE" ] && exit 0
+fi
+
 FAILED="$(mktemp)"
 CURLERR="$(mktemp)"
 CURLRC=""
@@ -43,7 +210,24 @@ FAMILY_CURLRC=""
 CHECKRC="$(mktemp)"
 FAMILY_BODY="$(mktemp)"
 FAMILY_HEAD="$(mktemp)"
-trap 'rm -f "$FAILED" "$CURLERR" "$CHECKRC" "$FAMILY_BODY" "$FAMILY_HEAD" ${CURLRC:+"$CURLRC"} ${FAMILY_CURLRC:+"$FAMILY_CURLRC"}' EXIT
+SAMPLE_DIR=""
+trap 'rm -f "$FAILED" "$CURLERR" "$CHECKRC" "$FAMILY_BODY" "$FAMILY_HEAD" ${CURLRC:+"$CURLRC"} ${FAMILY_CURLRC:+"$FAMILY_CURLRC"}; [ -z "$SAMPLE_DIR" ] || rm -rf "$SAMPLE_DIR"' EXIT
+
+RENDER_SRC="$CHECKS/golden-urls.txt"
+REDIRECT_SRC="$CHECKS/redirect-urls.txt"
+MEDIA_SRC="$CHECKS/golden-media-live.txt"
+if [ -n "$SAMPLE" ]; then
+	SAMPLE_DIR="$(mktemp -d)" || {
+		echo "FAIL could not create a directory for the sample, so nothing would be checked" >&2
+		exit 2
+	}
+	RENDER_SRC="$SAMPLE_DIR/render" REDIRECT_SRC="$SAMPLE_DIR/redirect" MEDIA_SRC="$SAMPLE_DIR/media"
+	for entry in "${SAMPLE_PLAN[@]}"; do
+		IFS=$'\t' read -r kind _ _ url <<<"$entry"
+		[ "$kind" = family ] || printf '%s\n' "$url" >>"$SAMPLE_DIR/$kind"
+	done
+	echo "==> sampling the contract by class, ${#sample_paths[@]} distinct non-static paths"
+fi
 
 # Every request this script makes announces itself as synthetic, so the server's log can be filtered down to real visitors with one clause.
 # Agreed with the host side, whose Traefik captures the field.
@@ -310,6 +494,8 @@ check_redirect() {
 		echo "redirect $url answered $code with no usable Location" >>"$FAILED"
 		return
 	fi
+	# A sampled run proves the rule fired and leaves the destination to the full contract, since following would take it past its budget.
+	[ -n "$SAMPLE" ] && return
 	# A redirect to a 404 is a broken redirect, so the destination is followed rather than trusted.
 	# The credential is only ever sent to the origin it belongs to.
 	# A rule that one day redirects off-site must not mail the token there.
@@ -334,7 +520,7 @@ check_redirect() {
 }
 
 export -f curl_retry transfer_failure check_render check_redirect check_media
-export BASE FAILED CURLRC CHECKRC
+export BASE FAILED CURLRC CHECKRC SAMPLE
 
 echo "==> $BASE"
 
@@ -430,17 +616,17 @@ elif [ -n "$got_release" ]; then
 	echo "==> rules from release $got_release"
 fi
 
-n_render=$(grep -c . "$CHECKS/golden-urls.txt")
+n_render=$(grep -c . "$RENDER_SRC")
 echo "==> checking $n_render URLs that must render"
-grep . "$CHECKS/golden-urls.txt" | xargs -P "$PARALLEL" -I{} bash -c 'check_render "$@"' _ {}
+grep . "$RENDER_SRC" | xargs -P "$PARALLEL" -I{} bash -c 'check_render "$@"' _ {}
 
-n_redirect=$(grep -c . "$CHECKS/redirect-urls.txt")
-echo "==> checking $n_redirect URLs that must redirect"
-grep . "$CHECKS/redirect-urls.txt" | xargs -P "$PARALLEL" -I{} bash -c 'check_redirect "$@"' _ {}
+n_redirect=$(grep -c . "$REDIRECT_SRC")
+echo "==> checking $n_redirect URLs that must redirect${SAMPLE:+, without following them}"
+grep . "$REDIRECT_SRC" | xargs -P "$PARALLEL" -I{} bash -c 'check_redirect "$@"' _ {}
 
-n_media=$(grep -c . "$CHECKS/golden-media-live.txt")
+n_media=$(grep -c . "$MEDIA_SRC")
 echo "==> checking $n_media media URLs that must be served as images"
-grep . "$CHECKS/golden-media-live.txt" | xargs -P "$PARALLEL" -I{} bash -c 'check_media "$@"' _ {}
+grep . "$MEDIA_SRC" | xargs -P "$PARALLEL" -I{} bash -c 'check_media "$@"' _ {}
 
 # The title tells the family page from the blog, since one container answers both and an unknown host falls through to the blog with a 200.
 # X-Blog-Env still tells one environment from another, and the family host is a proxy rule of its own that can aim at the wrong container.
@@ -455,7 +641,7 @@ if [ -n "$FAMILY_BASE" ]; then
 		family_hint=", and no family token was sent"
 	fi
 	echo "==> checking the family site at $FAMILY_BASE"
-	for page in "/|The Viljoen Family" "/en/|The Viljoen Family" "/af/|Die Viljoen-familie"; do
+	for page in "${FAMILY_PAGES[@]}"; do
 		page_path="${page%%|*}"
 		title="${page#*|}"
 		n_family=$((n_family + 1))
@@ -487,12 +673,12 @@ fi
 # Swallowing only the exit status keeps the printed count usable.
 failures=$(grep -c . "$FAILED" 2>/dev/null || true)
 if [ "$failures" -eq 0 ]; then
-	echo "PASS - $((n_render + n_redirect + n_media + n_family)) URLs honored"
+	echo "PASS - $((n_render + n_redirect + n_media + n_family)) ${SAMPLE:+sampled }URLs honored"
 	exit 0
 fi
 
 echo
-echo "FAIL - $failures of $((n_render + n_redirect + n_media + n_family)) URLs"
+echo "FAIL - $failures of $((n_render + n_redirect + n_media + n_family)) ${SAMPLE:+sampled }URLs"
 sort "$FAILED" | head -40
 [ "$failures" -gt 40 ] && echo "... and $((failures - 40)) more"
 exit 1
