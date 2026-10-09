@@ -185,7 +185,7 @@ There is no way to derive the target from the source. The old URL has no day seg
 
 Blogger truncated auto-generated slugs at 39 characters, on a whole-word boundary. So for the 12 posts whose title is long enough, the URL Blogger actually served, and therefore the one in Google's index, is the *truncated* one. That was the form missing from my map. WordPress redirects both, which is why testing a handful of the long ones by hand would have looked fine.
 
-I verified that the 11 truncated URLs I had found at the time return 301 on the live site, and checked a deliberately fabricated slug returns 404, to be sure I was seeing real registered redirects rather than a catch-all that makes everything look like it works. That control matters. Without it a permissive server will happily tell you every URL you invent is fine.
+I verified that the 11 truncated URLs I had found at the time return 301 on the live site. I also checked that a deliberately fabricated slug returns 404, to be sure I was seeing real registered redirects rather than a catch-all that makes everything look like it works. That control matters. Without it a permissive server will happily tell you every URL you invent is fine.
 
 Two other Blogger-era shapes turned up in the same pass: `/p/<slug>.html` for static pages, and `/feeds/posts/default` for the Atom feed. Both still resolve today.
 
