@@ -73,7 +73,7 @@ A **retired page** is one the site no longer renders because another site replac
 
 **`/search/label/<Label>` is not a redirect.** The old platform answers it with a generic search page that returns 200 for a label that never existed, so the class is a soft 404 that looks alive. It is handled by choice rather than by preservation: `labels.map` sends each label to its term archive, and anything unmatched falls through to `/all/`.
 
-The other property worth knowing belongs to the generator rather than to the contract, so it is in [`capture/README.md`][capture-readme]: `blogger.map` holds more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms still answer. A few posts also link to addresses that match neither form.
+The other property worth knowing belongs to the generator rather than to the contract, so it is in [`capture/README.md`][capture-readme]: `blogger.map` holds more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms still answer. A few addresses Blogger served, or the contract lists, match neither form.
 
 ## Maintaining the contract
 

@@ -33,7 +33,7 @@
 	# Without this a stale config passes the URL contract against rules never shipped.
 	header X-Blog-Release "@@RELEASE@@"
 
-	# One map serves three classes because their key spaces are disjoint.
+	# One map serves four classes because their key spaces are disjoint.
 	# Merging them keeps a single lookup on the hot path.
 	map {path} {mapped} {
 		import /srv/blog/current/maps/blogger.map
