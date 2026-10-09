@@ -324,11 +324,11 @@ It forwards `Host` and `Accept-Language` unchanged.
 Everything the site does not render is the web server's job, and the workload constrains which server can serve it. Two requirements are load-bearing, so a replacement has to meet both:
 
 - **The query string must be matchable.** 110 `?p=<id>` shortlinks redirect on the query alone. A server that matches on the path only would resolve `/?p=123` as `/`, redirect the homepage, and carry the query through to it.
-- **There must be a lookup primitive.** 282 of the 922 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 664 entries between them. A linear scan of that many rules per request is the wrong shape.
+- **There must be a lookup primitive.** 311 of the 951 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 714 entries between them. A linear scan of that many rules per request is the wrong shape.
 
 The Caddyfile carries **14 `redir` directives**, reading **5 map files** through **3 `map` blocks**. Eleven directives match on a pattern and three resolve through a map lookup. A map serves wherever no pattern can derive the destination from the input.
 
-Directives and URL classes are not one to one, in both directions. `@mapped` is a single directive serving three classes, because their key spaces are disjoint and merging them keeps one lookup on the hot path. `@uploads` is one directive covering a URL set that is gated separately.
+Directives and URL classes are not one to one, in both directions. `@mapped` is a single directive serving four classes, because their key spaces are disjoint and merging them keeps one lookup on the hot path. `@uploads` is one directive covering a URL set that is gated separately.
 
 Each row below is a **URL class**, named by the matcher that serves it, so the table can be checked against [`Caddyfile`](./Caddyfile) by grep rather than by trust.
 
@@ -342,7 +342,8 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@post_child_feed` | 107 | `/YYYY/MM/DD/post/<child>/feed/` -> the post, ordered **before** `@post_child` |
 | `@mapped` via `slugs.map` | 108 | bare `/<attachment-slug>/` -> best destination, `/robots.txt/` -> the file, `/osd.xml/` -> `/`, and a retired page -> the site that replaced it |
 | `@date_archive` | 83 | `/YYYY/`, `/YYYY/MM/`, and their pagination -> `/all/`. The matcher accepts any date, including dates absent from the list |
-| `@mapped` via `blogger.map` | 61 | `/YYYY/MM/slug.html` -> the current post |
+| `@mapped` via `blogger.map` | 63 | `/YYYY/MM/slug.html` -> the current post |
+| `@mapped` via `blogger.map` | 27 | `/feeds/<post id>/comments/default` -> the post, Blogger's per-post comment feed |
 | `@blogger_archive` | 21 | `/YYYY_MM_01_archive.html` -> `/all/`, any date, including ones never covered |
 | `@author` | 12 | `/author/<name>/`, its pagination and feed -> `/` |
 | `@site_feed` | 3 | `/feed/`, `/comments/feed/`, `/about/feed/` -> `/feed.xml` |
@@ -351,7 +352,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@blogger_page` | 2 | `/p/<slug>.html` -> `/<slug>/`, Blogger's static-page shape |
 | `@feed_type` | 2 | a WordPress post, attachment, term, author, site, comments, or about feed at `/feed/atom/`, `/feed/rss/`, `/feed/rss2/` or `/feed/rdf/` -> the same feed at `/feed/`, which another row resolves |
 
-**Those fourteen classes account for every line in [`checks/redirect-urls.txt`](../checks/redirect-urls.txt), with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it.
+**Those fifteen classes account for every line in [`checks/redirect-urls.txt`](../checks/redirect-urls.txt), with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it.
 
 `@uploads` is deliberately absent from that table and from the redirect contract. It rewrites `/wp-content/uploads/(.*)` to `/media/$1`, preserving all 778 legacy image URLs, which are gated by `golden-media-legacy.txt` on their own. Counting them here would double-count a set that has its own list.
 

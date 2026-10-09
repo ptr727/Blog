@@ -89,7 +89,7 @@ The contract in [`checks/`](../checks/) was not derived from the content tree. I
 
 ## Two properties of the maps that are easy to break
 
-**The Blogger map holds more entries than there are Blogger-era posts.** That platform truncated an auto-generated slug at a fixed length on a whole-word boundary, so a long title was served at the truncated address and that is the address in search indexes. The importer registered the full slug, both answer, and both are mapped. The limit is a named constant in `build-redirects.py`, and changing it changes how many entries the map has. A few addresses the posts themselves link to match neither form. `BLOGGER_ALIASES`, beside the limit, maps each through the Blogger address it stands for. Each post's Blogger comment feed is mapped as well, keyed on the numeric post id the export carries.
+**The Blogger map holds more entries than there are Blogger-era posts.** That platform truncated an auto-generated slug at a fixed length on a whole-word boundary. A long title was therefore served at the truncated address, which is the one search indexes hold. The importer registered the full slug, both answer, and both are mapped. The limit is a named constant in `build-redirects.py`, and changing it changes how many entries the map has. A few addresses Blogger served, or the contract lists, match neither form. `BLOGGER_ALIASES`, beside the limit, maps each through the Blogger address it stands for. Each post's Blogger comment feed is mapped as well, keyed on the numeric post id the export carries.
 
 **A term archive the old platform served is not always one Hugo builds.** Where it does not, the URL still has to answer, which is why the maps carry terms that no longer exist as pages.
 

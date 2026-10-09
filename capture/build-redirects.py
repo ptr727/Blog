@@ -26,7 +26,7 @@ CHECKS = REPO / "checks"
 # The WordPress importer registers the full slug, and both answer, so both are mapped.
 BLOGGER_SLUG_LIMIT = 39
 
-# Blogger addresses matching neither slug form, which the posts' own links use and readers still request.
+# Blogger addresses matching neither slug form, each one Blogger served or the contract lists.
 # Each names the Blogger address it stands for, so its destination stays derived from the export.
 BLOGGER_ALIASES = {
     "/2008/05/how-difficult-can-it-be-to-transfer.html": "/2008/05/81.html",
@@ -134,7 +134,7 @@ def main(argv):
             # The old path is rebuilt from the publish date and the slug.
             meta = {text(m, "wp:meta_key"): text(m, "wp:meta_value") for m in item.findall("wp:postmeta", NS)}
             if ptype == "post" and any(k.startswith("blogger_") for k in meta):
-                blogger_id = next((v for k, v in meta.items() if k.startswith("blogger_") and k.endswith("_permalink")), "")
+                blogger_id = next(v for k, v in meta.items() if k.startswith("blogger_") and k.endswith("_permalink"))
                 blogger.append((text(item, "wp:post_date"), text(item, "wp:post_name"), blogger_id, posts[pid]))
         elif ptype == "attachment":
             attachments.append((text(item, "wp:post_name"), text(item, "wp:post_parent")))
@@ -153,8 +153,7 @@ def main(argv):
     for date, name, blogger_id, dest in blogger:
         prefix = f"/{date[:4]}/{date[5:7]}"
         bmap[f"{prefix}/{name}.html"] = dest
-        if blogger_id:
-            bmap[f"/feeds/{blogger_id}/comments/default"] = dest
+        bmap[f"/feeds/{blogger_id}/comments/default"] = dest
         short = blogger_truncate(name)
         if short != name:
             bmap[f"{prefix}/{short}.html"] = dest
@@ -258,7 +257,7 @@ def main(argv):
         return 1
 
     print(f"p-ids.map   : {n_pids} entries  (/?p=<id> -> permalink)")
-    print(f"blogger.map : {n_blogger} entries  ({truncated} posts also mapped under a truncated Blogger slug, {len(BLOGGER_ALIASES)} aliases)")
+    print(f"blogger.map : {n_blogger} entries  ({truncated} posts also mapped under a truncated Blogger slug, {len(BLOGGER_ALIASES)} aliases, {len(blogger)} comment feeds)")
     print(f"labels.map  : {n_labels} entries  ({n_terms} terms, each with a capitalized variant)")
     print(f"terms.map   : {n_empty} entries  (term archives WordPress serves that Hugo will not build)")
     print(f"slugs.map   : {n_slugs} entries")
