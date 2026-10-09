@@ -24,12 +24,13 @@ CHECKS = REPO / "checks"
 # Blogger truncates an auto-generated slug at this many characters, on a whole-word boundary.
 # For a longer slug the truncated form is the URL Blogger served, and so the one in search indexes.
 # The WordPress importer registers the full slug, and both answer, so both are mapped.
-BLOGGER_SLUG_LIMIT = 40
+BLOGGER_SLUG_LIMIT = 39
 
 # Blogger addresses matching neither slug form, which the posts' own links use and readers still request.
 # Each names the Blogger address it stands for, so its destination stays derived from the export.
 BLOGGER_ALIASES = {
-    "/2011/07/synology-ds1511-vs-qnap-ts-859-pro.html": "/2011/07/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.html",
+    "/2008/05/how-difficult-can-it-be-to-transfer.html": "/2008/05/81.html",
+    "/2011/07/synology-ds1511-vs-qnap-ts-859-pro-iscsi.html": "/2011/07/synology-ds1511-vs-qnap-ts-859-pro-iscsi-mpio-performance.html",
     "/2011/07/synology-ds2411-performance.html": "/2011/07/synology-ds2411-performance-review.html",
 }
 
@@ -129,12 +130,12 @@ def main(argv):
             link = path_of(text(item, "link"))
             posts[pid] = FIXED_DESTINATIONS.get(link, link)
             # Any blogger_* postmeta marks a post from before the move off Blogger.
-            # The permalink value is a numeric post id rather than a path.
+            # The permalink value is a numeric post id rather than a path, which keys the post's comment feed.
             # The old path is rebuilt from the publish date and the slug.
-            if ptype == "post" and any(
-                text(m, "wp:meta_key").startswith("blogger_") for m in item.findall("wp:postmeta", NS)
-            ):
-                blogger.append((text(item, "wp:post_date"), text(item, "wp:post_name"), posts[pid]))
+            meta = {text(m, "wp:meta_key"): text(m, "wp:meta_value") for m in item.findall("wp:postmeta", NS)}
+            if ptype == "post" and any(k.startswith("blogger_") for k in meta):
+                blogger_id = next((v for k, v in meta.items() if k.startswith("blogger_") and k.endswith("_permalink")), "")
+                blogger.append((text(item, "wp:post_date"), text(item, "wp:post_name"), blogger_id, posts[pid]))
         elif ptype == "attachment":
             attachments.append((text(item, "wp:post_name"), text(item, "wp:post_parent")))
 
@@ -146,12 +147,14 @@ def main(argv):
     # --- p-ids.map : /?p=<id> -> permalink
     n_pids = write_map(out / "p-ids.map", sorted(posts.items(), key=lambda kv: int(kv[0])))
 
-    # --- blogger.map : /YYYY/MM/<slug>.html -> permalink, both slug forms
+    # --- blogger.map : /YYYY/MM/<slug>.html and /feeds/<id>/comments/default -> permalink, both slug forms
     bmap = {}
     truncated = 0
-    for date, name, dest in blogger:
+    for date, name, blogger_id, dest in blogger:
         prefix = f"/{date[:4]}/{date[5:7]}"
         bmap[f"{prefix}/{name}.html"] = dest
+        if blogger_id:
+            bmap[f"/feeds/{blogger_id}/comments/default"] = dest
         short = blogger_truncate(name)
         if short != name:
             bmap[f"{prefix}/{short}.html"] = dest
