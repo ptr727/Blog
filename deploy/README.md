@@ -165,17 +165,18 @@ One more decides how much of the contract is requested:
 | `SAMPLE_CONTRACT` | `1` requests the first URL of each class rather than every URL. Unset checks the whole contract. Any other value is refused. |
 
 Production's deploy sets it, and nothing else does. Production's edge bans a client that requests
-more than 40 distinct pages in a burst. It also bans one that collects 10 answers of `404`, `403`
-or `400` in a short window. The whole contract is over 1,200 URLs. The sample takes one URL from
-each redirect class in [How the redirects are expressed](#how-the-redirects-are-expressed). It
-adds one from each shape of page that must render, one from each media tree, and the three
-family pages. That is 25 distinct pages across both hosts and at most 6 image requests. None of
-them is expected to answer an error. A sampled redirect is checked for its status and a
-`Location`, and its destination is left to the full contract. That halves the pages it costs.
-The script asserts that budget before its first request, so an edit that grows the sample fails
-rather than getting the runner banned. `checks/check-live-urls.sh --print-sample` prints the
-sample and its budget without requesting anything. The release, environment, and list-length
-checks run unchanged.
+more than 40 distinct pages in a burst. It also bans one when more than 10 distinct pages answer
+`404`, `403` or `400` in a short window. Images, CSS and JS count toward neither. The whole
+contract is over 1,200 URLs. The sample takes one URL from each redirect class in
+[How the redirects are expressed](#how-the-redirects-are-expressed). It adds one from each shape
+of page that must render, one from each media tree, and the three family pages. Before its
+first request, the script asserts that this stays within 30 distinct pages across both hosts. An
+edit that grows the sample therefore fails rather than getting the runner banned. None of the pages is
+expected to answer an error. A sampled redirect is checked for its status and a `Location`, and
+its destination is left to the full contract. Following it would add a page for each destination
+the sample does not already request, which takes the run past that budget.
+`checks/check-live-urls.sh --print-sample` prints the sample and its current count without
+requesting anything. The release, environment, and list-length checks run unchanged.
 
 ## Reloading without a restart
 

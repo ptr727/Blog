@@ -55,7 +55,7 @@ done
 
 FAMILY_PAGES=("/|The Viljoen Family" "/en/|The Viljoen Family" "/af/|Die Viljoen-familie")
 
-# Production's edge bans a client that requests more than 40 distinct pages in a burst, so its deploy checks a few URLs per class rather than the whole contract.
+# Production's edge bans a client that requests more than 40 distinct pages in a burst, so its deploy checks one URL per class rather than the whole contract.
 # Staging and the local mirrors check every URL, which is where the contract itself is proven.
 SAMPLE_PER_CLASS=1
 SAMPLE_MAX_PATHS=30
@@ -170,13 +170,18 @@ if [ -n "$SAMPLE" ]; then
 	done
 
 	# The budget counts what the edge counts, distinct non-static paths per host, with the preflight's / among them.
-	# A sampled redirect is not followed, so each costs one path, and a media URL costs at most two requests, since a legacy one takes a hop.
+	# A sampled redirect is not followed, so each costs one path, and a legacy media URL costs two requests, since it takes a hop.
 	declare -A sample_paths=(["blog /"]=1)
 	sample_statics=0
 	for entry in "${SAMPLE_PLAN[@]}"; do
-		IFS=$'\t' read -r kind _ _ url <<<"$entry"
+		IFS=$'\t' read -r kind class _ url <<<"$entry"
 		case "$kind" in
-		media) sample_statics=$((sample_statics + 2)) ;;
+		media)
+			sample_statics=$((sample_statics + 1))
+			if [ "$class" = 'legacy upload' ]; then
+				sample_statics=$((sample_statics + 1))
+			fi
+			;;
 		family) sample_paths["family $url"]=1 ;;
 		*) sample_paths["blog $url"]=1 ;;
 		esac
@@ -482,7 +487,7 @@ check_redirect() {
 		echo "redirect $url answered $code with no usable Location" >>"$FAILED"
 		return
 	fi
-	# A sampled run proves the rule fired and leaves the destination to the full contract, which halves its paths.
+	# A sampled run proves the rule fired and leaves the destination to the full contract, since following would take it past its budget.
 	[ -n "$SAMPLE" ] && return
 	# A redirect to a 404 is a broken redirect, so the destination is followed rather than trusted.
 	# The credential is only ever sent to the origin it belongs to.
