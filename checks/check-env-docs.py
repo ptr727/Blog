@@ -48,6 +48,7 @@ KNOBS = {
     "EXPECT_RELEASE",
     "CHECK_TAG",
     "MTIME_RESTORED",
+    "SAMPLE_CONTRACT",
 }
 
 # Real, stored GitHub Environment values, invisible to WORKFLOWS for a different reason.
