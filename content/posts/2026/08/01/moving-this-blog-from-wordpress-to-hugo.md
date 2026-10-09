@@ -32,7 +32,7 @@ The first move is documented on this blog, which turned out to be genuinely usef
 
 That last one is worth reading if you are migrating anything, because it is the same lesson twice. In 2012 the problem was that WordPress generated a slightly different slug than Blogger had, so `/2008/03/printing-from-network.html` did not match `/2008/03/30/printing-from-the-network/`. Blogger had dropped short words like "the" and "and" from its auto-generated slugs.
 
-In 2026 the problem was that Blogger *also* truncated those slugs at 40 characters, which I did not know in 2012 and had to rediscover. Same root cause, same class of silent failure, fourteen years apart. The 2012 post is the reason I thought to go looking at all.
+In 2026 the problem was that Blogger *also* truncated those slugs at 39 characters, which I did not know in 2012 and had to rediscover. Even then I first set the limit one character too high, and the 404 logs caught it later. Same root cause, same class of silent failure, fourteen years apart. The 2012 post is the reason I thought to go looking at all.
 
 ## The URL problem
 
@@ -49,7 +49,7 @@ That gap is the whole story. The sitemap lists posts and pages. It does not list
 - 322 attachment pages, one per uploaded image
 - 302 per-post comment feeds
 - 12 author archive URLs
-- 59 Blogger-era `.html` permalinks
+- 60 Blogger-era `.html` permalinks
 - the feeds
 
 If you are planning a migration like this, **do not trust your sitemap**. Crawl the live site, and then go looking for the things a crawl cannot find either, because nothing on the current site links to the Blogger URLs. No crawler will find them. They are only in Google's index and in other people's links.
@@ -181,11 +181,11 @@ I only discovered these existed because I noticed five posts sharing a single da
 
 There is no way to derive the target from the source. The old URL has no day segment, so no regular expression gets you to `/2012/03/14/some-post-title/`. It has to be a lookup table. I built one from the WordPress export by taking each post's date and slug for the posts that carry Blogger metadata, which reproduced a 48-entry map.
 
-**The map should have had 59 entries.**
+**The map should have had 60 entries.**
 
-Blogger truncated auto-generated slugs at 40 characters, on a whole-word boundary. So for the 11 posts whose title is long enough, the URL Blogger actually served, and therefore the one in Google's index, is the *truncated* one. That was the form missing from my map. WordPress redirects both, which is why testing a handful of the long ones by hand would have looked fine.
+Blogger truncated auto-generated slugs at 39 characters, on a whole-word boundary. So for the 12 posts whose title is long enough, the URL Blogger actually served, and therefore the one in Google's index, is the *truncated* one. That was the form missing from my map. WordPress redirects both, which is why testing a handful of the long ones by hand would have looked fine.
 
-I verified all 11 truncated URLs return 301 on the live site, and checked a deliberately fabricated slug returns 404, to be sure I was seeing real registered redirects rather than a catch-all that makes everything look like it works. That control matters. Without it a permissive server will happily tell you every URL you invent is fine.
+I verified that the 11 truncated URLs I had found at the time return 301 on the live site. I also checked that a deliberately fabricated slug returns 404, to be sure I was seeing real registered redirects rather than a catch-all that makes everything look like it works. That control matters. Without it a permissive server will happily tell you every URL you invent is fine.
 
 Two other Blogger-era shapes turned up in the same pass: `/p/<slug>.html` for static pages, and `/feeds/posts/default` for the Atom feed. Both still resolve today.
 
