@@ -24,6 +24,8 @@ The contract is enforced by two gates, because one cannot cover both halves:
 | [`check-url-parity.py`][check-url-parity] | Every URL that must render exists as a built page, every legacy image URL resolves, every local asset reference points at a real file, and the count of carried media linked from no page still equals its recorded baseline | Against `public/`, in CI and before any release is installed |
 | [`check-live-urls.sh`][check-live-urls] | Every redirect resolves, and its destination answers | Against a running server, which is the only thing that exercises a redirect |
 
+**Production's deploy checks a sample of the contract rather than all of it.** Its edge bans a client that requests more than 40 distinct pages in a burst, and the full contract is over 1,200. So the deploy hook sets `SAMPLE_CONTRACT=1` there, and `check-live-urls.sh` then requests the first URL of each class in file order. That covers every redirect class in [`deploy/README.md`][deploy-readme-redirects], every shape of page that must render, each media tree, and the family site. It also requests `/all/` and `/feed.xml`, which only a redirect reaches. A sampled redirect is checked for its status and its `Location` and is not followed. The script asserts the sample's budget before its first request, and `checks/tests/test_check_live_urls_sample.py` holds the classes to the table's sizes and the sample to that budget. `checks/check-live-urls.sh --print-sample` prints the sample and its budget without requesting anything. Staging, the local mirrors, and any run without the variable check every URL, which is where the contract itself is proven.
+
 ## The two lists
 
 **`golden-urls.txt`, 327 URLs Hugo must render.** Missing any one is a hard CI failure.
@@ -179,4 +181,5 @@ Three traps in that adjudication, each of which produced a wrong answer first an
 [check-media-redactions]: ./check-media-redactions.py
 [check-text-pii]: ./check-text-pii.py
 [check-url-parity]: ./check-url-parity.py
+[deploy-readme-redirects]: ../deploy/README.md#how-the-redirects-are-expressed
 [fuzz-media-parsers]: ./fuzz-media-parsers.py

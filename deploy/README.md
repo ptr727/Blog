@@ -158,6 +158,27 @@ since a hostname the family block does not name falls through to the blog with a
 a proxy rule of its own. Where `EXPECT_RELEASE` is set, each page's `X-Blog-Release` must match it.
 A family failure is recorded with the rest rather than stopping the run.
 
+One more decides how much of the contract is requested:
+
+| Variable | Effect |
+| --- | --- |
+| `SAMPLE_CONTRACT` | `1` requests the first URL of each class rather than every URL. Unset checks the whole contract. Any other value is refused. |
+
+Production's deploy sets it, and so does a hand run against the VPS production site. Nothing else sets it. Production's edge bans a client that requests
+more than 40 distinct pages in a burst. It also bans one when more than 10 distinct pages answer
+`404`, `403` or `400` in a short window. Images, CSS and JS count toward neither. The whole
+contract is over 1,200 URLs. The sample takes one URL from each redirect class in
+[How the redirects are expressed](#how-the-redirects-are-expressed). It adds one from each shape
+of page that must render, one from each media tree, and the three family pages. It also adds
+`/all/` and `/feed.xml`, which only a redirect reaches. Before its
+first request, the script asserts that this stays within 30 distinct pages across both hosts. An
+edit that grows the sample therefore fails rather than getting the runner banned. None of the pages is
+expected to answer an error. A sampled redirect is checked for its status and a `Location`, and
+its destination is left to the full contract. Following it would add a page for each destination
+the sample does not already request, which takes the run past that budget.
+`checks/check-live-urls.sh --print-sample` prints the sample and its current count without
+requesting anything. The release, environment, and list-length checks run unchanged.
+
 ## Reloading without a restart
 
 The container runs `caddy run --watch`, so a release goes live with **no restart**. The watcher
@@ -352,7 +373,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@blogger_page` | 2 | `/p/<slug>.html` -> `/<slug>/`, Blogger's static-page shape |
 | `@feed_type` | 2 | a WordPress post, attachment, term, author, site, comments, or about feed at `/feed/atom/`, `/feed/rss/`, `/feed/rss2/` or `/feed/rdf/` -> the same feed at `/feed/`, which another row resolves |
 
-**Those fifteen classes account for every line in [`checks/redirect-urls.txt`](../checks/redirect-urls.txt), with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it.
+**Those fifteen classes account for every line in [`checks/redirect-urls.txt`](../checks/redirect-urls.txt), with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it. `check-live-urls.sh` classifies the list by the same rows to sample production. A unit test holds each class's count to the size column above, so a new row needs a new class there.
 
 `@uploads` is deliberately absent from that table and from the redirect contract. It rewrites `/wp-content/uploads/(.*)` to `/media/$1`, preserving all 778 legacy image URLs, which are gated by `golden-media-legacy.txt` on their own. Counting them here would double-count a set that has its own list.
 

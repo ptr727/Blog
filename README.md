@@ -105,7 +105,7 @@ flowchart LR
   subgraph prd["4. Production, public"]
     direction TB
     pm["Pull request: develop into main"] --> dp["Dispatch: deploy production"]
-    dp --> lp["Gate: every URL in the contract, run by CI"]
+    dp --> lp["Gate: one URL per contract class, run by CI"]
     lp --> e3["Human: read production"]
   end
 
@@ -122,7 +122,7 @@ Most of the contract is not pages, though. It is redirects, and a redirect is th
 
 **3. Deploy to staging.** A dispatched workflow builds the commit, uploads the release, flips the symlink, and runs the same live gate from CI against the running site. The local mirror proves the artifact, and staging proves the infrastructure that exists only on the server: routing, TLS, the deploy key, and its confined transport. Staging keeps its authentication gate on and the check presents a token, so a byte-identical copy of the public site is never exposed to a crawler. A human then reads it.
 
-**4. Promote, and deploy production.** `develop` merges into `main` through a pull request, and production is a second dispatch that accepts `main` alone. The same gate runs a third time, against the production `SITE_BASE_URL` and with no token, and a human reads the result.
+**4. Promote, and deploy production.** `develop` merges into `main` through a pull request, and production is a second dispatch that accepts `main` alone. The same gate runs a third time, against the production `SITE_BASE_URL` and with no token. It requests one URL from each class of the contract rather than every URL. The production edge bans a client that requests too many pages in a burst. The mirror and staging have already proven the whole contract. A human then reads the result.
 
 Each branch feeds one environment:
 
