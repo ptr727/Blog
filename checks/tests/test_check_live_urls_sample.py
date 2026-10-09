@@ -246,6 +246,8 @@ class SampledRunTests(unittest.TestCase):
         self.assertEqual(
             len(planned) + len(FAMILY_PAGES), budget["distinct non-static paths"]
         )
+        statics = [p for p in requested if p not in non_static(requested)]
+        self.assertEqual(len(statics), budget["static requests"])
 
     def test_full_run_is_the_default_and_follows_every_redirect(self) -> None:
         listed = set((CHECKS / "golden-urls.txt").read_text(encoding="utf-8").split())

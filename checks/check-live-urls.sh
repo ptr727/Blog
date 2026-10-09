@@ -62,7 +62,7 @@ SAMPLE_MAX_PATHS=30
 SAMPLE_MAX_STATICS=8
 
 # Each classifier sets CLASS rather than printing it, since a subshell per URL costs seconds across the redirect list.
-# The redirect classes are the rows of deploy/README.md's table, tested in the Caddyfile's order, because two of its patterns overlap.
+# The redirect classes are the rows of deploy/README.md's table, with the map shapes last, since a bare .html test would claim two Blogger rows.
 # shellcheck disable=SC2329 # invoked through sample_list
 redirect_class() {
 	local url="$1" path="${1%%\?*}" query='' date='/[0-9]{4}/[0-9]{2}/[0-9]{2}/[^/]+'
