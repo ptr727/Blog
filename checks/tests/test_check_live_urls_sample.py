@@ -118,9 +118,13 @@ class SamplePlanTests(unittest.TestCase):
         fixed = set(
             re.findall(r"^\s*redir @\w+ (/[^\s{]*) 301$", caddyfile, re.MULTILINE)
         )
-        sampled = {url for _, cls, _, url in plan() if cls == "redirect destination"}
+        entries = plan()
+        sampled = {url for _, cls, _, url in entries if cls == "redirect destination"}
+        rendered = {url for kind, _, _, url in entries if kind == "render"}
         self.assertTrue(sampled)
         self.assertLessEqual(sampled, fixed)
+        # A sampled redirect is not followed, so a fixed target missing here goes unchecked.
+        self.assertLessEqual(fixed, rendered)
 
     def test_two_runs_sample_the_same_urls(self) -> None:
         self.assertEqual(plan(), plan())
