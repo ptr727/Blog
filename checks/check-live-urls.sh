@@ -60,6 +60,8 @@ FAMILY_PAGES=("/|The Viljoen Family" "/en/|The Viljoen Family" "/af/|Die Viljoen
 SAMPLE_PER_CLASS=1
 SAMPLE_MAX_PATHS=30
 SAMPLE_MAX_STATICS=8
+# Pages only a redirect reaches, so no list names them and a sampled redirect never requests them.
+SAMPLE_DESTINATIONS=(/all/ /feed.xml)
 
 # Each classifier sets CLASS rather than printing it, since a subshell per URL costs seconds across the redirect list.
 # The redirect classes are the rows of deploy/README.md's table, with the map shapes last, since a bare .html test would claim two Blogger rows.
@@ -143,11 +145,10 @@ media_class() {
 sample_list() {
 	local kind="$1" classify="$2" file="$3" url class
 	local -A size=() taken=()
-	local -a order=() picks=()
+	local -a picks=()
 	while IFS= read -r url; do
 		[ -n "$url" ] || continue
 		"$classify" "$url"
-		[ -n "${size[$CLASS]:-}" ] || order+=("$CLASS")
 		size[$CLASS]=$((${size[$CLASS]:-0} + 1))
 		if [ "${taken[$CLASS]:-0}" -lt "$SAMPLE_PER_CLASS" ]; then
 			taken[$CLASS]=$((${taken[$CLASS]:-0} + 1))
@@ -164,12 +165,15 @@ if [ -n "$SAMPLE" ]; then
 	SAMPLE_PLAN=()
 	sample_list render render_class "$CHECKS/golden-urls.txt"
 	sample_list redirect redirect_class "$CHECKS/redirect-urls.txt"
+	for url in "${SAMPLE_DESTINATIONS[@]}"; do
+		SAMPLE_PLAN+=("render"$'\t'"redirect destination"$'\t'"${#SAMPLE_DESTINATIONS[@]}"$'\t'"$url")
+	done
 	sample_list media media_class "$CHECKS/golden-media-live.txt"
 	for page in "${FAMILY_PAGES[@]}"; do
 		SAMPLE_PLAN+=("family"$'\t'"family page"$'\t'"${#FAMILY_PAGES[@]}"$'\t'"${page%%|*}")
 	done
 
-	# The budget counts what the edge counts, distinct non-static paths per host, with the preflight's / among them.
+	# The budget counts distinct non-static paths per host, which is never less than the edge counts, with the preflight's / among them.
 	# A sampled redirect is not followed, so each costs one path, and a legacy media URL costs two requests, since it takes a hop.
 	declare -A sample_paths=(["blog /"]=1)
 	sample_statics=0
@@ -213,7 +217,10 @@ RENDER_SRC="$CHECKS/golden-urls.txt"
 REDIRECT_SRC="$CHECKS/redirect-urls.txt"
 MEDIA_SRC="$CHECKS/golden-media-live.txt"
 if [ -n "$SAMPLE" ]; then
-	SAMPLE_DIR="$(mktemp -d)"
+	SAMPLE_DIR="$(mktemp -d)" || {
+		echo "FAIL could not create a directory for the sample, so nothing would be checked" >&2
+		exit 2
+	}
 	RENDER_SRC="$SAMPLE_DIR/render" REDIRECT_SRC="$SAMPLE_DIR/redirect" MEDIA_SRC="$SAMPLE_DIR/media"
 	for entry in "${SAMPLE_PLAN[@]}"; do
 		IFS=$'\t' read -r kind _ _ url <<<"$entry"

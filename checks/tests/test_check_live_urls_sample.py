@@ -31,6 +31,7 @@ RENDER_CLASSES = {
     "tag archive",
     "category archive",
     "term pagination",
+    "redirect destination",
 }
 MEDIA_CLASSES = {"media", "external", "legacy upload"}
 FAMILY_PAGES = {"/", "/en/", "/af/"}
@@ -107,10 +108,19 @@ class SamplePlanTests(unittest.TestCase):
             "redirect": "redirect-urls.txt",
             "media": "golden-media-live.txt",
         }
-        for kind, _, _, url in plan():
-            if kind in source:
+        for kind, cls, _, url in plan():
+            if kind in source and cls != "redirect destination":
                 listed = (CHECKS / source[kind]).read_text(encoding="utf-8").split()
                 self.assertIn(url, listed)
+
+    def test_each_redirect_destination_is_a_fixed_caddyfile_target(self) -> None:
+        caddyfile = (CHECKS.parent / "deploy" / "Caddyfile").read_text(encoding="utf-8")
+        fixed = set(
+            re.findall(r"^\s*redir @\w+ (/[^\s{]*) 301$", caddyfile, re.MULTILINE)
+        )
+        sampled = {url for _, cls, _, url in plan() if cls == "redirect destination"}
+        self.assertTrue(sampled)
+        self.assertLessEqual(sampled, fixed)
 
     def test_two_runs_sample_the_same_urls(self) -> None:
         self.assertEqual(plan(), plan())
@@ -170,6 +180,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     redirects: ClassVar[set[str]] = set()
     requested: ClassVar[list[str]] = []
+    page: ClassVar[bytes] = b"<html></html>"
 
     def do_GET(self) -> None:
         self.requested.append(self.path)
@@ -180,7 +191,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif self.path in self.redirects:
             self.answer(301, location=DESTINATION)
         else:
-            self.answer(200, body=b"<html></html>", content_type="text/html")
+            self.answer(200, body=self.page, content_type="text/html")
 
     def answer(
         self, code: int, location: str = "", body: bytes = b"", content_type: str = ""
@@ -198,7 +209,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
         pass
 
 
+def family_page() -> bytes:
+    """A page carrying every title the script expects of a family page."""
+    script = SCRIPT.read_text(encoding="utf-8")
+    titles = re.findall(
+        r'"/[^"|]*\|([^"]+)"', script.split("FAMILY_PAGES=(", 1)[1].split("\n", 1)[0]
+    )
+    return "".join(f"<title>{title}</title>" for title in titles).encode()
+
+
 class MockSite:
+    def __init__(self, page: bytes = Handler.page) -> None:
+        self.page = page
+
     def __enter__(self) -> Self:
         redirects = (CHECKS / "redirect-urls.txt").read_text(encoding="utf-8").split()
 
@@ -207,6 +230,7 @@ class MockSite:
 
         SiteHandler.redirects = set(redirects)
         SiteHandler.requested = []
+        SiteHandler.page = self.page
         self.handler = SiteHandler
         self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SiteHandler)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
@@ -235,16 +259,23 @@ class SampledRunTests(unittest.TestCase):
         planned = {"/"} | {
             url for kind, _, _, url in entries if kind in ("render", "redirect")
         }
-        with MockSite() as site:
-            result = run(SCRIPT, site.base, SAMPLE_CONTRACT="1")
+        with MockSite() as site, MockSite(family_page()) as family:
+            result = run(
+                SCRIPT,
+                site.base,
+                SAMPLE_CONTRACT="1",
+                SITE_EXTRA_BASE_URL=family.base,
+            )
             requested = list(site.requested)
+            family_requested = set(family.requested)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("sampled URLs honored", result.stdout)
         self.assertNotIn(DESTINATION, requested)
         self.assertEqual(non_static(requested), planned)
+        self.assertEqual(family_requested, FAMILY_PAGES)
         budget = {cls: int(n) for kind, cls, n, _ in entries if kind == "budget"}
         self.assertEqual(
-            len(planned) + len(FAMILY_PAGES), budget["distinct non-static paths"]
+            len(planned) + len(family_requested), budget["distinct non-static paths"]
         )
         statics = [p for p in requested if p not in non_static(requested)]
         self.assertEqual(len(statics), budget["static requests"])
