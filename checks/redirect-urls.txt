@@ -632,6 +632,7 @@
 /annotation-2020-09-05-133622/
 /annotation-2020-09-05-133649/
 /annotation-2020-09-05-133711/
+/atom.xml
 /author/pieter727/
 /author/pieter727/feed/
 /author/pieter727/page/10/

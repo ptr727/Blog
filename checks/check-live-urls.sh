@@ -85,7 +85,7 @@ redirect_class() {
 		CLASS='@term_feed'
 	elif [[ $path =~ ^/(feed|comments/feed|about/feed)/?$ ]]; then
 		CLASS='@site_feed'
-	elif [[ $path =~ ^/feeds/posts/default/?$ ]]; then
+	elif [[ $path =~ ^/(feeds/posts/default/?|atom\.xml)$ ]]; then
 		CLASS='@blogger_feed'
 	elif [[ $path =~ $blogger_archive ]]; then
 		CLASS='@blogger_archive'
