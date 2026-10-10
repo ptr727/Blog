@@ -345,7 +345,7 @@ It forwards `Host` and `Accept-Language` unchanged.
 Everything the site does not render is the web server's job, and the workload constrains which server can serve it. Two requirements are load-bearing, so a replacement has to meet both:
 
 - **The query string must be matchable.** 110 `?p=<id>` shortlinks redirect on the query alone. A server that matches on the path only would resolve `/?p=123` as `/`, redirect the homepage, and carry the query through to it.
-- **There must be a lookup primitive.** 311 of the 951 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 714 entries between them. A linear scan of that many rules per request is the wrong shape.
+- **There must be a lookup primitive.** 311 of the 952 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 714 entries between them. A linear scan of that many rules per request is the wrong shape.
 
 The Caddyfile carries **14 `redir` directives**, reading **5 map files** through **3 `map` blocks**. Eleven directives match on a pattern and three resolve through a map lookup. A map serves wherever no pattern can derive the destination from the input.
 
@@ -369,7 +369,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@author` | 12 | `/author/<name>/`, its pagination and feed -> `/` |
 | `@site_feed` | 3 | `/feed/`, `/comments/feed/`, `/about/feed/` -> `/feed.xml` |
 | `@mapped` via `terms.map` | 3 | the three empty term archives |
-| `@blogger_feed` | 2 | `/feeds/posts/default` -> `/feed.xml`, Blogger's Atom feed |
+| `@blogger_feed` | 3 | `/feeds/posts/default` and `/atom.xml` -> `/feed.xml`, Blogger's Atom feed and its alias, which WordPress.com kept as a redirect |
 | `@blogger_page` | 2 | `/p/<slug>.html` -> `/<slug>/`, Blogger's static-page shape |
 | `@feed_type` | 2 | a WordPress post, attachment, term, author, site, comments, or about feed at `/feed/atom/`, `/feed/rss/`, `/feed/rss2/` or `/feed/rdf/` -> the same feed at `/feed/`, which another row resolves |
 
