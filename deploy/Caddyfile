@@ -81,7 +81,7 @@
 		@site_feed path_regexp sf ^/(?:feed|comments/feed|about/feed)/?$
 		redir @site_feed /feed.xml 301
 
-		@blogger_feed path /feeds/posts/default /feeds/posts/default/
+		@blogger_feed path /feeds/posts/default /feeds/posts/default/ /atom.xml
 		redir @blogger_feed /feed.xml 301
 
 		# Every monthly archive path answers, including dates the blog never covered.
