@@ -322,7 +322,7 @@ Widen `== 404` to `>= 400` for the whole non-200 sweep the table above describes
 
 **Filter the scanner shapes by shape, never by investigating them.** A site that used to run WordPress attracts probes for `.env` and its dozen variants, `wp-config.php`, `.git/config`, `phpinfo.php`, cloud credential files, and framework config paths. They dominate the raw list and none is ever a finding. What is left after the three filters above is small enough to read line by line, which is the point of running them.
 
-**The filters live in [`checks/log-review.jq`](./checks/log-review.jq), so every pass runs the same ones.** A filter rebuilt each pass drifts, and a drifted filter hides a finding without saying so. Join the archived days with the live log, keep the window since the last pass, and run the filter over it:
+**The filters live in [`checks/log-review.jq`](./checks/log-review.jq), so every pass runs the same ones.** The file holds the tag, host, status and shape filters, and the referer step above is read from its output. A filter rebuilt each pass drifts, and a drifted filter hides a finding without saying so. Join the archived days with the live log, keep the window since the last pass, and run the filter over it:
 
 ```sh
 set -a; . ~/.secrets/blog.local.production.env; set +a
@@ -351,7 +351,9 @@ jq -r '"\(.RequestHost) \(.RequestPath)"' survivors.jsonl | sort | uniq -c | sor
 **An empty `403` that names a router and no service is the CrowdSec bouncer, not the site.** It is a client refused at the edge rather than a missing page, so it never joins the 404 list. A `403` the site itself answered would carry the service name and a body. Confirm the attribution against CrowdSec rather than assuming it, which is a read of the security engine's own record:
 
 ```sh
-jq -r 'select(.DownstreamStatus == 403) | .ClientHost' window.jsonl | sort -u > blocked.txt
+jq -r 'select(.DownstreamStatus == 403)
+  | select(.RequestHost == "blog.insanegenius.com" or .RequestHost == "viljoen.family")
+  | .ClientHost' window.jsonl | sort -u > blocked.txt
 ssh "$VPS_SSH_HOST" 'docker exec crowdsec cscli alerts list --since 168h -l 0 -o raw' |
   cut -d, -f3 | sort -u > alerted.txt
 ssh "$VPS_SSH_HOST" 'docker exec crowdsec cscli decisions list -a -l 0 -o raw' |
@@ -359,7 +361,7 @@ ssh "$VPS_SSH_HOST" 'docker exec crowdsec cscli decisions list -a -l 0 -o raw' |
 sort -u alerted.txt banned.txt | comm -23 blocked.txt -
 ```
 
-The last line prints the blocked clients CrowdSec does not account for. `--since` must reach back to the start of the window. `-a` adds the community blocklist, which accounts for most blocks. Expect a small residue, since a community decision that expired before the read leaves its `403`s with nothing to match. A residue client that only ever received `403` fits that. One that also received a `200` or a `404` from the site is the case worth reading.
+The last line prints the blocked clients CrowdSec does not account for. `--since` must reach back to the start of the window. `-a` adds the community blocklist, which accounts for most blocks. Expect a small residue, since a community decision that expired before the read leaves its `403`s with nothing to match. A residue client that only ever received `403` fits that. One that also received a `200` or a `404` from the site is the case worth reading. The `awk` keeps single-address decisions only. Where the list also carries a `Range:` decision, check each residue client against it first.
 
 **A crawler's user agent is a claim, and reverse DNS checks it.** A real Googlebot resolves under `googlebot.com` or `google.com`, Bingbot under `search.msn.com`, and Applebot under `applebot.apple.com`. A cloud host, such as one under `googleusercontent.com`, claiming any of those names is a scanner. Check with `getent hosts <client address>` before reading a crawler's `403` or `404` as a search engine's view of the site.
 
