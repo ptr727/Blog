@@ -42,6 +42,14 @@
 		default ""
 	}
 
+	# A legacy link that drops the trailing slash still deserves its mapped destination.
+	# A real page gets the slash from file_server, and these keys name no file.
+	map {path}/ {mapped_slash} {
+		import /srv/blog/current/maps/slugs.map
+		import /srv/blog/current/maps/terms.map
+		default ""
+	}
+
 	# WordPress shortlinks, keyed on the query string rather than the path.
 	map {query.p} {by_id} {
 		import /srv/blog/current/maps/p-ids.map
@@ -50,6 +58,12 @@
 
 	@post_id expression {by_id} != ""
 	@mapped expression {mapped} != ""
+
+	# A dotted path is left out, or /robots.txt would redirect to itself through the /robots.txt/ key.
+	@mapped_slash {
+		path_regexp ^/[^.]*[^/]$
+		expression {mapped_slash} != ""
+	}
 
 	# Blogger label archives, defaulting to a real destination.
 	# A label that never became a term still deserves a landing page rather than a 404.
@@ -111,6 +125,7 @@
 		redir @uploads /media/{re.up.1} 301
 
 		redir @mapped {mapped} 301
+		redir @mapped_slash {mapped_slash} 301
 
 		# The proxy forwards Accept-Encoding unchanged and adds no compression of its own.
 		# Serving the precompressed siblings here is what reaches the client.
