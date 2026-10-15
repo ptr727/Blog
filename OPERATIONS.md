@@ -322,13 +322,86 @@ Widen `== 404` to `>= 400` for the whole non-200 sweep the table above describes
 
 **Filter the scanner shapes by shape, never by investigating them.** A site that used to run WordPress attracts probes for `.env` and its dozen variants, `wp-config.php`, `.git/config`, `phpinfo.php`, cloud credential files, and framework config paths. They dominate the raw list and none is ever a finding. What is left after the three filters above is small enough to read line by line, which is the point of running them.
 
+**The filters live in [`checks/log-review.jq`](./checks/log-review.jq), so every pass runs the same ones.** The file holds the tag, host, status and shape filters, and the referer step above is read from its output. A filter rebuilt each pass drifts, and a drifted filter hides a finding without saying so. Join the archived days with the live log, keep the window since the last pass, and run the filter over it:
+
+```sh
+set -a; . ~/.secrets/blog.local.production.env; set +a
+start='2026-10-10T22:39'   # where the last pass ended
+(
+  set -euo pipefail
+  files="$(find "$LOG_ARCHIVE_ROOT/traefik" -name 'access.log-*' -newermt "$(date -u -d "${start%T*} -1 day" +%F)")"
+  : > raw.jsonl
+  for f in $files; do
+    case $f in *.gz) zcat "$f" >> raw.jsonl ;; *) cat "$f" >> raw.jsonl ;; esac
+  done
+  ssh "$VPS_SSH_HOST" "cat $VPS_TRAEFIK_LOG" >> raw.jsonl
+  sort -u raw.jsonl | jq -c --arg start "$start" 'select(.StartUTC >= $start)' > window.jsonl
+  jq -c --arg blog blog.insanegenius.com --arg family viljoen.family -f checks/log-review.jq window.jsonl > survivors.jsonl
+) && jq -r '"\(.RequestHost) \(.RequestPath)"' survivors.jsonl | sort | uniq -c | sort -rn
+```
+
+The subshell runs under `set -euo pipefail`, so an unset value or a failed `find`, `zcat` or `ssh` stops the run rather than leaving a partial window. The parentheses keep those options out of the interactive shell, and `&&` lists the survivors only after a join that succeeded. `sort -u` deduplicates on the whole line, which is what merges a day the archive holds twice, compressed and not. The filter keeps `.xml` and most `.txt` paths on purpose, because a feed alias the old platform served hides in exactly that shape. When a new scanner shape crowds the list, add it to the filter in the same change that records the pass. The extracts carry client addresses and full query strings, so delete them once the pass is recorded.
+
 **Then cross-reference what remains against the contract**, because that is the only step with an action. A surviving 404 whose path appears in [`checks/golden-urls.txt`](./checks/golden-urls.txt) or in [`deploy/maps/`](./deploy/maps/) is a redirect that is not working. A surviving 404 shaped like real content and present in neither is the case this whole pass exists to find, and it is added to the golden list with a redirect per that file's maintenance rules. It joins the list only where the Wayback Machine shows the address was served. A run where nothing survives is the expected result and should be recorded as one.
 
-**Use the Wayback Machine's CDX API, not a production probe, to establish that an address was ever served.** Run one query per path prefix, for example `https://web.archive.org/cdx/search/cdx?url=blog.example.com/<prefix>/&matchType=prefix&filter=original:<regex>&output=json`. URL-encode the regex, since a raw `+` or `&` changes the filter. Add `&filter=statuscode:200` to keep only captures that answered. A 200 capture is the evidence. An empty result is only an absence of evidence, since Wayback coverage is incomplete, so it does not prove the address was never served. A wildcard `url` combined with a filter returns nothing, so use `matchType=prefix`.
+**Use the Wayback Machine's CDX API, not a production probe, to establish that an address was ever served.** Run one query per path prefix, for example `https://web.archive.org/cdx/search/cdx?url=blog.example.com/<prefix>/&matchType=prefix&filter=original:<regex>&output=json`. URL-encode the regex, since a raw `+` or `&` changes the filter. Add `&filter=statuscode:200` to keep only captures that answered. A 200 capture is the evidence. An empty result is only an absence of evidence, since Wayback coverage is incomplete, so it does not prove the address was never served. A wildcard `url` combined with a filter returns nothing, so use `matchType=prefix`. Older captures name the host as `blog.example.com:80`, so strip the port before comparing a capture against the maps.
 
 **A missing `Host` header is the third way this data breaks a filter.** `RequestHost` is null on a request that sends none, which router exploits do. String functions reject that where arithmetic tolerates it, so `.RequestHost | startswith(...)` fails with `startswith() requires string inputs` and takes the whole run with it, while `.RequestHost + .RequestPath` quietly yields the path alone. The failure is loud but partial, which is the worst combination, since it aborts part way through a file having already printed real output. Guard the string functions with `// ""`. Equality and concatenation both tolerate a null, so a guard on those is inert and reads as protection that is not there.
 
 **Two `jq` mistakes each read as a plausible answer rather than as an error.** A hyphenated key parses as subtraction, so `.request_User-Agent` silently is not the field you meant and `.["request_User-Agent"]` is, and the same holds for `Referer`. And `jq 'select(...)'` with no projection pretty-prints each match across many lines, so piping it to `wc -l` counts lines rather than records and overstates by roughly the width of the object. It reported 37 and 1,332 where the true counts were 1 and 36. Project with `@tsv` or pass `-c` before counting anything.
+
+### A 403 is CrowdSec's until shown otherwise
+
+**An empty `403` that names a router and no service is the CrowdSec bouncer, not the site.** It is a client refused at the edge rather than a missing page, so it never joins the 404 list. A `403` the site itself answered would carry the service name and a body. Confirm the attribution against CrowdSec rather than assuming it, which is a read of the security engine's own record:
+
+```sh
+(
+set -euo pipefail
+since="$(( ($(date -u +%s) - $(date -u -d "$start" +%s)) / 3600 + 1 ))h"
+jq -r 'select(.DownstreamStatus == 403)
+  | select(.RequestHost == "blog.insanegenius.com" or .RequestHost == "viljoen.family")
+  | .ClientHost' window.jsonl | sort -u > blocked.txt
+ssh "$VPS_SSH_HOST" "docker exec crowdsec cscli alerts list --since $since -l 0 -o raw" |
+  cut -d, -f3 | sort -u > alerted.txt
+ssh "$VPS_SSH_HOST" 'docker exec crowdsec cscli decisions list -a -l 0 -o raw' |
+  awk -F, 'NR > 1 { sub(/^Ip:/, "", $3); print $3 }' | sort -u > banned.txt
+sort -u alerted.txt banned.txt | comm -23 blocked.txt -
+)
+```
+
+The last line prints the blocked clients CrowdSec does not account for. `since` is the window's length in hours, so the alerts reach back to its start, and `set -u` stops the block where `start` was never set. `-a` adds the community blocklist, which accounts for most blocks. Expect a small residue, since a community decision that expired before the read leaves its `403`s with nothing to match. A residue client that only ever received `403` fits that. One that also received a `200` or a `404` from the site is the case worth reading. The `awk` strips only the `Ip:` prefix, so a `Range:` decision stays in `banned.txt` as written. Where one is there, check each residue client against it first.
+
+**A crawler's user agent is a claim, and reverse DNS checks it.** A real Googlebot resolves under `googlebot.com` or `google.com`, Bingbot under `search.msn.com`, and Applebot under `applebot.apple.com`. A cloud host, such as one under `googleusercontent.com`, claiming any of those names is a scanner. Anyone can set a reverse name, so resolve the name forward too and confirm it returns the same address. Do both before reading a crawler's `403` or `404` as a search engine's view of the site:
+
+```sh
+name="$(getent hosts <client address> | awk '{ print $2 }')"
+if [ -z "$name" ]; then echo 'no reverse name, so not a crawler'; else getent ahosts "$name" | awk '{ print $1 }' | sort -u; fi
+```
+
+### Checking that search engines can index both sites
+
+Five facts settle it, and each is read from production rather than from the repository:
+
+- **Nothing asks not to be indexed.** `X-Robots-Tag` says `index, follow`, no `robots` meta tag on the page says otherwise, and the canonical link names the production origin.
+- **`robots.txt` allows every crawler and names a sitemap.** A missing `robots.txt` also allows everything, but it advertises no sitemap, and a crawler is told where a sitemap is rather than guessing.
+- **The sitemap answers `200`** and lists the production origin.
+- **Verified crawlers receive `200`s.** Count the window's crawler requests by host and status, then check any crawler `403` or `404` by reverse DNS as above.
+- **The sitemap is submitted** in Google Search Console and Bing Webmaster Tools. Those accounts are the maintainer's, and the edge log shows only whether a crawler fetched the file.
+
+The first three take six tagged requests, well inside the probe budget:
+
+```sh
+for u in https://blog.insanegenius.com/ https://viljoen.family/; do
+  for p in '' robots.txt sitemap.xml; do
+    echo "== $u$p"
+    curl -sS -D - -H 'X-Blog-Check: proxmox/discoverability' "$u$p" |
+      grep -aioE '^HTTP/[0-9.]+ [0-9]+|^x-robots-tag:.*|<meta[^>]*name="?robots[^>]*>|<link[^>]*rel="?canonical[^>]*>|^Sitemap:.*|<loc>[^<]*' |
+      head -6
+  done
+done
+```
+
+The cleartext-to-HTTPS redirect in front of both sites is the host side's, per [Who Owns What](#who-owns-what). A permanent status there is the stronger canonical signal, so a temporary one is a finding to hand to the host side.
 
 ### Retention Is the Prerequisite, and It Belongs to the Host
 
