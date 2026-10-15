@@ -337,11 +337,10 @@ start='2026-10-10T22:39'   # where the last pass ended
   ssh "$VPS_SSH_HOST" "cat $VPS_TRAEFIK_LOG" >> raw.jsonl
   sort -u raw.jsonl | jq -c --arg start "$start" 'select(.StartUTC >= $start)' > window.jsonl
   jq -c --arg blog blog.insanegenius.com --arg family viljoen.family -f checks/log-review.jq window.jsonl > survivors.jsonl
-)
-jq -r '"\(.RequestHost) \(.RequestPath)"' survivors.jsonl | sort | uniq -c | sort -rn
+) && jq -r '"\(.RequestHost) \(.RequestPath)"' survivors.jsonl | sort | uniq -c | sort -rn
 ```
 
-The subshell runs under `set -euo pipefail`, so an unset value or a failed `find`, `zcat` or `ssh` stops the run rather than leaving a partial window. The parentheses keep those options out of the interactive shell. `sort -u` deduplicates on the whole line, which is what merges a day the archive holds twice, compressed and not. The filter keeps `.xml` and most `.txt` paths on purpose, because a feed alias the old platform served hides in exactly that shape. When a new scanner shape crowds the list, add it to the filter in the same change that records the pass. The extracts carry client addresses and full query strings, so delete them once the pass is recorded.
+The subshell runs under `set -euo pipefail`, so an unset value or a failed `find`, `zcat` or `ssh` stops the run rather than leaving a partial window. The parentheses keep those options out of the interactive shell, and `&&` lists the survivors only after a join that succeeded. `sort -u` deduplicates on the whole line, which is what merges a day the archive holds twice, compressed and not. The filter keeps `.xml` and most `.txt` paths on purpose, because a feed alias the old platform served hides in exactly that shape. When a new scanner shape crowds the list, add it to the filter in the same change that records the pass. The extracts carry client addresses and full query strings, so delete them once the pass is recorded.
 
 **Then cross-reference what remains against the contract**, because that is the only step with an action. A surviving 404 whose path appears in [`checks/golden-urls.txt`](./checks/golden-urls.txt) or in [`deploy/maps/`](./deploy/maps/) is a redirect that is not working. A surviving 404 shaped like real content and present in neither is the case this whole pass exists to find, and it is added to the golden list with a redirect per that file's maintenance rules. It joins the list only where the Wayback Machine shows the address was served. A run where nothing survives is the expected result and should be recorded as one.
 
