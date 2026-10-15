@@ -1,7 +1,3 @@
-# The outward 404 pass's tag, host, status and shape filters, from OPERATIONS.md "Reading a 404 list without being fooled by it".
-# Input is the joined edge log, one Traefik JSON object per line, and output is each surviving request.
-# Run with: jq -c --arg blog "<blog host>" --arg family "<family host>" -f checks/log-review.jq
-
 def path: (.RequestPath // "") | split("?")[0] | ascii_downcase;
 
 # Shapes neither site serves, so a match is never a finding.

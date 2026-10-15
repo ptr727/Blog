@@ -325,6 +325,7 @@ Widen `== 404` to `>= 400` for the whole non-200 sweep the table above describes
 **The filters live in [`checks/log-review.jq`](./checks/log-review.jq), so every pass runs the same ones.** The file holds the tag, host, status and shape filters, and the referer step above is read from its output. A filter rebuilt each pass drifts, and a drifted filter hides a finding without saying so. Join the archived days with the live log, keep the window since the last pass, and run the filter over it:
 
 ```sh
+set -eo pipefail
 set -a; . ~/.secrets/blog.local.production.env; set +a
 start='2026-10-10T22:39'   # where the last pass ended
 {
@@ -336,7 +337,7 @@ jq -c --arg blog blog.insanegenius.com --arg family viljoen.family -f checks/log
 jq -r '"\(.RequestHost) \(.RequestPath)"' survivors.jsonl | sort | uniq -c | sort -rn
 ```
 
-`sort -u` deduplicates on the whole line, which is what merges a day the archive holds twice, compressed and not. The filter keeps `.xml` and most `.txt` paths on purpose, because a feed alias the old platform served hides in exactly that shape. When a new scanner shape crowds the list, add it to the filter in the same change that records the pass. The extracts carry client addresses and full query strings, so delete them once the pass is recorded.
+`pipefail` is what makes a failed `ssh` or `find` stop the run, since the `sort` after it would otherwise succeed on a partial window. `sort -u` deduplicates on the whole line, which is what merges a day the archive holds twice, compressed and not. The filter keeps `.xml` and most `.txt` paths on purpose, because a feed alias the old platform served hides in exactly that shape. When a new scanner shape crowds the list, add it to the filter in the same change that records the pass. The extracts carry client addresses and full query strings, so delete them once the pass is recorded.
 
 **Then cross-reference what remains against the contract**, because that is the only step with an action. A surviving 404 whose path appears in [`checks/golden-urls.txt`](./checks/golden-urls.txt) or in [`deploy/maps/`](./deploy/maps/) is a redirect that is not working. A surviving 404 shaped like real content and present in neither is the case this whole pass exists to find, and it is added to the golden list with a redirect per that file's maintenance rules. It joins the list only where the Wayback Machine shows the address was served. A run where nothing survives is the expected result and should be recorded as one.
 
@@ -351,25 +352,32 @@ jq -r '"\(.RequestHost) \(.RequestPath)"' survivors.jsonl | sort | uniq -c | sor
 **An empty `403` that names a router and no service is the CrowdSec bouncer, not the site.** It is a client refused at the edge rather than a missing page, so it never joins the 404 list. A `403` the site itself answered would carry the service name and a body. Confirm the attribution against CrowdSec rather than assuming it, which is a read of the security engine's own record:
 
 ```sh
+set -eo pipefail
+since="$(( ($(date -u +%s) - $(date -u -d "$start" +%s)) / 3600 + 1 ))h"
 jq -r 'select(.DownstreamStatus == 403)
   | select(.RequestHost == "blog.insanegenius.com" or .RequestHost == "viljoen.family")
   | .ClientHost' window.jsonl | sort -u > blocked.txt
-ssh "$VPS_SSH_HOST" 'docker exec crowdsec cscli alerts list --since 168h -l 0 -o raw' |
+ssh "$VPS_SSH_HOST" "docker exec crowdsec cscli alerts list --since $since -l 0 -o raw" |
   cut -d, -f3 | sort -u > alerted.txt
 ssh "$VPS_SSH_HOST" 'docker exec crowdsec cscli decisions list -a -l 0 -o raw' |
   awk -F, 'NR > 1 { sub(/^Ip:/, "", $3); print $3 }' | sort -u > banned.txt
 sort -u alerted.txt banned.txt | comm -23 blocked.txt -
 ```
 
-The last line prints the blocked clients CrowdSec does not account for. `--since` must reach back to the start of the window. `-a` adds the community blocklist, which accounts for most blocks. Expect a small residue, since a community decision that expired before the read leaves its `403`s with nothing to match. A residue client that only ever received `403` fits that. One that also received a `200` or a `404` from the site is the case worth reading. The `awk` strips only the `Ip:` prefix, so a `Range:` decision stays in `banned.txt` as written. Where one is there, check each residue client against it first.
+The last line prints the blocked clients CrowdSec does not account for. `since` is the window's length in hours, so the alerts reach back to its start. `-a` adds the community blocklist, which accounts for most blocks. Expect a small residue, since a community decision that expired before the read leaves its `403`s with nothing to match. A residue client that only ever received `403` fits that. One that also received a `200` or a `404` from the site is the case worth reading. The `awk` strips only the `Ip:` prefix, so a `Range:` decision stays in `banned.txt` as written. Where one is there, check each residue client against it first.
 
-**A crawler's user agent is a claim, and reverse DNS checks it.** A real Googlebot resolves under `googlebot.com` or `google.com`, Bingbot under `search.msn.com`, and Applebot under `applebot.apple.com`. A cloud host, such as one under `googleusercontent.com`, claiming any of those names is a scanner. Check with `getent hosts <client address>` before reading a crawler's `403` or `404` as a search engine's view of the site.
+**A crawler's user agent is a claim, and reverse DNS checks it.** A real Googlebot resolves under `googlebot.com` or `google.com`, Bingbot under `search.msn.com`, and Applebot under `applebot.apple.com`. A cloud host, such as one under `googleusercontent.com`, claiming any of those names is a scanner. Anyone can set a reverse name, so resolve the name forward too and confirm it returns the same address. Do both before reading a crawler's `403` or `404` as a search engine's view of the site:
+
+```sh
+name="$(getent hosts <client address> | awk '{ print $2 }')"
+getent ahosts "$name" | awk '{ print $1 }' | sort -u
+```
 
 ### Checking that search engines can index both sites
 
 Five facts settle it, and each is read from production rather than from the repository:
 
-- **The header and the page agree.** `X-Robots-Tag` and the `robots` meta tag both say `index, follow`, and the canonical link names the production origin.
+- **Nothing asks not to be indexed.** `X-Robots-Tag` says `index, follow`, no `robots` meta tag on the page says otherwise, and the canonical link names the production origin.
 - **`robots.txt` allows every crawler and names a sitemap.** A missing `robots.txt` also allows everything, but it advertises no sitemap, and a crawler is told where a sitemap is rather than guessing.
 - **The sitemap answers `200`** and lists the production origin.
 - **Verified crawlers receive `200`s.** Count the window's crawler requests by host and status, then check any crawler `403` or `404` by reverse DNS as above.
@@ -381,7 +389,7 @@ The first three take six tagged requests, well inside the probe budget:
 for u in https://blog.insanegenius.com/ https://viljoen.family/; do
   for p in '' robots.txt sitemap.xml; do
     echo "== $u$p"
-    curl -s -D - -H 'X-Blog-Check: proxmox/discoverability' "$u$p" |
+    curl -sS -D - -H 'X-Blog-Check: proxmox/discoverability' "$u$p" |
       grep -aioE '^HTTP/[0-9.]+ [0-9]+|^x-robots-tag:.*|<meta[^>]*name="?robots[^>]*>|<link[^>]*rel="?canonical[^>]*>|^Sitemap:.*|<loc>[^<]*' |
       head -6
   done
