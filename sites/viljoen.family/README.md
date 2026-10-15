@@ -27,6 +27,10 @@ The single-page genealogy site for the Viljoen family, served at `viljoen.family
 | `favicon.ico` | 16, 32 and 48 px PNG renders of `favicon.svg`, for browsers and bots that ask for the conventional path |
 | `apple-touch-icon.png` | 180x180, `favicon.svg` on parchment |
 | `og-image.png` | 1200x630 Open Graph image, the crest beside the page title |
+| `robots.txt` | Allows every crawler and names the sitemap, since a crawler is told where a sitemap is rather than guessing |
+| `sitemap.xml` | The two language pages, each listing the other as its `hreflang` alternate |
+
+The sitemap names the production origin in every environment. A staging or local copy serves it unchanged, which is harmless because those hosts are not crawled.
 
 Every file in this directory except this README ships to the bundle's `family/` tree.
 
