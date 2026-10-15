@@ -61,7 +61,7 @@
 
 	# A dotted path is left out, or /robots.txt would redirect to itself through the /robots.txt/ key.
 	@mapped_slash {
-		path_regexp ^/[^.]*[^/]$
+		path_regexp ^/[^.]*[^./]$
 		expression {mapped_slash} != ""
 	}
 

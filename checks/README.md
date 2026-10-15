@@ -66,7 +66,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Empty term archives | 3 | `brultech`, `phyn`, `review`, as above |
 | Site and section feeds | 3 | `/feed/`, `/about/feed/`, `/comments/feed/` |
 | Retired pages | 1 | `/viljoen-family/` to `https://viljoen.family/`, via `slugs.map` |
-| Map keys without the trailing slash | 3 | Redirect where the slashed key does. A real page gets the slash from the server, and a map key names no file. The matcher accepts every such key, including keys absent from the list |
+| Map keys without the trailing slash | 3 | Redirect where the slashed key does. A real page gets the slash from the server, and a map key names no file. The matcher accepts every such key, including keys absent from the list, and leaves out a dotted path such as `/robots.txt` |
 
 An **attachment page** is the page the old platform generated per uploaded image, served at both `/YYYY/MM/DD/post/attachment/` and a bare `/attachment/`. That makes a bare slug ambiguous with a real page. The old platform's sitemap resolved it when the capture was split, since it listed exactly the posts and pages. A bare slug in `redirect-urls.txt` that no Caddyfile rule covers lands in `slugs.map`. Every entry there is an attachment page except the three the table counts apart, the two root files and the retired page. The images themselves keep their `wp-content/uploads/` paths and are covered separately by `golden-media-legacy.txt`.
 

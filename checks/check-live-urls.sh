@@ -100,7 +100,7 @@ redirect_class() {
 		CLASS='@mapped via blogger.map (comment feed)'
 	elif [[ $path == *.html ]]; then
 		CLASS='@mapped via blogger.map (post)'
-	elif [[ $path =~ ^/[^.]*[^/]$ ]]; then
+	elif [[ $path =~ ^/[^.]*[^./]$ ]]; then
 		CLASS='@mapped_slash'
 	elif [[ $path =~ ^/(tag|category)/[^/]+/?$ ]]; then
 		CLASS='@mapped via terms.map'

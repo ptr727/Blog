@@ -203,7 +203,7 @@ def main(argv):
         r"|^/\d{4}/\d{2}/\d{2}/"  # anything under a post date
         r"|^/(tag|category)/[^/]+/feed/?$"  # term feeds
         r"|^/p/[^/]+\.html$"  # Blogger static pages
-        r"|^/[^.]*[^/]$"  # a map key without its slash, which @mapped_slash serves
+        r"|^/[^.]*[^./]$"  # a map key without its slash, which @mapped_slash serves
     )
     # The repo's list, not the capture's, which is a frozen snapshot from before the contract grew.
     redirects = (CHECKS / "redirect-urls.txt").read_text(encoding="utf-8").splitlines()
