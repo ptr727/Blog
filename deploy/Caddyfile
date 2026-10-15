@@ -34,7 +34,7 @@
 	header X-Blog-Release "@@RELEASE@@"
 
 	# One map serves four classes because their key spaces are disjoint.
-	# Merging them keeps a single lookup on the hot path.
+	# Merging them keeps those four classes to a single lookup.
 	map {path} {mapped} {
 		import /srv/blog/current/maps/blogger.map
 		import /srv/blog/current/maps/slugs.map

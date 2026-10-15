@@ -349,7 +349,7 @@ Everything the site does not render is the web server's job, and the workload co
 
 The Caddyfile carries **15 `redir` directives**, reading **5 map files** through **4 `map` blocks**. Eleven directives match on a pattern and four resolve through a map lookup. A map serves wherever no pattern can derive the destination from the input.
 
-Directives and URL classes are not one to one, in both directions. `@mapped` is a single directive serving four classes, because their key spaces are disjoint and merging them keeps one lookup on the hot path. `@uploads` is one directive covering a URL set that is gated separately.
+Directives and URL classes are not one to one, in both directions. `@mapped` is a single directive serving four classes, because their key spaces are disjoint and merging them keeps those four classes to one lookup. `@uploads` is one directive covering a URL set that is gated separately.
 
 Each row below is a **URL class**, named by the matcher that serves it, so the table can be checked against [`Caddyfile`](./Caddyfile) by grep rather than by trust.
 

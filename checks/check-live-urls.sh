@@ -95,7 +95,7 @@ redirect_class() {
 		CLASS='@date_archive'
 	elif [[ $path =~ $author ]]; then
 		CLASS='@author'
-	# The four map classes share one directive, and their key shapes tell them apart.
+	# Five map classes share two directives, and their key shapes tell them apart.
 	elif [[ $path =~ ^/feeds/[^/]+/comments/default/?$ ]]; then
 		CLASS='@mapped via blogger.map (comment feed)'
 	elif [[ $path == *.html ]]; then
