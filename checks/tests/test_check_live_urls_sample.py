@@ -88,7 +88,7 @@ class SamplePlanTests(unittest.TestCase):
             if kind == "redirect"
         )
         expected = readme_classes()
-        self.assertEqual(len(expected), 15)
+        self.assertEqual(len(expected), 16)
         self.assertEqual(sampled, expected)
 
     def test_render_media_and_family_are_each_sampled(self) -> None:

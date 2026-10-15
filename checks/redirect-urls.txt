@@ -370,6 +370,7 @@
 /2018/11/18/purpleair-sensor-installation/annotation-2018-11-18-160901/
 /2018/11/18/purpleair-sensor-installation/annotation-2018-11-18-160901/feed/
 /2018/11/18/purpleair-sensor-installation/feed/
+/20180811_172609507_ios
 /20180811_172609507_ios/
 /20180811_172632361_ios/
 /20180811_172657174_ios/
@@ -885,6 +886,7 @@
 /tag/raid/feed/
 /tag/raspberry-pi/feed/
 /tag/razer/feed/
+/tag/review
 /tag/review/
 /tag/rgb/feed/
 /tag/rip/feed/
@@ -949,4 +951,5 @@
 /ted-dashboard/
 /ted-graphing/
 /unraidubuntubaremetal/
+/viljoen-family
 /viljoen-family/
