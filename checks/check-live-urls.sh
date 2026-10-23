@@ -61,7 +61,7 @@ SAMPLE_PER_CLASS=1
 SAMPLE_MAX_PATHS=30
 SAMPLE_MAX_STATICS=8
 # Pages only a redirect reaches, so no list names them and a sampled redirect never requests them.
-SAMPLE_DESTINATIONS=(/all/ /feed.xml)
+SAMPLE_DESTINATIONS=(/all/ /feed.xml /sitemap.xml)
 
 # Each classifier sets CLASS rather than printing it, since a subshell per URL costs seconds across the redirect list.
 # The redirect classes are the rows of deploy/README.md's table, with the map shapes last, since a bare .html test would claim two Blogger rows.
@@ -87,6 +87,8 @@ redirect_class() {
 		CLASS='@site_feed'
 	elif [[ $path =~ ^/(feeds/posts/default/?|atom\.xml)$ ]]; then
 		CLASS='@blogger_feed'
+	elif [[ $path == /news-sitemap.xml ]]; then
+		CLASS='@news_sitemap'
 	elif [[ $path =~ $blogger_archive ]]; then
 		CLASS='@blogger_archive'
 	elif [[ $path =~ $blogger_page ]]; then
