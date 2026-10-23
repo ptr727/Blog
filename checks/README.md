@@ -59,9 +59,10 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Blogger monthly archives | 21 | Redirect to `/all/` |
 | Author archive and pagination | 12 | Redirect to `/`, a single-author blog duplicating home |
 | Blogger feed | 3 | `/feeds/posts/default` and its `/atom.xml` alias, redirected to `/feed.xml` |
+| News sitemap | 1 | `/news-sitemap.xml`, the old platform's news sitemap, redirected to `/sitemap.xml` |
 | Blogger per-post comment feeds | 27 | `/feeds/<post id>/comments/default` to the post, via `blogger.map` |
 | Blogger static pages | 2 | `/p/<slug>.html` to `/<slug>/` |
-| Root files | 3 | `/robots.txt/` to the file, `/osd.xml/` to `/`, and `/news-sitemap.xml`, the old platform's news sitemap, to `/sitemap.xml`, via `slugs.map`, as below |
+| Root files | 2 | `/robots.txt/` to the file and `/osd.xml/` to `/`, via `slugs.map`, as below |
 | Feed type suffixes | 2 | Redirect to the same feed without its WordPress type suffix, `/feed/atom/` to `/feed/` and likewise for `rss`, `rss2` and `rdf` |
 | Empty term archives | 3 | `brultech`, `phyn`, `review`, as above |
 | Site and section feeds | 3 | `/feed/`, `/about/feed/`, `/comments/feed/` |

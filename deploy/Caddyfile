@@ -98,6 +98,9 @@
 		@blogger_feed path /feeds/posts/default /feeds/posts/default/ /atom.xml
 		redir @blogger_feed /feed.xml 301
 
+		@news_sitemap path /news-sitemap.xml
+		redir @news_sitemap /sitemap.xml 301
+
 		# Every monthly archive path answers, including dates the blog never covered.
 		# The archive index is where a visitor can actually find the month.
 		@blogger_archive path_regexp ^/\d{4}_\d{2}_01_archive\.html$
