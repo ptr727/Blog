@@ -170,7 +170,7 @@ more than 40 distinct pages in a burst. It also bans one when more than 10 disti
 contract is over 1,200 URLs. The sample takes one URL from each redirect class in
 [How the redirects are expressed](#how-the-redirects-are-expressed). It adds one from each shape
 of page that must render, one from each media tree, and the three family pages. It also adds
-`/all/` and `/feed.xml`, which only a redirect reaches. Before its
+`/all/`, `/feed.xml`, and `/sitemap.xml`, the fixed redirect destinations no list names. Before its
 first request, the script asserts that this stays within 30 distinct pages across both hosts. An
 edit that grows the sample therefore fails rather than getting the runner banned. None of the pages is
 expected to answer an error. A sampled redirect is checked for its status and a `Location`, and
@@ -345,9 +345,9 @@ It forwards `Host` and `Accept-Language` unchanged.
 Everything the site does not render is the web server's job, and the workload constrains which server can serve it. Two requirements are load-bearing, so a replacement has to meet both:
 
 - **The query string must be matchable.** 110 `?p=<id>` shortlinks redirect on the query alone. A server that matches on the path only would resolve `/?p=123` as `/`, redirect the homepage, and carry the query through to it.
-- **There must be a lookup primitive.** 314 of the 955 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 714 entries between them. A linear scan of that many rules per request is the wrong shape.
+- **There must be a lookup primitive.** 314 of the 956 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 714 entries between them. A linear scan of that many rules per request is the wrong shape.
 
-The Caddyfile carries **15 `redir` directives**, reading **5 map files** through **4 `map` blocks**. Eleven directives match on a pattern and four resolve through a map lookup. A map serves wherever no pattern can derive the destination from the input.
+The Caddyfile carries **16 `redir` directives**, reading **5 map files** through **4 `map` blocks**. Twelve directives match on a pattern and four resolve through a map lookup. A map serves wherever no pattern can derive the destination from the input.
 
 Directives and URL classes are not one to one, in both directions. `@mapped` is a single directive serving four classes, because their key spaces are disjoint and merging them keeps those four classes to one lookup. `@uploads` is one directive covering a URL set that is gated separately.
 
@@ -370,15 +370,16 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@site_feed` | 3 | `/feed/`, `/comments/feed/`, `/about/feed/` -> `/feed.xml` |
 | `@mapped` via `terms.map` | 3 | the three empty term archives |
 | `@blogger_feed` | 3 | `/feeds/posts/default` and `/atom.xml` -> `/feed.xml`, Blogger's Atom feed and its alias, which WordPress.com kept as a redirect |
+| `@news_sitemap` | 1 | `/news-sitemap.xml` -> `/sitemap.xml`, the old platform's news sitemap, which crawlers still poll |
 | `@mapped_slash` | 3 | a `slugs.map` or `terms.map` key requested without its trailing slash -> that key's destination. The matcher accepts every such key, including keys absent from the list, and leaves out a dotted path |
 | `@blogger_page` | 2 | `/p/<slug>.html` -> `/<slug>/`, Blogger's static-page shape |
 | `@feed_type` | 2 | a WordPress post, attachment, term, author, site, comments, or about feed at `/feed/atom/`, `/feed/rss/`, `/feed/rss2/` or `/feed/rdf/` -> the same feed at `/feed/`, which another row resolves |
 
-**Those sixteen classes account for every line in [`checks/redirect-urls.txt`](../checks/redirect-urls.txt), with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it. `check-live-urls.sh` classifies the list by the same rows to sample production. A unit test holds each class's count to the size column above, so a new row needs a new class there.
+**Those seventeen classes account for every line in [`checks/redirect-urls.txt`](../checks/redirect-urls.txt), with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it. `check-live-urls.sh` classifies the list by the same rows to sample production. A unit test holds each class's count to the size column above, so a new row needs a new class there.
 
 `@uploads` is deliberately absent from that table and from the redirect contract. It rewrites `/wp-content/uploads/(.*)` to `/media/$1`, preserving all 778 legacy image URLs, which are gated by `golden-media-legacy.txt` on their own. Counting them here would double-count a set that has its own list.
 
-`@label` is the seventeenth class and is deliberately **not** in the contract. `/search/label/<Label>` was never a redirect. The old platform answered it with a generic search page that returns 200 for a label that never existed. That makes it a soft 404 that looks alive. `labels.map` sends each label to its term archive and defaults anything unmatched to `/all/`, which is a choice rather than a preservation.
+`@label` is a further class and is deliberately **not** in the contract. `/search/label/<Label>` was never a redirect. The old platform answered it with a generic search page that returns 200 for a label that never existed. That makes it a soft 404 that looks alive. `labels.map` sends each label to its term archive and defaults anything unmatched to `/all/`, which is a choice rather than a preservation.
 
 Two orderings are load-bearing. `@post_child_feed` precedes `@post_child` because both match the same shape and the broader one would claim both. No golden URL is five segments under a date, so `@post_child` cannot swallow a page that must render, and `@uploads` rewrites under a prefix no rendered page occupies.
 

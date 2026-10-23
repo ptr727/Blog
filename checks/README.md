@@ -24,7 +24,7 @@ The contract is enforced by two gates, because one cannot cover both halves:
 | [`check-url-parity.py`][check-url-parity] | Every URL that must render exists as a built page, every legacy image URL resolves, every local asset reference points at a real file, and the count of carried media linked from no page still equals its recorded baseline | Against `public/`, in CI and before any release is installed |
 | [`check-live-urls.sh`][check-live-urls] | Every redirect resolves, and its destination answers | Against a running server, which is the only thing that exercises a redirect |
 
-**Production's deploy checks a sample of the contract rather than all of it.** Its edge bans a client that requests more than 40 distinct pages in a burst, and the full contract is over 1,200. So the deploy hook sets `SAMPLE_CONTRACT=1` there, and `check-live-urls.sh` then requests the first URL of each class in file order. That covers every redirect class in [`deploy/README.md`][deploy-readme-redirects], every shape of page that must render, each media tree, and the family site. It also requests `/all/` and `/feed.xml`, which only a redirect reaches. A sampled redirect is checked for its status and its `Location` and is not followed. The script asserts the sample's budget before its first request, and `checks/tests/test_check_live_urls_sample.py` holds the classes to the table's sizes and the sample to that budget. `checks/check-live-urls.sh --print-sample` prints the sample and its budget without requesting anything. Staging, the local mirrors, and any run without the variable check every URL, which is where the contract itself is proven.
+**Production's deploy checks a sample of the contract rather than all of it.** Its edge bans a client that requests more than 40 distinct pages in a burst, and the full contract is over 1,200. So the deploy hook sets `SAMPLE_CONTRACT=1` there, and `check-live-urls.sh` then requests the first URL of each class in file order. That covers every redirect class in [`deploy/README.md`][deploy-readme-redirects], every shape of page that must render, each media tree, and the family site. It also requests `/all/`, `/feed.xml`, and `/sitemap.xml`, the fixed redirect destinations, since no list names them and a sampled redirect is not followed to one. A sampled redirect is checked for its status and its `Location` and is not followed. The script asserts the sample's budget before its first request, and `checks/tests/test_check_live_urls_sample.py` holds the classes to the table's sizes and the sample to that budget. `checks/check-live-urls.sh --print-sample` prints the sample and its budget without requesting anything. Staging, the local mirrors, and any run without the variable check every URL, which is where the contract itself is proven.
 
 ## The two lists
 
@@ -45,7 +45,7 @@ The contract is enforced by two gates, because one cannot cover both halves:
 
 The 180 tag archives are exactly the tags the migrated posts carry. Three further terms answer with an empty page and are redirects rather than renders: `brultech` and `phyn`, which no published post uses, and `review`, an empty tag that is also a 12-post category. Hugo generates a term page only where posts exist, which is why the render list is 180 tags rather than 183.
 
-**`redirect-urls.txt`, 955 URLs that must resolve but need not render.** These have no Hugo equivalent. Reproducing them would be absurd, and 404ing them discards real inbound links.
+**`redirect-urls.txt`, 956 URLs that must resolve but need not render.** These have no Hugo equivalent. Reproducing them would be absurd, and 404ing them discards real inbound links.
 
 | Shape | Count | Disposition |
 | --- | --- | --- |
@@ -59,6 +59,7 @@ The 180 tag archives are exactly the tags the migrated posts carry. Three furthe
 | Blogger monthly archives | 21 | Redirect to `/all/` |
 | Author archive and pagination | 12 | Redirect to `/`, a single-author blog duplicating home |
 | Blogger feed | 3 | `/feeds/posts/default` and its `/atom.xml` alias, redirected to `/feed.xml` |
+| News sitemap | 1 | `/news-sitemap.xml`, the old platform's news sitemap, redirected to `/sitemap.xml` |
 | Blogger per-post comment feeds | 27 | `/feeds/<post id>/comments/default` to the post, via `blogger.map` |
 | Blogger static pages | 2 | `/p/<slug>.html` to `/<slug>/` |
 | Root files | 2 | `/robots.txt/` to the file and `/osd.xml/` to `/`, via `slugs.map`, as below |

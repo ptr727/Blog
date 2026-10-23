@@ -758,6 +758,7 @@
 /img_9377/
 /jellyfish-light-arrow-500x182-1/
 /jellyfish-lighting-ports-500x214-1/
+/news-sitemap.xml
 /osd.xml/
 /p/about.html
 /p/viljoen-family.html
