@@ -134,9 +134,9 @@
 		redir @mapped {mapped} 301
 		redir @mapped_slash {mapped_slash} 301
 
-		# An hour bounds how long a replaced image is still served from any copy.
 		@fingerprinted path /assets/*
 		header @fingerprinted Cache-Control "public, max-age=31536000, immutable"
+		# An hour bounds how long a replaced image is still served from any copy.
 		@media path /media/* /*.png /*.ico
 		header @media Cache-Control "public, max-age=3600"
 
