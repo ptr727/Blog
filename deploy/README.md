@@ -285,10 +285,11 @@ bounded by anything this repository controls.
 | `/media/` and the root icons | `public, max-age=3600` | An image rarely changes, and an hour bounds how long a replaced one is still served from any copy |
 
 A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would
-otherwise keep that class's lifetime. The blog's redirects name no lifetime, since they answer
-before the headers are set. A browser and an edge keep their defaults for a `301`. The family site
-keeps its own, shorter list in its block, and its error page answers `no-cache` the same way. Its
-language redirects answer `no-cache` too, because the `@page` matcher reaches them.
+otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the
+baseline header runs before them. A map entry a release changes is then followed at the next
+request. The family site keeps its own, shorter list in its block, and its error page answers
+`no-cache` the same way. Its language redirects answer `no-cache` as well, because the `@page`
+matcher reaches them.
 
 ## Trusting the proxy
 
