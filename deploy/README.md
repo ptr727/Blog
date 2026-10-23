@@ -273,10 +273,10 @@ No check reads `X-Robots-Tag`, so a missing value shows only in the served heade
 
 ## Cache lifetimes
 
-Every file the blog serves, and its error page, names its own lifetime, so a browser and an edge
-cache behave the same with or without a caching proxy in front. Without one a browser guesses from `Last-Modified`, and an edge
-cache applies a default by file extension. Neither guess is bounded by anything this repository
-controls.
+Every file the blog serves, and its error page, names its own lifetime. A browser and an edge cache
+then behave the same with or without a caching proxy in front. Without a lifetime a browser guesses
+from `Last-Modified`, and an edge cache applies a default by file extension. Neither guess is
+bounded by anything this repository controls.
 
 | Class | `Cache-Control` | Why |
 | --- | --- | --- |
@@ -286,9 +286,9 @@ controls.
 
 A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would
 otherwise keep that class's lifetime. The blog's redirects name no lifetime, since they answer
-before the headers are set, so a browser and an edge keep their defaults for a `301`. The family
-site keeps its own, shorter list in its block, and its error page answers `no-cache` the same way.
-Its language redirects answer `no-cache` too, because the block's default reaches them.
+before the headers are set. A browser and an edge keep their defaults for a `301`. The family site
+keeps its own, shorter list in its block, and its error page answers `no-cache` the same way. Its
+language redirects answer `no-cache` too, because the `@page` matcher reaches them.
 
 ## Trusting the proxy
 
