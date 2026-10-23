@@ -271,6 +271,24 @@ variable would hold both at the stricter value. Set both to `noindex, nofollow` 
 container, since neither falls back to the other.
 No check reads `X-Robots-Tag`, so a missing value shows only in the served header.
 
+## Cache lifetimes
+
+Every blog response names its own lifetime, so a browser and an edge cache behave the same with or
+without a caching proxy in front. Without one a browser guesses from `Last-Modified`, and an edge
+cache applies a default by file extension. Neither guess is bounded by anything this repository
+controls.
+
+| Class | `Cache-Control` | Why |
+| --- | --- | --- |
+| Pages, feeds, the sitemap, `index.json`, `robots.txt`, and every other path | `no-cache` | A copy may be kept but is revalidated on every use, so a deploy shows at once |
+| `/assets/`, the fingerprinted stylesheet and script | `public, max-age=31536000, immutable` | The name changes with the content, so a copy is never stale |
+| `/media/` and the root icons | `public, max-age=3600` | An image rarely changes, and an hour bounds how long a replaced one is still served from any copy |
+
+A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would
+otherwise keep that class's lifetime. The redirects name no lifetime, so a browser and an edge keep
+their defaults for a `301`. The family site keeps its own, shorter list in its block, and its error
+page answers `no-cache` the same way.
+
 ## Trusting the proxy
 
 A proxy fronts Caddy in every environment, so the peer address is always the proxy and the real
