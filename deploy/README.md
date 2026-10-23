@@ -379,7 +379,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 
 `@uploads` is deliberately absent from that table and from the redirect contract. It rewrites `/wp-content/uploads/(.*)` to `/media/$1`, preserving all 778 legacy image URLs, which are gated by `golden-media-legacy.txt` on their own. Counting them here would double-count a set that has its own list.
 
-`@label` is the seventeenth class and is deliberately **not** in the contract. `/search/label/<Label>` was never a redirect. The old platform answered it with a generic search page that returns 200 for a label that never existed. That makes it a soft 404 that looks alive. `labels.map` sends each label to its term archive and defaults anything unmatched to `/all/`, which is a choice rather than a preservation.
+`@label` is a further class and is deliberately **not** in the contract. `/search/label/<Label>` was never a redirect. The old platform answered it with a generic search page that returns 200 for a label that never existed. That makes it a soft 404 that looks alive. `labels.map` sends each label to its term archive and defaults anything unmatched to `/all/`, which is a choice rather than a preservation.
 
 Two orderings are load-bearing. `@post_child_feed` precedes `@post_child` because both match the same shape and the broader one would claim both. No golden URL is five segments under a date, so `@post_child` cannot swallow a page that must render, and `@uploads` rewrites under a prefix no rendered page occupies.
 
