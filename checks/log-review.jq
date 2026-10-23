@@ -19,3 +19,5 @@ select(.["request_X-Blog-Check"] == null)
 | select(.RequestHost == $blog or .RequestHost == $family)
 | select(.DownstreamStatus == 404)
 | select(scanner | not)
+# Behind a proxy ClientHost is the forwarded chain, and its last element is the address Cloudflare saw.
+| .ClientHost |= (split(",") | last | ltrimstr(" "))

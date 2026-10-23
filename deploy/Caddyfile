@@ -73,6 +73,10 @@
 	}
 
 	route {
+		# Explicit lifetimes replace whatever heuristic a browser or an edge cache would apply, so a deploy shows at once.
+		# The baseline runs first so a redirect carries it too, and the file classes below override it.
+		header Cache-Control "no-cache"
+
 		redir @post_id {by_id} 301
 
 		# WordPress served every feed under a type suffix too, so dropping it hands the address to the bare feed's rule.
@@ -130,6 +134,12 @@
 		redir @mapped {mapped} 301
 		redir @mapped_slash {mapped_slash} 301
 
+		@fingerprinted path /assets/*
+		header @fingerprinted Cache-Control "public, max-age=31536000, immutable"
+		# An hour bounds how long a replaced image is still served from any copy.
+		@media path /media/* /*.png /*.ico
+		header @media Cache-Control "public, max-age=3600"
+
 		# The proxy forwards Accept-Encoding unchanged and adds no compression of its own.
 		# Serving the precompressed siblings here is what reaches the client.
 		file_server {
@@ -138,6 +148,8 @@
 	}
 
 	handle_errors {
+		# A missing file in a cached class would otherwise keep that class's lifetime.
+		header Cache-Control "no-cache"
 		rewrite * /404.html
 		file_server
 	}
@@ -168,6 +180,8 @@ http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {$FAMILY_SI
 	header @svg Cache-Control "public, max-age=604800"
 	@code path *.css *.js
 	header @code Cache-Control "no-cache"
+	@page not path *.svg *.css *.js
+	header @page Cache-Control "no-cache"
 
 	# The root follows the browser's first language, and /en/ and /af/ never redirect, so the language switch always holds.
 	@af_first {
@@ -186,6 +200,7 @@ http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {$FAMILY_SI
 
 	# A single-page site has nowhere better to send a stray path than the page itself.
 	handle_errors {
+		header Cache-Control "no-cache"
 		@af_page path /af/*
 		handle @af_page {
 			rewrite * /af/index.html
