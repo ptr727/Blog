@@ -345,7 +345,7 @@ It forwards `Host` and `Accept-Language` unchanged.
 Everything the site does not render is the web server's job, and the workload constrains which server can serve it. Two requirements are load-bearing, so a replacement has to meet both:
 
 - **The query string must be matchable.** 110 `?p=<id>` shortlinks redirect on the query alone. A server that matches on the path only would resolve `/?p=123` as `/`, redirect the homepage, and carry the query through to it.
-- **There must be a lookup primitive.** 314 of the 955 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 714 entries between them. A linear scan of that many rules per request is the wrong shape.
+- **There must be a lookup primitive.** 315 of the 956 resolve through map files rather than patterns, since no rule can derive their destination. The five maps carry 715 entries between them. A linear scan of that many rules per request is the wrong shape.
 
 The Caddyfile carries **15 `redir` directives**, reading **5 map files** through **4 `map` blocks**. Eleven directives match on a pattern and four resolve through a map lookup. A map serves wherever no pattern can derive the destination from the input.
 
@@ -361,7 +361,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@term_feed` | 192 | `/tag/<t>/feed/` and `/category/<c>/feed/` -> the term archive |
 | `@post_id` | 110 | `/?p=<id>` -> the permalink, via `p-ids.map` |
 | `@post_child_feed` | 107 | `/YYYY/MM/DD/post/<child>/feed/` -> the post, ordered **before** `@post_child` |
-| `@mapped` via `slugs.map` | 108 | bare `/<attachment-slug>/` -> best destination, `/robots.txt/` -> the file, `/osd.xml/` -> `/`, and a retired page -> the site that replaced it |
+| `@mapped` via `slugs.map` | 109 | bare `/<attachment-slug>/` -> best destination, `/robots.txt/` -> the file, `/osd.xml/` -> `/`, `/news-sitemap.xml` -> `/sitemap.xml`, and a retired page -> the site that replaced it |
 | `@date_archive` | 83 | `/YYYY/`, `/YYYY/MM/`, and their pagination -> `/all/`. The matcher accepts any date, including dates absent from the list |
 | `@mapped` via `blogger.map` | 63 | `/YYYY/MM/slug.html` -> the current post |
 | `@mapped` via `blogger.map` | 27 | `/feeds/<post id>/comments/default` -> the post, Blogger's per-post comment feed |
