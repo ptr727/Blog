@@ -170,7 +170,7 @@ more than 40 distinct pages in a burst. It also bans one when more than 10 disti
 contract is over 1,200 URLs. The sample takes one URL from each redirect class in
 [How the redirects are expressed](#how-the-redirects-are-expressed). It adds one from each shape
 of page that must render, one from each media tree, and the three family pages. It also adds
-`/all/` and `/feed.xml`, which only a redirect reaches. Before its
+`/all/`, `/feed.xml`, and `/sitemap.xml`, the fixed redirect destinations no list names. Before its
 first request, the script asserts that this stays within 30 distinct pages across both hosts. An
 edit that grows the sample therefore fails rather than getting the runner banned. None of the pages is
 expected to answer an error. A sampled redirect is checked for its status and a `Location`, and
