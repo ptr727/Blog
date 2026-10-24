@@ -281,12 +281,26 @@ Every file the blog serves, and its error page, names its own lifetime. A browse
 | `/assets/`, the fingerprinted stylesheet and script | `public, max-age=31536000, immutable` | The name changes with the content, so a copy is never stale |
 | `/media/` and the root icons | `public, max-age=3600` | An image rarely changes, and an hour bounds how long a replaced one is still served from any copy |
 
-A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the baseline header runs before them. A map entry a release changes is then followed at the next request. The family site keeps its own, shorter list in its block, and its error page answers `no-cache` the same way. Its language redirects answer `no-cache` as well, because the `@page` matcher reaches them.
+A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the baseline header runs before them. A map entry a release changes is then followed at the next request. The family site follows the table's page and image rows, its SVGs included. Its stylesheet and script keep their names across releases, so they answer `no-cache` like its pages. A longer lifetime there would pair a new page with an old script. Its error page answers `no-cache` the same way, and so do its language redirects, because the `@page` matcher reaches them.
 
 **Two zone settings decide whether these lifetimes hold behind Cloudflare.** Both are the host side's to set.
 
 - **Browser Cache TTL must be "Respect Existing Headers".** A new zone's default is 4 hours. Cloudflare replaces an origin lifetime shorter than that setting with the setting. A browser would then keep a replaced image for 4 hours rather than one.
 - **Caching Level must not be "Ignore Query String".** `check-live-urls.sh` asks for each media file with a query no earlier run sent, so the edge's copy cannot answer for a file a release lost. The default level, Standard, keys the cache on the query string. Ignore Query String would answer from the copy again.
+
+## Security headers
+
+The sites send the same security headers on every response, redirects and the `404` included:
+
+| Header | Value | Why |
+| --- | --- | --- |
+| `Strict-Transport-Security` | `max-age=31536000` | After the first HTTPS visit a browser skips the cleartext redirect, which an on-path attacker could intercept |
+| `X-Content-Type-Options` | `nosniff` | A browser trusts the served `Content-Type` rather than guessing one from the body |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Another site learns only the origin a reader came from, never the path |
+
+The HSTS value carries neither `includeSubDomains` nor `preload`. `includeSubDomains` would bind every hostname under the site's own, which this bundle does not serve. `preload` asks for the whole domain to be built into browsers, where a removal takes months to reach readers. HSTS at the edge is the host side's setting, and it stays off because Cloudflare applies it to every name in the zone.
+
+**Only the family site sends a `Content-Security-Policy`.** Its page loads few resources, so its policy names each kind: its own files, Google Fonts, inline styles, and `data:` images. Blog posts embed third-party content, so a blog policy waits on a survey of what the posts load.
 
 ## Trusting the proxy
 
