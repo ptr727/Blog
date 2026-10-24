@@ -121,7 +121,8 @@ class SamplePlanTests(unittest.TestCase):
         self.assertLessEqual(MEDIA_CLASSES, by_kind["media"])
         self.assertEqual(by_kind["family pages"], FAMILY_PAGES)
         self.assertEqual(
-            [url for kind, _, _, url in entries if kind == "missing"], [MISSING_PROBE]
+            {cls: url for kind, cls, _, url in entries if kind == "missing"},
+            {"missing file": MISSING_PROBE, "family missing file": MISSING_PROBE},
         )
 
     def test_every_sampled_url_comes_from_its_list(self) -> None:
@@ -312,7 +313,8 @@ class SampledRunTests(unittest.TestCase):
                 SITE_EXTRA_BASE_URL=family.base,
             )
             requested = list(site.requested)
-            family_requested = set(family.requested)
+            family_all = list(family.requested)
+        family_requested = non_static(family_all)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("sampled URLs honored", result.stdout)
         self.assertNotIn(DESTINATION, requested)
@@ -322,7 +324,7 @@ class SampledRunTests(unittest.TestCase):
         self.assertEqual(
             len(planned) + len(family_requested), budget["distinct non-static paths"]
         )
-        statics = [p for p in requested if p not in non_static(requested)]
+        statics = [p for p in requested + family_all if p not in non_static([p])]
         self.assertEqual(len(statics), budget["static requests"])
 
     def test_full_run_is_the_default_and_follows_every_redirect(self) -> None:
@@ -545,6 +547,11 @@ class SecurityHeaderTests(unittest.TestCase):
         result = self.sampled(family=without(csp, "/en/"))
         self.assertEqual(result.returncode, 1, result.stdout)
         self.assertIn(f"family /en/ sends {csp} '<none>'", result.stdout)
+        result = self.sampled(family=without(csp, MISSING_PROBE))
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn(
+            f"family missing {MISSING_PROBE} sends {csp} '<none>'", result.stdout
+        )
 
     def test_headers_are_asserted_on_the_config_the_reload_converges_on(self) -> None:
         class Reloading(Handler):

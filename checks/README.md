@@ -109,9 +109,9 @@ wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy
 
 ## `security-headers.txt`, and why every response's headers are read
 
-`security-headers.txt` holds, per site, each security header `deploy/Caddyfile` sends and its exact value. `check-live-urls.sh` reads it and asserts those headers on every response it requests. That covers the preflight, each page, redirect, followed destination, and media file, the `404` probe, and each family page. A header that goes missing or loses strength fails the run, where a presence check would pass a shortened HSTS lifetime or a loosened policy.
+`security-headers.txt` holds, per site, each security header `deploy/Caddyfile` sends and its exact value. `check-live-urls.sh` reads it and asserts those headers on every response it requests. That covers the preflight, each page, redirect, followed destination, and media file, the `404` probes, and each family page. A header that goes missing or loses strength fails the run, where a presence check would pass a shortened HSTS lifetime or a loosened policy.
 
-**One request is added, a missing `.png` under `/media/`.** The `404` answers from the Caddyfile's `handle_errors` block rather than from the route every other request takes, so it is checked on its own. The probe is a static file, so it stays out of the sampled run's page budget.
+**One request per site is added, a missing `.png` under `/media/`.** Each site answers its `404` from its own `handle_errors` block rather than from the route other requests take, so each is checked. The probes are static files, so they stay out of the sampled run's page budget.
 
 **The values live once here, and a unit case holds them to the Caddyfile.** `checks/tests/test_check_live_urls_sample.py` reads the Caddyfile through `caddy adapt`, so Caddy's own parser decides what each directive covers. It compares every header a site sets on all its responses with this file, in both directions. The cache headers and the site's own markers are left out. It also fails on a security header that reaches fewer responses than all of them. A matcher, a status requirement, an error route, a deletion, or a handler answering first each narrows one.
 

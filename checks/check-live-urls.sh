@@ -193,6 +193,7 @@ if [ -n "$SAMPLE" ]; then
 		SAMPLE_PLAN+=("family"$'\t'"family page"$'\t'"${#FAMILY_PAGES[@]}"$'\t'"${page%%|*}")
 	done
 	SAMPLE_PLAN+=("missing"$'\t'"missing file"$'\t'"1"$'\t'"$MISSING_PROBE")
+	SAMPLE_PLAN+=("missing"$'\t'"family missing file"$'\t'"1"$'\t'"$MISSING_PROBE")
 
 	# The budget counts distinct non-static paths per host, which is never less than the edge counts, with the preflight's / among them.
 	# A sampled redirect is not followed, so each costs one path, and a legacy media URL costs two requests, since it takes a hop.
@@ -747,6 +748,15 @@ if [ -n "$FAMILY_BASE" ]; then
 			check_headers "family $page_path" "$(<"$FAMILY_HEAD")" "$FAMILY_SECURITY_HEADERS"
 		fi
 	done
+	# The family site answers its 404 from a handle_errors block of its own.
+	n_family=$((n_family + 1))
+	if ! code=$(curl -q -sS -o /dev/null -D "$FAMILY_HEAD" -w '%{http_code}' --max-time 30 "${family_auth[@]}" "$FAMILY_BASE$MISSING_PROBE?$CACHE_BUST" 2>"$CURLERR"); then
+		echo "family missing $MISSING_PROBE could not be reached: $(head -1 "$CURLERR")" >>"$FAILED"
+	elif [ "$code" != "404" ]; then
+		echo "family missing $MISSING_PROBE expected 404, got $code" >>"$FAILED"
+	else
+		check_headers "family missing $MISSING_PROBE" "$(<"$FAMILY_HEAD")" "$FAMILY_SECURITY_HEADERS"
+	fi
 	[ -s "$FAMILY_HEAD" ] && proxy_verdict "${FAMILY_BASE#*://}" "$(<"$FAMILY_HEAD")"
 else
 	echo "==> SITE_EXTRA_BASE_URL is unset, so the family site is not checked"
