@@ -399,6 +399,10 @@ curl_retry() {
 
 # Invoked indirectly, the same way as curl_retry above.
 # shellcheck disable=SC2329
+header_value() { printf '%s\n' "$1" | grep -i "^$2:" | tr -d '\r' | sed 's/^[^:]*: *//'; }
+
+# Invoked indirectly, the same way as curl_retry above.
+# shellcheck disable=SC2329
 # Reads a response's "Name: value" lines, either a header dump or HEADER_FORMAT's output, which matches the list outright when nothing is wrong.
 check_headers() {
 	local what="$1" response="$2" expected="$3" line name want got
@@ -406,7 +410,7 @@ check_headers() {
 	while IFS= read -r line; do
 		name="${line%%: *}"
 		want="${line#*: }"
-		got=$(printf '%s\n' "$response" | grep -i "^$name:" | tr -d '\r' | sed 's/^[^:]*: *//' | paste -sd ',' -)
+		got=$(header_value "$response" "$name" | paste -sd ',' -)
 		[ "$got" = "$want" ] || echo "$what sends $name '${got:-<none>}', expected '$want'" >>"$FAILED"
 	done <<<"$expected"
 }
@@ -521,7 +525,7 @@ check_media() {
 # Invoked indirectly, the same way as check_render above.
 # shellcheck disable=SC2329
 check_redirect() {
-	local url="$1" out code dest dcode why rc=0 auth=(-K "$CHECKRC") dest_auth=(-K "$CHECKRC")
+	local url="$1" out code dest dout dcode why rc=0 auth=(-K "$CHECKRC") dest_auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
 	# One request reads both fields, so a second fetch failing in transit cannot pass an empty destination on as a broken target.
 	out=$(curl_retry -q -s -o /dev/null -w "%{http_code} %{redirect_url}\n$HEADER_FORMAT" --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
@@ -555,7 +559,8 @@ check_redirect() {
 		esac
 	fi
 	rc=0
-	dcode=$(curl_retry -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${dest_auth[@]}" "$dest") || rc=$?
+	dout=$(curl_retry -q -s -o /dev/null -w "%{http_code}\n$HEADER_FORMAT" --max-time 30 "${dest_auth[@]}" "$dest") || rc=$?
+	dcode="${dout%%$'\n'*}"
 	why=$(transfer_failure "$dcode" "$rc")
 	if [ -n "$why" ]; then
 		echo "redirect $url -> $dest destination $why" >>"$FAILED"
@@ -566,9 +571,13 @@ check_redirect() {
 	200 | 301 | 308) ;;
 	*) echo "redirect $url -> $dest destination answered $dcode" >>"$FAILED" ;;
 	esac
+	# An off-site destination is the family host, whose own pages are checked against its own list.
+	case "$dest" in
+	"$BASE" | "$BASE"/*) check_headers "redirect $url -> $dest destination" "${dout#*$'\n'}" "$SECURITY_HEADERS" ;;
+	esac
 }
 
-export -f curl_retry transfer_failure check_headers check_render check_redirect check_media
+export -f curl_retry transfer_failure header_value check_headers check_render check_redirect check_media
 export BASE FAILED CURLRC CHECKRC SAMPLE CACHE_BUST HEADER_FORMAT SECURITY_HEADERS
 
 echo "==> $BASE"
@@ -582,7 +591,7 @@ if ! preflight_headers=$(curl -q -sS -o /dev/null -D- -w '%{http_code}' --max-ti
 	exit 1
 fi
 preflight="${preflight_headers##*$'\n'}"
-header_of() { printf '%s' "$preflight_headers" | grep -i "^$1:" | tr -d '\r' | sed 's/^[^:]*: *//'; }
+header_of() { header_value "$preflight_headers" "$1"; }
 
 if [ "$preflight" != "200" ]; then
 	echo "FAIL preflight: $BASE/ answered $preflight, expected 200" >&2
@@ -606,7 +615,7 @@ fi
 # Nothing in a response body says which environment answered.
 # A proxy rule aimed at the wrong container returns a healthy 200 under the right hostname.
 if [ -n "${EXPECT_SITE_ENV:-}" ]; then
-	got_env=$(printf '%s' "$preflight_headers" | grep -i '^x-blog-env:' | tr -d '\r' | sed 's/^[^:]*: *//')
+	got_env=$(header_of x-blog-env)
 	if [ "$got_env" != "$EXPECT_SITE_ENV" ]; then
 		echo "FAIL preflight: $BASE/ is served by '${got_env:-<no X-Blog-Env header>}', expected '$EXPECT_SITE_ENV'" >&2
 		echo "     the hostname resolved to the wrong environment's container, or SITE_ENV is" >&2
@@ -618,17 +627,7 @@ fi
 
 # Nothing else proves the rules answering are the ones just shipped, as no deploy restarts Caddy.
 # A stale config serves the previous release's rules while the new content is already live.
-# Returns non-zero on a transport failure, and empty on a reply carrying no release header.
-# Collapsing the two would report an unreachable host as a config that never reloaded.
-read_release() {
-	local headers
-	headers=$(curl -q -sS -o /dev/null -D- --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR") || return 1
-	printf '%s' "$headers" | grep -i '^x-blog-release:' | tr -d '\r' | sed 's/^[^:]*: *//'
-	# Explicit, because pipefail carries grep's no-match status out of the function, which would report a reachable host serving no release header as unreachable.
-	return 0
-}
-
-got_release=$(printf '%s' "$preflight_headers" | grep -i '^x-blog-release:' | tr -d '\r' | sed 's/^[^:]*: *//')
+got_release=$(header_of x-blog-release)
 if [ -n "${EXPECT_RELEASE:-}" ]; then
 	# The reload is asynchronous, so a check run straight after a deploy races it.
 	# Content is live instantly, while rules change on the next poll.
@@ -637,11 +636,13 @@ if [ -n "${EXPECT_RELEASE:-}" ]; then
 	while [ "$got_release" != "$EXPECT_RELEASE" ] && [ "$waited" -lt "${RELOAD_TIMEOUT:-30}" ]; do
 		sleep 1
 		waited=$((waited + 1))
-		if ! got_release=$(read_release); then
+		# The whole dump is refreshed, since the security headers asserted below come from the converged config too.
+		if ! preflight_headers=$(curl -q -sS -o /dev/null -D- --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR"); then
 			echo "FAIL: $BASE/ became unreachable after ${waited}s of waiting for the reload" >&2
 			sed 's/^/     /' "$CURLERR" >&2
 			exit 1
 		fi
+		got_release=$(header_of x-blog-release)
 	done
 	if [ "$got_release" != "$EXPECT_RELEASE" ]; then
 		echo "FAIL preflight: after ${waited}s the rules are from release '${got_release:-<no X-Blog-Release header>}', expected '$EXPECT_RELEASE'" >&2
@@ -731,8 +732,8 @@ if [ -n "$FAMILY_BASE" ]; then
 		elif ! grep -qF "<title>$title</title>" "$FAMILY_BODY"; then
 			echo "family $page_path answered without the title '$title', so another site served it" >>"$FAILED"
 		else
-			got_env=$(grep -i '^x-blog-env:' "$FAMILY_HEAD" | tr -d '\r' | sed 's/^[^:]*: *//')
-			family_release=$(grep -i '^x-blog-release:' "$FAMILY_HEAD" | tr -d '\r' | sed 's/^[^:]*: *//')
+			got_env=$(header_value "$(<"$FAMILY_HEAD")" x-blog-env)
+			family_release=$(header_value "$(<"$FAMILY_HEAD")" x-blog-release)
 			if [ -n "${EXPECT_SITE_ENV:-}" ] && [ "$got_env" != "$EXPECT_SITE_ENV" ]; then
 				echo "family $page_path is served by '${got_env:-<no X-Blog-Env header>}', expected '$EXPECT_SITE_ENV'" >>"$FAILED"
 			fi

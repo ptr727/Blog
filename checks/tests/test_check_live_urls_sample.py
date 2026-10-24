@@ -367,9 +367,11 @@ def caddyfile_headers(block: str) -> list[tuple[str, str]]:
     """The security headers a Caddyfile site block sets, in either the block or the one-line form."""
     pairs = []
     for line in block.splitlines():
-        match = re.fullmatch(r'\s*(?:header\s+(?:@\S+\s+)?)?(\S+)\s+"([^"]*)"\s*', line)
+        match = re.fullmatch(
+            r'\s*(?:header\s+(?:@\S+\s+)?)?(\S+)\s+(?:"([^"]*)"|([^\s"{]+))\s*', line
+        )
         if match and match[1].lower() in SECURITY_NAMES:
-            pairs.append((match[1], match[2]))
+            pairs.append((match[1], match[2] if match[2] is not None else match[3]))
     return pairs
 
 
@@ -429,6 +431,29 @@ class SecurityHeaderTests(unittest.TestCase):
         result = self.sampled(family=without(csp, "/en/"))
         self.assertEqual(result.returncode, 1, result.stdout)
         self.assertIn(f"family /en/ sends {csp} '<none>'", result.stdout)
+
+    def test_a_bare_caddyfile_value_is_read(self) -> None:
+        block = "\theader {\n\t\tX-Frame-Options DENY\n\t}\n"
+        self.assertEqual(caddyfile_headers(block), [("X-Frame-Options", "DENY")])
+
+    def test_headers_are_asserted_on_the_config_the_reload_converges_on(self) -> None:
+        class Reloading(Handler):
+            def headers_for(self, path: str) -> list[tuple[str, str]]:
+                if self.requested.count("/") < 2:
+                    return [("X-Blog-Release", "old")]
+                return [*self.site_headers, ("X-Blog-Release", "new")]
+
+        with MockSite(handler=Reloading) as site:
+            result = run(SCRIPT, site.base, SAMPLE_CONTRACT="1", EXPECT_RELEASE="new")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("rules from release new (after 1s)", result.stdout)
+
+    def test_a_followed_destination_missing_a_header_fails(self) -> None:
+        hsts = "Strict-Transport-Security"
+        with MockSite(handler=without(hsts, DESTINATION)) as site:
+            result = run(SCRIPT, site.base)
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn(f"{DESTINATION} destination sends {hsts} '<none>'", result.stdout)
 
     def test_a_weakened_value_fails(self) -> None:
         class Weakened(Handler):
