@@ -280,7 +280,7 @@ bounded by anything this repository controls.
 
 | Class | `Cache-Control` | Why |
 | --- | --- | --- |
-| Pages, feeds, the sitemap, `index.json`, `robots.txt`, and every other path | `no-cache` | A copy may be kept but is revalidated on every use, so a deploy shows at once |
+| Pages, feeds, the sitemap, `index.json`, `robots.txt`, and every other path | `no-cache, no-transform` | A copy may be kept but is revalidated on every use, so a deploy shows at once |
 | `/assets/`, the fingerprinted stylesheet and script | `public, max-age=31536000, immutable` | The name changes with the content, so a copy is never stale |
 | `/media/` and the root icons | `public, max-age=3600` | An image rarely changes, and an hour bounds how long a replaced one is still served from any copy |
 
@@ -290,6 +290,22 @@ baseline header runs before them. A map entry a release changes is then followed
 request. The family site keeps its own, shorter list in its block, and its error page answers
 `no-cache` the same way. Its language redirects answer `no-cache` as well, because the `@page`
 matcher reaches them.
+
+`no-transform` keeps an edge from rewriting a page. Cloudflare's Email Address Obfuscation is on
+by default on a new zone, and it skips a response carrying the directive. The bundle therefore
+opts out whatever the zone sets. It also stops Cloudflare changing a response's compression, which costs nothing here,
+since Caddy already serves the precompressed siblings.
+
+**Two zone settings decide whether these lifetimes hold behind Cloudflare.** Both are the host
+side's to set.
+
+- **Browser Cache TTL must be "Respect Existing Headers".** A new zone's default is 4 hours.
+  Cloudflare replaces an origin lifetime shorter than that setting with the setting. A browser
+  would then keep a replaced image for 4 hours rather than one.
+- **Caching Level must not be "Ignore Query String".** `check-live-urls.sh` asks for each media
+  file with a query no earlier run sent, so the edge's copy cannot answer for a file a release
+  lost. The default level, Standard, keys the cache on the query string. Ignore Query String
+  would answer from the copy again.
 
 ## Trusting the proxy
 
