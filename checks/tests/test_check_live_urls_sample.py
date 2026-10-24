@@ -189,7 +189,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         self.requested.append(self.path)
         if self.path.startswith("/wp-content/uploads/"):
-            self.answer(301, location="/media/" + self.path.split("/uploads/", 1)[1])
+            # Caddy's rule drops the query, as here.
+            path = self.path.split("?", 1)[0]
+            self.answer(301, location="/media/" + path.split("/uploads/", 1)[1])
         elif self.path.startswith(("/media/", "/external/")):
             self.answer(200, body=b"\x89PNG", content_type="image/png")
         elif self.path in self.redirects:
@@ -296,6 +298,22 @@ class SampledRunTests(unittest.TestCase):
         self.assertNotIn("sampl", result.stdout)
         self.assertIn(DESTINATION, requested)
         self.assertEqual(non_static(requested), listed | {"/", DESTINATION})
+
+    def test_media_requests_carry_a_query_no_earlier_run_sent(self) -> None:
+        tokens = []
+        for _ in range(2):
+            with MockSite() as site:
+                result = run(SCRIPT, site.base)
+                requested = list(site.requested)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            media = [p for p in requested if p not in non_static(requested)]
+            self.assertTrue(any(p.startswith("/wp-content/") for p in media))
+            for p in media:
+                self.assertRegex(p, r"live-check=", p)
+            found = {re.findall(r"live-check=([^&]+)", p)[-1] for p in media}
+            self.assertEqual(len(found), 1, media)
+            tokens.append(found.pop())
+        self.assertNotEqual(tokens[0], tokens[1])
 
 
 if __name__ == "__main__":
