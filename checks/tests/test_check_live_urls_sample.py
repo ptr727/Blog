@@ -120,6 +120,9 @@ class SamplePlanTests(unittest.TestCase):
         self.assertLessEqual(RENDER_CLASSES, by_kind["render"])
         self.assertLessEqual(MEDIA_CLASSES, by_kind["media"])
         self.assertEqual(by_kind["family pages"], FAMILY_PAGES)
+        self.assertEqual(
+            [url for kind, _, _, url in entries if kind == "missing"], [MISSING_PROBE]
+        )
 
     def test_every_sampled_url_comes_from_its_list(self) -> None:
         source = {
@@ -365,8 +368,10 @@ def caddy_image() -> str:
         capture_output=True,
         text=True,
         timeout=600,
-        check=True,
+        check=False,
     )
+    if built.returncode != 0:
+        raise AssertionError(f"docker build of the Caddy image failed: {built.stderr}")
     return built.stdout.strip()
 
 

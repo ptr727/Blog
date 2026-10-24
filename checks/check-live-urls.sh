@@ -192,16 +192,16 @@ if [ -n "$SAMPLE" ]; then
 	for page in "${FAMILY_PAGES[@]}"; do
 		SAMPLE_PLAN+=("family"$'\t'"family page"$'\t'"${#FAMILY_PAGES[@]}"$'\t'"${page%%|*}")
 	done
+	SAMPLE_PLAN+=("missing"$'\t'"missing file"$'\t'"1"$'\t'"$MISSING_PROBE")
 
 	# The budget counts distinct non-static paths per host, which is never less than the edge counts, with the preflight's / among them.
-	# The 404 probe is the first static request.
 	# A sampled redirect is not followed, so each costs one path, and a legacy media URL costs two requests, since it takes a hop.
 	declare -A sample_paths=(["blog /"]=1)
-	sample_statics=1
+	sample_statics=0
 	for entry in "${SAMPLE_PLAN[@]}"; do
 		IFS=$'\t' read -r kind class _ url <<<"$entry"
 		case "$kind" in
-		media)
+		media | missing)
 			sample_statics=$((sample_statics + 1))
 			if [ "$class" = 'legacy upload' ]; then
 				sample_statics=$((sample_statics + 1))
@@ -245,7 +245,10 @@ if [ -n "$SAMPLE" ]; then
 	RENDER_SRC="$SAMPLE_DIR/render" REDIRECT_SRC="$SAMPLE_DIR/redirect" MEDIA_SRC="$SAMPLE_DIR/media"
 	for entry in "${SAMPLE_PLAN[@]}"; do
 		IFS=$'\t' read -r kind _ _ url <<<"$entry"
-		[ "$kind" = family ] || printf '%s\n' "$url" >>"$SAMPLE_DIR/$kind"
+		case "$kind" in
+		family | missing) ;;
+		*) printf '%s\n' "$url" >>"$SAMPLE_DIR/$kind" ;;
+		esac
 	done
 	echo "==> sampling the contract by class, ${#sample_paths[@]} distinct non-static paths"
 fi
