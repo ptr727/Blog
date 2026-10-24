@@ -107,6 +107,16 @@ wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy
 
 **The mode case is why this is not theoretical.** A hard-linked file carries its inode's mode, so a media file that acquires a bad one rides the chain into every later release, present and correctly named and unreadable to the server. A build-time `is_file()` on the runner cannot see it, and neither can a check that never requests an image.
 
+## `security-headers.txt`, and why every response's headers are read
+
+`security-headers.txt` holds, per site, each security header `deploy/Caddyfile` sends and its exact value. `check-live-urls.sh` reads it and asserts those headers on every response it requests. That covers the preflight, each page, redirect, followed destination, and media file, the `404` probes, and each family page. A header that goes missing or loses strength fails the run, where a presence check would pass a shortened HSTS lifetime or a loosened policy.
+
+**One request per site is added, a missing `.png` under `/media/`.** Each site answers its `404` from its own `handle_errors` block rather than from the route other requests take, so each is checked. The probes are static files, so they stay out of the sampled run's page budget.
+
+**The values live once here, and a unit case holds them to the Caddyfile.** `checks/tests/test_check_live_urls_sample.py` reads the Caddyfile through `caddy adapt`, so Caddy's own parser decides what each directive covers. It compares every header a site sets on all its responses with this file, in both directions. The cache headers and the site's own markers are left out. It also fails on a security header that reaches fewer responses than all of them. A matcher, a status requirement, an error route, a deletion, or a handler answering first each narrows one.
+
+**That case needs Docker.** It builds the image [`caddy/Dockerfile`][caddy-dockerfile] pins and runs it with networking off. That works the same on a GitHub runner and on a workstation with no Caddy installed. Dependabot moves the pin. See [`deploy/README.md`][deploy-readme-security-headers] for why each value is what it is.
+
 ## Directionality
 
 The parity check fails on a **missing** URL and only notes an **extra** one. New posts, new tags, and deeper pagination legitimately add URLs, and nothing legitimately removes a URL the site has served. That asymmetry is what makes the lists append-only, which in turn is what makes the length-floor assertion in `check-live-urls.sh` sound: without it a truncated list would make every assertion below it pass vacuously.
@@ -175,6 +185,7 @@ Three traps in that adjudication, each of which produced a wrong answer first an
 <!-- Repo -->
 
 [capture-build-redirects]: ../capture/build-redirects.py
+[caddy-dockerfile]: ./caddy/Dockerfile
 [capture-readme]: ../capture/README.md
 [check-env-docs]: ./check-env-docs.py
 [check-github-env]: ./check-github-env.py
@@ -184,4 +195,5 @@ Three traps in that adjudication, each of which produced a wrong answer first an
 [check-text-pii]: ./check-text-pii.py
 [check-url-parity]: ./check-url-parity.py
 [deploy-readme-redirects]: ../deploy/README.md#how-the-redirects-are-expressed
+[deploy-readme-security-headers]: ../deploy/README.md#security-headers
 [fuzz-media-parsers]: ./fuzz-media-parsers.py
