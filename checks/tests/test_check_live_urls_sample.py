@@ -1,7 +1,9 @@
 """Tests for the sampled mode of check-live-urls.sh, against a constructed local server."""
 
 import collections
+import functools
 import http.server
+import json
 import os
 import pathlib
 import re
@@ -10,15 +12,18 @@ import subprocess
 import tempfile
 import threading
 import unittest
-from typing import ClassVar, Self
+from collections.abc import Iterator
+from typing import Any, ClassVar, Self, cast
 
 CHECKS = pathlib.Path(__file__).resolve().parent.parent
 SCRIPT = CHECKS / "check-live-urls.sh"
 README = CHECKS.parent / "deploy" / "README.md"
+CADDYFILE = CHECKS.parent / "deploy" / "Caddyfile"
 LISTS = (
     "golden-urls.txt",
     "redirect-urls.txt",
     "golden-media-live.txt",
+    "security-headers.txt",
 )
 
 # The edge's crawl scenario overflows past 40 distinct paths, and the sample keeps a margin under it.
@@ -36,6 +41,20 @@ RENDER_CLASSES = {
 MEDIA_CLASSES = {"media", "external", "legacy upload"}
 FAMILY_PAGES = {"/", "/en/", "/af/"}
 DESTINATION = "/followed-destination/"
+MISSING_PROBE = "/media/live-check-missing.png"
+
+
+def expected_headers(site: str) -> list[tuple[str, str]]:
+    """The (name, value) pairs security-headers.txt holds for one site, in file order."""
+    pairs = []
+    for line in (
+        (CHECKS / "security-headers.txt").read_text(encoding="utf-8").splitlines()
+    ):
+        row_site, header = line.split("\t", 1)
+        if row_site == site:
+            name, value = header.split(": ", 1)
+            pairs.append((name, value))
+    return pairs
 
 
 def clean_env(**extra: str) -> dict[str, str]:
@@ -101,6 +120,9 @@ class SamplePlanTests(unittest.TestCase):
         self.assertLessEqual(RENDER_CLASSES, by_kind["render"])
         self.assertLessEqual(MEDIA_CLASSES, by_kind["media"])
         self.assertEqual(by_kind["family pages"], FAMILY_PAGES)
+        self.assertEqual(
+            [url for kind, _, _, url in entries if kind == "missing"], [MISSING_PROBE]
+        )
 
     def test_every_sampled_url_comes_from_its_list(self) -> None:
         source = {
@@ -185,10 +207,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
     redirects: ClassVar[set[str]] = set()
     requested: ClassVar[list[str]] = []
     page: ClassVar[bytes] = b"<html></html>"
+    site_headers: ClassVar[list[tuple[str, str]]] = []
+
+    def headers_for(self, path: str) -> list[tuple[str, str]]:
+        """The headers this response carries, which a test narrows for one path."""
+        return self.site_headers
 
     def do_GET(self) -> None:
         self.requested.append(self.path)
-        if self.path.startswith("/wp-content/uploads/"):
+        if self.path.split("?", 1)[0] == MISSING_PROBE:
+            self.answer(404, body=b"<html></html>", content_type="text/html")
+        elif self.path.startswith("/wp-content/uploads/"):
             # Caddy's rule drops the query, as here.
             path = self.path.split("?", 1)[0]
             self.answer(301, location="/media/" + path.split("/uploads/", 1)[1])
@@ -203,6 +232,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self, code: int, location: str = "", body: bytes = b"", content_type: str = ""
     ) -> None:
         self.send_response(code)
+        for name, value in self.headers_for(self.path):
+            self.send_header(name, value)
         if location:
             self.send_header("Location", location)
         if content_type:
@@ -225,15 +256,23 @@ def family_page() -> bytes:
 
 
 class MockSite:
-    def __init__(self, page: bytes = Handler.page) -> None:
+    def __init__(
+        self,
+        page: bytes = Handler.page,
+        site: str = "blog",
+        handler: type[Handler] = Handler,
+    ) -> None:
         self.page = page
+        self.headers = expected_headers(site)
+        self.base_handler = handler
 
     def __enter__(self) -> Self:
         redirects = (CHECKS / "redirect-urls.txt").read_text(encoding="utf-8").split()
 
-        class SiteHandler(Handler):
-            pass
-
+        SiteHandler = cast(
+            "type[Handler]", type("SiteHandler", (self.base_handler,), {})
+        )
+        SiteHandler.site_headers = self.headers
         SiteHandler.redirects = set(redirects)
         SiteHandler.requested = []
         SiteHandler.page = self.page
@@ -265,7 +304,7 @@ class SampledRunTests(unittest.TestCase):
         planned = {"/"} | {
             url for kind, _, _, url in entries if kind in ("render", "redirect")
         }
-        with MockSite() as site, MockSite(family_page()) as family:
+        with MockSite() as site, MockSite(family_page(), "family") as family:
             result = run(
                 SCRIPT,
                 site.base,
@@ -314,6 +353,303 @@ class SampledRunTests(unittest.TestCase):
             self.assertEqual(len(found), 1, media)
             tokens.append(found.pop())
         self.assertNotEqual(tokens[0], tokens[1])
+
+
+# The headers a site sets that are not security headers, so the sync case leaves them to their own checks.
+NOT_SECURITY = {"cache-control", "vary", "x-blog-env", "x-blog-release", "x-robots-tag"}
+Header = tuple[str, str | None, bool]
+
+
+@functools.cache
+def caddy_image() -> str:
+    """The image checks/caddy/Dockerfile pins, built once per run."""
+    built = subprocess.run(
+        ["docker", "build", "-q", str(CHECKS / "caddy")],
+        capture_output=True,
+        text=True,
+        timeout=600,
+        check=False,
+    )
+    if built.returncode != 0:
+        raise AssertionError(f"docker build of the Caddy image failed: {built.stderr}")
+    return built.stdout.strip()
+
+
+def adapt(caddyfile: str) -> dict[str, Any]:
+    """Caddy's own JSON for a Caddyfile, adapted offline with the release's maps in place."""
+    with tempfile.TemporaryDirectory() as tmp:
+        (pathlib.Path(tmp) / "Caddyfile").write_text(caddyfile, encoding="utf-8")
+        adapted = subprocess.run(
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--network",
+                "none",
+                "-v",
+                f"{tmp}:/etc/caddy:ro",
+                "-v",
+                f"{CADDYFILE.parent / 'maps'}:/srv/blog/current/maps:ro",
+                caddy_image(),
+                "caddy",
+                "adapt",
+                "--config",
+                "/etc/caddy/Caddyfile",
+                "--adapter",
+                "caddyfile",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+    if adapted.returncode != 0:
+        raise AssertionError(f"caddy adapt failed: {adapted.stderr}")
+    config: dict[str, Any] = json.loads(adapted.stdout)
+    return config
+
+
+# Handlers that never answer a request, so a header after one still reaches every response.
+PASSIVE = {"encode", "headers", "map", "rewrite", "templates", "vars"}
+
+
+def header_ops(
+    routes: list[dict[str, Any]], scoped: bool, top: bool
+) -> Iterator[Header]:
+    """Each (name, value, scoped) a headers handler writes, scoped where any request can miss it."""
+    shadowed = False
+    for route in routes:
+        # A top-level host matcher picks the site rather than narrowing it.
+        keys = {k for m in route.get("match", []) for k in m}
+        narrowed = (
+            scoped
+            or shadowed
+            or "group" in route
+            or bool(keys - {"host"} if top else keys)
+        )
+        answered = False
+        for handler in route.get("handle", []):
+            if handler["handler"] == "subroute":
+                yield from header_ops(
+                    handler.get("routes", []), narrowed or answered, False
+                )
+            elif handler["handler"] == "headers":
+                response = handler.get("response", {})
+                # A deferred write lands only when a handler writes, so an error response misses it.
+                required = (
+                    narrowed
+                    or answered
+                    or "require" in response
+                    or bool(response.get("deferred"))
+                )
+                for op in ("set", "add"):
+                    for name, values in response.get(op, {}).items():
+                        yield name.lower(), ", ".join(values), required
+                for name in [*response.get("delete", []), *response.get("replace", {})]:
+                    yield name.lower(), None, True
+            answered = answered or handler["handler"] not in PASSIVE
+        shadowed = shadowed or answered or bool(route.get("terminal"))
+
+
+def by_site(routes: list[dict[str, Any]]) -> dict[str, list[Header]]:
+    """Each site's header writes, its top-level routes walked in order apart from the other site's."""
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for route in routes:
+        hosts = [h for m in route.get("match", []) for h in m.get("host", [])]
+        grouped.setdefault(
+            "family" if "viljoen.family" in hosts else "blog", []
+        ).append(route)
+    return {site: list(header_ops(rs, False, True)) for site, rs in grouped.items()}
+
+
+def site_headers(caddyfile: str) -> dict[str, list[tuple[str, str]]]:
+    """Per site, the lowercased headers outside NOT_SECURITY it sets on every response, refusing any it narrows."""
+    server = next(iter(adapt(caddyfile)["apps"]["http"]["servers"].values()))
+    sites: dict[str, list[tuple[str, str]]] = {}
+    narrowed = []
+    main = by_site(server.get("routes", []))
+    for site, ops in main.items():
+        sites[site] = [
+            (n, v)
+            for n, v, s in ops
+            if v is not None and not s and n not in NOT_SECURITY
+        ]
+    # A deletion matters only where it removes a header the site sets on every response.
+    for site, ops in main.items():
+        wide = {n for n, _ in sites[site]}
+        narrowed += [
+            f"{site} {n}"
+            for n, v, s in ops
+            if s and n not in NOT_SECURITY and (v is not None or n in wide)
+        ]
+    # An error route repeating a value every response already carries narrows nothing.
+    for site, ops in by_site(server.get("errors", {}).get("routes", [])).items():
+        pairs = sites.get(site, [])
+        narrowed += [
+            f"{site} errors {n}"
+            for n, v, s in ops
+            if n not in NOT_SECURITY
+            and (n, v) not in pairs
+            and (v is not None or n in {m for m, _ in pairs})
+        ]
+    if narrowed:
+        raise AssertionError(
+            f"{', '.join(narrowed)} reach fewer responses than the live check asserts them on"
+        )
+    return sites
+
+
+def without(name: str, target: str) -> type[Handler]:
+    """A handler that leaves one header off the responses to one path, the query ignored."""
+
+    class Omitting(Handler):
+        def headers_for(self, path: str) -> list[tuple[str, str]]:
+            if path.split("?", 1)[0] != target:
+                return self.site_headers
+            return [(n, v) for n, v in self.site_headers if n != name]
+
+    return Omitting
+
+
+class SecurityHeaderTests(unittest.TestCase):
+    def sampled(
+        self, handler: type[Handler] = Handler, family: type[Handler] = Handler
+    ) -> subprocess.CompletedProcess[str]:
+        with (
+            MockSite(handler=handler) as site,
+            MockSite(family_page(), "family", family) as fam,
+        ):
+            return run(
+                SCRIPT, site.base, SAMPLE_CONTRACT="1", SITE_EXTRA_BASE_URL=fam.base
+            )
+
+    def test_a_missing_header_fails_on_every_kind_of_response(self) -> None:
+        entries = plan()
+        first = {kind: url for kind, _, _, url in reversed(entries)}
+        hsts = "Strict-Transport-Security"
+        for what, path in (
+            ("preflight", "/"),
+            ("render", first["render"]),
+            ("redirect", first["redirect"]),
+            ("media", first["media"]),
+            ("missing", MISSING_PROBE),
+        ):
+            with self.subTest(what):
+                result = self.sampled(handler=without(hsts, path))
+                self.assertEqual(result.returncode, 1, result.stdout)
+                self.assertRegex(
+                    result.stdout,
+                    rf"{what} \S*{re.escape(path)}\S* sends {hsts} '<none>'",
+                )
+        csp = "Content-Security-Policy"
+        result = self.sampled(family=without(csp, "/en/"))
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn(f"family /en/ sends {csp} '<none>'", result.stdout)
+
+    def test_headers_are_asserted_on_the_config_the_reload_converges_on(self) -> None:
+        class Reloading(Handler):
+            def headers_for(self, path: str) -> list[tuple[str, str]]:
+                if self.requested.count("/") < 2:
+                    return [("X-Blog-Release", "old")]
+                return [*self.site_headers, ("X-Blog-Release", "new")]
+
+        with MockSite(handler=Reloading) as site:
+            result = run(SCRIPT, site.base, SAMPLE_CONTRACT="1", EXPECT_RELEASE="new")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("rules from release new (after 1s)", result.stdout)
+
+    def test_a_followed_destination_missing_a_header_fails(self) -> None:
+        hsts = "Strict-Transport-Security"
+        with MockSite(handler=without(hsts, DESTINATION)) as site:
+            result = run(SCRIPT, site.base)
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn(f"{DESTINATION} destination sends {hsts} '<none>'", result.stdout)
+
+    def test_a_weakened_value_fails(self) -> None:
+        class Weakened(Handler):
+            def headers_for(self, path: str) -> list[tuple[str, str]]:
+                return [
+                    (n, "max-age=60" if n == "Strict-Transport-Security" else v)
+                    for n, v in self.site_headers
+                ]
+
+        result = self.sampled(handler=Weakened)
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn(
+            "sends Strict-Transport-Security 'max-age=60', expected 'max-age=31536000'",
+            result.stdout,
+        )
+
+    def test_a_compliant_run_names_each_host_unconfirmed_off_the_edge(self) -> None:
+        result = self.sampled()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stdout.count(" UNCONFIRMED, so this run reached"), 2)
+
+    def test_both_edge_headers_read_as_proxied(self) -> None:
+        class Edge(Handler):
+            def version_string(self) -> str:
+                return "cloudflare"
+
+            def headers_for(self, path: str) -> list[tuple[str, str]]:
+                return [*self.site_headers, ("CF-RAY", "0-TEST")]
+
+        result = self.sampled(handler=Edge, family=Edge)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stdout.count(" proxied\n"), 2)
+        self.assertNotIn("UNCONFIRMED", result.stdout)
+
+
+class CaddyfileSyncTests(unittest.TestCase):
+    """Caddy's own parser reads the Caddyfile, so no grammar is re-derived here."""
+
+    def test_expected_values_are_the_caddyfile_values(self) -> None:
+        sites = site_headers(CADDYFILE.read_text(encoding="utf-8"))
+        for site in ("blog", "family"):
+            with self.subTest(site):
+                expected = [(n.lower(), v) for n, v in expected_headers(site)]
+                self.assertEqual(sorted(sites[site]), sorted(expected))
+
+    def test_any_header_outside_the_known_markers_is_read(self) -> None:
+        for directive in (
+            'header X-XSS-Protection "0"',
+            'route {\n\t\theader X-XSS-Protection "0"\n\t}',
+        ):
+            with self.subTest(directive):
+                sites = site_headers(f":8080 {{\n\t{directive}\n}}\n")
+                self.assertEqual(sites["blog"], [("x-xss-protection", "0")])
+
+    def test_a_header_every_response_still_carries_is_read(self) -> None:
+        for directive in (
+            "header X-Frame-Options DENY\n\thandle_errors {\n\t\theader X-Frame-Options DENY\n\t}",
+            "header X-Frame-Options DENY\n\thandle_errors 404 {\n\t\theader X-Frame-Options DENY\n\t}",
+            "route {\n\t\tencode gzip\n\t\theader X-Frame-Options DENY\n\t}",
+            "route {\n\t\trewrite * /x\n\t\theader X-Frame-Options DENY\n\t}",
+            "header X-Frame-Options DENY\n\theader -Server",
+            "header X-Frame-Options DENY\n\thandle_errors {\n\t\theader -Server\n\t}",
+        ):
+            with self.subTest(directive):
+                sites = site_headers(f":8080 {{\n\t{directive}\n}}\n")
+                self.assertEqual(sites["blog"], [("x-frame-options", "DENY")])
+
+    def test_a_security_header_reaching_fewer_responses_is_refused(self) -> None:
+        for directive in (
+            "header @page {\n\t\tX-Frame-Options DENY\n\t}\n\t@page path /x",
+            "header /af/* X-Frame-Options DENY",
+            "handle /x {\n\t\theader X-Frame-Options DENY\n\t}",
+            "header {\n\t\tX-Frame-Options DENY\n\t\tmatch {\n\t\t\tstatus 2xx\n\t\t}\n\t}",
+            "header Referrer-Policy no-referrer\n\theader /assets/* -Referrer-Policy",
+            "header Referrer-Policy no-referrer\n\thandle_errors {\n\t\theader -Referrer-Policy\n\t}",
+            "handle_errors {\n\t\theader X-Frame-Options DENY\n\t}",
+            "handle /x {\n\t\trespond 200\n\t}\n\thandle {\n\t\theader X-Frame-Options DENY\n\t}",
+            "route {\n\t\tredir /y /z 301\n\t\theader X-Frame-Options DENY\n\t}",
+            "header >X-Frame-Options DENY",
+            "header {\n\t\tdefer\n\t\tX-Frame-Options DENY\n\t}",
+        ):
+            with (
+                self.subTest(directive),
+                self.assertRaisesRegex(AssertionError, "fewer responses"),
+            ):
+                site_headers(f":8080 {{\n\t{directive}\n}}\n")
 
 
 if __name__ == "__main__":
