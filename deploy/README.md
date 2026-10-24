@@ -273,10 +273,7 @@ No check reads `X-Robots-Tag`, so a missing value shows only in the served heade
 
 ## Cache lifetimes
 
-Every file the blog serves, and its error page, names its own lifetime. A browser and an edge cache
-then behave the same with or without a caching proxy in front. Without a lifetime a browser guesses
-from `Last-Modified`, and an edge cache applies a default by file extension. Neither guess is
-bounded by anything this repository controls.
+Every file the blog serves, and its error page, names its own lifetime. A browser and an edge cache then behave the same with or without a caching proxy in front. Without a lifetime a browser guesses from `Last-Modified`, and an edge cache applies a default by file extension. Neither guess is bounded by anything this repository controls.
 
 | Class | `Cache-Control` | Why |
 | --- | --- | --- |
@@ -284,28 +281,14 @@ bounded by anything this repository controls.
 | `/assets/`, the fingerprinted stylesheet and script | `public, max-age=31536000, immutable` | The name changes with the content, so a copy is never stale |
 | `/media/` and the root icons | `public, max-age=3600` | An image rarely changes, and an hour bounds how long a replaced one is still served from any copy |
 
-A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would
-otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the
-baseline header runs before them. A map entry a release changes is then followed at the next
-request. The family site keeps its own, shorter list in its block, and its error page answers
-`no-cache` the same way. Its language redirects answer `no-cache` as well, because the `@page`
-matcher reaches them.
+A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the baseline header runs before them. A map entry a release changes is then followed at the next request. The family site keeps its own, shorter list in its block, and its error page answers `no-cache` the same way. Its language redirects answer `no-cache` as well, because the `@page` matcher reaches them.
 
-`no-transform` keeps an edge from rewriting a page. Cloudflare's Email Address Obfuscation is on
-by default on a new zone, and it skips a response carrying the directive. The bundle therefore
-opts out whatever the zone sets. It also stops Cloudflare changing a response's compression, which costs nothing here,
-since Caddy already serves the precompressed siblings.
+`no-transform` keeps an edge from rewriting a page. Cloudflare's Email Address Obfuscation is on by default on a new zone, and it skips a response carrying the directive. The bundle therefore opts out whatever the zone sets. It also stops Cloudflare changing a response's compression, which costs nothing here, since Caddy already serves the precompressed siblings.
 
-**Two zone settings decide whether these lifetimes hold behind Cloudflare.** Both are the host
-side's to set.
+**Two zone settings decide whether these lifetimes hold behind Cloudflare.** Both are the host side's to set.
 
-- **Browser Cache TTL must be "Respect Existing Headers".** A new zone's default is 4 hours.
-  Cloudflare replaces an origin lifetime shorter than that setting with the setting. A browser
-  would then keep a replaced image for 4 hours rather than one.
-- **Caching Level must not be "Ignore Query String".** `check-live-urls.sh` asks for each media
-  file with a query no earlier run sent, so the edge's copy cannot answer for a file a release
-  lost. The default level, Standard, keys the cache on the query string. Ignore Query String
-  would answer from the copy again.
+- **Browser Cache TTL must be "Respect Existing Headers".** A new zone's default is 4 hours. Cloudflare replaces an origin lifetime shorter than that setting with the setting. A browser would then keep a replaced image for 4 hours rather than one.
+- **Caching Level must not be "Ignore Query String".** `check-live-urls.sh` asks for each media file with a query no earlier run sent, so the edge's copy cannot answer for a file a release lost. The default level, Standard, keys the cache on the query string. Ignore Query String would answer from the copy again.
 
 ## Trusting the proxy
 
