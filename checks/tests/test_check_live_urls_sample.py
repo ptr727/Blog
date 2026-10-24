@@ -404,26 +404,51 @@ def adapt(caddyfile: str) -> dict[str, Any]:
     return config
 
 
+# Handlers that never answer a request, so a header after one still reaches every response.
+PASSIVE = {"headers", "map", "vars"}
+
+
 def header_ops(
     routes: list[dict[str, Any]], scoped: bool, top: bool
 ) -> Iterator[Header]:
-    """Each (name, value, scoped) a headers handler writes, scoped where a matcher or a status requirement narrows it."""
+    """Each (name, value, scoped) a headers handler writes, scoped where any request can miss it."""
+    shadowed = False
     for route in routes:
         # A top-level host matcher picks the site rather than narrowing it.
         keys = {k for m in route.get("match", []) for k in m}
-        narrowed = scoped or bool(keys - {"host"} if top else keys)
+        narrowed = (
+            scoped
+            or shadowed
+            or "group" in route
+            or bool(keys - {"host"} if top else keys)
+        )
+        answered = False
         for handler in route.get("handle", []):
             if handler["handler"] == "subroute":
-                yield from header_ops(handler.get("routes", []), narrowed, False)
-            if handler["handler"] != "headers":
-                continue
-            response = handler.get("response", {})
-            required = narrowed or "require" in response
-            for op in ("set", "add"):
-                for name, values in response.get(op, {}).items():
-                    yield name.lower(), ", ".join(values), required
-            for name in [*response.get("delete", []), *response.get("replace", {})]:
-                yield name.lower(), "", True
+                yield from header_ops(
+                    handler.get("routes", []), narrowed or answered, False
+                )
+            elif handler["handler"] == "headers":
+                response = handler.get("response", {})
+                required = narrowed or answered or "require" in response
+                for op in ("set", "add"):
+                    for name, values in response.get(op, {}).items():
+                        yield name.lower(), ", ".join(values), required
+                for name in [*response.get("delete", []), *response.get("replace", {})]:
+                    yield name.lower(), "", True
+            answered = answered or handler["handler"] not in PASSIVE
+        shadowed = shadowed or answered or bool(route.get("terminal"))
+
+
+def by_site(routes: list[dict[str, Any]]) -> dict[str, list[Header]]:
+    """Each site's header writes, its top-level routes walked in order apart from the other site's."""
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for route in routes:
+        hosts = [h for m in route.get("match", []) for h in m.get("host", [])]
+        grouped.setdefault(
+            "family" if "viljoen.family" in hosts else "blog", []
+        ).append(route)
+    return {site: list(header_ops(rs, False, True)) for site, rs in grouped.items()}
 
 
 def site_headers(caddyfile: str) -> dict[str, list[tuple[str, str]]]:
@@ -431,21 +456,17 @@ def site_headers(caddyfile: str) -> dict[str, list[tuple[str, str]]]:
     server = next(iter(adapt(caddyfile)["apps"]["http"]["servers"].values()))
     sites: dict[str, list[tuple[str, str]]] = {}
     narrowed = []
-    for route in server.get("routes", []):
-        hosts = [h for m in route.get("match", []) for h in m.get("host", [])]
-        site = "family" if "viljoen.family" in hosts else "blog"
-        for name, value, scoped in header_ops([route], False, True):
-            if name in NOT_SECURITY:
-                continue
-            if scoped:
-                narrowed.append(f"{site} {name}")
-            else:
-                sites.setdefault(site, []).append((name, value))
-    for name, _, _ in header_ops(
-        server.get("errors", {}).get("routes", []), True, True
-    ):
-        if name not in NOT_SECURITY:
-            narrowed.append(f"errors {name}")
+    for site, ops in by_site(server.get("routes", [])).items():
+        sites[site] = [(n, v) for n, v, s in ops if not s and n not in NOT_SECURITY]
+        narrowed += [f"{site} {n}" for n, _, s in ops if s and n not in NOT_SECURITY]
+    # An error route repeating a value every response already carries narrows nothing.
+    for site, ops in by_site(server.get("errors", {}).get("routes", [])).items():
+        wide = sites.get(site, [])
+        narrowed += [
+            f"{site} errors {n}"
+            for n, v, s in ops
+            if n not in NOT_SECURITY and (s or (n, v) not in wide)
+        ]
     if narrowed:
         raise AssertionError(
             f"{', '.join(narrowed)} reach fewer responses than the live check asserts them on"
@@ -572,6 +593,11 @@ class CaddyfileSyncTests(unittest.TestCase):
                 sites = site_headers(f":8080 {{\n\t{directive}\n}}\n")
                 self.assertEqual(sites["blog"], [("x-xss-protection", "0")])
 
+    def test_an_error_route_repeating_a_site_wide_value_is_read(self) -> None:
+        directive = "header X-Frame-Options DENY\n\thandle_errors {\n\t\theader X-Frame-Options DENY\n\t}"
+        sites = site_headers(f":8080 {{\n\t{directive}\n}}\n")
+        self.assertEqual(sites["blog"], [("x-frame-options", "DENY")])
+
     def test_a_security_header_reaching_fewer_responses_is_refused(self) -> None:
         for directive in (
             "header @page {\n\t\tX-Frame-Options DENY\n\t}\n\t@page path /x",
@@ -580,6 +606,8 @@ class CaddyfileSyncTests(unittest.TestCase):
             "header {\n\t\tX-Frame-Options DENY\n\t\tmatch {\n\t\t\tstatus 2xx\n\t\t}\n\t}",
             "header /assets/* -Referrer-Policy",
             "handle_errors {\n\t\theader X-Frame-Options DENY\n\t}",
+            "handle /x {\n\t\trespond 200\n\t}\n\thandle {\n\t\theader X-Frame-Options DENY\n\t}",
+            "route {\n\t\tredir /y /z 301\n\t\theader X-Frame-Options DENY\n\t}",
         ):
             with (
                 self.subTest(directive),
