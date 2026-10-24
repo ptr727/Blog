@@ -298,7 +298,7 @@ The sites send the same security headers on every response, redirects and the `4
 | `X-Content-Type-Options` | `nosniff` | A browser trusts the served `Content-Type` rather than guessing one from the body |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` | Another site learns only the origin a reader came from, never the path |
 
-The HSTS value carries neither `includeSubDomains` nor `preload`. `includeSubDomains` would bind every hostname under the site's own, which this bundle does not serve. `preload` asks for the whole domain to be built into browsers, where a removal takes months to reach readers. HSTS at the edge stays off too, because Cloudflare applies it to every name in the zone.
+The HSTS value carries neither `includeSubDomains` nor `preload`. `includeSubDomains` would bind every hostname under the site's own, which this bundle does not serve. `preload` asks for the whole domain to be built into browsers, where a removal takes months to reach readers. HSTS at the edge is the host side's setting, and it stays off because Cloudflare applies it to every name in the zone.
 
 **Only the family site sends a `Content-Security-Policy`.** Its page loads few resources, so its policy names each kind: its own files, Google Fonts, inline styles, and `data:` images. Blog posts embed third-party content, so a blog policy waits on a survey of what the posts load.
 
