@@ -307,8 +307,9 @@ class SampledRunTests(unittest.TestCase):
                 requested = list(site.requested)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             media = [p for p in requested if p not in non_static(requested)]
-            hops = [p for p in media if p.startswith("/media/")]
-            self.assertTrue(hops)
+            self.assertTrue(any(p.startswith("/wp-content/") for p in media))
+            for p in media:
+                self.assertRegex(p, r"live-check=", p)
             found = {re.findall(r"live-check=([^&]+)", p)[-1] for p in media}
             self.assertEqual(len(found), 1, media)
             tokens.append(found.pop())

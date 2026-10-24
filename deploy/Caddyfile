@@ -152,7 +152,9 @@
 		# A missing file in a cached class would otherwise keep that class's lifetime.
 		header Cache-Control "no-cache, no-transform"
 		rewrite * /404.html
-		file_server
+		file_server {
+			precompressed br gzip
+		}
 	}
 
 	log {
