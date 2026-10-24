@@ -296,6 +296,8 @@ A proxy fronts Caddy in every environment, so the peer address is always the pro
 client arrives in `X-Forwarded-For`. `trusted_proxies` is what makes Caddy believe it. Without it,
 `client_ip` and `remote_ip` are both the proxy and the forwarded header has no effect at all.
 
+Behind Cloudflare the forwarded chain can start with an address the client wrote. Caddy reads the chain from the left, so `client_ip` is then whatever the client chose. Nothing in the Caddyfile matches on it, and [`OPERATIONS.md`](../OPERATIONS.md#the-log-is-three-tiers-and-each-is-blind-to-something) names the field to read instead.
+
 **The CIDRs come from the container, not the bundle.** The same artifact runs on hosts whose docker
 subnets differ, so any literal in the bundle is wrong on one of them.
 

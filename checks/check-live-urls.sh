@@ -451,10 +451,7 @@ check_media() {
 		fi
 		what="media $url -> $target"
 		# The rule drops the query, so the hop needs its own.
-		case "$target" in
-		*\?*) target="$target&$CACHE_BUST" ;;
-		*) target="$target?$CACHE_BUST" ;;
-		esac
+		target="$target?$CACHE_BUST"
 		rc=0
 		out=$(curl_retry -q -s -o /dev/null -w "$format" --max-time 30 "${target_auth[@]}" "$target") || rc=$?
 		{
