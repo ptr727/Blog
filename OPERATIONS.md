@@ -136,7 +136,7 @@ The deploy root and the base URL are the only host-specific values. A local run 
 ```sh
 for host in <blog-host> <family-host>; do
   h=$(curl -q -sSI "https://$host/")
-  if grep -qi '^server: cloudflare' <<<"$h" && grep -qi '^cf-ray:' <<<"$h"; then echo "$host proxied"; else echo "$host UNCONFIRMED"; fi
+  if printf '%s\n' "$h" | grep -qi '^server: cloudflare' && printf '%s\n' "$h" | grep -qi '^cf-ray:'; then echo "$host proxied"; else echo "$host UNCONFIRMED"; fi
 done
 ```
 
