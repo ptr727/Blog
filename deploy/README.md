@@ -277,13 +277,11 @@ Every file the blog serves, and its error page, names its own lifetime. A browse
 
 | Class | `Cache-Control` | Why |
 | --- | --- | --- |
-| Pages, feeds, the sitemap, `index.json`, `robots.txt`, and every other path | `no-cache, no-transform` | A copy may be kept but is revalidated on every use, so a deploy shows at once |
+| Pages, feeds, the sitemap, `index.json`, `robots.txt`, and every other path | `no-cache` | A copy may be kept but is revalidated on every use, so a deploy shows at once |
 | `/assets/`, the fingerprinted stylesheet and script | `public, max-age=31536000, immutable` | The name changes with the content, so a copy is never stale |
 | `/media/` and the root icons | `public, max-age=3600` | An image rarely changes, and an hour bounds how long a replaced one is still served from any copy |
 
-A `404` answers with the page value, `no-cache, no-transform`, whatever its path, since a missing file in a cached class would otherwise keep that class's lifetime. The blog's redirects answer with it too, since the baseline header runs before them. A map entry a release changes is then followed at the next request. The family site keeps its own, shorter list in its block, and its error page answers the same way. Its language redirects carry it as well, because the `@page` matcher reaches them.
-
-`no-transform` keeps an edge from rewriting a page. Cloudflare's Email Address Obfuscation is on by default on a new zone, and it skips a response carrying the directive. The bundle therefore opts out whatever the zone sets. It also stops Cloudflare changing a response's compression, which costs nothing here, since Caddy serves the precompressed siblings of every page, the error page included.
+A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the baseline header runs before them. A map entry a release changes is then followed at the next request. The family site keeps its own, shorter list in its block, and its error page answers `no-cache` the same way. Its language redirects answer `no-cache` as well, because the `@page` matcher reaches them.
 
 **Two zone settings decide whether these lifetimes hold behind Cloudflare.** Both are the host side's to set.
 

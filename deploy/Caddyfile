@@ -75,8 +75,7 @@
 	route {
 		# Explicit lifetimes replace whatever heuristic a browser or an edge cache would apply, so a deploy shows at once.
 		# The baseline runs first so a redirect carries it too, and the file classes below override it.
-		# The no-transform directive opts every page out of an edge's content rewrites, whatever the zone enables.
-		header Cache-Control "no-cache, no-transform"
+		header Cache-Control "no-cache"
 
 		redir @post_id {by_id} 301
 
@@ -150,7 +149,7 @@
 
 	handle_errors {
 		# A missing file in a cached class would otherwise keep that class's lifetime.
-		header Cache-Control "no-cache, no-transform"
+		header Cache-Control "no-cache"
 		rewrite * /404.html
 		file_server {
 			precompressed br gzip
@@ -184,7 +183,7 @@ http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {$FAMILY_SI
 	@code path *.css *.js
 	header @code Cache-Control "no-cache"
 	@page not path *.svg *.css *.js
-	header @page Cache-Control "no-cache, no-transform"
+	header @page Cache-Control "no-cache"
 
 	# The root follows the browser's first language, and /en/ and /af/ never redirect, so the language switch always holds.
 	@af_first {
@@ -203,7 +202,7 @@ http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {$FAMILY_SI
 
 	# A single-page site has nowhere better to send a stray path than the page itself.
 	handle_errors {
-		header Cache-Control "no-cache, no-transform"
+		header Cache-Control "no-cache"
 		@af_page path /af/*
 		handle @af_page {
 			rewrite * /af/index.html
