@@ -646,11 +646,12 @@ if [ -n "${EXPECT_RELEASE:-}" ]; then
 		sleep 1
 		waited=$((waited + 1))
 		# The whole dump is refreshed, since the security headers asserted below come from the converged config too.
-		if ! preflight_headers=$(curl -q -sS -o /dev/null -D- --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR"); then
+		if ! preflight_headers=$(curl -q -sS -o /dev/null -D- -w '%{http_code}' --max-time 30 "${AUTH[@]}" "$BASE/" 2>"$CURLERR"); then
 			echo "FAIL: $BASE/ became unreachable after ${waited}s of waiting for the reload" >&2
 			sed 's/^/     /' "$CURLERR" >&2
 			exit 1
 		fi
+		preflight="${preflight_headers##*$'\n'}"
 		got_release=$(header_of x-blog-release)
 	done
 	if [ "$got_release" != "$EXPECT_RELEASE" ]; then
@@ -668,6 +669,10 @@ if [ -n "${EXPECT_RELEASE:-}" ]; then
 		echo "     release after its run rather than a commit, so pass the id the Deploy site" >&2
 		echo "     job logged, which ends in the run id and attempt. The Validate sources job" >&2
 		echo "     logs a bare timestamp first, and that id never matches." >&2
+		exit 1
+	fi
+	if [ "$preflight" != "200" ]; then
+		echo "FAIL preflight: after ${waited}s the reloaded rules answer $BASE/ with $preflight, expected 200" >&2
 		exit 1
 	fi
 	echo "==> rules from release $got_release${waited:+ (after ${waited}s)}"
