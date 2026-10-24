@@ -302,6 +302,8 @@ The HSTS value carries neither `includeSubDomains` nor `preload`. `includeSubDom
 
 **Only the family site sends a `Content-Security-Policy`.** Its page loads few resources, so its policy names each kind: its own files, Google Fonts, inline styles, and `data:` images. Blog posts embed third-party content, so a blog policy waits on a survey of what the posts load.
 
+**A change to any of these values changes [`checks/security-headers.txt`][checks-security-headers] with it.** The live check asserts each value exactly, and a unit case fails while the two differ.
+
 ## Trusting the proxy
 
 A proxy fronts Caddy in every environment, so the peer address is always the proxy and the real
@@ -442,6 +444,7 @@ Each of these fails silently when it fails, which is why it is checked rather th
 [capture-build-redirects]: ../capture/build-redirects.py
 [capture-readme]: ../capture/README.md
 [checks-redirect-urls]: ../checks/redirect-urls.txt
+[checks-security-headers]: ../checks/security-headers.txt
 [example-env]: ../.secrets/example.env
 [how-the-redirects-are-expressed]: #how-the-redirects-are-expressed
 [identifying-the-environment]: #identifying-the-environment

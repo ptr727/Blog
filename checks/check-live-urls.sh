@@ -62,6 +62,22 @@ SAMPLE_MAX_PATHS=30
 SAMPLE_MAX_STATICS=8
 # Pages only a redirect reaches, so no list names them and a sampled redirect never requests them.
 SAMPLE_DESTINATIONS=(/all/ /feed.xml /sitemap.xml)
+# The 404 answers from handle_errors rather than the route every other request takes.
+# A missing file of a static type keeps the probe out of the page budget.
+MISSING_PROBE=/media/live-check-missing.png
+
+# A unit case holds these equal to deploy/Caddyfile, so a weakened value fails as well as a missing one.
+SECURITY_HEADERS=$(awk -F'\t' '$1 == "blog" { print $2 }' "$CHECKS/security-headers.txt")
+FAMILY_SECURITY_HEADERS=$(awk -F'\t' '$1 == "family" { print $2 }' "$CHECKS/security-headers.txt")
+if [ -z "$SECURITY_HEADERS" ] || [ -z "$FAMILY_SECURITY_HEADERS" ]; then
+	echo "FAIL security-headers.txt: no headers for one site at $CHECKS/security-headers.txt" >&2
+	exit 1
+fi
+# One curl -w line per header, in the list's order, so a compliant response reads back as the list itself.
+HEADER_FORMAT=''
+while IFS= read -r line; do
+	HEADER_FORMAT+="${line%%: *}: %header{${line%%: *}}\n"
+done <<<"$SECURITY_HEADERS"
 
 # Each classifier sets CLASS rather than printing it, since a subshell per URL costs seconds across the redirect list.
 # The redirect classes are the rows of deploy/README.md's table, with the map shapes last, since a bare .html test would claim two Blogger rows.
@@ -178,9 +194,10 @@ if [ -n "$SAMPLE" ]; then
 	done
 
 	# The budget counts distinct non-static paths per host, which is never less than the edge counts, with the preflight's / among them.
+	# The 404 probe is the first static request.
 	# A sampled redirect is not followed, so each costs one path, and a legacy media URL costs two requests, since it takes a hop.
 	declare -A sample_paths=(["blog /"]=1)
-	sample_statics=0
+	sample_statics=1
 	for entry in "${SAMPLE_PLAN[@]}"; do
 		IFS=$'\t' read -r kind class _ url <<<"$entry"
 		case "$kind" in
@@ -382,6 +399,20 @@ curl_retry() {
 
 # Invoked indirectly, the same way as curl_retry above.
 # shellcheck disable=SC2329
+# Reads a response's "Name: value" lines, either a header dump or HEADER_FORMAT's output, which matches the list outright when nothing is wrong.
+check_headers() {
+	local what="$1" response="$2" expected="$3" line name want got
+	[ "$response" = "$expected" ] && return
+	while IFS= read -r line; do
+		name="${line%%: *}"
+		want="${line#*: }"
+		got=$(printf '%s\n' "$response" | grep -i "^$name:" | tr -d '\r' | sed 's/^[^:]*: *//' | paste -sd ',' -)
+		[ "$got" = "$want" ] || echo "$what sends $name '${got:-<none>}', expected '$want'" >>"$FAILED"
+	done <<<"$expected"
+}
+
+# Invoked indirectly, the same way as curl_retry above.
+# shellcheck disable=SC2329
 transfer_failure() {
 	local code="$1" rc="$2"
 	if [ "${code:-000}" = "000" ]; then
@@ -394,15 +425,20 @@ transfer_failure() {
 # Invoked indirectly, the same way as curl_retry above.
 # shellcheck disable=SC2329
 check_render() {
-	local url="$1" code why rc=0 auth=(-K "$CHECKRC")
+	local url="$1" out code why rc=0 auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
-	code=$(curl_retry -q -s -o /dev/null -w '%{http_code}' --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
+	out=$(curl_retry -q -s -o /dev/null -w "%{http_code}\n$HEADER_FORMAT" --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
+	code="${out%%$'\n'*}"
 	why=$(transfer_failure "$code" "$rc")
 	if [ -n "$why" ]; then
 		echo "render $url $why" >>"$FAILED"
 		return
 	fi
-	[ "$code" = "200" ] || echo "render $url expected 200, got $code" >>"$FAILED"
+	if [ "$code" != "200" ]; then
+		echo "render $url expected 200, got $code" >>"$FAILED"
+		return
+	fi
+	check_headers "render $url" "${out#*$'\n'}" "$SECURITY_HEADERS"
 }
 
 # A caching proxy may answer a media URL from its copy for the file's lifetime, so a file a release lost would still pass.
@@ -421,7 +457,7 @@ check_media() {
 	local url="$1" what="media $1" out code len target type why rc=0 auth=(-K "$CHECKRC") target_auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
 	# The redirect URL gets a line of its own, because an empty one would let read shift the type into its place.
-	local format='%{http_code} %{size_download}\n%{redirect_url}\n%{content_type}\n'
+	local format="%{http_code} %{size_download}\n%{redirect_url}\n%{content_type}\n$HEADER_FORMAT"
 	# Command substitution rather than `read < <(...)`, because process substitution discards curl's exit status.
 	out=$(curl_retry -q -s -o /dev/null -w "$format" --max-time 30 "${auth[@]}" "$BASE$url?$CACHE_BUST") || rc=$?
 	{
@@ -442,6 +478,7 @@ check_media() {
 			echo "$what answered $code with no usable Location" >>"$FAILED"
 			return
 		fi
+		check_headers "$what" "${out#*$'\n'*$'\n'*$'\n'}" "$SECURITY_HEADERS"
 		# Same origin boundary as check_redirect, and for the same reason: a rule that one day points off-site must not mail the token there.
 		# A bare prefix would also accept a lookalike host registered as an attacker's subdomain.
 		if [ -n "$CURLRC" ]; then
@@ -478,6 +515,7 @@ check_media() {
 	image/*) ;;
 	*) echo "$what answered 200 as $type, expected an image" >>"$FAILED" ;;
 	esac
+	check_headers "$what" "${out#*$'\n'*$'\n'*$'\n'}" "$SECURITY_HEADERS"
 }
 
 # Invoked indirectly, the same way as check_render above.
@@ -486,7 +524,7 @@ check_redirect() {
 	local url="$1" out code dest dcode why rc=0 auth=(-K "$CHECKRC") dest_auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
 	# One request reads both fields, so a second fetch failing in transit cannot pass an empty destination on as a broken target.
-	out=$(curl_retry -q -s -o /dev/null -w '%{http_code} %{redirect_url}\n' --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
+	out=$(curl_retry -q -s -o /dev/null -w "%{http_code} %{redirect_url}\n$HEADER_FORMAT" --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
 	read -r code dest <<<"$out"
 	why=$(transfer_failure "$code" "$rc")
 	if [ -n "$why" ]; then
@@ -504,6 +542,7 @@ check_redirect() {
 		echo "redirect $url answered $code with no usable Location" >>"$FAILED"
 		return
 	fi
+	check_headers "redirect $url" "${out#*$'\n'}" "$SECURITY_HEADERS"
 	# A sampled run proves the rule fired and leaves the destination to the full contract, since following would take it past its budget.
 	[ -n "$SAMPLE" ] && return
 	# A redirect to a 404 is a broken redirect, so the destination is followed rather than trusted.
@@ -529,8 +568,8 @@ check_redirect() {
 	esac
 }
 
-export -f curl_retry transfer_failure check_render check_redirect check_media
-export BASE FAILED CURLRC CHECKRC SAMPLE CACHE_BUST
+export -f curl_retry transfer_failure check_headers check_render check_redirect check_media
+export BASE FAILED CURLRC CHECKRC SAMPLE CACHE_BUST HEADER_FORMAT SECURITY_HEADERS
 
 echo "==> $BASE"
 
@@ -626,6 +665,19 @@ elif [ -n "$got_release" ]; then
 	echo "==> rules from release $got_release"
 fi
 
+# A resolver can keep answering with the origin for minutes after a name flips, and only the edge sends both headers.
+# Pattern matching rather than grep -q, which can stop reading before printf finishes and fail the pipeline.
+proxy_verdict() {
+	local h="${2,,}"
+	if [[ $h == *$'\n'"server: cloudflare"* && $h == *$'\n'"cf-ray:"* ]]; then
+		echo "==> $1 proxied"
+	else
+		echo "==> $1 UNCONFIRMED, so this run reached the origin rather than the edge"
+	fi
+}
+proxy_verdict "${BASE#*://}" "$preflight_headers"
+check_headers "preflight $BASE/" "$preflight_headers" "$SECURITY_HEADERS"
+
 n_render=$(grep -c . "$RENDER_SRC")
 echo "==> checking $n_render URLs that must render"
 grep . "$RENDER_SRC" | xargs -P "$PARALLEL" -I{} bash -c 'check_render "$@"' _ {}
@@ -637,6 +689,20 @@ grep . "$REDIRECT_SRC" | xargs -P "$PARALLEL" -I{} bash -c 'check_redirect "$@"'
 n_media=$(grep -c . "$MEDIA_SRC")
 echo "==> checking $n_media media URLs that must be served as images"
 grep . "$MEDIA_SRC" | xargs -P "$PARALLEL" -I{} bash -c 'check_media "$@"' _ {}
+
+n_missing=1
+echo "==> checking that a missing file answers 404 with the security headers"
+rc=0
+out=$(curl_retry -q -s -o /dev/null -w "%{http_code}\n$HEADER_FORMAT" --max-time 30 "${AUTH[@]}" "$BASE$MISSING_PROBE?$CACHE_BUST") || rc=$?
+code="${out%%$'\n'*}"
+why=$(transfer_failure "$code" "$rc")
+if [ -n "$why" ]; then
+	echo "missing $MISSING_PROBE $why" >>"$FAILED"
+elif [ "$code" != "404" ]; then
+	echo "missing $MISSING_PROBE expected 404, got $code" >>"$FAILED"
+else
+	check_headers "missing $MISSING_PROBE" "${out#*$'\n'}" "$SECURITY_HEADERS"
+fi
 
 # The title tells the family page from the blog, since one container answers both and an unknown host falls through to the blog with a 200.
 # X-Blog-Env still tells one environment from another, and the family host is a proxy rule of its own that can aim at the wrong container.
@@ -673,8 +739,10 @@ if [ -n "$FAMILY_BASE" ]; then
 			if [ -n "${EXPECT_RELEASE:-}" ] && [ "$family_release" != "$EXPECT_RELEASE" ]; then
 				echo "family $page_path is from release '${family_release:-<no X-Blog-Release header>}', expected '$EXPECT_RELEASE'" >>"$FAILED"
 			fi
+			check_headers "family $page_path" "$(<"$FAMILY_HEAD")" "$FAMILY_SECURITY_HEADERS"
 		fi
 	done
+	[ -s "$FAMILY_HEAD" ] && proxy_verdict "${FAMILY_BASE#*://}" "$(<"$FAMILY_HEAD")"
 else
 	echo "==> SITE_EXTRA_BASE_URL is unset, so the family site is not checked"
 fi
@@ -683,12 +751,12 @@ fi
 # Swallowing only the exit status keeps the printed count usable.
 failures=$(grep -c . "$FAILED" 2>/dev/null || true)
 if [ "$failures" -eq 0 ]; then
-	echo "PASS - $((n_render + n_redirect + n_media + n_family)) ${SAMPLE:+sampled }URLs honored"
+	echo "PASS - $((n_render + n_redirect + n_media + n_family + n_missing)) ${SAMPLE:+sampled }URLs honored"
 	exit 0
 fi
 
 echo
-echo "FAIL - $failures of $((n_render + n_redirect + n_media + n_family)) ${SAMPLE:+sampled }URLs"
+echo "FAIL - $failures findings across $((n_render + n_redirect + n_media + n_family + n_missing)) ${SAMPLE:+sampled }URLs"
 sort "$FAILED" | head -40
 [ "$failures" -gt 40 ] && echo "... and $((failures - 40)) more"
 exit 1
