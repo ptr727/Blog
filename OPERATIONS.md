@@ -131,10 +131,13 @@ The deploy root and the base URL are the only host-specific values. A local run 
 
 **Production's deploy checks a sample of the contract, and every other run checks all of it.** The production edge bans a client that requests more than 40 distinct pages in a burst. It also bans one when more than 10 distinct pages answer `404`, `403` or `400`. A full run from the GitHub runner therefore gets it banned. The deploy hook sets `SAMPLE_CONTRACT=1` for `production` alone, and the check then requests one URL from each class. That covers each redirect class, each shape of page that must render, each media tree, and the family pages. It also covers `/all/`, `/feed.xml`, and `/sitemap.xml`, the fixed redirect destinations no list names. The script holds that to 30 distinct pages at most, and none is expected to answer an error. Staging and the local mirrors keep the whole contract, which is where it is proven. **A hand run against the VPS production site sets `SAMPLE_CONTRACT=1` too**, for the same reason the hook does. The local production mirror sits behind no such edge and keeps the whole contract. `checks/check-live-urls.sh --print-sample` lists what a sampled run requests without requesting anything. [`deploy/README.md`](./deploy/README.md#environment-variables) carries the budget.
 
-**A hand run counts as measured through Cloudflare only once the target answers `server: cloudflare` with a `cf-ray` header.** Right after a hostname flips to proxied, the resolver on the machine running the check can keep answering with the origin for minutes. Another resolver can already answer with Cloudflare by then. A run in that window measures the origin directly, so read those headers from the same machine before the run:
+**A hand run counts as measured through Cloudflare only once the target answers `server: cloudflare` with a `cf-ray` header.** Right after a hostname flips to proxied, the resolver on the machine running the check can keep answering with the origin for minutes. Another resolver can already answer with Cloudflare by then. A run in that window measures the origin directly. Before the run, check every host it reaches from the same machine, the family host included, and go ahead only when each prints `proxied`:
 
 ```sh
-curl -q -sSI https://<host>/ | grep -iE '^(server|cf-ray):'
+for host in <blog-host> <family-host>; do
+  h=$(curl -q -sSI "https://$host/")
+  if grep -qi '^server: cloudflare' <<<"$h" && grep -qi '^cf-ray:' <<<"$h"; then echo "$host proxied"; else echo "$host NOT proxied"; fi
+done
 ```
 
 **Always set `SITE_BASE_URL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` internally, and the effective value is printed on every build for that reason.
