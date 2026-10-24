@@ -1,6 +1,6 @@
 # https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 #
-# Workflow actions and the Python tooling in scripts/requirements.txt are the ecosystems tracked here.
+# Workflow actions, the Python tooling in scripts/requirements.txt, and the Caddy image the unit suite adapts the Caddyfile with are the ecosystems tracked here.
 # The theme is vendored rather than pulled by a manager.
 # Both branches are targeted so each stays current independently of the release cadence.
 version: 2
@@ -43,5 +43,25 @@ updates:
       interval: "daily"
     groups:
       pip-deps:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    target-branch: "main"
+    directory: "/checks/caddy"
+    schedule:
+      interval: "daily"
+    groups:
+      docker-deps:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker"
+    target-branch: "develop"
+    directory: "/checks/caddy"
+    schedule:
+      interval: "daily"
+    groups:
+      docker-deps:
         patterns:
           - "*"

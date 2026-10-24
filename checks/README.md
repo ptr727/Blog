@@ -113,7 +113,9 @@ wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy
 
 **One request is added, a missing `.png` under `/media/`.** The `404` answers from the Caddyfile's `handle_errors` block rather than from the route every other request takes, so it is checked on its own. Being a static file, it stays out of the sampled run's page budget.
 
-**The values live once here, and a unit case holds them to the Caddyfile.** `checks/tests/test_check_live_urls_sample.py` reads every header a site block sets on all its responses, apart from its cache headers and the site's own markers. It fails when those differ from this file in either direction, and when a security header is scoped to fewer responses. See [`deploy/README.md`][deploy-readme-security-headers] for why each value is what it is.
+**The values live once here, and a unit case holds them to the Caddyfile.** `checks/tests/test_check_live_urls_sample.py` reads the Caddyfile through `caddy adapt`, so Caddy's own parser decides what each directive covers. It compares every header a site sets on all its responses with this file, in both directions. The cache headers and the site's own markers are left out. It also fails on a security header that a matcher, a status requirement, an error route, or a deletion narrows to fewer responses.
+
+**That case needs Docker.** It builds the image [`caddy/Dockerfile`][caddy-dockerfile] pins and runs it with networking off. That works the same on a GitHub runner and on a workstation with no Caddy installed. Dependabot moves the pin. See [`deploy/README.md`][deploy-readme-security-headers] for why each value is what it is.
 
 ## Directionality
 
@@ -183,6 +185,7 @@ Three traps in that adjudication, each of which produced a wrong answer first an
 <!-- Repo -->
 
 [capture-build-redirects]: ../capture/build-redirects.py
+[caddy-dockerfile]: ./caddy/Dockerfile
 [capture-readme]: ../capture/README.md
 [check-env-docs]: ./check-env-docs.py
 [check-github-env]: ./check-github-env.py

@@ -1,17 +1,19 @@
 """Tests for the sampled mode of check-live-urls.sh, against a constructed local server."""
 
 import collections
+import functools
 import http.server
+import json
 import os
 import pathlib
 import re
-import shlex
 import shutil
 import subprocess
 import tempfile
 import threading
 import unittest
-from typing import ClassVar, Self, cast
+from collections.abc import Iterator
+from typing import Any, ClassVar, Self, cast
 
 CHECKS = pathlib.Path(__file__).resolve().parent.parent
 SCRIPT = CHECKS / "check-live-urls.sh"
@@ -350,46 +352,105 @@ class SampledRunTests(unittest.TestCase):
         self.assertNotEqual(tokens[0], tokens[1])
 
 
-# The headers a site block sets that are not security headers, so the sync case leaves them to their own checks.
+# The headers a site sets that are not security headers, so the sync case leaves them to their own checks.
 NOT_SECURITY = {"cache-control", "vary", "x-blog-env", "x-blog-release", "x-robots-tag"}
+Header = tuple[str, str, bool]
 
 
-def caddyfile_headers(block: str) -> list[tuple[str, str]]:
-    """Every other header a Caddyfile site block sets on all its responses, refusing one scoped to fewer."""
-    pairs = []
-    depth = 0
-    header_block: tuple[int, bool] | None = None
-    for line in block.splitlines():
-        words = shlex.split(line, comments=True)
-        if not words:
-            continue
-        if words == ["}"]:
-            depth -= 1
-            if header_block and depth < header_block[0]:
-                header_block = None
-            continue
-        if words[-1] == "{":
-            depth += 1
-            if words[0] == "header":
-                header_block = (depth, len(words) > 2 or depth > 2)
-            continue
-        if words[0] == "header":
-            rest, scoped = words[1:], depth > 1
-            if rest[0][0] in "@/*":
-                rest, scoped = rest[1:], True
-        elif header_block and depth == header_block[0]:
-            rest, scoped = words, header_block[1]
-        else:
-            continue
-        name = rest[0].lstrip("+?>")
-        if rest[0].startswith("-") or name.lower() in NOT_SECURITY:
-            continue
-        if scoped:
-            raise AssertionError(
-                f"{name} is scoped to fewer responses than the live check asserts it on"
-            )
-        pairs.append((name, rest[1] if len(rest) > 1 else ""))
-    return pairs
+@functools.cache
+def caddy_image() -> str:
+    """The image checks/caddy/Dockerfile pins, built once per run."""
+    built = subprocess.run(
+        ["docker", "build", "-q", str(CHECKS / "caddy")],
+        capture_output=True,
+        text=True,
+        timeout=600,
+        check=True,
+    )
+    return built.stdout.strip()
+
+
+def adapt(caddyfile: str) -> dict[str, Any]:
+    """Caddy's own JSON for a Caddyfile, adapted offline with the release's maps in place."""
+    with tempfile.TemporaryDirectory() as tmp:
+        (pathlib.Path(tmp) / "Caddyfile").write_text(caddyfile, encoding="utf-8")
+        adapted = subprocess.run(
+            [
+                "docker",
+                "run",
+                "--rm",
+                "--network",
+                "none",
+                "-v",
+                f"{tmp}:/etc/caddy:ro",
+                "-v",
+                f"{CADDYFILE.parent / 'maps'}:/srv/blog/current/maps:ro",
+                caddy_image(),
+                "caddy",
+                "adapt",
+                "--config",
+                "/etc/caddy/Caddyfile",
+                "--adapter",
+                "caddyfile",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+    if adapted.returncode != 0:
+        raise AssertionError(f"caddy adapt failed: {adapted.stderr}")
+    config: dict[str, Any] = json.loads(adapted.stdout)
+    return config
+
+
+def header_ops(
+    routes: list[dict[str, Any]], scoped: bool, top: bool
+) -> Iterator[Header]:
+    """Each (name, value, scoped) a headers handler writes, scoped where a matcher or a status requirement narrows it."""
+    for route in routes:
+        # A top-level host matcher picks the site rather than narrowing it.
+        keys = {k for m in route.get("match", []) for k in m}
+        narrowed = scoped or bool(keys - {"host"} if top else keys)
+        for handler in route.get("handle", []):
+            if handler["handler"] == "subroute":
+                yield from header_ops(handler.get("routes", []), narrowed, False)
+            if handler["handler"] != "headers":
+                continue
+            response = handler.get("response", {})
+            required = narrowed or "require" in response
+            for op in ("set", "add"):
+                for name, values in response.get(op, {}).items():
+                    yield name.lower(), ", ".join(values), required
+            for name in [*response.get("delete", []), *response.get("replace", {})]:
+                yield name.lower(), "", True
+
+
+def site_headers(caddyfile: str) -> dict[str, list[tuple[str, str]]]:
+    """Per site, the lowercased headers outside NOT_SECURITY it sets on every response, refusing any it narrows."""
+    server = next(iter(adapt(caddyfile)["apps"]["http"]["servers"].values()))
+    sites: dict[str, list[tuple[str, str]]] = {}
+    narrowed = []
+    for route in server.get("routes", []):
+        hosts = [h for m in route.get("match", []) for h in m.get("host", [])]
+        site = "family" if "viljoen.family" in hosts else "blog"
+        for name, value, scoped in header_ops([route], False, True):
+            if name in NOT_SECURITY:
+                continue
+            if scoped:
+                narrowed.append(f"{site} {name}")
+            else:
+                sites.setdefault(site, []).append((name, value))
+    for name, _, _ in header_ops(
+        server.get("errors", {}).get("routes", []), True, True
+    ):
+        if name not in NOT_SECURITY:
+            narrowed.append(f"errors {name}")
+    if narrowed:
+        raise AssertionError(
+            f"{', '.join(narrowed)} reach fewer responses than the live check asserts them on"
+        )
+    return sites
 
 
 def without(name: str, target: str) -> type[Handler]:
@@ -405,16 +466,6 @@ def without(name: str, target: str) -> type[Handler]:
 
 
 class SecurityHeaderTests(unittest.TestCase):
-    def test_expected_values_are_the_caddyfile_values(self) -> None:
-        text = CADDYFILE.read_text(encoding="utf-8")
-        blog, family = re.split(r"(?m)^http://viljoen\.family:8080", text, maxsplit=1)
-        self.assertEqual(
-            sorted(caddyfile_headers(blog)), sorted(expected_headers("blog"))
-        )
-        self.assertEqual(
-            sorted(caddyfile_headers(family)), sorted(expected_headers("family"))
-        )
-
     def sampled(
         self, handler: type[Handler] = Handler, family: type[Handler] = Handler
     ) -> subprocess.CompletedProcess[str]:
@@ -448,24 +499,6 @@ class SecurityHeaderTests(unittest.TestCase):
         result = self.sampled(family=without(csp, "/en/"))
         self.assertEqual(result.returncode, 1, result.stdout)
         self.assertIn(f"family /en/ sends {csp} '<none>'", result.stdout)
-
-    def test_a_bare_caddyfile_value_is_read(self) -> None:
-        block = ":8080 {\n\theader {\n\t\tX-Frame-Options DENY\n\t}\n}\n"
-        self.assertEqual(caddyfile_headers(block), [("X-Frame-Options", "DENY")])
-
-    def test_a_scoped_security_header_is_refused(self) -> None:
-        for block in (
-            '\theader @page Content-Security-Policy "x"\n',
-            "\theader /af/* X-Frame-Options DENY\n",
-            "\theader @image {\n\t\tX-Frame-Options DENY\n\t}\n",
-            "\thandle /x {\n\t\theader X-Frame-Options DENY\n\t}\n",
-        ):
-            with self.subTest(block), self.assertRaisesRegex(AssertionError, "scoped"):
-                caddyfile_headers(":8080 {\n" + block + "}\n")
-
-    def test_any_header_outside_the_known_markers_is_read(self) -> None:
-        block = ':8080 {\n\theader {\n\t\tX-XSS-Protection "0"\n\t}\n}\n'
-        self.assertEqual(caddyfile_headers(block), [("X-XSS-Protection", "0")])
 
     def test_headers_are_asserted_on_the_config_the_reload_converges_on(self) -> None:
         class Reloading(Handler):
@@ -518,6 +551,41 @@ class SecurityHeaderTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(result.stdout.count(" proxied\n"), 2)
         self.assertNotIn("UNCONFIRMED", result.stdout)
+
+
+class CaddyfileSyncTests(unittest.TestCase):
+    """Caddy's own parser reads the Caddyfile, so no grammar is re-derived here."""
+
+    def test_expected_values_are_the_caddyfile_values(self) -> None:
+        sites = site_headers(CADDYFILE.read_text(encoding="utf-8"))
+        for site in ("blog", "family"):
+            with self.subTest(site):
+                expected = [(n.lower(), v) for n, v in expected_headers(site)]
+                self.assertEqual(sorted(sites[site]), sorted(expected))
+
+    def test_any_header_outside_the_known_markers_is_read(self) -> None:
+        for directive in (
+            'header X-XSS-Protection "0"',
+            'route {\n\t\theader X-XSS-Protection "0"\n\t}',
+        ):
+            with self.subTest(directive):
+                sites = site_headers(f":8080 {{\n\t{directive}\n}}\n")
+                self.assertEqual(sites["blog"], [("x-xss-protection", "0")])
+
+    def test_a_security_header_reaching_fewer_responses_is_refused(self) -> None:
+        for directive in (
+            "header @page {\n\t\tX-Frame-Options DENY\n\t}\n\t@page path /x",
+            "header /af/* X-Frame-Options DENY",
+            "handle /x {\n\t\theader X-Frame-Options DENY\n\t}",
+            "header {\n\t\tX-Frame-Options DENY\n\t\tmatch {\n\t\t\tstatus 2xx\n\t\t}\n\t}",
+            "header /assets/* -Referrer-Policy",
+            "handle_errors {\n\t\theader X-Frame-Options DENY\n\t}",
+        ):
+            with (
+                self.subTest(directive),
+                self.assertRaisesRegex(AssertionError, "fewer responses"),
+            ):
+                site_headers(f":8080 {{\n\t{directive}\n}}\n")
 
 
 if __name__ == "__main__":
