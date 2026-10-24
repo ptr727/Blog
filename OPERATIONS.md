@@ -134,7 +134,7 @@ The deploy root and the base URL are the only host-specific values. A local run 
 **A hand run counts as measured through Cloudflare only once the target answers `server: cloudflare` with a `cf-ray` header.** Right after a hostname flips to proxied, the resolver on the machine running the check can keep answering with the origin for minutes. Another resolver can already answer with Cloudflare by then. A run in that window measures the origin directly, so read those headers from the same machine before the run:
 
 ```sh
-curl -sSI https://<host>/ | grep -iE '^(server|cf-ray):'
+curl -q -sSI https://<host>/ | grep -iE '^(server|cf-ray):'
 ```
 
 **Always set `SITE_BASE_URL` for anything that is not production.** The base URL is baked into the canonical tag, the feed links, and every absolute permalink, so a mirror built without it serves pages that all point back at the production address. Nothing downstream catches this, because the pages render at the right paths and the build gate passes. `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` internally, and the effective value is printed on every build for that reason.
