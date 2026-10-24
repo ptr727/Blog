@@ -354,7 +354,7 @@ class SampledRunTests(unittest.TestCase):
 
 # The headers a site sets that are not security headers, so the sync case leaves them to their own checks.
 NOT_SECURITY = {"cache-control", "vary", "x-blog-env", "x-blog-release", "x-robots-tag"}
-Header = tuple[str, str, bool]
+Header = tuple[str, str | None, bool]
 
 
 @functools.cache
@@ -441,7 +441,7 @@ def header_ops(
                     for name, values in response.get(op, {}).items():
                         yield name.lower(), ", ".join(values), required
                 for name in [*response.get("delete", []), *response.get("replace", {})]:
-                    yield name.lower(), "", True
+                    yield name.lower(), None, True
             answered = answered or handler["handler"] not in PASSIVE
         shadowed = shadowed or answered or bool(route.get("terminal"))
 
@@ -462,16 +462,30 @@ def site_headers(caddyfile: str) -> dict[str, list[tuple[str, str]]]:
     server = next(iter(adapt(caddyfile)["apps"]["http"]["servers"].values()))
     sites: dict[str, list[tuple[str, str]]] = {}
     narrowed = []
-    for site, ops in by_site(server.get("routes", [])).items():
-        sites[site] = [(n, v) for n, v, s in ops if not s and n not in NOT_SECURITY]
-        narrowed += [f"{site} {n}" for n, _, s in ops if s and n not in NOT_SECURITY]
+    main = by_site(server.get("routes", []))
+    for site, ops in main.items():
+        sites[site] = [
+            (n, v)
+            for n, v, s in ops
+            if v is not None and not s and n not in NOT_SECURITY
+        ]
+    # A deletion matters only where it removes a header the site sets on every response.
+    for site, ops in main.items():
+        wide = {n for n, _ in sites[site]}
+        narrowed += [
+            f"{site} {n}"
+            for n, v, s in ops
+            if s and n not in NOT_SECURITY and (v is not None or n in wide)
+        ]
     # An error route repeating a value every response already carries narrows nothing.
     for site, ops in by_site(server.get("errors", {}).get("routes", [])).items():
-        wide = sites.get(site, [])
+        pairs = sites.get(site, [])
         narrowed += [
             f"{site} errors {n}"
             for n, v, s in ops
-            if n not in NOT_SECURITY and (n, v) not in wide
+            if n not in NOT_SECURITY
+            and (n, v) not in pairs
+            and (v is not None or n in {m for m, _ in pairs})
         ]
     if narrowed:
         raise AssertionError(
@@ -605,6 +619,8 @@ class CaddyfileSyncTests(unittest.TestCase):
             "header X-Frame-Options DENY\n\thandle_errors 404 {\n\t\theader X-Frame-Options DENY\n\t}",
             "route {\n\t\tencode gzip\n\t\theader X-Frame-Options DENY\n\t}",
             "route {\n\t\trewrite * /x\n\t\theader X-Frame-Options DENY\n\t}",
+            "header X-Frame-Options DENY\n\theader -Server",
+            "header X-Frame-Options DENY\n\thandle_errors {\n\t\theader -Server\n\t}",
         ):
             with self.subTest(directive):
                 sites = site_headers(f":8080 {{\n\t{directive}\n}}\n")
@@ -616,7 +632,8 @@ class CaddyfileSyncTests(unittest.TestCase):
             "header /af/* X-Frame-Options DENY",
             "handle /x {\n\t\theader X-Frame-Options DENY\n\t}",
             "header {\n\t\tX-Frame-Options DENY\n\t\tmatch {\n\t\t\tstatus 2xx\n\t\t}\n\t}",
-            "header /assets/* -Referrer-Policy",
+            "header Referrer-Policy no-referrer\n\theader /assets/* -Referrer-Policy",
+            "header Referrer-Policy no-referrer\n\thandle_errors {\n\t\theader -Referrer-Policy\n\t}",
             "handle_errors {\n\t\theader X-Frame-Options DENY\n\t}",
             "handle /x {\n\t\trespond 200\n\t}\n\thandle {\n\t\theader X-Frame-Options DENY\n\t}",
             "route {\n\t\tredir /y /z 301\n\t\theader X-Frame-Options DENY\n\t}",
