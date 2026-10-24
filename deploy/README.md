@@ -281,7 +281,7 @@ Every file the blog serves, and its error page, names its own lifetime. A browse
 | `/assets/`, the fingerprinted stylesheet and script | `public, max-age=31536000, immutable` | The name changes with the content, so a copy is never stale |
 | `/media/` and the root icons | `public, max-age=3600` | An image rarely changes, and an hour bounds how long a replaced one is still served from any copy |
 
-A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the baseline header runs before them. A map entry a release changes is then followed at the next request. The family site follows the same table, and its images, the SVGs included, take the one-hour image class. Its stylesheet and script keep their names across releases, so they answer `no-cache` like its pages. A longer lifetime there would pair a new page with an old script. Its error page answers `no-cache` the same way, and so do its language redirects, because the `@page` matcher reaches them.
+A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the baseline header runs before them. A map entry a release changes is then followed at the next request. The family site follows the table's page and image rows, its SVGs included. Its stylesheet and script keep their names across releases, so they answer `no-cache` like its pages. A longer lifetime there would pair a new page with an old script. Its error page answers `no-cache` the same way, and so do its language redirects, because the `@page` matcher reaches them.
 
 **Two zone settings decide whether these lifetimes hold behind Cloudflare.** Both are the host side's to set.
 
@@ -290,7 +290,7 @@ A `404` answers with `no-cache` whatever its path, since a missing file in a cac
 
 ## Security headers
 
-Both sites send the same security headers on every response, redirects and the `404` included:
+The sites send the same security headers on every response, redirects and the `404` included:
 
 | Header | Value | Why |
 | --- | --- | --- |
@@ -300,7 +300,7 @@ Both sites send the same security headers on every response, redirects and the `
 
 The HSTS value carries neither `includeSubDomains` nor `preload`, since each binds hostnames this bundle does not serve. HSTS at the edge stays off for the same reason, because Cloudflare applies it to every name in the zone.
 
-**Only the family site sends a `Content-Security-Policy`.** Its page loads nothing beyond its own files and Google Fonts, so its policy lists exactly those. Blog posts embed third-party content, so a blog policy waits on a survey of what the posts load.
+**Only the family site sends a `Content-Security-Policy`.** Its page loads few resources, so its policy names each kind: its own files, Google Fonts, inline styles, and `data:` images. Blog posts embed third-party content, so a blog policy waits on a survey of what the posts load.
 
 ## Trusting the proxy
 
