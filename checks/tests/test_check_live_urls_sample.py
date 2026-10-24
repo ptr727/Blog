@@ -5,6 +5,7 @@ import http.server
 import os
 import pathlib
 import re
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -349,35 +350,45 @@ class SampledRunTests(unittest.TestCase):
         self.assertNotEqual(tokens[0], tokens[1])
 
 
-SECURITY_NAMES = {
-    "content-security-policy",
-    "content-security-policy-report-only",
-    "cross-origin-embedder-policy",
-    "cross-origin-opener-policy",
-    "cross-origin-resource-policy",
-    "permissions-policy",
-    "referrer-policy",
-    "strict-transport-security",
-    "x-content-type-options",
-    "x-frame-options",
-}
+# The headers a site block sets that are not security headers, so the sync case leaves them to their own checks.
+NOT_SECURITY = {"cache-control", "vary", "x-blog-env", "x-blog-release", "x-robots-tag"}
 
 
 def caddyfile_headers(block: str) -> list[tuple[str, str]]:
-    """The security headers a Caddyfile site block sets, in either the block or the one-line form."""
+    """Every other header a Caddyfile site block sets on all its responses, refusing one scoped to fewer."""
     pairs = []
+    depth = 0
+    header_block: tuple[int, bool] | None = None
     for line in block.splitlines():
-        match = re.fullmatch(
-            r'\s*(?:header\s+(@\S+\s+)?)?(\S+)\s+(?:"([^"]*)"|([^\s"{]+))\s*', line
-        )
-        if not match or match[2].lower() not in SECURITY_NAMES:
+        words = shlex.split(line, comments=True)
+        if not words:
             continue
-        if match[1]:
+        if words == ["}"]:
+            depth -= 1
+            if header_block and depth < header_block[0]:
+                header_block = None
+            continue
+        if words[-1] == "{":
+            depth += 1
+            if words[0] == "header":
+                header_block = (depth, len(words) > 2 or depth > 2)
+            continue
+        if words[0] == "header":
+            rest, scoped = words[1:], depth > 1
+            if rest[0][0] in "@/*":
+                rest, scoped = rest[1:], True
+        elif header_block and depth == header_block[0]:
+            rest, scoped = words, header_block[1]
+        else:
+            continue
+        name = rest[0].lstrip("+?>")
+        if rest[0].startswith("-") or name.lower() in NOT_SECURITY:
+            continue
+        if scoped:
             raise AssertionError(
-                f"{match[2]} is scoped to {match[1].strip()}, and the live check asserts"
-                " security headers on every response"
+                f"{name} is scoped to fewer responses than the live check asserts it on"
             )
-        pairs.append((match[2], match[3] if match[3] is not None else match[4]))
+        pairs.append((name, rest[1] if len(rest) > 1 else ""))
     return pairs
 
 
@@ -439,12 +450,22 @@ class SecurityHeaderTests(unittest.TestCase):
         self.assertIn(f"family /en/ sends {csp} '<none>'", result.stdout)
 
     def test_a_bare_caddyfile_value_is_read(self) -> None:
-        block = "\theader {\n\t\tX-Frame-Options DENY\n\t}\n"
+        block = ":8080 {\n\theader {\n\t\tX-Frame-Options DENY\n\t}\n}\n"
         self.assertEqual(caddyfile_headers(block), [("X-Frame-Options", "DENY")])
 
-    def test_a_matcher_scoped_security_header_is_refused(self) -> None:
-        with self.assertRaisesRegex(AssertionError, "scoped to @page"):
-            caddyfile_headers('\theader @page Content-Security-Policy "x"\n')
+    def test_a_scoped_security_header_is_refused(self) -> None:
+        for block in (
+            '\theader @page Content-Security-Policy "x"\n',
+            "\theader /af/* X-Frame-Options DENY\n",
+            "\theader @image {\n\t\tX-Frame-Options DENY\n\t}\n",
+            "\thandle /x {\n\t\theader X-Frame-Options DENY\n\t}\n",
+        ):
+            with self.subTest(block), self.assertRaisesRegex(AssertionError, "scoped"):
+                caddyfile_headers(":8080 {\n" + block + "}\n")
+
+    def test_any_header_outside_the_known_markers_is_read(self) -> None:
+        block = ':8080 {\n\theader {\n\t\tX-XSS-Protection "0"\n\t}\n}\n'
+        self.assertEqual(caddyfile_headers(block), [("X-XSS-Protection", "0")])
 
     def test_headers_are_asserted_on_the_config_the_reload_converges_on(self) -> None:
         class Reloading(Handler):

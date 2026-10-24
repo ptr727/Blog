@@ -113,7 +113,7 @@ wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy
 
 **One request is added, a missing `.png` under `/media/`.** The `404` answers from the Caddyfile's `handle_errors` block rather than from the route every other request takes, so it is checked on its own. Being a static file, it stays out of the sampled run's page budget.
 
-**The values live once here, and a unit case holds them to the Caddyfile.** `checks/tests/test_check_live_urls_sample.py` reads each site block's security headers and fails when they differ from this file in either direction. A header added to the Caddyfile is therefore added here too. See [`deploy/README.md`][deploy-readme-security-headers] for why each value is what it is.
+**The values live once here, and a unit case holds them to the Caddyfile.** `checks/tests/test_check_live_urls_sample.py` reads every header a site block sets on all its responses, apart from its cache headers and the site's own markers. It fails when those differ from this file in either direction, and when a security header is scoped to fewer responses. See [`deploy/README.md`][deploy-readme-security-headers] for why each value is what it is.
 
 ## Directionality
 
