@@ -107,6 +107,14 @@ wc -l checks/golden-urls.txt checks/redirect-urls.txt checks/golden-media-legacy
 
 **The mode case is why this is not theoretical.** A hard-linked file carries its inode's mode, so a media file that acquires a bad one rides the chain into every later release, present and correctly named and unreadable to the server. A build-time `is_file()` on the runner cannot see it, and neither can a check that never requests an image.
 
+## `security-headers.txt`, and why every response's headers are read
+
+`security-headers.txt` holds, per site, each security header `deploy/Caddyfile` sends and its exact value. `check-live-urls.sh` reads it and asserts those headers on every response it already requests: the preflight, each page, redirect, and media file, and each family page. A header that goes missing or loses strength fails the run, where a presence check would pass a shortened HSTS lifetime or a loosened policy.
+
+**One request is added, a missing `.png` under `/media/`.** The `404` answers from the Caddyfile's `handle_errors` block rather than from the route every other request takes, so it is checked on its own. Being a static file, it stays out of the sampled run's page budget.
+
+**The values live once here, and a unit case holds them to the Caddyfile.** `checks/tests/test_check_live_urls_sample.py` reads each site block's security headers and fails when they differ from this file in either direction. A header added to the Caddyfile is therefore added here too. See [`deploy/README.md`][deploy-readme-security-headers] for why each value is what it is.
+
 ## Directionality
 
 The parity check fails on a **missing** URL and only notes an **extra** one. New posts, new tags, and deeper pagination legitimately add URLs, and nothing legitimately removes a URL the site has served. That asymmetry is what makes the lists append-only, which in turn is what makes the length-floor assertion in `check-live-urls.sh` sound: without it a truncated list would make every assertion below it pass vacuously.
@@ -184,4 +192,5 @@ Three traps in that adjudication, each of which produced a wrong answer first an
 [check-text-pii]: ./check-text-pii.py
 [check-url-parity]: ./check-url-parity.py
 [deploy-readme-redirects]: ../deploy/README.md#how-the-redirects-are-expressed
+[deploy-readme-security-headers]: ../deploy/README.md#security-headers
 [fuzz-media-parsers]: ./fuzz-media-parsers.py
