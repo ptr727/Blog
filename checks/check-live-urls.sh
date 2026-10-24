@@ -431,22 +431,26 @@ transfer_failure() {
 
 # Invoked indirectly, the same way as curl_retry above.
 # shellcheck disable=SC2329
-check_render() {
-	local url="$1" out code why rc=0 auth=(-K "$CHECKRC")
+check_status() {
+	local what="$1" want="$2" target="$3" out code why rc=0 auth=(-K "$CHECKRC")
 	[ -n "$CURLRC" ] && auth+=(-K "$CURLRC")
-	out=$(curl_retry -q -s -o /dev/null -w "%{http_code}\n$HEADER_FORMAT" --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
+	out=$(curl_retry -q -s -o /dev/null -w "%{http_code}\n$HEADER_FORMAT" --max-time 30 "${auth[@]}" "$target") || rc=$?
 	code="${out%%$'\n'*}"
 	why=$(transfer_failure "$code" "$rc")
 	if [ -n "$why" ]; then
-		echo "render $url $why" >>"$FAILED"
+		echo "$what $why" >>"$FAILED"
 		return
 	fi
-	if [ "$code" != "200" ]; then
-		echo "render $url expected 200, got $code" >>"$FAILED"
+	if [ "$code" != "$want" ]; then
+		echo "$what expected $want, got $code" >>"$FAILED"
 		return
 	fi
-	check_headers "render $url" "${out#*$'\n'}" "$SECURITY_HEADERS"
+	check_headers "$what" "${out#*$'\n'}" "$SECURITY_HEADERS"
 }
+
+# Invoked indirectly, the same way as curl_retry above.
+# shellcheck disable=SC2329
+check_render() { check_status "render $1" 200 "$BASE$1"; }
 
 # A caching proxy may answer a media URL from its copy for the file's lifetime, so a file a release lost would still pass.
 # The edge's cache key includes the query string and the file server ignores it, so a query no earlier run sent reaches the origin.
@@ -582,7 +586,7 @@ check_redirect() {
 	esac
 }
 
-export -f curl_retry transfer_failure header_value check_headers check_render check_redirect check_media
+export -f curl_retry transfer_failure header_value check_headers check_status check_render check_redirect check_media
 export BASE FAILED CURLRC CHECKRC SAMPLE CACHE_BUST HEADER_FORMAT SECURITY_HEADERS
 
 echo "==> $BASE"
@@ -698,17 +702,7 @@ grep . "$MEDIA_SRC" | xargs -P "$PARALLEL" -I{} bash -c 'check_media "$@"' _ {}
 
 n_missing=1
 echo "==> checking that a missing file answers 404 with the security headers"
-rc=0
-out=$(curl_retry -q -s -o /dev/null -w "%{http_code}\n$HEADER_FORMAT" --max-time 30 "${AUTH[@]}" "$BASE$MISSING_PROBE?$CACHE_BUST") || rc=$?
-code="${out%%$'\n'*}"
-why=$(transfer_failure "$code" "$rc")
-if [ -n "$why" ]; then
-	echo "missing $MISSING_PROBE $why" >>"$FAILED"
-elif [ "$code" != "404" ]; then
-	echo "missing $MISSING_PROBE expected 404, got $code" >>"$FAILED"
-else
-	check_headers "missing $MISSING_PROBE" "${out#*$'\n'}" "$SECURITY_HEADERS"
-fi
+check_status "missing $MISSING_PROBE" 404 "$BASE$MISSING_PROBE?$CACHE_BUST"
 
 # The title tells the family page from the blog, since one container answers both and an unknown host falls through to the blog with a 200.
 # X-Blog-Env still tells one environment from another, and the family host is a proxy rule of its own that can aim at the wrong container.
