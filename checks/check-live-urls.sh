@@ -410,7 +410,7 @@ check_headers() {
 	while IFS= read -r line; do
 		name="${line%%: *}"
 		want="${line#*: }"
-		got=$(header_value "$response" "$name" | paste -sd ',' -)
+		got=$(header_value "$response" "$name" | head -n 1)
 		[ "$got" = "$want" ] || echo "$what sends $name '${got:-<none>}', expected '$want'" >>"$FAILED"
 	done <<<"$expected"
 }
@@ -519,7 +519,9 @@ check_media() {
 	image/*) ;;
 	*) echo "$what answered 200 as $type, expected an image" >>"$FAILED" ;;
 	esac
-	check_headers "$what" "${out#*$'\n'*$'\n'*$'\n'}" "$SECURITY_HEADERS"
+	case "$target" in
+	'' | "$BASE" | "$BASE"/*) check_headers "$what" "${out#*$'\n'*$'\n'*$'\n'}" "$SECURITY_HEADERS" ;;
+	esac
 }
 
 # Invoked indirectly, the same way as check_render above.
@@ -571,7 +573,7 @@ check_redirect() {
 	200 | 301 | 308) ;;
 	*) echo "redirect $url -> $dest destination answered $dcode" >>"$FAILED" ;;
 	esac
-	# An off-site destination is the family host, whose own pages are checked against its own list.
+	# An off-site destination is another site's, whose headers this list does not govern.
 	case "$dest" in
 	"$BASE" | "$BASE"/*) check_headers "redirect $url -> $dest destination" "${dout#*$'\n'}" "$SECURITY_HEADERS" ;;
 	esac

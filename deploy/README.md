@@ -12,7 +12,7 @@ How the site is built, released, and served. The release is a **self-contained b
 | `rsync` | `make-release.sh` | installing a release, hard-linking unchanged files | `apt install rsync` |
 | `gzip` | `make-release.sh` | precompression | coreutils, already present |
 | `brotli` | `make-release.sh` | precompression | `apt install brotli` |
-| `curl` | `check-live-urls.sh` | verifying a running server | `apt install curl` |
+| `curl` 7.84+ | `check-live-urls.sh` | verifying a running server, reading a header with `%header{}` | `apt install curl` |
 | `bash` 4.4+ | all scripts | arrays, `mapfile` | already present |
 | `docker` | serving | running Caddy | orchestrated elsewhere |
 

@@ -368,10 +368,16 @@ def caddyfile_headers(block: str) -> list[tuple[str, str]]:
     pairs = []
     for line in block.splitlines():
         match = re.fullmatch(
-            r'\s*(?:header\s+(?:@\S+\s+)?)?(\S+)\s+(?:"([^"]*)"|([^\s"{]+))\s*', line
+            r'\s*(?:header\s+(@\S+\s+)?)?(\S+)\s+(?:"([^"]*)"|([^\s"{]+))\s*', line
         )
-        if match and match[1].lower() in SECURITY_NAMES:
-            pairs.append((match[1], match[2] if match[2] is not None else match[3]))
+        if not match or match[2].lower() not in SECURITY_NAMES:
+            continue
+        if match[1]:
+            raise AssertionError(
+                f"{match[2]} is scoped to {match[1].strip()}, and the live check asserts"
+                " security headers on every response"
+            )
+        pairs.append((match[2], match[3] if match[3] is not None else match[4]))
     return pairs
 
 
@@ -435,6 +441,10 @@ class SecurityHeaderTests(unittest.TestCase):
     def test_a_bare_caddyfile_value_is_read(self) -> None:
         block = "\theader {\n\t\tX-Frame-Options DENY\n\t}\n"
         self.assertEqual(caddyfile_headers(block), [("X-Frame-Options", "DENY")])
+
+    def test_a_matcher_scoped_security_header_is_refused(self) -> None:
+        with self.assertRaisesRegex(AssertionError, "scoped to @page"):
+            caddyfile_headers('\theader @page Content-Security-Policy "x"\n')
 
     def test_headers_are_asserted_on_the_config_the_reload_converges_on(self) -> None:
         class Reloading(Handler):
