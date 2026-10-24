@@ -405,7 +405,7 @@ def adapt(caddyfile: str) -> dict[str, Any]:
 
 
 # Handlers that never answer a request, so a header after one still reaches every response.
-PASSIVE = {"headers", "map", "vars"}
+PASSIVE = {"encode", "headers", "map", "rewrite", "templates", "vars"}
 
 
 def header_ops(
@@ -430,7 +430,13 @@ def header_ops(
                 )
             elif handler["handler"] == "headers":
                 response = handler.get("response", {})
-                required = narrowed or answered or "require" in response
+                # A deferred write lands only when a handler writes, so an error response misses it.
+                required = (
+                    narrowed
+                    or answered
+                    or "require" in response
+                    or bool(response.get("deferred"))
+                )
                 for op in ("set", "add"):
                     for name, values in response.get(op, {}).items():
                         yield name.lower(), ", ".join(values), required
@@ -465,7 +471,7 @@ def site_headers(caddyfile: str) -> dict[str, list[tuple[str, str]]]:
         narrowed += [
             f"{site} errors {n}"
             for n, v, s in ops
-            if n not in NOT_SECURITY and (s or (n, v) not in wide)
+            if n not in NOT_SECURITY and (n, v) not in wide
         ]
     if narrowed:
         raise AssertionError(
@@ -593,10 +599,16 @@ class CaddyfileSyncTests(unittest.TestCase):
                 sites = site_headers(f":8080 {{\n\t{directive}\n}}\n")
                 self.assertEqual(sites["blog"], [("x-xss-protection", "0")])
 
-    def test_an_error_route_repeating_a_site_wide_value_is_read(self) -> None:
-        directive = "header X-Frame-Options DENY\n\thandle_errors {\n\t\theader X-Frame-Options DENY\n\t}"
-        sites = site_headers(f":8080 {{\n\t{directive}\n}}\n")
-        self.assertEqual(sites["blog"], [("x-frame-options", "DENY")])
+    def test_a_header_every_response_still_carries_is_read(self) -> None:
+        for directive in (
+            "header X-Frame-Options DENY\n\thandle_errors {\n\t\theader X-Frame-Options DENY\n\t}",
+            "header X-Frame-Options DENY\n\thandle_errors 404 {\n\t\theader X-Frame-Options DENY\n\t}",
+            "route {\n\t\tencode gzip\n\t\theader X-Frame-Options DENY\n\t}",
+            "route {\n\t\trewrite * /x\n\t\theader X-Frame-Options DENY\n\t}",
+        ):
+            with self.subTest(directive):
+                sites = site_headers(f":8080 {{\n\t{directive}\n}}\n")
+                self.assertEqual(sites["blog"], [("x-frame-options", "DENY")])
 
     def test_a_security_header_reaching_fewer_responses_is_refused(self) -> None:
         for directive in (
@@ -608,6 +620,8 @@ class CaddyfileSyncTests(unittest.TestCase):
             "handle_errors {\n\t\theader X-Frame-Options DENY\n\t}",
             "handle /x {\n\t\trespond 200\n\t}\n\thandle {\n\t\theader X-Frame-Options DENY\n\t}",
             "route {\n\t\tredir /y /z 301\n\t\theader X-Frame-Options DENY\n\t}",
+            "header >X-Frame-Options DENY",
+            "header {\n\t\tdefer\n\t\tX-Frame-Options DENY\n\t}",
         ):
             with (
                 self.subTest(directive),
