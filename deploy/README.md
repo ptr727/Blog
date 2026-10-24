@@ -26,7 +26,7 @@ macOS or Windows contributor runs them through a container or a remote Linux hos
 
 **`brotli` is easy to miss and degrades silently.** The Caddyfile serves `precompressed br gzip`, so without the binary every text response falls back to gzip while the site keeps working and nothing errors. `make-release.sh` warns loudly when it is absent, and `REQUIRE_BROTLI=1` turns that into a hard failure. **CI must set it.** Measured on the home page: 18,845 bytes raw, 6,395 gzip, 5,105 brotli.
 
-[`capture/build-redirects.py`](../capture/build-redirects.py) additionally needs the capture directory holding the source export, which is not in this repo. It runs by hand rather than in CI, and its outputs under `deploy/maps/` are committed.
+[`capture/build-redirects.py`][capture-build-redirects] additionally needs the capture directory holding the source export, which is not in this repo. It runs by hand rather than in CI, and its outputs under `deploy/maps/` are committed.
 
 ## Container contract
 
@@ -43,14 +43,14 @@ neither. Seven facts are the whole contract:
 4. Caddy binds `:8080`, plain HTTP, with `admin off` and `auto_https off`. TLS and the public
    listener belong to the fronting proxy.
 5. Caddy runs with **`--watch`**. This is not optional. See
-   [Reloading without a restart](#reloading-without-a-restart).
+   [Reloading without a restart][reloading-without-a-restart].
 6. The release tree is world-readable and world-traversable, so any uid can serve it.
 7. The container sets `SITE_ENV`, which the bundle stamps on every response as `X-Blog-Env`.
    It sets `SITE_ROBOTS`, stamped as `X-Robots-Tag` on the blog, and `FAMILY_SITE_ROBOTS`, stamped
    as `X-Robots-Tag` on the family site. It sets `TRUSTED_PROXIES`, and a local mirror also sets
-   `FAMILY_SITE_ADDRESS`. See [Identifying the environment](#identifying-the-environment),
-   [Trusting the proxy](#trusting-the-proxy), and
-   [Serving the family site on a local name](#serving-the-family-site-on-a-local-name).
+   `FAMILY_SITE_ADDRESS`. See [Identifying the environment][identifying-the-environment],
+   [Trusting the proxy][trusting-the-proxy], and
+   [Serving the family site on a local name][serving-the-family-site-on-a-local-name].
 
 ## Building a release
 
@@ -63,7 +63,7 @@ EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
 The deploy root and the base URL are the only host-specific values, and they pair per
-environment. Copy [`example.env`](../.secrets/example.env) to `~/.secrets/blog.local.production.env`, which is the
+environment. Copy [`example.env`][example-env] to `~/.secrets/blog.local.production.env`, which is the
 file read when `ENV_FILE` is unset, and add `~/.secrets/blog.<server>.<environment>.env` for each further
 environment. A single environment therefore needs `~/.secrets/blog.local.production.env` and nothing
 else, since a differently named file is read only when `ENV_FILE` names it. The real files
@@ -168,7 +168,7 @@ Production's deploy sets it, and so does a hand run against the VPS production s
 more than 40 distinct pages in a burst. It also bans one when more than 10 distinct pages answer
 `404`, `403` or `400` in a short window. Images, CSS and JS count toward neither. The whole
 contract is over 1,200 URLs. The sample takes one URL from each redirect class in
-[How the redirects are expressed](#how-the-redirects-are-expressed). It adds one from each shape
+[How the redirects are expressed][how-the-redirects-are-expressed]. It adds one from each shape
 of page that must render, one from each media tree, and the three family pages. It also adds
 `/all/`, `/feed.xml`, and `/sitemap.xml`, the fixed redirect destinations no list names. Before its
 first request, the script asserts that this stays within 30 distinct pages across both hosts. An
@@ -271,11 +271,30 @@ variable would hold both at the stricter value. Set both to `noindex, nofollow` 
 container, since neither falls back to the other.
 No check reads `X-Robots-Tag`, so a missing value shows only in the served header.
 
+## Cache lifetimes
+
+Every file the blog serves, and its error page, names its own lifetime. A browser and an edge cache then behave the same with or without a caching proxy in front. Without a lifetime a browser guesses from `Last-Modified`, and an edge cache applies a default by file extension. Neither guess is bounded by anything this repository controls.
+
+| Class | `Cache-Control` | Why |
+| --- | --- | --- |
+| Pages, feeds, the sitemap, `index.json`, `robots.txt`, and every other path | `no-cache` | A copy may be kept but is revalidated on every use, so a deploy shows at once |
+| `/assets/`, the fingerprinted stylesheet and script | `public, max-age=31536000, immutable` | The name changes with the content, so a copy is never stale |
+| `/media/` and the root icons | `public, max-age=3600` | An image rarely changes, and an hour bounds how long a replaced one is still served from any copy |
+
+A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the baseline header runs before them. A map entry a release changes is then followed at the next request. The family site keeps its own, shorter list in its block, and its error page answers `no-cache` the same way. Its language redirects answer `no-cache` as well, because the `@page` matcher reaches them.
+
+**Two zone settings decide whether these lifetimes hold behind Cloudflare.** Both are the host side's to set.
+
+- **Browser Cache TTL must be "Respect Existing Headers".** A new zone's default is 4 hours. Cloudflare replaces an origin lifetime shorter than that setting with the setting. A browser would then keep a replaced image for 4 hours rather than one.
+- **Caching Level must not be "Ignore Query String".** `check-live-urls.sh` asks for each media file with a query no earlier run sent, so the edge's copy cannot answer for a file a release lost. The default level, Standard, keys the cache on the query string. Ignore Query String would answer from the copy again.
+
 ## Trusting the proxy
 
 A proxy fronts Caddy in every environment, so the peer address is always the proxy and the real
 client arrives in `X-Forwarded-For`. `trusted_proxies` is what makes Caddy believe it. Without it,
 `client_ip` and `remote_ip` are both the proxy and the forwarded header has no effect at all.
+
+Behind Cloudflare the forwarded chain can start with an address the client wrote. Caddy reads the chain from the left, so `client_ip` is then whatever the client chose. Nothing in the Caddyfile matches on it, and [`OPERATIONS.md`][operations-log-tiers] names the field to read instead.
 
 **The CIDRs come from the container, not the bundle.** The same artifact runs on hosts whose docker
 subnets differ, so any literal in the bundle is wrong on one of them.
@@ -351,7 +370,7 @@ The Caddyfile carries **16 `redir` directives**, reading **5 map files** through
 
 Directives and URL classes are not one to one, in both directions. `@mapped` is a single directive serving four classes, because their key spaces are disjoint and merging them keeps those four classes to one lookup. `@uploads` is one directive covering a URL set that is gated separately.
 
-Each row below is a **URL class**, named by the matcher that serves it, so the table can be checked against [`Caddyfile`](./Caddyfile) by grep rather than by trust.
+Each row below is a **URL class**, named by the matcher that serves it. The table can then be checked against [`Caddyfile`][caddyfile] by grep rather than by trust.
 
 Every class below is a legacy shape, closed by the migration, so no count here moves when content is added. New content is served by the render half of the contract, never by these.
 
@@ -375,7 +394,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 | `@blogger_page` | 2 | `/p/<slug>.html` -> `/<slug>/`, Blogger's static-page shape |
 | `@feed_type` | 2 | a WordPress post, attachment, term, author, site, comments, or about feed at `/feed/atom/`, `/feed/rss/`, `/feed/rss2/` or `/feed/rdf/` -> the same feed at `/feed/`, which another row resolves |
 
-**Those seventeen classes account for every line in [`checks/redirect-urls.txt`](../checks/redirect-urls.txt), with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it. `check-live-urls.sh` classifies the list by the same rows to sample production. A unit test holds each class's count to the size column above, so a new row needs a new class there.
+**Those seventeen classes account for every line in [`checks/redirect-urls.txt`][checks-redirect-urls], with nothing in the contract outside the table.** Completeness is the property worth holding, and the list's line count is how to check it. `check-live-urls.sh` classifies the list by the same rows to sample production. A unit test holds each class's count to the size column above, so a new row needs a new class there.
 
 `@uploads` is deliberately absent from that table and from the redirect contract. It rewrites `/wp-content/uploads/(.*)` to `/media/$1`, preserving all 778 legacy image URLs, which are gated by `golden-media-legacy.txt` on their own. Counting them here would double-count a set that has its own list.
 
@@ -383,7 +402,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 
 Two orderings are load-bearing. `@post_child_feed` precedes `@post_child` because both match the same shape and the broader one would claim both. No golden URL is five segments under a date, so `@post_child` cannot swallow a page that must render, and `@uploads` rewrites under a prefix no rendered page occupies.
 
-`blogger.map` carries more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms answer. A few addresses Blogger served, or the contract lists, match neither form. The mechanism is in [`capture/README.md`](../capture/README.md), beside the generator that implements it. `slugs.map` is generated by [`capture/build-redirects.py`](../capture/build-redirects.py), which recovers each attachment's parent from the media inventory, since each has `post_parent = 0` in the export. 85 entries resolve to a real post, and 21 go to `/` because nothing on the site claims them. The generator gives the rest a fixed destination.
+`blogger.map` carries more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms answer. A few addresses Blogger served, or the contract lists, match neither form. The mechanism is in [`capture/README.md`][capture-readme], beside the generator that implements it. `slugs.map` is generated by [`capture/build-redirects.py`][capture-build-redirects], which recovers each attachment's parent from the media inventory, since each has `post_parent = 0` in the export. 85 entries resolve to a real post, and 21 go to `/` because nothing on the site claims them. The generator gives the rest a fixed destination.
 
 **Two shapes in the Caddyfile look wrong and are correct.** The `map` on `{re.label.1}` sits outside `route`, before the matcher that sets that placeholder runs. A map resolves lazily, when a directive reads its output, so it sees the matched request. And `handle_errors` rewrites to `/404.html` and serves it with `file_server`, which keeps the error's `404` status rather than answering `200`.
 
@@ -402,3 +421,17 @@ Each of these fails silently when it fails, which is why it is checked rather th
   disk-full outage later.
 
 `umask 022` is pinned because the release and staging directories come from `mkdir` rather than rsync and would otherwise inherit the caller's umask. Under `umask 077` they land 700, and Caddy cannot then traverse into the release at all.
+
+<!-- Repo -->
+
+[caddyfile]: ./Caddyfile
+[capture-build-redirects]: ../capture/build-redirects.py
+[capture-readme]: ../capture/README.md
+[checks-redirect-urls]: ../checks/redirect-urls.txt
+[example-env]: ../.secrets/example.env
+[how-the-redirects-are-expressed]: #how-the-redirects-are-expressed
+[identifying-the-environment]: #identifying-the-environment
+[operations-log-tiers]: ../OPERATIONS.md#the-log-is-three-tiers-and-each-is-blind-to-something
+[reloading-without-a-restart]: #reloading-without-a-restart
+[serving-the-family-site-on-a-local-name]: #serving-the-family-site-on-a-local-name
+[trusting-the-proxy]: #trusting-the-proxy

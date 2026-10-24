@@ -405,6 +405,10 @@ check_render() {
 	[ "$code" = "200" ] || echo "render $url expected 200, got $code" >>"$FAILED"
 }
 
+# A caching proxy may answer a media URL from its copy for the file's lifetime, so a file a release lost would still pass.
+# The edge's cache key includes the query string and the file server ignores it, so a query no earlier run sent reaches the origin.
+CACHE_BUST="live-check=$(date +%s)-$$"
+
 # Invoked indirectly, the same way as check_render above.
 # shellcheck disable=SC2329
 # The build gate proves the media SET against files on disk.
@@ -419,7 +423,7 @@ check_media() {
 	# The redirect URL gets a line of its own, because an empty one would let read shift the type into its place.
 	local format='%{http_code} %{size_download}\n%{redirect_url}\n%{content_type}\n'
 	# Command substitution rather than `read < <(...)`, because process substitution discards curl's exit status.
-	out=$(curl_retry -q -s -o /dev/null -w "$format" --max-time 30 "${auth[@]}" "$BASE$url") || rc=$?
+	out=$(curl_retry -q -s -o /dev/null -w "$format" --max-time 30 "${auth[@]}" "$BASE$url?$CACHE_BUST") || rc=$?
 	{
 		read -r code len
 		read -r target
@@ -446,6 +450,8 @@ check_media() {
 			esac
 		fi
 		what="media $url -> $target"
+		# The rule drops the query, so the hop needs its own.
+		target="$target?$CACHE_BUST"
 		rc=0
 		out=$(curl_retry -q -s -o /dev/null -w "$format" --max-time 30 "${target_auth[@]}" "$target") || rc=$?
 		{
@@ -524,7 +530,7 @@ check_redirect() {
 }
 
 export -f curl_retry transfer_failure check_render check_redirect check_media
-export BASE FAILED CURLRC CHECKRC SAMPLE
+export BASE FAILED CURLRC CHECKRC SAMPLE CACHE_BUST
 
 echo "==> $BASE"
 
