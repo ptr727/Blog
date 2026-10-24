@@ -558,6 +558,24 @@ class SecurityHeaderTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("rules from release new (after 1s)", result.stdout)
 
+    def test_a_reload_converging_on_an_error_fails_the_preflight(self) -> None:
+        class Broken(Handler):
+            def do_GET(self) -> None:
+                if self.path == "/" and self.requested.count("/") >= 1:
+                    self.requested.append(self.path)
+                    self.answer(503)
+                    return
+                super().do_GET()
+
+            def headers_for(self, path: str) -> list[tuple[str, str]]:
+                release = "new" if self.requested.count("/") >= 2 else "old"
+                return [*self.site_headers, ("X-Blog-Release", release)]
+
+        with MockSite(handler=Broken) as site:
+            result = run(SCRIPT, site.base, SAMPLE_CONTRACT="1", EXPECT_RELEASE="new")
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn(f"reloaded rules answer {site.base}/ with 503", result.stderr)
+
     def test_a_followed_destination_missing_a_header_fails(self) -> None:
         hsts = "Strict-Transport-Security"
         with MockSite(handler=without(hsts, DESTINATION)) as site:
