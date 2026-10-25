@@ -225,7 +225,7 @@ I replied to Integrated Color Corporation with this information, since EnTech pr
 
 While I was browsing around the EnTech site I found a great utility called [mControl](http://forums.entechtaiwan.com/index.php?topic=6725.0 "mControl") that allows adjustment of the DELL 2408WFP monitor settings:
 
-[![](http://docs.google.com/File?id=dcmzmbww_7dnrmr9fb_b)](http://docs.google.com/File?id=dcmzmbww_7dnrmr9fb_b)
+[![](/media/2009/06/dell-2408wfp-spyder-01.png)](/media/2009/06/dell-2408wfp-spyder-01.png)
 
 
 
@@ -271,11 +271,11 @@ Blue: 75
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_8nbqzjkd9_b)](http://docs.google.com/File?id=dcmzmbww_8nbqzjkd9_b)
+[![](/media/2009/06/dell-2408wfp-spyder-02.png)](/media/2009/06/dell-2408wfp-spyder-02.png)
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_997c27xdv_b)](http://docs.google.com/File?id=dcmzmbww_997c27xdv_b)
+[![](/media/2009/06/dell-2408wfp-spyder-03.png)](/media/2009/06/dell-2408wfp-spyder-03.png)
 
 
 
@@ -293,11 +293,11 @@ Blue: 75
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_10drtwrkhb_b)](http://docs.google.com/File?id=dcmzmbww_10drtwrkhb_b)
+[![](/media/2009/06/dell-2408wfp-spyder-04.png)](/media/2009/06/dell-2408wfp-spyder-04.png)
 
 
 
-![](http://docs.google.com/File?id=dcmzmbww_11jbwvgk5v_b)
+![](/media/2009/06/dell-2408wfp-spyder-05.png)
 
 
 

@@ -102,13 +102,13 @@ The Seagate drives would not show up on the system, I tried different ports, res
 
 Adaptec, RAID5, Hitachi:
 
-[![](http://docs.google.com/File?id=dcmzmbww_23hhrp6hc2_b)](http://docs.google.com/File?id=dcmzmbww_23hhrp6hc2_b)
+[![](/media/2009/10/hitachi-a7k2000-01.png)](/media/2009/10/hitachi-a7k2000-01.png)
 
 
 
 Adaptec, RAID5, WD:
 
-[![](http://docs.google.com/File?id=dcmzmbww_24gjf8gtcr_b)](http://docs.google.com/File?id=dcmzmbww_24gjf8gtcr_b)
+[![](/media/2009/10/hitachi-a7k2000-02.png)](/media/2009/10/hitachi-a7k2000-02.png)
 
 
 
@@ -130,19 +130,19 @@ The array initialization time of the Areca is significantly longer compared to A
 
 Areca, RAID5, Hitachi:
 
-[![](http://docs.google.com/File?id=dcmzmbww_25dj3jfcck_b)](http://docs.google.com/File?id=dcmzmbww_25dj3jfcck_b)
+[![](/media/2009/10/hitachi-a7k2000-03.png)](/media/2009/10/hitachi-a7k2000-03.png)
 
 
 
 Areca, RAID5, Seagate:
 
-[![](http://docs.google.com/File?id=dcmzmbww_26ghxs8ddp_b)](http://docs.google.com/File?id=dcmzmbww_26ghxs8ddp_b)
+[![](/media/2009/10/hitachi-a7k2000-04.png)](/media/2009/10/hitachi-a7k2000-04.png)
 
 
 
 Areca, RAID5, WD:
 
-[![](http://docs.google.com/File?id=dcmzmbww_27fqhnwgfh_b)](http://docs.google.com/File?id=dcmzmbww_27fqhnwgfh_b)
+[![](/media/2009/10/hitachi-a7k2000-05.png)](/media/2009/10/hitachi-a7k2000-05.png)
 
 
 
@@ -166,19 +166,19 @@ The Seagate drives completed initialization in 4 hours.
 
 LSI, RAID5, Hitachi:
 
-[![](http://docs.google.com/File?id=dcmzmbww_28ctr9nsg8_b)](http://docs.google.com/File?id=dcmzmbww_28ctr9nsg8_b)
+[![](/media/2009/10/hitachi-a7k2000-06.png)](/media/2009/10/hitachi-a7k2000-06.png)
 
 
 
 LSI, RAID5, Seagate:
 
-[![](http://docs.google.com/File?id=dcmzmbww_29qggsx6wc_b)](http://docs.google.com/File?id=dcmzmbww_29qggsx6wc_b)
+[![](/media/2009/10/hitachi-a7k2000-07.png)](/media/2009/10/hitachi-a7k2000-07.png)
 
 
 
 LSI, RAID5, WD:
 
-[![](http://docs.google.com/File?id=dcmzmbww_30fn8qzmd9_b)](http://docs.google.com/File?id=dcmzmbww_30fn8qzmd9_b)
+[![](/media/2009/10/hitachi-a7k2000-08.png)](/media/2009/10/hitachi-a7k2000-08.png)
 
 
 

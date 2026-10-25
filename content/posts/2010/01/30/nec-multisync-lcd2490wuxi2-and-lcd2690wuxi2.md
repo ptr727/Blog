@@ -32,9 +32,9 @@ At my home office I use [NEC MultiSync LCD2690WUXi2](http://www.necdisplay.com/P
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_45gv49p5g3_b)](http://docs.google.com/File?id=dcmzmbww_45gv49p5g3_b "NEC MultiSync LCD2490WUXi2")
+[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-01.jpg)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-01.jpg "NEC MultiSync LCD2490WUXi2")
 
-[![](http://docs.google.com/File?id=dcmzmbww_46f88c935k_b)](http://docs.google.com/File?id=dcmzmbww_46f88c935k_b "NEC MultiSync LCD2690WUXi2")
+[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-02.jpg)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-02.jpg "NEC MultiSync LCD2690WUXi2")
 
 
 
@@ -148,9 +148,9 @@ The SpectraView documentation states that the sensor is custom calibrated for th
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_47ck7vbfdv_b)](http://docs.google.com/File?id=dcmzmbww_47ck7vbfdv_b "NEC MultiSync LCD2690W2-BK-SV")
+[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-03.jpg)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-03.jpg "NEC MultiSync LCD2690W2-BK-SV")
 
-[NEC MultiSync LCD2690W2-BK-SV](http://docs.google.com/File?id=dcmzmbww_47ck7vbfdv_b "NEC MultiSync LCD2690W2-BK-SV")[![](http://docs.google.com/File?id=dcmzmbww_48c6fvzwds_b)](http://docs.google.com/File?id=dcmzmbww_48c6fvzwds_b "NEC SVII-PRO-KIT")
+[NEC MultiSync LCD2690W2-BK-SV](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-03.jpg "NEC MultiSync LCD2690W2-BK-SV")[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-04.jpg)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-04.jpg "NEC SVII-PRO-KIT")
 
 
 
@@ -166,15 +166,15 @@ Also, if I just rerun the gamma loader in the startup group, it works fine.
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_49chfznbcp_b)](http://docs.google.com/File?id=dcmzmbww_49chfznbcp_b)
+[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-05.png)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-05.png)
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_50hsd29x4g_b)](http://docs.google.com/File?id=dcmzmbww_50hsd29x4g_b)
+[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-06.png)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-06.png)
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_51c4g8ndhm_b)](http://docs.google.com/File?id=dcmzmbww_51c4g8ndhm_b)
+[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-07.png)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-07.png)
 
 
 
@@ -198,19 +198,19 @@ The calibration results show the difference between the LCD2490WUXi2 and LCD2690
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_52gcqbsthm_b)](http://docs.google.com/File?id=dcmzmbww_52gcqbsthm_b "NEC MultiSync LCD2490WUXi2")
+[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-08.png)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-08.png "NEC MultiSync LCD2490WUXi2")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_53gv9z32dv_b)](http://docs.google.com/File?id=dcmzmbww_53gv9z32dv_b "NEC MultiSync LCD2490WUXi2")
+[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-09.png)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-09.png "NEC MultiSync LCD2490WUXi2")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_545zt23gv_b)](http://docs.google.com/File?id=dcmzmbww_545zt23gv_b "NEC MultiSync LCD2690WUXi2")
+[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-10.png)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-10.png "NEC MultiSync LCD2690WUXi2")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_55cn2mb8g7_b)](http://docs.google.com/File?id=dcmzmbww_55cn2mb8g7_b "NEC MultiSync LCD2690WUXi2")
+[![](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-11.png)](/media/2010/01/nec-lcd2490wuxi2-lcd2690wuxi2-11.png "NEC MultiSync LCD2690WUXi2")
 
 
 
