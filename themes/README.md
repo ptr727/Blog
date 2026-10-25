@@ -31,10 +31,10 @@ Some customizations fill extension points the theme documents for the purpose. T
 | Customization | At | Theme hook |
 | --- | --- | --- |
 | Lexend body font, and the `gallery` and `gallery-cols-*` rules the gallery shortcode needs | [`assets/css/extended/custom.css`][custom] | `assets/css/extended/blank.css`, a comment-only stylesheet the theme's head partial bundles beside this one |
-| Google Fonts preconnect and stylesheet links for Lexend | [`layouts/_partials/extend_head.html`][extend-head] | `layouts/_partials/extend_head.html`, an empty partial the theme's head partial calls |
+| Preload of the Lexend file every page's text needs | [`layouts/_partials/extend_head.html`][extend-head] | `layouts/_partials/extend_head.html`, an empty partial the theme's head partial calls |
 | GitHub Discussions link for a post that sets a `discussions` URL in its front matter | [`layouts/_partials/extend_post_content.html`][extend-post-content] | `layouts/_partials/extend_post_content.html`, an empty partial the theme's single-page template calls after the post body |
 
-The font rows belong together, since the font `custom.css` selects is the font `extend_head.html` loads. No row forks theme logic. `extend_post_content.html` renders nothing on a post that sets no `discussions` URL, which is every archive post.
+The font rows belong together, since the font `custom.css` declares and selects is the font `extend_head.html` preloads. The font files and their license are in `static/fonts/lexend/`, outside the theme. No row forks theme logic. `extend_post_content.html` renders nothing on a post that sets no `discussions` URL, which is every archive post.
 
 The customization table holds hooks the theme leaves empty for a site to fill. Other files at the repository root replace a whole theme template instead, so each hides every upstream change to the template it replaces. Hugo reads a root `layouts/shortcodes/` file as the theme's `_shortcodes/` file of the same name. The root override table below lists every one:
 
