@@ -6,6 +6,7 @@ This README covers the URL contract alone. The other checks in this directory ea
 
 | Check | Fails when |
 | --- | --- |
+| [`check-csp-browser.py`][check-csp-browser] | a page on a running mirror makes the browser block something that `csp-browser-allow.txt` does not list |
 | [`check-csp-scripts.py`][check-csp-scripts] | the scripts, frames, media, or objects the built site loads and the blog's policy disagree |
 | [`check-env-docs.py`][check-env-docs] | a configuration value is declared without a description in `ENVIRONMENT.md`, or described there and declared nowhere |
 | [`check-github-env.py`][check-github-env] | the variables and secrets GitHub holds differ from the ones `ENVIRONMENT.md` lists |
@@ -188,6 +189,7 @@ Three traps in that adjudication, each of which produced a wrong answer first an
 [capture-build-redirects]: ../capture/build-redirects.py
 [caddy-dockerfile]: ./caddy/Dockerfile
 [capture-readme]: ../capture/README.md
+[check-csp-browser]: ./check-csp-browser.py
 [check-csp-scripts]: ./check-csp-scripts.py
 [check-env-docs]: ./check-env-docs.py
 [check-github-env]: ./check-github-env.py
