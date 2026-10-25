@@ -47,7 +47,6 @@ import sibling
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
-
 gate = sibling.load("gate", REPO / "checks" / "check-media-metadata.py")
 normalizer = sibling.load("normalizer", REPO / "scripts" / "normalize-media.py")
 

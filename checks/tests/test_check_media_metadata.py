@@ -17,7 +17,6 @@ import sibling
 
 REPO = pathlib.Path(__file__).resolve().parent.parent.parent
 
-
 normalizer = sibling.load("normalizer", REPO / "scripts" / "normalize-media.py")
 fuzz = sibling.load("fuzz", REPO / "checks" / "fuzz-media-parsers.py")
 gate = normalizer.gate

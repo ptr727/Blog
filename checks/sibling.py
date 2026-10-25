@@ -1,7 +1,8 @@
 """Load a sibling script by its path, since a hyphenated file name cannot be imported by name.
 
 A script run as `checks/<name>.py` has `checks/` on its path, and the suite runs from `checks/`, so
-both import this module by name.
+both import this module by name. A `checks/` script that `scripts/` loads by path, such as
+`check-media-metadata.py`, has neither, so it does not import this module.
 """
 
 import importlib.util

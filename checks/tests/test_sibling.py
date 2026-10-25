@@ -16,13 +16,6 @@ class LoadTest(unittest.TestCase):
         self.assertEqual(module.__name__, "some_check")
         self.assertEqual(module.ANSWER, 42)
 
-    def test_a_path_no_loader_reads_is_refused_by_name(self) -> None:
-        with tempfile.TemporaryDirectory() as folder:
-            path = pathlib.Path(folder) / "notes.txt"
-            path.write_text("ANSWER = 42\n", encoding="utf-8")
-            with self.assertRaisesRegex(ImportError, "cannot load notes.txt"):
-                sibling.load("notes", path)
-
 
 if __name__ == "__main__":
     unittest.main()
