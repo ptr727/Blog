@@ -169,13 +169,13 @@ The controller supports power management, and drives are spun down when not in u
 
 3 x Drive RAID5 4TB performance:
 
-[![](http://docs.google.com/File?id=dcmzmbww_18f4mjmshk_b)](http://docs.google.com/File?id=dcmzmbww_18f4mjmshk_b "3 x Drive RAID5 4TB Performance:")
+[![](/media/2009/09/wd-re4-gp-01.png)](/media/2009/09/wd-re4-gp-01.png "3 x Drive RAID5 4TB Performance:")
 
 
 
 6 x Drive RAID6 8TB Performance:
 
-[![](http://docs.google.com/File?id=dcmzmbww_19f7nks4ft_b)](http://docs.google.com/File?id=dcmzmbww_19f7nks4ft_b "6 x Drive RAID6 8TB Performance:")
+[![](/media/2009/09/wd-re4-gp-02.png)](/media/2009/09/wd-re4-gp-02.png "6 x Drive RAID6 8TB Performance:")
 
 
 
@@ -195,13 +195,13 @@ The controller supports power management, and drives are spun down when not in u
 
 3 x Drive RAID5 4TB performance:
 
-[![](http://docs.google.com/File?id=dcmzmbww_16d8bzhjgn_b)](http://docs.google.com/File?id=dcmzmbww_16d8bzhjgn_b "3 x Drive RAID5 4TB Performance:")
+[![](/media/2009/09/wd-re4-gp-03.png)](/media/2009/09/wd-re4-gp-03.png "3 x Drive RAID5 4TB Performance:")
 
 
 
 6 x Drive RAID6 8TB Performance:  
 
-[![](http://docs.google.com/File?id=dcmzmbww_17cn95hsc8_b)](http://docs.google.com/File?id=dcmzmbww_17cn95hsc8_b "6 x Drive RAID6 8TB Performance:")
+[![](/media/2009/09/wd-re4-gp-04.png)](/media/2009/09/wd-re4-gp-04.png "6 x Drive RAID6 8TB Performance:")
 
 
 
@@ -219,13 +219,13 @@ The controller only supports power management on unassigned drives, there is no 
 
 3 x Drive RAID5 4TB performance:
 
-[![](http://docs.google.com/File?id=dcmzmbww_20cbjs24gf_b)](http://docs.google.com/File?id=dcmzmbww_20cbjs24gf_b)
+[![](/media/2009/09/wd-re4-gp-05.png)](/media/2009/09/wd-re4-gp-05.png)
 
 
 
 6 x Drive RAID6 8TB Performance:
 
-[![](http://docs.google.com/File?id=dcmzmbww_21gqzhbcvg_b)](http://docs.google.com/File?id=dcmzmbww_21gqzhbcvg_b "6 x Drive RAID6 8TB Performance:")
+[![](/media/2009/09/wd-re4-gp-06.png)](/media/2009/09/wd-re4-gp-06.png "6 x Drive RAID6 8TB Performance:")
 
 
 

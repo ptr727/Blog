@@ -56,7 +56,7 @@ This did not seem safe to me, I contacted Zotac support, and they said they will
 
  Below is a picture of the plug:   
 
-[![](http://docs.google.com/File?id=dcmzmbww_107fdmzn6fd_b)](http://docs.google.com/File?id=dcmzmbww_107fdmzn6fd_b)
+[![](/media/2010/05/zotac-zboxhd-id11-01.jpg)](/media/2010/05/zotac-zboxhd-id11-01.jpg)
 
 
 
@@ -74,13 +74,13 @@ I installed an [80GB Intel SSD (SSDSA2MH080G2R5](http://www.intel.com/design/fla
 
 Below is a picture of the case before the SSD and memory installation:
 
-[![](http://docs.google.com/File?id=dcmzmbww_108c6hv2736_b)](http://docs.google.com/File?id=dcmzmbww_108c6hv2736_b)
+[![](/media/2010/05/zotac-zboxhd-id11-02.jpg)](/media/2010/05/zotac-zboxhd-id11-02.jpg)
 
 
 
 Below is a picture of the case after the SSD and memory installation:
 
-[![](http://docs.google.com/File?id=dcmzmbww_109fgn8jtdw_b)](http://docs.google.com/File?id=dcmzmbww_109fgn8jtdw_b)
+[![](/media/2010/05/zotac-zboxhd-id11-03.jpg)](/media/2010/05/zotac-zboxhd-id11-03.jpg)
 
 
 
@@ -104,7 +104,7 @@ I installed Windows 7 Ultimate x64, and the install completed reasonably fast.
 
 Below is a picture of device manager:
 
-[![](http://docs.google.com/File?id=dcmzmbww_110fw8pfmht_b)](http://docs.google.com/File?id=dcmzmbww_110fw8pfmht_b)
+[![](/media/2010/05/zotac-zboxhd-id11-04.png)](/media/2010/05/zotac-zboxhd-id11-04.png)
 
 After installing Windows I ran Windows Update, the first update pulled down 4 updates totaling about 140MB, after a reboot a second update contained 26 updates totaling about 34MB.   
 
@@ -118,7 +118,7 @@ I noticed that after running the assessment, the UI became Aero enabled.
 
 Below is a picture of the experience index:
 
-[![](http://docs.google.com/File?id=dcmzmbww_111cz7mxkf6_b)](http://docs.google.com/File?id=dcmzmbww_111cz7mxkf6_b)
+[![](/media/2010/05/zotac-zboxhd-id11-05.png)](/media/2010/05/zotac-zboxhd-id11-05.png)
 
 I noticed that the device manager listed five high definition audio devices.   
 
@@ -130,7 +130,7 @@ I don't know why there are four HDMI devices when there is only one HDMI port.
 
 Below is a picture of the playback devices:
 
-[![](http://docs.google.com/File?id=dcmzmbww_112cfzqsntg_b)](http://docs.google.com/File?id=dcmzmbww_112cfzqsntg_b)
+[![](/media/2010/05/zotac-zboxhd-id11-06.png)](/media/2010/05/zotac-zboxhd-id11-06.png)
 
 The Zotac support site [lists downloads](http://www.zotacusa.com/zotac-zboxhd-id11-u-intel-atom-d510-1-66-ghz-dual-core-all-in-one-mini-pc.html "lists several downloads") for the ID11.   
 
@@ -149,18 +149,18 @@ Below is a summary of the drivers installed by Windows, available from the Zotac
 
 Below is a picture of the device manager after the driver updates:   
 
-[![](http://docs.google.com/File?id=dcmzmbww_113cgbjwb5b_b)](http://docs.google.com/File?id=dcmzmbww_113cgbjwb5b_b)
+[![](/media/2010/05/zotac-zboxhd-id11-07.png)](/media/2010/05/zotac-zboxhd-id11-07.png)
 
 
 
 Below is a picture of playback devices after the driver updates:
 
-[![](http://docs.google.com/File?id=dcmzmbww_114d7c3xsgs_b)](http://docs.google.com/File?id=dcmzmbww_114d7c3xsgs_b)
+[![](/media/2010/05/zotac-zboxhd-id11-08.png)](/media/2010/05/zotac-zboxhd-id11-08.png)
 
 
  Below is a picture of the experience index after the driver updates:   
 
-[![](http://docs.google.com/File?id=dcmzmbww_115dzshw532_b)](http://docs.google.com/File?id=dcmzmbww_115dzshw532_b)
+[![](/media/2010/05/zotac-zboxhd-id11-09.png)](/media/2010/05/zotac-zboxhd-id11-09.png)
 
 
  Note the difference in performance after installing updated drivers:   
@@ -201,7 +201,7 @@ It seems that the fan is not very effective at cooling, and still does not run a
 
 Below is a picture of the PC health monitor page in the BIOS:
 
-[![](http://docs.google.com/File?id=dcmzmbww_120c8rxpdfp_b)](http://docs.google.com/File?id=dcmzmbww_120c8rxpdfp_b)
+[![](/media/2010/05/zotac-zboxhd-id11-10.jpg)](/media/2010/05/zotac-zboxhd-id11-10.jpg)
 
 In order to monitor the fan speed and the CPU/GPU temperature I installed [Lavalys EVEREST Ultimate Edition 5.50.2136](http://www.lavalys.com/ "Lavalys EVEREST 5.50.2136") and [SpeedFan 4.41.b9](http://www.almico.com/speedfan.php "SpeedFan 4.41.b9"), both applications detected the CPU/GPU temperatures, but neither application detected the fan speed.
 
@@ -213,12 +213,12 @@ I will contact Zotac and Lavalys support to find out if the hardware is supposed
 
 Below is a picture of the GPU and CPU temperatures in EVEREST Ultimate Edition:
 
-[![](http://docs.google.com/File?id=dcmzmbww_117dzhhbqfn_b)](http://docs.google.com/File?id=dcmzmbww_117dzhhbqfn_b)
+[![](/media/2010/05/zotac-zboxhd-id11-11.png)](/media/2010/05/zotac-zboxhd-id11-11.png)
 
 
  Below is a picture of the GPU and CPU temperatures in SpeedFan:   
 
-[![](http://docs.google.com/File?id=dcmzmbww_118dvb99whg_b)](http://docs.google.com/File?id=dcmzmbww_118dvb99whg_b)
+[![](/media/2010/05/zotac-zboxhd-id11-12.png)](/media/2010/05/zotac-zboxhd-id11-12.png)
 
 
  \[Update: 26 May 2010\]   
@@ -238,7 +238,7 @@ I filed an RMA with NewEgg, and returned the one ID11 for an exchange.
 
 Below is a picture of the screen corruption:
 
-[![](http://docs.google.com/File?id=dcmzmbww_119gwqzfxcn_b)](http://docs.google.com/File?id=dcmzmbww_119gwqzfxcn_b)
+[![](/media/2010/05/zotac-zboxhd-id11-13.jpg)](/media/2010/05/zotac-zboxhd-id11-13.jpg)
 
 So far I have mixed feelings; the weird power plug, the fan noise, the heat, the screen corruption, are all negatives, but the device still shows promise.
 

@@ -40,7 +40,7 @@ I replaced the stock HD 2600XT fan with a [Zalman VF900-Cu](http://www.zalman.co
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_33p3t6knf4_b)](http://docs.google.com/File?id=dcmzmbww_33p3t6knf4_b "ATI HD 2600XT with Zalman VF900-Cu fan")
+[![](/media/2010/01/htpc-dp45sg-pc-c33b-01.jpg)](/media/2010/01/htpc-dp45sg-pc-c33b-01.jpg "ATI HD 2600XT with Zalman VF900-Cu fan")
 
 
 
@@ -52,7 +52,7 @@ I replaced the stock case fans with [Antec Tri-Cool](http://www.antec.com/Believ
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_34dzthpw45_b)](http://docs.google.com/File?id=dcmzmbww_34dzthpw45_b "Lian-Li PC-C31B and ATI HD 2600XT")
+[![](/media/2010/01/htpc-dp45sg-pc-c33b-02.jpg)](/media/2010/01/htpc-dp45sg-pc-c33b-02.jpg "Lian-Li PC-C31B and ATI HD 2600XT")
 
 
 
@@ -82,11 +82,11 @@ The one thing I wish the PC-C33B had retained was the hidden CD-ROM covers, it m
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_35d6r37v6c_b)](http://docs.google.com/File?id=dcmzmbww_35d6r37v6c_b "Top: Lian-Li PC-C31B, Bottom: Lian-Li PC-C33B")
+[![](/media/2010/01/htpc-dp45sg-pc-c33b-03.jpg)](/media/2010/01/htpc-dp45sg-pc-c33b-03.jpg "Top: Lian-Li PC-C31B, Bottom: Lian-Li PC-C33B")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_36chrgjhfh_b)](http://docs.google.com/File?id=dcmzmbww_36chrgjhfh_b "Top: Lian-Li PC-C31B, Bottom: Lian-Li PC-C33B")
+[![](/media/2010/01/htpc-dp45sg-pc-c33b-04.jpg)](/media/2010/01/htpc-dp45sg-pc-c33b-04.jpg "Top: Lian-Li PC-C31B, Bottom: Lian-Li PC-C33B")
 
 
 
@@ -180,7 +180,7 @@ On running the system I noticed one abnormality reported in the eventlog:
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_43fqhr8ffx_b)](http://docs.google.com/File?id=dcmzmbww_43fqhr8ffx_b)
+[![](/media/2010/01/htpc-dp45sg-pc-c33b-05.png)](/media/2010/01/htpc-dp45sg-pc-c33b-05.png)
 
 
 
@@ -208,7 +208,7 @@ I'll keep on looking for a quieter 140mm fan, and maybe add some sound insulatio
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_37fc4mmxhd_b)](http://docs.google.com/File?id=dcmzmbww_37fc4mmxhd_b "Lian-Li PC-C33B and ATI HD 5750")
+[![](/media/2010/01/htpc-dp45sg-pc-c33b-06.jpg)](/media/2010/01/htpc-dp45sg-pc-c33b-06.jpg "Lian-Li PC-C33B and ATI HD 5750")
 
 
 
@@ -240,7 +240,7 @@ Really ATI, this seems like such a basic thing.
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_38gfb7bxf7_b)](http://docs.google.com/File?id=dcmzmbww_38gfb7bxf7_b "The buttons are not visible on the screen")
+[![](/media/2010/01/htpc-dp45sg-pc-c33b-07.png)](/media/2010/01/htpc-dp45sg-pc-c33b-07.png "The buttons are not visible on the screen")
 
 
 
@@ -256,7 +256,7 @@ After some searching I found that you have to go to your displays panel, then cl
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_40f9d4nfg3_b)](http://docs.google.com/File?id=dcmzmbww_40f9d4nfg3_b)
+[![](/media/2010/01/htpc-dp45sg-pc-c33b-08.png)](/media/2010/01/htpc-dp45sg-pc-c33b-08.png)
 
 
 
@@ -266,7 +266,7 @@ Then adjust the overscan.
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_41ggxc4tf4_b)](http://docs.google.com/File?id=dcmzmbww_41ggxc4tf4_b)
+[![](/media/2010/01/htpc-dp45sg-pc-c33b-09.png)](/media/2010/01/htpc-dp45sg-pc-c33b-09.png)
 
 
 
@@ -306,7 +306,7 @@ On two occasions the screen did not recover and I had to do a hard reset.
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_42wh3n4dv_b)](http://docs.google.com/File?id=dcmzmbww_42wh3n4dv_b)
+[![](/media/2010/01/htpc-dp45sg-pc-c33b-10.png)](/media/2010/01/htpc-dp45sg-pc-c33b-10.png)
 
 
 

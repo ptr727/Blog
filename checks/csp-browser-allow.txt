@@ -1,2 +1,0 @@
-img-src	https://docs.google.com	dead hotlinked images on archived posts, kept until each post settles what replaces them
-img-src	https://www.elcolighting.com	dead hotlinked image on an archived post, kept until the post settles what replaces it
