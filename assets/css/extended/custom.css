@@ -13,7 +13,6 @@ The body font is served from `static/fonts/lexend/`, beside its license, and `la
 The two belong together.
 */
 
-/* The Latin and Latin Extended subsets Google Fonts serves, with its unicode ranges, so a page loads only the file its text needs. */
 @font-face {
     font-family: 'Lexend';
     font-style: normal;

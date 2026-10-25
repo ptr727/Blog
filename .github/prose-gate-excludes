@@ -16,3 +16,6 @@ content/posts/2021/
 content/posts/2022/
 content/posts/2023/
 content/posts/2024/
+# Each font's license is carried verbatim, as the SIL Open Font License requires.
+static/fonts/
+sites/viljoen.family/fonts/

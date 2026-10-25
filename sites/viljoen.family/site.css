@@ -1,4 +1,3 @@
-/* Each family is a variable font, so one file per style covers its weight range. Only the Latin and Latin Extended subsets are carried, with Google Fonts' unicode ranges, and each family's license is beside its files. */
 @font-face {
   font-family: "Cormorant Garamond";
   font-style: normal;
