@@ -15,7 +15,7 @@ hash.
 A frame, a media file, or an object loads under its own directive. A post may carry raw HTML,
 so it can add one from a host the policy does not name. Each such load must come from a host or a
 scheme its directive names. The browser's fallbacks apply: `child-src` then `default-src` for a
-frame, and `default-src` for the others.
+frame, and `default-src` for the others. An `about:` URL fetches nothing, so no directive applies.
 """
 
 import argparse
@@ -116,14 +116,15 @@ class ScriptScan(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         for name, value in attrs:
+            url = (value or "").strip()
             if name.startswith("on"):
                 self.findings.append(f"<{tag} {name}> is an inline event handler")
-            elif name in ("href", "src", "action") and (
-                value or ""
-            ).strip().lower().startswith("javascript:"):
+            elif name in ("href", "src", "action") and url.lower().startswith(
+                "javascript:"
+            ):
                 self.findings.append(f"<{tag} {name}> is a javascript: URL")
-            if (tag, name) in EMBEDS and (value or "").strip():
-                self.embeds.append((tag, name, value.strip(), EMBEDS[tag, name]))
+            elif (tag, name) in EMBEDS and url and not url.lower().startswith("about:"):
+                self.embeds.append((tag, name, url, EMBEDS[tag, name]))
         if tag != "script":
             return
         attr = dict(attrs)

@@ -170,9 +170,18 @@ class CheckTest(unittest.TestCase):
         self.assertEqual(len(findings), 1)
         self.assertIn("object-src does not name", findings[0])
 
-    def test_an_embed_without_a_value_is_not_checked(self) -> None:
-        html = '<iframe src=""></iframe><video src></video><object></object>'
+    def test_an_embed_without_a_value_or_with_about_blank_is_not_checked(self) -> None:
+        html = (
+            '<iframe src=""></iframe><video src></video><object></object>'
+            '<iframe src="about:blank"></iframe>'
+        )
         self.assertEqual(self.run_gate({"index.html": html}, ["'self'"]), [])
+
+    def test_a_javascript_embed_is_reported_once(self) -> None:
+        html = '<iframe src=" javascript:go()"></iframe>'
+        findings = self.run_gate({"index.html": html}, ["'self'"])
+        self.assertEqual(len(findings), 1)
+        self.assertIn("javascript: URL", findings[0])
 
 
 class PolicyTest(unittest.TestCase):
