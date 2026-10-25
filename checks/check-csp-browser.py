@@ -159,14 +159,17 @@ def docker_command(image, version, base_url, cache):
 
 def run_probe(command, paths, timeout):
     """The probe's records, one JSON object per output line, or a refusal naming why none came."""
-    done = subprocess.run(
-        command,
-        input="\n".join(paths) + "\n",
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        check=False,
-    )
+    try:
+        done = subprocess.run(
+            command,
+            input="\n".join(paths) + "\n",
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return None, f"the browser probe did not finish: {error}"
     if done.returncode != 0:
         return (
             None,
@@ -251,9 +254,11 @@ def main(argv=None):
     )
     cache.mkdir(parents=True, exist_ok=True)
     print(f"csp-browser: {len(paths)} pages against {args.base_url}, {image}")
-    records, refusal = run_probe(
-        docker_command(image, version, args.base_url, cache), paths, args.timeout
-    )
+    try:
+        command = docker_command(image, version, args.base_url, cache)
+    except FileNotFoundError as error:
+        sys.exit(f"FAIL: {error}")
+    records, refusal = run_probe(command, paths, args.timeout)
     if records is None:
         sys.exit(f"FAIL: {refusal}")
 

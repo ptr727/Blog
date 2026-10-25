@@ -164,6 +164,15 @@ class MainTest(unittest.TestCase):
             gate.main([BASE])
         self.assertIn("exited 125", str(raised.exception.code))
 
+    def test_a_host_without_uv_fails_with_the_reason(self) -> None:
+        with (
+            mock.patch.object(gate.shutil, "which", return_value=None),
+            contextlib.redirect_stdout(io.StringIO()),
+            self.assertRaises(SystemExit) as raised,
+        ):
+            gate.main([BASE])
+        self.assertEqual(raised.exception.code, "FAIL: uv is not on PATH")
+
     def test_a_relative_base_url_is_a_usage_error(self) -> None:
         with (
             contextlib.redirect_stderr(io.StringIO()),
@@ -203,6 +212,18 @@ class ProbeRunTest(unittest.TestCase):
         records, refusal = gate.run_probe([sys.executable, "-c", fail], ["/"], 60)
         self.assertIsNone(records)
         self.assertIn("no browser", refusal or "")
+
+    def test_a_probe_past_its_timeout_is_a_refusal(self) -> None:
+        stall = "import time; time.sleep(30)"
+        records, refusal = gate.run_probe([sys.executable, "-c", stall], ["/"], 1)
+        self.assertIsNone(records)
+        self.assertIn("timed out", refusal or "")
+
+    def test_a_probe_that_cannot_start_is_a_refusal(self) -> None:
+        missing = [str(CHECKS / "no-such-command")]
+        records, refusal = gate.run_probe(missing, ["/"], 60)
+        self.assertIsNone(records)
+        self.assertIn("did not finish", refusal or "")
 
 
 if __name__ == "__main__":
