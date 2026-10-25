@@ -112,7 +112,7 @@ class CheckTest(unittest.TestCase):
         for html, expected in (
             ('<button onclick="go()">Go</button>', "inline event handler"),
             ('<a href=" JavaScript:go()">Go</a>', "javascript: URL"),
-            ('<script src="javascript:go()"></script>', "javascript: URL"),
+            ('<script src="javascript:go()">fallback()</script>', "javascript: URL"),
         ):
             with self.subTest(html):
                 findings = self.run_gate({"index.html": html}, ["'self'"])

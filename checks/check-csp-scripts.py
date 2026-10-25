@@ -95,10 +95,10 @@ class ScriptScan(HTMLParser):
         if (attr.get("type") or "").strip().lower() not in SCRIPT_TYPES:
             return
         src = attr.get("src")
-        if src is not None and not src.strip().lower().startswith("javascript:"):
-            self.loaded.append(src)
-        else:
+        if src is None:
             self.body = []
+        elif not src.strip().lower().startswith("javascript:"):
+            self.loaded.append(src)
 
     def handle_data(self, data):
         if self.body is not None:
