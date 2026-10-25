@@ -25,7 +25,7 @@ def policy(*sources):
 
 
 class CheckTest(unittest.TestCase):
-    def run_gate(self, pages, sources):
+    def run_gate(self, pages, sources, csp=None):
         with tempfile.TemporaryDirectory() as tmp:
             public = pathlib.Path(tmp)
             for rel, html in pages.items():
@@ -33,7 +33,7 @@ class CheckTest(unittest.TestCase):
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(html, encoding="utf-8")
             with contextlib.redirect_stdout(io.StringIO()):
-                return gate.check(public, sources)
+                return gate.check(public, csp or policy(*sources))
 
     def test_a_listed_hash_for_every_inline_script_passes(self) -> None:
         sources = ["'self'", gate.digest(THEME)]
@@ -122,6 +122,57 @@ class CheckTest(unittest.TestCase):
                 findings = self.run_gate({"index.html": html}, ["'self'"])
                 self.assertEqual(len(findings), 1)
                 self.assertIn(expected, findings[0])
+
+    def test_an_embed_from_another_host_fails_under_its_directive(self) -> None:
+        for html, directive in (
+            ('<iframe src="https://maps.example.test/x"></iframe>', "frame-src"),
+            ('<frame src="https://maps.example.test/x">', "frame-src"),
+            ('<video src="https://cdn.example.test/a.mp4"></video>', "media-src"),
+            ('<audio src="https://cdn.example.test/a.mp3"></audio>', "media-src"),
+            (
+                '<video><source src="https://cdn.example.test/a.webm"></video>',
+                "media-src",
+            ),
+            (
+                '<video><track src="https://cdn.example.test/a.vtt"></video>',
+                "media-src",
+            ),
+            ('<embed src="https://cdn.example.test/a.swf">', "object-src"),
+            ('<object data="https://cdn.example.test/a.pdf"></object>', "object-src"),
+        ):
+            with self.subTest(html):
+                findings = self.run_gate({"index.html": html}, ["'self'"])
+                self.assertEqual(len(findings), 1)
+                self.assertIn(f"{directive} does not name", findings[0])
+
+    def test_an_embed_from_the_site_itself_passes_under_default_src(self) -> None:
+        html = '<video src="/media/a.mp4"></video><iframe src="/demo/"></iframe>'
+        self.assertEqual(self.run_gate({"index.html": html}, ["'self'"]), [])
+
+    def test_a_named_host_passes_and_the_fallback_order_holds(self) -> None:
+        html = '<iframe src="https://maps.example.test/x"></iframe>'
+        host = "https://maps.example.test"
+        for csp, findings in (
+            (f"default-src 'self'; frame-src {host}", 0),
+            (f"default-src 'self'; child-src {host}", 0),
+            (f"default-src {host}", 0),
+            (f"default-src {host}; frame-src 'self'", 1),
+            (f"default-src {host}; child-src 'self'", 1),
+        ):
+            with self.subTest(csp):
+                found = self.run_gate({"index.html": html}, [], csp)
+                self.assertEqual(len(found), findings, found)
+
+    def test_object_src_none_refuses_even_the_site_itself(self) -> None:
+        html = '<object data="/a.pdf"></object>'
+        csp = "default-src 'self'; object-src 'none'"
+        findings = self.run_gate({"index.html": html}, [], csp)
+        self.assertEqual(len(findings), 1)
+        self.assertIn("object-src does not name", findings[0])
+
+    def test_an_embed_without_a_value_is_not_checked(self) -> None:
+        html = '<iframe src=""></iframe><video src></video><object></object>'
+        self.assertEqual(self.run_gate({"index.html": html}, ["'self'"]), [])
 
 
 class PolicyTest(unittest.TestCase):

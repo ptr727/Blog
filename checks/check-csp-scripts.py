@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify that the blog's Content-Security-Policy allows every script the built site runs.
+"""Verify that the blog's Content-Security-Policy allows every script and embed the built site loads.
 
 The policy is read from `checks/security-headers.txt`, and `deploy/Caddyfile`, which ships, must
 send the same value. Without `script-src` the browser applies `default-src`, and so does this
@@ -11,6 +11,11 @@ neither without `'unsafe-hashes'`, which the blog policy does not carry. A scrip
 browser runs is checked, an import map and a speculation rules block included. Any other type is
 a data block that never runs, and the browser never checks an empty script, so neither needs a
 hash.
+
+A frame, a media file, or an object loads under its own directive. A post may carry raw HTML,
+so it can add one from a host the policy does not name. Each such load must come from a host or a
+scheme its directive names. The browser's fallbacks apply: `child-src` then `default-src` for a
+frame, and `default-src` for the others.
 """
 
 import argparse
@@ -56,13 +61,40 @@ def blog_policy(headers_text):
     return None
 
 
-def script_sources(policy):
+FALLBACKS = {
+    "script-src": ("script-src", "default-src"),
+    "frame-src": ("frame-src", "child-src", "default-src"),
+    "media-src": ("media-src", "default-src"),
+    "object-src": ("object-src", "default-src"),
+}
+
+EMBEDS = {
+    ("iframe", "src"): "frame-src",
+    ("frame", "src"): "frame-src",
+    ("audio", "src"): "media-src",
+    ("video", "src"): "media-src",
+    ("source", "src"): "media-src",
+    ("track", "src"): "media-src",
+    ("embed", "src"): "object-src",
+    ("object", "data"): "object-src",
+}
+
+
+def directive_sources(policy, directive):
+    """The sources the browser applies to a directive, its fallbacks included."""
     directives = {}
-    for directive in policy.split(";"):
-        tokens = directive.split()
+    for part in policy.split(";"):
+        tokens = part.split()
         if tokens:
             directives.setdefault(tokens[0], tokens[1:])
-    return directives.get("script-src", directives.get("default-src", []))
+    for name in FALLBACKS[directive]:
+        if name in directives:
+            return directives[name]
+    return []
+
+
+def script_sources(policy):
+    return directive_sources(policy, "script-src")
 
 
 def digest(body):
@@ -78,6 +110,7 @@ class ScriptScan(HTMLParser):
         super().__init__(convert_charrefs=False)
         self.inline = []
         self.loaded = []
+        self.embeds = []
         self.findings = []
         self.body = None
 
@@ -89,6 +122,8 @@ class ScriptScan(HTMLParser):
                 value or ""
             ).strip().lower().startswith("javascript:"):
                 self.findings.append(f"<{tag} {name}> is a javascript: URL")
+            if (tag, name) in EMBEDS and (value or "").strip():
+                self.embeds.append((tag, name, value.strip(), EMBEDS[tag, name]))
         if tag != "script":
             return
         attr = dict(attrs)
@@ -120,7 +155,11 @@ def allowed(src, sources):
     return "'self'" in sources
 
 
-def check(public, sources):
+def check(public, policy):
+    sources = script_sources(policy)
+    embed_sources = {
+        name: directive_sources(policy, name) for name in set(EMBEDS.values())
+    }
     used = collections.defaultdict(list)
     findings = []
     for path in sorted(public.rglob("*.html")):
@@ -133,6 +172,11 @@ def check(public, sources):
             f"{rel}: <script src={src}> is from a host or scheme that script-src does not name"
             for src in scan.loaded
             if not allowed(src, sources)
+        ]
+        findings += [
+            f"{rel}: <{tag} {name}={src}> is from a host or scheme that {directive} does not name"
+            for tag, name, src, directive in scan.embeds
+            if not allowed(src, embed_sources[directive])
         ]
         for body in scan.inline:
             if body:
@@ -178,9 +222,9 @@ def main(argv=None):
     if policy is None:
         sys.exit(f"FAIL: {refusal}")
 
-    findings = check(args.public, script_sources(policy))
+    findings = check(args.public, policy)
     if not findings:
-        print("PASS - the blog's script-src allows every script the site runs")
+        print("PASS - the blog's policy allows every script and embed the site loads")
         return 0
     print(f"FAIL csp: {len(findings)} problem{'' if len(findings) == 1 else 's'}")
     for item in findings[:20]:
