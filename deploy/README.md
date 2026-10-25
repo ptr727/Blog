@@ -306,6 +306,8 @@ The HSTS value carries neither `includeSubDomains` nor `preload`. `includeSubDom
 
 **A Hugo update, a theme update, or a theme setting in `hugo.yaml` can change those scripts.** [`checks/check-csp-scripts.py`][checks-csp-scripts] runs in the release build and fails when the hashes and the built scripts differ. The fix is to copy each hash it reports into both the Caddyfile and `security-headers.txt`, and to drop each hash it reports as unused.
 
+**The policy also blocks a script the proxy injects into a page.** Cloudflare's Rocket Loader, Email Address Obfuscation, and Web Analytics each inject one, so each stays off. They are the host side's to set, and the gate cannot see them, since it reads only what Hugo builds.
+
 **A change to any of these values changes [`checks/security-headers.txt`][checks-security-headers] with it.** The live check asserts each value exactly, and a unit case fails while the two differ.
 
 ## Trusting the proxy

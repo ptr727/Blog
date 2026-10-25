@@ -7,9 +7,10 @@ check. Every inline script must carry a hash the policy lists. Every hash the po
 must match an inline script. A Hugo or theme update that changes a script's bytes then fails
 here rather than in a reader's browser. A script loaded by URL must come from an origin the
 policy names. An inline event handler or a `javascript:` URL fails outright, since a hash allows
-neither without `'unsafe-hashes'`, which the blog policy does not carry. An import map and a
-speculation rules block are checked like a script. Any other type is a data block that never
-runs, and the browser never checks an empty script, so neither needs a hash.
+neither without `'unsafe-hashes'`, which the blog policy does not carry. A script whose type the
+browser runs is checked, an import map and a speculation rules block included. Any other type is
+a data block that never runs, and the browser never checks an empty script, so neither needs a
+hash.
 """
 
 import argparse
@@ -29,10 +30,19 @@ CSP = "Content-Security-Policy"
 SCRIPT_TYPES = {
     "",
     "module",
-    "text/javascript",
-    "application/javascript",
     "importmap",
     "speculationrules",
+    "application/ecmascript",
+    "application/javascript",
+    "application/x-ecmascript",
+    "application/x-javascript",
+    "text/ecmascript",
+    "text/javascript",
+    *(f"text/javascript1.{minor}" for minor in range(6)),
+    "text/jscript",
+    "text/livescript",
+    "text/x-ecmascript",
+    "text/x-javascript",
 }
 
 

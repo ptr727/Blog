@@ -73,8 +73,13 @@ class CheckTest(unittest.TestCase):
         )
         self.assertEqual(self.run_gate({"index.html": html}, ["'self'"]), [])
 
-    def test_modules_import_maps_and_speculation_rules_are_checked(self) -> None:
-        for kind in ("module", "importmap", "speculationrules"):
+    def test_every_type_the_browser_runs_is_checked(self) -> None:
+        for kind in (
+            "module",
+            "importmap",
+            "speculationrules",
+            "Application/X-JavaScript",
+        ):
             with self.subTest(kind):
                 html = f'<script type="{kind}">{THEME}</script>'
                 findings = self.run_gate({"index.html": html}, ["'self'"])
