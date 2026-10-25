@@ -9,8 +9,6 @@ tags:
 - photoframe
 post_id: '73'
 ---
-This article was originally posted [here](http://www.insanegenius.com/photoframe/).
-
 ### Introduction:
 
 
@@ -76,7 +74,7 @@ I tried a 1GB PNY SD card, again the frame displayed images fine,
 and this time the SD card was accessible in Windows and in the Photo Frame  
 software.
 
-- The Photo Manager software ([picture](/external/85685b360e0a3539.png)) leaves much to be desired.
+- The Photo Manager software ([picture](/media/2008/04/philips-photo-manager.png)) leaves much to be desired.
 
 The software is slow, but maybe this is because accessing the frame storage  
 is slow.
@@ -92,7 +90,7 @@ poor English.
 Philips tech support recommended I delete the pictures using the frame  
 software, or to delete the pictures directly using Windows Explorer.
 
-![Error](/external/f00ce71cf1152c67.png)
+![Error](/media/2008/04/philips-photo-manager-error.png)
 
 
 - The version of Photo Manager (1.0.1.6) I received on the CD and the  
@@ -115,8 +113,6 @@ something usable.
 
 
 
-
-- [Pieter Viljoen's homepage](http://www.insanegenius.com/).
 
 -   
 [Philips Photo Frame site](http://www.photoframe.philips.com/US/).

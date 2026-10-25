@@ -78,7 +78,7 @@ I created a C++ project in Visual Studio 2008, and wrote code to take the input 
 
 
 
-The source and binary files are available [here](https://docs.google.com/uc?id=0B_YiDruAPkKzNzUyNzBiMGItNGZkMi00ODkyLTk5YTEtNGVhNDg4ZmNiYzc1&export=download&hl=en).
+The source and binary files are available [here](/media/2009/02/dxoproxy.zip).
 
 Please remember that I provide no warranty at all, I did minimal testing, so use at your own risk.
 

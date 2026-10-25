@@ -26,7 +26,7 @@ I also had to fix a couple of other small things in order to get the "Release" b
 
 The last change was to set the Outlook import DLL linker options to delay load MAPI32.DLL.
 
-You can download the binaries from [here](https://docs.google.com/uc?id=0B_YiDruAPkKzNzIyNzRiYjYtNTcxZS00MzRkLWE1MzMtMGE1N2FhZWNjMmFl&export=download&hl=en), simply extract and run.  
+You can download the binaries from [here](/media/2009/01/googleemailuploader.zip), simply extract and run.  
 Please remember that I provide no warranty at all, I did minimal testing, so use at your own risk.
 
 I hope Google makes these easy changes to the main source branch so future official versions also support Outlook 2007 on Vista x64.
