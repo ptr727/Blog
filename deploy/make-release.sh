@@ -203,6 +203,7 @@ hugo --gc --minify --panicOnWarning
 
 echo "==> verifying the URL contract"
 checks/check-url-parity.py public
+checks/check-csp-scripts.py public
 
 echo "==> precompressing"
 # Text only, because JPEG, PNG, and MP4 are already compressed.
