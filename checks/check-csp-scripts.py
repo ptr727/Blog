@@ -5,8 +5,8 @@ The policy is read from `checks/security-headers.txt`, and `deploy/Caddyfile`, w
 send the same value. Without `script-src` the browser applies `default-src`, and so does this
 check. Every inline script must carry a hash the policy lists. Every hash the policy lists
 must match an inline script. A Hugo or theme update that changes a script's bytes then fails
-here rather than in a reader's browser. A script loaded by URL must come from an origin the
-policy names. An inline event handler or a `javascript:` URL fails outright, since a hash allows
+here rather than in a reader's browser. A script loaded by URL must come from a host or a
+scheme the policy names. An inline event handler or a `javascript:` URL fails outright, since a hash allows
 neither without `'unsafe-hashes'`, which the blog policy does not carry. A script whose type the
 browser runs is checked, an import map and a speculation rules block included. Any other type is
 a data block that never runs, and the browser never checks an empty script, so neither needs a
@@ -94,10 +94,12 @@ class ScriptScan(HTMLParser):
         attr = dict(attrs)
         if (attr.get("type") or "").strip().lower() not in SCRIPT_TYPES:
             return
-        if attr.get("src") is not None:
-            self.loaded.append(attr["src"] or "")
-        else:
+        if "src" not in attr:
             self.body = []
+            return
+        src = attr["src"] or ""
+        if not src.strip().lower().startswith("javascript:"):
+            self.loaded.append(src)
 
     def handle_data(self, data):
         if self.body is not None:
@@ -111,9 +113,11 @@ class ScriptScan(HTMLParser):
 
 def allowed(src, sources):
     parts = urlsplit(src if not src.startswith("//") else "https:" + src)
-    if not parts.netloc:
-        return "'self'" in sources
-    return f"{parts.scheme}://{parts.netloc}" in sources
+    if parts.netloc:
+        return f"{parts.scheme}://{parts.netloc}" in sources
+    if parts.scheme:
+        return f"{parts.scheme}:" in sources
+    return "'self'" in sources
 
 
 def check(public, sources):
@@ -126,7 +130,7 @@ def check(public, sources):
         scan.close()
         findings += [f"{rel}: {finding}" for finding in scan.findings]
         findings += [
-            f"{rel}: <script src={src}> is from an origin script-src does not name"
+            f"{rel}: <script src={src}> is from a host or scheme that script-src does not name"
             for src in scan.loaded
             if not allowed(src, sources)
         ]
