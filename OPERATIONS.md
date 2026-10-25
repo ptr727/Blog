@@ -94,7 +94,7 @@ Expect a `PASS` naming the number of URLs honored. That is the three lists' comb
 
 A documentation-only or workflow-only change does not need this. A change to the four paths above does, because for those CI's green is not evidence.
 
-**A change to a `Content-Security-Policy` in `security-headers.txt` is also tried in a browser**, on the local staging mirror, before its pull request opens. So is a theme or `layouts/` change that adds a style, a font, a fetch, or a script. [`checks/check-csp-browser.py`](./checks/check-csp-browser.py) loads every page of `golden-urls.txt` plus `/search/` in headless Chromium. It scrolls each page to its end, clicks its code-copy buttons, and types a search query. It then reports each `securitypolicyviolation` event by directive and blocked origin, with the first page it occurred on. The event fires for an enforcing policy and a `Content-Security-Policy-Report-Only` one alike, so a trial can run Report-Only first:
+**A change to a `Content-Security-Policy` in `security-headers.txt` is also tried in a browser**, on the local staging mirror, before its pull request opens. So is a theme or `layouts/` change that adds a style, a font, a fetch, or a script. [`checks/check-csp-browser.py`](./checks/check-csp-browser.py) loads every page of `golden-urls.txt` plus `/search/` in headless Chromium. It scrolls each page to its end, clicks its code-copy buttons, and types a search query. It reads each `securitypolicyviolation` event from the page and from each frame in it. It reports them by directive and blocked origin, with the first page each occurred on. The event fires for an enforcing policy and a `Content-Security-Policy-Report-Only` one alike, so a trial can run Report-Only first:
 
 ```sh
 set -e
