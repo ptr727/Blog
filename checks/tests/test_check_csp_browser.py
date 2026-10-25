@@ -56,12 +56,16 @@ class PinTest(unittest.TestCase):
 
 class ListTest(unittest.TestCase):
     def test_paths_keep_order_drop_repeats_and_add_search(self) -> None:
-        paths = gate.read_paths(["/\n/a/\n\n", "/a/\n/b/\n"])
+        paths = gate.read_paths(["/\n/a/\n\n", "/a/\n/b/\n"], search=True)
         self.assertEqual(paths, ["/", "/a/", "/b/", gate.SEARCH_PATH])
 
     def test_a_listed_search_page_is_not_added_twice(self) -> None:
-        paths = gate.read_paths([f"{gate.SEARCH_PATH}\n/\n"])
+        paths = gate.read_paths([f"{gate.SEARCH_PATH}\n/\n"], search=True)
         self.assertEqual(paths, [gate.SEARCH_PATH, "/"])
+
+    def test_paths_not_asking_for_search_keep_only_their_own(self) -> None:
+        paths = gate.read_paths(["/en/\n/af/\n"], search=False)
+        self.assertEqual(paths, ["/en/", "/af/"])
 
     def test_an_allow_line_without_a_reason_is_refused(self) -> None:
         with self.assertRaises(ValueError):
@@ -144,10 +148,28 @@ class MainTest(unittest.TestCase):
         return code, out.getvalue()
 
     def test_every_page_loaded_clean_passes(self) -> None:
-        paths = gate.read_paths([gate.URLS.read_text(encoding="utf-8")])
+        paths = gate.read_paths([gate.URLS.read_text(encoding="utf-8")], search=True)
         code, out = self.run_main([loaded(path) for path in paths])
         self.assertEqual(code, 0, out)
         self.assertIn("PASS", out)
+
+    def test_a_run_over_another_list_loads_only_its_own_pages(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            urls = pathlib.Path(folder) / "family-urls.txt"
+            urls.write_text("/en/\n/af/\n", encoding="utf-8")
+            with (
+                mock.patch.object(
+                    gate,
+                    "run_probe",
+                    return_value=([loaded("/en/"), loaded("/af/")], None),
+                ) as probe,
+                mock.patch.object(gate, "docker_command", return_value=["true"]),
+                mock.patch.object(gate, "read_allow", return_value=[]),
+                contextlib.redirect_stdout(io.StringIO()) as out,
+            ):
+                code = gate.main([BASE, "--urls", str(urls)])
+        self.assertEqual(code, 0, out.getvalue())
+        self.assertEqual(probe.call_args.args[1], ["/en/", "/af/"])
 
     def test_a_page_that_never_reported_fails(self) -> None:
         code, out = self.run_main([loaded("/")])
