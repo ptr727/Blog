@@ -205,7 +205,7 @@ echo "==> verifying the URL contract"
 checks/check-url-parity.py public
 
 echo "==> verifying the Content-Security-Policy"
-checks/check-csp-scripts.py public
+checks/check-csp.py public
 
 echo "==> precompressing"
 # Text only, because JPEG, PNG, and MP4 are already compressed.

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Load a running site in headless Chromium and report what its Content-Security-Policy blocks.
 
-`check-csp-scripts.py` proves the built scripts match the policy's hashes. It cannot see what a
-browser blocks at run time: a style, a font, a fetch, an image, or a script a proxy injects. This
+`check-csp.py` proves the built scripts match the policy's hashes and that every fetch the pages
+and stylesheets name is one the policy allows. It cannot see what a browser blocks at run time: a
+fetch a script makes, or a script a proxy injects. This
 check loads each page in a URL list against a mirror. It records every `securitypolicyviolation`
 event in the page and in each frame it holds, as it fires. The event fires for an enforcing policy
 and a Report-Only one alike. Each page is scrolled to its end so lazy images load, and its
