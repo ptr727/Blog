@@ -64,6 +64,16 @@
       "problemMatcher": []
     },
     {
+      "label": "Check: CSP Scripts",
+      "type": "process",
+      "command": "checks/check-csp-scripts.py",
+      "args": [
+        "public"
+      ],
+      "dependsOn": "Build: Site",
+      "problemMatcher": []
+    },
+    {
       "label": "Clean Compile",
       "dependsOrder": "sequence",
       "dependsOn": [
@@ -71,7 +81,8 @@
         "Lint: Spelling",
         "Lint: Shell",
         "Lint: Shell Format",
-        "Check: URL Parity"
+        "Check: URL Parity",
+        "Check: CSP Scripts"
       ],
       "problemMatcher": []
     }
