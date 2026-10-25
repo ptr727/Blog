@@ -164,9 +164,11 @@ One more decides how much of the contract is requested:
 | --- | --- |
 | `SAMPLE_CONTRACT` | `1` requests the first URL of each class rather than every URL. Unset checks the whole contract. Any other value is refused. |
 
-Production's deploy sets it, and so does a hand run against the VPS production site. Nothing else sets it. Production's edge bans a client that requests
+Production's deploy sets it, and so does a hand run against the VPS production site. Nothing else sets it. The VPS edge bans a client that requests
 more than 40 distinct pages in a burst. It also bans one when more than 10 distinct pages answer
-`404`, `403` or `400` in a short window. Images, CSS and JS count toward neither. The whole
+`404`, `403` or `400` in a short window. Images, CSS and JS count toward neither. The host side
+exempts the site's own names from the first scenario, which lets staging check the whole contract.
+The sample keeps production's run inside both limits whether or not that exemption holds. The whole
 contract is over 1,200 URLs. The sample takes one URL from each redirect class in
 [How the redirects are expressed][how-the-redirects-are-expressed]. It adds one from each shape
 of page that must render, one from each media tree, and the three family pages. It also adds
