@@ -140,7 +140,7 @@ PRELOAD_AS = {
 }
 
 NETWORK_SCHEMES = {"http", "https", "ws", "wss"}
-NAVIGATION_LISTS = {"base-uri", "form-action", "frame-ancestors", "navigate-to"}
+URL_LISTS = {"base-uri", "form-action", "frame-ancestors", "navigate-to", "report-uri"}
 
 COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
 IMPORT = re.compile(
@@ -172,12 +172,13 @@ def directive_sources(policy, directive):
 def named_hosts(policy):
     """Each source that names another host, as (directive, source).
 
-    A source list is held by each `-src` directive and by the navigation directives, such as
-    `form-action`. A token under any other directive, such as a `sandbox` flag, names no host.
+    Each `-src` directive holds a source list, and so do the navigation directives, such as
+    `form-action`. `report-uri` holds the URL reports go to. A token under any other directive,
+    such as a `sandbox` flag or a `report-to` group, names no host.
     """
     hosts = []
     for directive, sources in directives(policy).items():
-        if not directive.endswith("-src") and directive not in NAVIGATION_LISTS:
+        if not directive.endswith("-src") and directive not in URL_LISTS:
             continue
         for token in sources:
             scheme = token[:-1].lower() if token.endswith(":") else None
