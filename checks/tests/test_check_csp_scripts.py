@@ -98,6 +98,10 @@ class CheckTest(unittest.TestCase):
         named = ["'self'", "https://cdn.example.test"]
         self.assertEqual(self.run_gate({"index.html": other}, named), [])
 
+    def test_a_valueless_src_body_is_not_hashed(self) -> None:
+        html = f"<script src>{THEME}</script>"
+        self.assertEqual(self.run_gate({"index.html": html}, ["'self'"]), [])
+
     def test_a_scheme_url_needs_its_scheme_named(self) -> None:
         for scheme in ("data", "blob"):
             with self.subTest(scheme):

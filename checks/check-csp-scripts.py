@@ -94,10 +94,11 @@ class ScriptScan(HTMLParser):
         attr = dict(attrs)
         if (attr.get("type") or "").strip().lower() not in SCRIPT_TYPES:
             return
-        src = attr.get("src")
-        if src is None:
+        if "src" not in attr:
             self.body = []
-        elif not src.strip().lower().startswith("javascript:"):
+            return
+        src = attr["src"] or ""
+        if not src.strip().lower().startswith("javascript:"):
             self.loaded.append(src)
 
     def handle_data(self, data):
@@ -129,7 +130,7 @@ def check(public, sources):
         scan.close()
         findings += [f"{rel}: {finding}" for finding in scan.findings]
         findings += [
-            f"{rel}: <script src={src}> is from a host or scheme script-src does not name"
+            f"{rel}: <script src={src}> is from a host or scheme that script-src does not name"
             for src in scan.loaded
             if not allowed(src, sources)
         ]
