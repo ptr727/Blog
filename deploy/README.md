@@ -7,7 +7,7 @@ How the site is built, released, and served. The release is a **self-contained b
 | Tool | Used by | Needed for | Install |
 | --- | --- | --- | --- |
 | `hugo` (extended) | `make-release.sh` | building the site | see below |
-| `python3` (3.10+) | `check-url-parity.py`, `check-csp-scripts.py`, `check-csp-browser.py`, `capture/build-redirects.py` | the build-time gates, regenerating maps | `apt install python3` |
+| `python3` (3.10+) | `check-url-parity.py`, `check-csp-scripts.py`, `check-csp-browser.py`, `capture/build-redirects.py` | the build-time gates, the browser trial, regenerating maps | `apt install python3` |
 | PyYAML | `capture/clean-content.py` | reading front matter during a conversion | `apt install python3-yaml` |
 | `rsync` | `make-release.sh` | installing a release, hard-linking unchanged files | `apt install rsync` |
 | `gzip` | `make-release.sh` | precompression | coreutils, already present |
