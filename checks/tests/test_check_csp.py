@@ -300,7 +300,7 @@ class PolicyTest(unittest.TestCase):
         csp = (
             f"default-src 'self'; img-src 'self' data: blob: {OTHER} https:; "
             "connect-src wss: *; script-src 'sha256-AAAA' 'unsafe-inline'; "
-            "sandbox allow-scripts; report-to csp-group"
+            f"sandbox allow-scripts; report-to csp-group; form-action 'self' {OTHER}"
         )
         self.assertEqual(
             gate.named_hosts(csp),
@@ -309,6 +309,7 @@ class PolicyTest(unittest.TestCase):
                 ("img-src", "https:"),
                 ("connect-src", "wss:"),
                 ("connect-src", "*"),
+                ("form-action", OTHER),
             ],
         )
 
