@@ -14,8 +14,8 @@ host needs Docker and `uv`, and nothing else.
 
 A violation fails the run unless `csp-browser-allow.txt` lists its directive and blocked origin.
 On a run over the default list, an entry nothing matched fails it too, so the list cannot outlive
-what it excuses. A page that
-does not answer `200` fails the run, since a trial over error pages proves nothing.
+what it excuses. A page that does not answer `200` fails the run, since a trial over error pages
+proves nothing.
 """
 
 import argparse
@@ -52,7 +52,7 @@ def read_paths(texts):
     for text in texts:
         for line in text.splitlines():
             path = line.strip()
-            if path and not path.startswith("#") and path not in paths:
+            if path and path not in paths:
                 paths.append(path)
     if SEARCH_PATH not in paths:
         paths.append(SEARCH_PATH)
@@ -79,8 +79,6 @@ def blocked_origin(blocked):
     parts = urlsplit(blocked)
     if parts.scheme in ("http", "https") and parts.netloc:
         return f"{parts.scheme}://{parts.netloc}"
-    if parts.scheme and not parts.netloc and ":" in blocked:
-        return f"{parts.scheme}:"
     return blocked
 
 

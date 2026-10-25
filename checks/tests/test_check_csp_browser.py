@@ -56,7 +56,7 @@ class PinTest(unittest.TestCase):
 
 class ListTest(unittest.TestCase):
     def test_paths_keep_order_drop_repeats_and_add_search(self) -> None:
-        paths = gate.read_paths(["/\n/a/\n\n# note\n", "/a/\n/b/\n"])
+        paths = gate.read_paths(["/\n/a/\n\n", "/a/\n/b/\n"])
         self.assertEqual(paths, ["/", "/a/", "/b/", gate.SEARCH_PATH])
 
     def test_a_listed_search_page_is_not_added_twice(self) -> None:
@@ -76,9 +76,6 @@ class OriginTest(unittest.TestCase):
     def test_a_url_reduces_to_its_origin(self) -> None:
         origin = gate.blocked_origin("https://images.example/a/b.png?x=1")
         self.assertEqual(origin, "https://images.example")
-
-    def test_a_scheme_url_reduces_to_its_scheme(self) -> None:
-        self.assertEqual(gate.blocked_origin("blob:https://mirror.example/1"), "blob:")
 
     def test_a_keyword_passes_through(self) -> None:
         self.assertEqual(gate.blocked_origin("inline"), "inline")

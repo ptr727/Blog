@@ -1,4 +1,4 @@
-# Tool configuration only, since these gates are standard library alone and ship nothing.
+# Tool configuration only, since these gates ship nothing.
 
 [tool.ruff]
 target-version = "py312"
