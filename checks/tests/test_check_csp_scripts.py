@@ -98,6 +98,16 @@ class CheckTest(unittest.TestCase):
         named = ["'self'", "https://cdn.example.test"]
         self.assertEqual(self.run_gate({"index.html": other}, named), [])
 
+    def test_a_scheme_url_needs_its_scheme_named(self) -> None:
+        for scheme in ("data", "blob"):
+            with self.subTest(scheme):
+                html = f'<script src="{scheme}:text/javascript,go()"></script>'
+                findings = self.run_gate({"index.html": html}, ["'self'"])
+                self.assertEqual(len(findings), 1)
+                self.assertIn("does not name", findings[0])
+                named = ["'self'", f"{scheme}:"]
+                self.assertEqual(self.run_gate({"index.html": html}, named), [])
+
     def test_handlers_and_javascript_urls_fail(self) -> None:
         for html, expected in (
             ('<button onclick="go()">Go</button>', "inline event handler"),

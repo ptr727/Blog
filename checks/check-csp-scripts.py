@@ -111,9 +111,11 @@ class ScriptScan(HTMLParser):
 
 def allowed(src, sources):
     parts = urlsplit(src if not src.startswith("//") else "https:" + src)
-    if not parts.netloc:
-        return "'self'" in sources
-    return f"{parts.scheme}://{parts.netloc}" in sources
+    if parts.netloc:
+        return f"{parts.scheme}://{parts.netloc}" in sources
+    if parts.scheme:
+        return f"{parts.scheme}:" in sources
+    return "'self'" in sources
 
 
 def check(public, sources):
