@@ -34,12 +34,13 @@ import argparse
 import base64
 import collections
 import hashlib
-import importlib.util
 import pathlib
 import re
 import sys
 from html.parser import HTMLParser
 from urllib.parse import urlsplit
+
+import sibling
 
 CHECKS = pathlib.Path(__file__).resolve().parent
 HEADERS = CHECKS / "security-headers.txt"
@@ -64,15 +65,6 @@ SCRIPT_TYPES = {
     "text/x-ecmascript",
     "text/x-javascript",
 }
-
-
-def load_sibling(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load {path.name}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
 
 
 def site_policy(headers_text, site):
@@ -372,7 +364,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not args.public.is_dir():
         sys.exit(f"FAIL: {args.public} is not a directory - run hugo first")
-    site_origin = load_sibling(
+    site_origin = sibling.load(
         "check_url_parity", CHECKS / "check-url-parity.py"
     ).site_origin
 

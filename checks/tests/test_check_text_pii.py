@@ -1,21 +1,16 @@
 """Tests for check-text-pii.py, every value in them constructed rather than observed."""
 
 import contextlib
-import importlib.util
 import io
 import json
 import pathlib
 import tempfile
 import unittest
 
+import sibling
+
 CHECKS = pathlib.Path(__file__).resolve().parent.parent
-SPEC = importlib.util.spec_from_file_location(
-    "check_text_pii", CHECKS / "check-text-pii.py"
-)
-if SPEC is None or SPEC.loader is None:
-    raise ImportError("cannot load check-text-pii.py")
-gate = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(gate)
+gate = sibling.load("check_text_pii", CHECKS / "check-text-pii.py")
 
 POSITIVE = {
     "email": ["Write to someone@example.com for a copy."],

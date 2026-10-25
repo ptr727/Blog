@@ -1,7 +1,6 @@
 """Tests for the free values check-media-metadata.py pins, every value in them constructed."""
 
 import contextlib
-import importlib.util
 import io
 import pathlib
 import random
@@ -14,20 +13,13 @@ import zipfile
 import zlib
 from unittest import mock
 
+import sibling
+
 REPO = pathlib.Path(__file__).resolve().parent.parent.parent
 
 
-def load(name: str, path: pathlib.Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load {path.name}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-normalizer = load("normalizer", REPO / "scripts" / "normalize-media.py")
-fuzz = load("fuzz", REPO / "checks" / "fuzz-media-parsers.py")
+normalizer = sibling.load("normalizer", REPO / "scripts" / "normalize-media.py")
+fuzz = sibling.load("fuzz", REPO / "checks" / "fuzz-media-parsers.py")
 gate = normalizer.gate
 
 # A stand-in profile, admitted by patching its digest into the set for the test that needs it.

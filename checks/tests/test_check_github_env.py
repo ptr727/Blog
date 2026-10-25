@@ -1,20 +1,15 @@
 """Tests for check-github-env.py, every value in them constructed rather than observed."""
 
 import contextlib
-import importlib.util
 import io
 import pathlib
 import unittest
 from unittest import mock
 
+import sibling
+
 CHECKS = pathlib.Path(__file__).resolve().parent.parent
-SPEC = importlib.util.spec_from_file_location(
-    "check_github_env", CHECKS / "check-github-env.py"
-)
-if SPEC is None or SPEC.loader is None:
-    raise ImportError("cannot load check-github-env.py")
-gate = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(gate)
+gate = sibling.load("check_github_env", CHECKS / "check-github-env.py")
 
 DOC = """# Environment
 
