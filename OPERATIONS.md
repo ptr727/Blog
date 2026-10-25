@@ -94,7 +94,22 @@ Expect a `PASS` naming the number of URLs honored. That is the three lists' comb
 
 A documentation-only or workflow-only change does not need this. A change to the four paths above does, because for those CI's green is not evidence.
 
-**The Python gates run per directory, the way CI runs them.** The validator gates [`checks/`](./checks/) and [`scripts/`](./scripts/), the two directories the workflows declare in its `python-directories` input, with ruff, mypy, and a test suite under coverage. `checks/` is standard library only, so its tools run through `uvx` and its suite runs under `unittest`. `scripts/` installs Pillow, pytest, and pytest-cov from its `requirements.txt`, which holds the one Pillow pin, and runs its suite under pytest. [`capture/`](./capture/) is not declared, because it is one-shot WordPress migration tooling that has already run and owes no test suite, so the validator's warning about its files is expected.
+**A change to a `Content-Security-Policy` in `security-headers.txt` is also tried in a browser**, on the local staging mirror, before its pull request opens. So is a theme or `layouts/` change that adds a style, a font, a fetch, or a script. [`checks/check-csp-browser.py`](./checks/check-csp-browser.py) loads every page of `golden-urls.txt` plus `/search/` in headless Chromium. It scrolls each page to its end, clicks its code-copy buttons, and types a search query. It reads each `securitypolicyviolation` event from the page and from each frame in it. It reports them by directive and blocked origin, with the first page each occurred on. The event fires for an enforcing policy and a `Content-Security-Policy-Report-Only` one alike, so a trial can run Report-Only first:
+
+```sh
+set -e
+set -a; . ~/.secrets/blog.local.staging.env; set +a
+checks/check-csp-browser.py "$SITE_BASE_URL"
+```
+
+- **It needs Docker and `uv` on the host, and no browser.** Chromium runs in the Playwright image [`checks/browser/Dockerfile`](./checks/browser/Dockerfile) pins, where Dependabot moves it. `uv` installs the Playwright package inside it at the image tag's own version, so the two cannot drift. Its cache is `UV_CACHE_DIR` where that is set, or a directory under the system temporary root.
+- **The container shares the host network**, so it reaches a local mirror by the name the host resolves.
+- **A violation fails the run unless [`checks/csp-browser-allow.txt`](./checks/csp-browser-allow.txt) lists it.** Each line is a directive, a blocked origin, and the reason, tab separated. A blocked scheme is written as the browser reports it, such as `data` with no colon. An entry that nothing matched fails a run over the default list, so an entry goes when its cause does. `--urls` takes another list, and such a partial run leaves unused entries alone.
+- **A page that does not answer `200` fails the run**, since a trial over error pages proves nothing.
+- **It runs only against the local mirrors.** VPS staging sits behind the auth gate, which the check does not present. A full run is hundreds of pages. Production takes only a handful of probes per pass, since a burst there can get the reviewing network banned.
+- **It runs by hand rather than in the release.** It needs Docker, a browser image, and a running server, and neither the release build nor the unit suite has all three.
+
+**The Python gates run per directory, the way CI runs them.** The validator gates [`checks/`](./checks/) and [`scripts/`](./scripts/), the two directories the workflows declare in its `python-directories` input, with ruff, mypy, and a test suite under coverage. `checks/` is standard library only, so its tools run through `uvx` and its suite runs under `unittest`. The browser trial's container half is the one exception. `scripts/` installs Pillow, pytest, and pytest-cov from its `requirements.txt`, which holds the one Pillow pin, and runs its suite under pytest. [`capture/`](./capture/) is not declared, because it is one-shot WordPress migration tooling that has already run and owes no test suite. The validator's warning about its files is therefore expected.
 
 ```sh
 set -e

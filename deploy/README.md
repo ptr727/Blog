@@ -7,14 +7,15 @@ How the site is built, released, and served. The release is a **self-contained b
 | Tool | Used by | Needed for | Install |
 | --- | --- | --- | --- |
 | `hugo` (extended) | `make-release.sh` | building the site | see below |
-| `python3` (3.10+) | `check-url-parity.py`, `check-csp-scripts.py`, `capture/build-redirects.py` | the build-time gates, regenerating maps | `apt install python3` |
+| `python3` (3.10+) | `check-url-parity.py`, `check-csp-scripts.py`, `check-csp-browser.py`, `capture/build-redirects.py` | the build-time gates, the browser trial, regenerating maps | `apt install python3` |
 | PyYAML | `capture/clean-content.py` | reading front matter during a conversion | `apt install python3-yaml` |
 | `rsync` | `make-release.sh` | installing a release, hard-linking unchanged files | `apt install rsync` |
 | `gzip` | `make-release.sh` | precompression | coreutils, already present |
 | `brotli` | `make-release.sh` | precompression | `apt install brotli` |
 | `curl` 7.84+ | `check-live-urls.sh` | verifying a running server, reading a header with `%header{}` | `apt install curl` |
 | `bash` 4.4+ | all scripts | arrays, `mapfile` | already present |
-| `docker` | serving | running Caddy | orchestrated elsewhere |
+| `docker` | serving, `check-csp-browser.py` | running Caddy, the headless browser | orchestrated elsewhere |
+| `uv` | `check-csp-browser.py` | installing Playwright in the browser container | the upstream installer |
 
 **These scripts run on Linux, which is a dependency ceiling rather than an omission.** They use
 `mv -Tf`, `find -printf`, `mapfile`, and `sed -i` without an argument, all of which are GNU or
@@ -302,9 +303,11 @@ The sites send the same security headers on every response, redirects and the `4
 
 The HSTS value carries neither `includeSubDomains` nor `preload`. `includeSubDomains` would extend the policy to every subdomain of the site's hostname, and this bundle serves none of them. `preload` asks for the whole domain to be built into browsers, where a removal takes months to reach readers. HSTS at the edge is the host side's setting, and it stays off because Cloudflare applies it to every name in the zone.
 
-**Each site sends its own `Content-Security-Policy`.** The family page loads few resources, so its policy names each kind: its own files, Google Fonts, inline styles, and `data:` images. The blog policy allows its own files, Google Fonts, and inline styles, which the theme and some archived posts carry. No post loads a script, frame, or object from another host. An embed from another host, such as a video or a map, needs that host in the policy first, or the browser blocks it. Write a script's host as `https://<host>` and a scheme as `data:`, the forms the gate reads. Images load only from the site itself. That blocks the hotlinked images a few archived posts still reference, and each of those is already gone. Its `script-src` lists a hash for each inline script the theme writes, rather than allowing every inline script.
+**Each site sends its own `Content-Security-Policy`.** The family page loads few resources, so its policy names each kind: its own files, Google Fonts, inline styles, and `data:` images. The blog policy allows its own files, Google Fonts, and inline styles, which the theme and some archived posts carry. No post loads a script, frame, or object from another host. An embed from another host, such as a video or a map, needs that host in its directive first. Without it the browser blocks the embed, and the release build fails on it. Write a host as `https://<host>` and a scheme as `data:`, the forms the gate reads. Images load only from the site itself. That blocks the hotlinked images a few archived posts still reference, and each of those is already gone. Its `script-src` lists a hash for each inline script the theme writes, rather than allowing every inline script.
 
 **A Hugo update, a theme update, or a theme setting in `hugo.yaml` can change those scripts.** [`checks/check-csp-scripts.py`][checks-csp-scripts] runs in the release build and fails when the hashes and the built scripts differ. The fix is to copy each hash it reports into both the Caddyfile and `security-headers.txt`, and to drop each hash it reports as unused.
+
+**The gate reads only what Hugo builds, so a policy change is also tried in a browser.** [`checks/check-csp-browser.py`][checks-csp-browser] loads every page of a running mirror in headless Chromium. It fails on anything the policy blocks that [`checks/csp-browser-allow.txt`][checks-csp-browser-allow] does not list. A run over the whole default list also fails on an entry there that nothing matched. The dead hotlinked images are its entries today. [OPERATIONS.md "Local Verification"][operations-local-verification] says when it runs and how.
 
 **The policy also blocks a script the proxy injects into a page.** Cloudflare's Rocket Loader, Email Address Obfuscation, and Web Analytics each inject one, so each stays off. They are the host side's to set, and the gate cannot see them, since it reads only what Hugo builds.
 
@@ -433,7 +436,7 @@ Two orderings are load-bearing. `@post_child_feed` precedes `@post_child` becaus
 Each of these fails silently when it fails, which is why it is checked rather than assumed:
 
 - **The URL contract**, via `check-url-parity.py`, before anything is installed.
-- **The blog's script hashes**, via `check-csp-scripts.py`, before anything is installed.
+- **The blog's script hashes and embed sources**, via `check-csp-scripts.py`, before anything is installed.
 - **World-readability of the finished release.** `--chmod` and `--no-g` apply only to files
   rsync newly transfers. A file supplied by `--link-dest` is a hard link to the previous
   release's inode and keeps that inode's mode and ownership, so a badly moded file rides the
@@ -450,12 +453,15 @@ Each of these fails silently when it fails, which is why it is checked rather th
 [caddyfile]: ./Caddyfile
 [capture-build-redirects]: ../capture/build-redirects.py
 [capture-readme]: ../capture/README.md
+[checks-csp-browser]: ../checks/check-csp-browser.py
+[checks-csp-browser-allow]: ../checks/csp-browser-allow.txt
 [checks-csp-scripts]: ../checks/check-csp-scripts.py
 [checks-redirect-urls]: ../checks/redirect-urls.txt
 [checks-security-headers]: ../checks/security-headers.txt
 [example-env]: ../.secrets/example.env
 [how-the-redirects-are-expressed]: #how-the-redirects-are-expressed
 [identifying-the-environment]: #identifying-the-environment
+[operations-local-verification]: ../OPERATIONS.md#local-verification
 [operations-log-tiers]: ../OPERATIONS.md#the-log-is-three-tiers-and-each-is-blind-to-something
 [reloading-without-a-restart]: #reloading-without-a-restart
 [serving-the-family-site-on-a-local-name]: #serving-the-family-site-on-a-local-name
