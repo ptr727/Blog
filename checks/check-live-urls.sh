@@ -55,7 +55,7 @@ done
 
 FAMILY_PAGES=("/|The Viljoen Family" "/en/|The Viljoen Family" "/af/|Die Viljoen-familie")
 
-# Production's edge bans a client that requests more than 40 distinct pages in a burst, so its deploy checks one URL per class rather than the whole contract.
+# Production's deploy checks one URL per class, staying inside the edge's ban limits without the host's crawl exemption.
 # Staging and the local mirrors check every URL, which is where the contract itself is proven.
 SAMPLE_PER_CLASS=1
 SAMPLE_MAX_PATHS=30
