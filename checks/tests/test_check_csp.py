@@ -203,6 +203,11 @@ class CheckTest(unittest.TestCase):
             ('<link rel="dns-prefetch" href="//cdn.example.test">', "default-src"),
             (f'<p style="background: url({OTHER}/a.png)">x</p>', "img-src"),
             (f"<style>@import '{OTHER}/a.css';</style>", "style-src"),
+            (f'<style>@import"{OTHER}/a.css";</style>', "style-src"),
+            (
+                f'<link rel="preload" as="fetch" href="{OTHER}/index.json">',
+                "connect-src",
+            ),
         ):
             with self.subTest(html):
                 findings = self.run_gate({"index.html": html}, [])
@@ -281,16 +286,21 @@ class PolicyTest(unittest.TestCase):
         self.assertIsNone(gate.site_policy(text, "blog"))
 
     def test_script_src_is_read_and_default_src_stands_in_for_it(self) -> None:
-        sources = gate.script_sources(policy("'self'", "'sha256-AAAA'"))
+        sources = gate.directive_sources(
+            policy("'self'", "'sha256-AAAA'"), "script-src"
+        )
         self.assertEqual(sources, ["'self'", "'sha256-AAAA'"])
-        fallback = gate.script_sources("default-src 'self'; img-src 'self'")
+        fallback = gate.directive_sources(
+            "default-src 'self'; img-src 'self'", "script-src"
+        )
         self.assertEqual(fallback, ["'self'"])
-        self.assertEqual(gate.script_sources("img-src 'self'"), [])
+        self.assertEqual(gate.directive_sources("img-src 'self'", "script-src"), [])
 
     def test_a_host_or_a_network_scheme_is_named_and_nothing_else(self) -> None:
         csp = (
             f"default-src 'self'; img-src 'self' data: blob: {OTHER} https:; "
-            "connect-src wss: *; script-src 'sha256-AAAA' 'unsafe-inline'"
+            "connect-src wss: *; script-src 'sha256-AAAA' 'unsafe-inline'; "
+            "sandbox allow-scripts; report-to csp-group"
         )
         self.assertEqual(
             gate.named_hosts(csp),

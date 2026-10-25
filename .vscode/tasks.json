@@ -82,7 +82,7 @@
         "Lint: Shell",
         "Lint: Shell Format",
         "Check: URL Parity",
-        "Check: CSP Scripts"
+        "Check: CSP"
       ],
       "problemMatcher": []
     }

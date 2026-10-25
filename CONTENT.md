@@ -192,7 +192,7 @@ This is the reason this file exists, so it is worth stating plainly.
 | --- | --- |
 | `hugo --gc --minify --panicOnWarning` | yes, it must build |
 | [`checks/check-url-parity.py`][parity] | yes, for URLs, asset references, and the orphan count |
-| [`checks/check-csp.py`][csp] | yes, for a script, inline handler, `javascript:` URL, image, stylesheet, font, frame, media file, or object a post's raw HTML loads from another host |
+| [`checks/check-csp.py`][csp] | yes, for an inline handler or `javascript:` URL a post's raw HTML adds, and for a script, image, stylesheet, font, frame, media file, or object it loads from another host |
 | `checks/check-live-urls.sh` | yes, against a running server |
 | markdownlint | no, `content/.markdownlint-cli2.jsonc` ignores the tree |
 | CSpell | no, `cspell.json` ignores the tree |

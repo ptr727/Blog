@@ -95,6 +95,7 @@ FALLBACKS = {
     "style-src": ("style-src", "default-src"),
     "font-src": ("font-src", "default-src"),
     "manifest-src": ("manifest-src", "default-src"),
+    "connect-src": ("connect-src", "default-src"),
 }
 
 FETCHES = {
@@ -128,6 +129,7 @@ LINK_RELS = {
 }
 
 PRELOAD_AS = {
+    "fetch": "connect-src",
     "font": "font-src",
     "image": "img-src",
     "script": "script-src",
@@ -141,40 +143,47 @@ NETWORK_SCHEMES = {"http", "https", "ws", "wss"}
 
 COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
 IMPORT = re.compile(
-    r"""@import\s+(?:url\(\s*)?(?:"([^"]*)"|'([^']*)'|([^\s"');]+))""", re.IGNORECASE
+    r"""@import\s*(?:url\(\s*)?(?:"([^"]*)"|'([^']*)'|([^\s"');]+))""", re.IGNORECASE
 )
 FONT_FACE = re.compile(r"@font-face\s*\{[^}]*\}", re.IGNORECASE)
 URL = re.compile(r"""url\(\s*(?:"([^"]*)"|'([^']*)'|([^\s"')]*))\s*\)""", re.IGNORECASE)
 
 
-def directive_sources(policy, directive):
-    """The sources the browser applies to a directive, its fallbacks included."""
-    directives = {}
+def directives(policy):
+    """Each directive the policy states and its sources, the first statement winning as in the browser."""
+    found = {}
     for part in policy.split(";"):
         tokens = part.split()
         if tokens:
-            directives.setdefault(tokens[0], tokens[1:])
+            found.setdefault(tokens[0], tokens[1:])
+    return found
+
+
+def directive_sources(policy, directive):
+    """The sources the browser applies to a directive, its fallbacks included."""
+    stated = directives(policy)
     for name in FALLBACKS[directive]:
-        if name in directives:
-            return directives[name]
+        if name in stated:
+            return stated[name]
     return []
 
 
-def script_sources(policy):
-    return directive_sources(policy, "script-src")
-
-
 def named_hosts(policy):
-    """Each directive's sources that allow a load from another host, as (directive, source)."""
+    """Each fetch directive's sources that allow a load from another host, as (directive, source).
+
+    Only a `-src` directive lists sources, so a token under any other directive, such as a
+    `sandbox` flag, names no host.
+    """
     hosts = []
-    for part in policy.split(";"):
-        tokens = part.split()
-        for token in tokens[1:]:
+    for directive, sources in directives(policy).items():
+        if not directive.endswith("-src"):
+            continue
+        for token in sources:
             scheme = token[:-1].lower() if token.endswith(":") else None
             if not token.startswith("'") and (
                 scheme is None or scheme in NETWORK_SCHEMES
             ):
-                hosts.append((tokens[0], token))
+                hosts.append((directive, token))
     return hosts
 
 
