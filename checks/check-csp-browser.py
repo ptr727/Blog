@@ -4,9 +4,10 @@
 `check-csp-scripts.py` proves the built scripts match the policy's hashes. It cannot see what a
 browser blocks at run time: a style, a font, a fetch, an image, or a script a proxy injects. This
 check loads each page in a URL list against a mirror. It records every `securitypolicyviolation`
-event, which fires for an enforcing policy and a Report-Only one alike. Each page is scrolled to
-its end so lazy images load, and its code-copy buttons are clicked. The search page also gets a
-typed query, so the index fetch and the results run.
+event in the page and in each frame it holds. The event fires for an enforcing policy and a
+Report-Only one alike. Each page is scrolled to its end so lazy images load, and its code-copy
+buttons are clicked. The search page also gets a typed query, so the index fetch and the results
+run.
 
 The browser runs in the Playwright image `browser/Dockerfile` pins, where Dependabot moves it. The
 Playwright package is installed at the image tag's own version, so the two never disagree. The
@@ -214,8 +215,9 @@ def probe(base_url, paths):
                     )
                     page.locator("#searchResults li").first.wait_for()
                 page.wait_for_load_state("networkidle")
-                for violation in page.evaluate("window.__csp"):
-                    emit({"page": path, **violation})
+                for frame in page.frames:
+                    for violation in frame.evaluate("window.__csp || []"):
+                        emit({"page": path, **violation})
             except Error as error:
                 emit({"page": path, "error": str(error).splitlines()[0]})
         browser.close()
