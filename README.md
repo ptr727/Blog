@@ -189,11 +189,12 @@ For a defect in the site or the tooling, such as a broken link, a missing redire
 
 The required tools and their install commands are listed in [deploy/README.md][deploy-readme]. Hugo must be the extended build.
 
-Build the site and verify it against the URL contract:
+Build the site and verify it against the URL contract and the blog's script policy:
 
 ```sh
 hugo --gc --minify --panicOnWarning
 checks/check-url-parity.py public
+checks/check-csp-scripts.py public
 ```
 
 Build a release and verify it against a running server:

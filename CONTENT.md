@@ -192,6 +192,7 @@ This is the reason this file exists, so it is worth stating plainly.
 | --- | --- |
 | `hugo --gc --minify --panicOnWarning` | yes, it must build |
 | [`checks/check-url-parity.py`][parity] | yes, for URLs, asset references, and the orphan count |
+| [`checks/check-csp-scripts.py`][csp-scripts] | yes, for a script, inline handler, or `javascript:` URL a post's raw HTML adds |
 | `checks/check-live-urls.sh` | yes, against a running server |
 | markdownlint | no, `content/.markdownlint-cli2.jsonc` ignores the tree |
 | CSpell | no, `cspell.json` ignores the tree |
@@ -210,6 +211,7 @@ A fact in a published post that proves wrong is corrected in the post. It is not
 
 [checks]: ./checks/
 [codestyle]: ./CODESTYLE.md
+[csp-scripts]: ./checks/check-csp-scripts.py
 [operations]: ./OPERATIONS.md
 [metadata]: ./checks/check-media-metadata.py
 [normalize]: ./scripts/normalize-media.py

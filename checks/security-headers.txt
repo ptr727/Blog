@@ -1,6 +1,7 @@
 blog	Strict-Transport-Security: max-age=31536000
 blog	X-Content-Type-Options: nosniff
 blog	Referrer-Policy: strict-origin-when-cross-origin
+blog	Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-5ilQRTfItUB+Etsk1onTDCqBA1OpUBIKfJhdMlZ61Co=' 'sha256-QOwTHff6BrH8cmnR7hf10tIuyQ09hKSkEevZzo+G8WE=' 'sha256-UBD9lfFHKxagKGHh9S8B2hytN1cmDsFK1Tl1uedsZ0Q=' 'sha256-eyUVosQAviXm2qeOTG819D1n0kSst2gY8VmfgVsZlag='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'
 family	Strict-Transport-Security: max-age=31536000
 family	X-Content-Type-Options: nosniff
 family	Referrer-Policy: strict-origin-when-cross-origin
