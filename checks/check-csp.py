@@ -4,7 +4,7 @@
 Each site's policy is read from `checks/security-headers.txt`, and `deploy/Caddyfile`, which
 ships, must send the same value. The blog is the built site, and the family site is its tree in
 `sites/viljoen.family/`, which ships as committed. Every page and stylesheet of each is read
-against its own site's policy, with the browser's fallbacks: a directive the policy leaves out
+against its own site's policy. The browser's fallbacks apply: a directive the policy leaves out
 reads as `default-src`, and a frame reads `child-src` first.
 
 Every inline script must carry a hash the policy lists, and every hash the policy lists must
@@ -18,7 +18,7 @@ so neither needs a hash.
 Every other fetch must come from the site itself or from a scheme its directive names. That
 covers scripts, frames, media, objects, images and their `srcset` candidates, posters, SVG
 images, and each `<link>` that loads something. It covers CSS too, in a stylesheet, a `<style>`
-block, or a `style` attribute, where `@import` loads under `style-src`, a `url()` inside
+block, or a `style` attribute. There `@import` loads under `style-src`, a `url()` inside
 `@font-face` under `font-src`, and any other `url()` under `img-src`. A preconnect or a DNS
 prefetch reaches a host without any directive governing it, so it is held to `default-src`.
 An absolute URL on the site's own origin, read from its home page's canonical link, is the
