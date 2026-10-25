@@ -2,11 +2,12 @@
 """Verify that the blog's Content-Security-Policy allows every script the built site runs.
 
 The policy is read from `checks/security-headers.txt`, which a unit case holds equal to the
-Caddyfile. Every inline script must carry a hash the policy lists, and every hash the policy
-lists must match an inline script, so a Hugo or theme update that changes a script's bytes fails
+Caddyfile. Every inline script must carry a hash the policy lists. Every hash the policy lists
+must match an inline script. A Hugo or theme update that changes a script's bytes then fails
 here rather than in a reader's browser. A script loaded by URL must come from an origin the
-policy names, and an inline event handler or a `javascript:` URL fails outright, since a hash
-cannot allow either.
+policy names. An inline event handler or a `javascript:` URL fails outright, since a hash cannot
+allow either. A data block, whose type is not JavaScript, never runs, and the browser never
+checks an empty script, so neither needs a hash.
 """
 
 import argparse
@@ -22,7 +23,6 @@ CHECKS = pathlib.Path(__file__).resolve().parent
 HEADERS = CHECKS / "security-headers.txt"
 CSP = "Content-Security-Policy"
 
-# A script element whose type is none of these is a data block, which the browser never runs.
 SCRIPT_TYPES = {"", "module", "text/javascript", "application/javascript"}
 
 
@@ -31,7 +31,7 @@ def script_sources(headers_text):
     for line in headers_text.splitlines():
         site, _, header = line.partition("\t")
         name, _, value = header.partition(": ")
-        if site != "blog" or name not in (CSP, CSP + "-Report-Only"):
+        if site != "blog" or name != CSP:
             continue
         for directive in value.split(";"):
             tokens = directive.split()
@@ -42,7 +42,11 @@ def script_sources(headers_text):
 
 
 def digest(body):
-    return "'sha256-" + base64.b64encode(hashlib.sha256(body.encode()).digest()).decode() + "'"
+    return (
+        "'sha256-"
+        + base64.b64encode(hashlib.sha256(body.encode()).digest()).decode()
+        + "'"
+    )
 
 
 class ScriptScan(HTMLParser):
@@ -57,7 +61,9 @@ class ScriptScan(HTMLParser):
         for name, value in attrs:
             if name.startswith("on"):
                 self.findings.append(f"<{tag} {name}> is an inline event handler")
-            elif name in ("href", "src", "action") and (value or "").strip().lower().startswith("javascript:"):
+            elif name in ("href", "src", "action") and (
+                value or ""
+            ).strip().lower().startswith("javascript:"):
                 self.findings.append(f"<{tag} {name}> is a javascript: URL")
         if tag != "script":
             return
@@ -101,21 +107,29 @@ def check(public, sources):
             if not allowed(src, sources)
         ]
         for body in scan.inline:
-            # An empty element runs nothing, and the browser does not check it against the policy.
             if body:
                 used[digest(body)].append(rel)
     listed = {token for token in sources if token.startswith("'sha256-")}
     for token, pages in sorted(used.items()):
         if token not in listed:
-            findings.append(f"{pages[0]}: inline script {token} is not in script-src, on {len(pages)} page(s)")
-    findings += [f"script-src lists {token}, which no inline script matches" for token in sorted(listed - used.keys())]
-    print(f"csp: {len(used)} distinct inline scripts, {len(listed)} hashes in script-src")
+            findings.append(
+                f"{pages[0]}: inline script {token} is not in script-src, on {len(pages)} page(s)"
+            )
+    findings += [
+        f"script-src lists {token}, which no inline script matches"
+        for token in sorted(listed - used.keys())
+    ]
+    print(
+        f"csp: {len(used)} distinct inline scripts, {len(listed)} hashes in script-src"
+    )
     return findings
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("public", type=pathlib.Path, help="the built site, as hugo wrote it")
+    parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
+    parser.add_argument(
+        "public", type=pathlib.Path, help="the built site, as hugo wrote it"
+    )
     args = parser.parse_args(argv)
     if not args.public.is_dir():
         sys.exit(f"FAIL: {args.public} is not a directory - run hugo first")

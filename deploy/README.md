@@ -302,7 +302,9 @@ The sites send the same security headers on every response, redirects and the `4
 
 The HSTS value carries neither `includeSubDomains` nor `preload`. `includeSubDomains` would extend the policy to every subdomain of the site's hostname, and this bundle serves none of them. `preload` asks for the whole domain to be built into browsers, where a removal takes months to reach readers. HSTS at the edge is the host side's setting, and it stays off because Cloudflare applies it to every name in the zone.
 
-**Only the family site sends a `Content-Security-Policy`.** Its page loads few resources, so its policy names each kind: its own files, Google Fonts, inline styles, and `data:` images. Blog posts embed third-party content, so a blog policy waits on a survey of what the posts load.
+**Each site sends its own `Content-Security-Policy`.** The family page loads few resources, so its policy names each kind: its own files, Google Fonts, inline styles, and `data:` images. The blog policy allows its own files, Google Fonts, and inline styles, which the theme and some archived posts carry. No post loads a script, frame, or object from another host, and images load only from the site itself. Its `script-src` lists a hash for each inline script the theme writes, rather than allowing every inline script.
+
+**A Hugo or theme update can change those scripts' bytes.** [`checks/check-csp-scripts.py`][checks-csp-scripts] runs in the release build and fails when the hashes and the built scripts differ. The fix is to copy each hash it reports into both the Caddyfile and `security-headers.txt`, and to drop each hash it reports as unused.
 
 **A change to any of these values changes [`checks/security-headers.txt`][checks-security-headers] with it.** The live check asserts each value exactly, and a unit case fails while the two differ.
 
@@ -445,6 +447,7 @@ Each of these fails silently when it fails, which is why it is checked rather th
 [caddyfile]: ./Caddyfile
 [capture-build-redirects]: ../capture/build-redirects.py
 [capture-readme]: ../capture/README.md
+[checks-csp-scripts]: ../checks/check-csp-scripts.py
 [checks-redirect-urls]: ../checks/redirect-urls.txt
 [checks-security-headers]: ../checks/security-headers.txt
 [example-env]: ../.secrets/example.env
