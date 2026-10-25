@@ -8,14 +8,12 @@ tags:
 - intel
 post_id: '77'
 ---
-This article was originally posted [here](http://www.insanegenius.com/dg33tl/).
-
 ### Introduction:
 
 
 
 After my bad experience with the Abit F-I90HD motherboards, read about it  
-[here](http://www.blogger.com/f-i90hd/), I purchased two Intel DG33TL motherboards.
+[here](/2008/04/01/abit-f-i90hd-motherboard/), I purchased two Intel DG33TL motherboards.
 
 Although these boards do not have HDMI onboard, they do have HDCP compliant DVI,  
 and by adding an ADD2 HDMI board you get HDMI and audio over HDMI.
@@ -136,8 +134,6 @@ article](http://support.microsoft.com/Default.aspx?kbid=948343).
 
 
 
-- [Pieter Viljoen's homepage](http://www.insanegenius.com/).
-
 -   
 [Intel DG33TL  
 motherboard](http://www.intel.com/products/motherboard/DG33TL/index.htm).
@@ -147,7 +143,7 @@ motherboard](http://www.intel.com/products/motherboard/DG33TL/index.htm).
 Prolink PV-CH7315 ADD2 card](http://www.prolink.com.tw/style/content/CN-08-2cp2/product_detail.asp?lang=2&customer_id=1470&name_id=36165&rid=17885&id=82053).
 
 -   
-[Abit F-I90HD motherboard experience](http://www.blogger.com/f-i90hd/).
+[Abit F-I90HD motherboard experience](/2008/04/01/abit-f-i90hd-motherboard/).
 
 -   
 ["G965 with Prolink HDMI ADD2" post on AVSForum.](http://www.avsforum.com/avs-vb/showthread.php?t=782711)

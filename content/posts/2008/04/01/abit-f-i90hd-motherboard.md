@@ -8,8 +8,6 @@ tags:
 - abit
 post_id: '75'
 ---
-This article was originally posted [here](http://www.insanegenius.com/f-i90hd/).  
-
 
 
 ### Introduction:
@@ -22,7 +20,7 @@ primarily because it had an onboard HDMI connector.
 I purchased two boards, but I ended up returning them both because of problems.
 
 Instead I purchased two Intel DG33TL boards, read about that experience  
-[here](http://www.blogger.com/dg33tl/).
+[here](/2008/04/01/intel-dg33tl-motherboard/).
 
 
 
@@ -91,14 +89,12 @@ increase the voltage for the Crucial Ballistix memory, made no difference.
 
 
 
-- [Pieter Viljoen's homepage](http://www.insanegenius.com/).
-
 -   
 [  
 Abit F-I90HD](http://www.abit.com.tw/page/en/motherboard/motherboard_detail.php?pMODEL_NAME=Fatal1ty+F-I90HD&fMTYPE=LGA775).
 
 -   
-[Intel DG33TL experience](http://www.blogger.com/dg33tl/).
+[Intel DG33TL experience](/2008/04/01/intel-dg33tl-motherboard/).
 
 
 

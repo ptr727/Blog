@@ -21,7 +21,7 @@ The TS-859 Pro is now available, and I compared it with the DroboPro, and agains
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_57c76dcccd_b)](http://docs.google.com/File?id=dcmzmbww_57c76dcccd_b)
+[![](/media/2010/01/drobopro-ts-859-pro-01.jpg)](/media/2010/01/drobopro-ts-859-pro-01.jpg)
 
 
 
@@ -33,23 +33,23 @@ The TS-859 is taller than the DroboPro, the DroboPro is deeper than the TS-859, 
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_589d4wskh9_b)](http://docs.google.com/File?id=dcmzmbww_589d4wskh9_b "DroboPro and TS-859 Pro")
+[![](/media/2010/01/drobopro-ts-859-pro-02.jpg)](/media/2010/01/drobopro-ts-859-pro-02.jpg "DroboPro and TS-859 Pro")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_59hjm86vd6_b)](http://docs.google.com/File?id=dcmzmbww_59hjm86vd6_b "DroboPro and TS-859 Pro")
+[![](/media/2010/01/drobopro-ts-859-pro-03.jpg)](/media/2010/01/drobopro-ts-859-pro-03.jpg "DroboPro and TS-859 Pro")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_60hj7nrnc5_b)](http://docs.google.com/File?id=dcmzmbww_60hj7nrnc5_b "DroboPro and TS-859 Pro")
+[![](/media/2010/01/drobopro-ts-859-pro-04.jpg)](/media/2010/01/drobopro-ts-859-pro-04.jpg "DroboPro and TS-859 Pro")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_61dpd2nbc7_b)](http://docs.google.com/File?id=dcmzmbww_61dpd2nbc7_b "DroboPro and TS-859 Pro")
+[![](/media/2010/01/drobopro-ts-859-pro-05.jpg)](/media/2010/01/drobopro-ts-859-pro-05.jpg "DroboPro and TS-859 Pro")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_62cdwfjwgd_b)](http://docs.google.com/File?id=dcmzmbww_62cdwfjwgd_b "DroboPro and TS-859 Pro")
+[![](/media/2010/01/drobopro-ts-859-pro-06.jpg)](/media/2010/01/drobopro-ts-859-pro-06.jpg "DroboPro and TS-859 Pro")
 
 
 
@@ -67,23 +67,23 @@ DroboPro information and configuration:
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_63pd7vghdj_b)](http://docs.google.com/File?id=dcmzmbww_63pd7vghdj_b "DroboPro")
+[![](/media/2010/01/drobopro-ts-859-pro-07.png)](/media/2010/01/drobopro-ts-859-pro-07.png "DroboPro")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_64f6z92tck_b)](http://docs.google.com/File?id=dcmzmbww_64f6z92tck_b "DroboPro")
+[![](/media/2010/01/drobopro-ts-859-pro-08.png)](/media/2010/01/drobopro-ts-859-pro-08.png "DroboPro")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_65gmrnhngf_b)](http://docs.google.com/File?id=dcmzmbww_65gmrnhngf_b "DroboPro")
+[![](/media/2010/01/drobopro-ts-859-pro-09.png)](/media/2010/01/drobopro-ts-859-pro-09.png "DroboPro")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_66hj23qcgf_b)](http://docs.google.com/File?id=dcmzmbww_66hj23qcgf_b "DroboPro")
+[![](/media/2010/01/drobopro-ts-859-pro-10.png)](/media/2010/01/drobopro-ts-859-pro-10.png "DroboPro")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_67dvnzssff_b)](http://docs.google.com/File?id=dcmzmbww_67dvnzssff_b)
+[![](/media/2010/01/drobopro-ts-859-pro-11.png)](/media/2010/01/drobopro-ts-859-pro-11.png)
 
 
 
@@ -93,7 +93,7 @@ The dashboard believes there are no volumes, but Windows sees an unknown 2TB vol
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_73fcjgnzhq_b)](http://docs.google.com/File?id=dcmzmbww_73fcjgnzhq_b)
+[![](/media/2010/01/drobopro-ts-859-pro-12.png)](/media/2010/01/drobopro-ts-859-pro-12.png)
 
 
 
@@ -103,15 +103,15 @@ Creating a new volume:
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_68djfszmkj_b)](http://docs.google.com/File?id=dcmzmbww_68djfszmkj_b "DroboPro")
+[![](/media/2010/01/drobopro-ts-859-pro-13.png)](/media/2010/01/drobopro-ts-859-pro-13.png "DroboPro")
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_70fqz87cg7_b)](http://docs.google.com/File?id=dcmzmbww_70fqz87cg7_b)
+[![](/media/2010/01/drobopro-ts-859-pro-14.png)](/media/2010/01/drobopro-ts-859-pro-14.png)
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_71csbh8cd8_b)](http://docs.google.com/File?id=dcmzmbww_71csbh8cd8_b "DroboPro")
+[![](/media/2010/01/drobopro-ts-859-pro-15.png)](/media/2010/01/drobopro-ts-859-pro-15.png "DroboPro")
 
 
 
@@ -125,15 +125,15 @@ The dashboard will complete saying all is well, when in reality it is not:
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_72cw45qjdn_b)](http://docs.google.com/File?id=dcmzmbww_72cw45qjdn_b)
+[![](/media/2010/01/drobopro-ts-859-pro-16.png)](/media/2010/01/drobopro-ts-859-pro-16.png)
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_74djt8m2dm_b)](http://docs.google.com/File?id=dcmzmbww_74djt8m2dm_b)
+[![](/media/2010/01/drobopro-ts-859-pro-17.png)](/media/2010/01/drobopro-ts-859-pro-17.png)
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_76f2m6v2cc_b)](http://docs.google.com/File?id=dcmzmbww_76f2m6v2cc_b)
+[![](/media/2010/01/drobopro-ts-859-pro-18.png)](/media/2010/01/drobopro-ts-859-pro-18.png)
 
 
 
@@ -147,7 +147,7 @@ The dashboard will pick up the change and show the correct state.
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_77d2jp48gg_b)](http://docs.google.com/File?id=dcmzmbww_77d2jp48gg_b)
+[![](/media/2010/01/drobopro-ts-859-pro-19.png)](/media/2010/01/drobopro-ts-859-pro-19.png)
 
 
 
@@ -159,11 +159,11 @@ The email notifications are generated by the user session application, so no use
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_8285dvbqg7_b)](http://docs.google.com/File?id=dcmzmbww_8285dvbqg7_b)
+[![](/media/2010/01/drobopro-ts-859-pro-20.png)](/media/2010/01/drobopro-ts-859-pro-20.png)
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_83gctptxgx_b)](http://docs.google.com/File?id=dcmzmbww_83gctptxgx_b)
+[![](/media/2010/01/drobopro-ts-859-pro-21.png)](/media/2010/01/drobopro-ts-859-pro-21.png)
 
 
 
@@ -173,7 +173,7 @@ DroboPro does not provide any diagnostics, even the diagnostic file is encrypted
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_85dpmrvqcf_b)](http://docs.google.com/File?id=dcmzmbww_85dpmrvqcf_b)
+[![](/media/2010/01/drobopro-ts-859-pro-22.png)](/media/2010/01/drobopro-ts-859-pro-22.png)
 
 
 
@@ -209,7 +209,7 @@ The default username and password is "admin", "admin".
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_86gms3pkgt_b)](http://docs.google.com/File?id=dcmzmbww_86gms3pkgt_b)
+[![](/media/2010/01/drobopro-ts-859-pro-23.png)](/media/2010/01/drobopro-ts-859-pro-23.png)
 
 
 
@@ -221,7 +221,7 @@ During this time the volume is accessible for storage, the device is just busy a
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_79f5vdq2g3_b)](http://docs.google.com/File?id=dcmzmbww_79f5vdq2g3_b)
+[![](/media/2010/01/drobopro-ts-859-pro-24.png)](/media/2010/01/drobopro-ts-859-pro-24.png)
 
 
 
@@ -231,11 +231,11 @@ Unlike the DroboPro that shows no diagnostics, and generates an encrypted diagno
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_80r26nd4hm_b)](http://docs.google.com/File?id=dcmzmbww_80r26nd4hm_b)
+[![](/media/2010/01/drobopro-ts-859-pro-25.png)](/media/2010/01/drobopro-ts-859-pro-25.png)
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_819ffbfsd5_b)](http://docs.google.com/File?id=dcmzmbww_819ffbfsd5_b)
+[![](/media/2010/01/drobopro-ts-859-pro-26.png)](/media/2010/01/drobopro-ts-859-pro-26.png)
 
 
 
@@ -245,7 +245,7 @@ Unlike the DroboPro, email alerts are generated from the device and do not requi
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_91fmgkmmgb_b)](http://docs.google.com/File?id=dcmzmbww_91fmgkmmgb_b)
+[![](/media/2010/01/drobopro-ts-859-pro-27.png)](/media/2010/01/drobopro-ts-859-pro-27.png)
 
 
 
@@ -255,11 +255,11 @@ SMB / CIFS shares are enabled by default.
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_87d26sh9fm_b)](http://docs.google.com/File?id=dcmzmbww_87d26sh9fm_b)
+[![](/media/2010/01/drobopro-ts-859-pro-28.png)](/media/2010/01/drobopro-ts-859-pro-28.png)
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_88hpj4sxgr_b)](http://docs.google.com/File?id=dcmzmbww_88hpj4sxgr_b)
+[![](/media/2010/01/drobopro-ts-859-pro-29.png)](/media/2010/01/drobopro-ts-859-pro-29.png)
 
 
 
@@ -269,11 +269,11 @@ iSCSI target creation is very simple using a wizard.
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_89f62n4wcb_b)](http://docs.google.com/File?id=dcmzmbww_89f62n4wcb_b)
+[![](/media/2010/01/drobopro-ts-859-pro-30.png)](/media/2010/01/drobopro-ts-859-pro-30.png)
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_90fdxgxnx6_b)](http://docs.google.com/File?id=dcmzmbww_90fdxgxnx6_b)
+[![](/media/2010/01/drobopro-ts-859-pro-31.png)](/media/2010/01/drobopro-ts-859-pro-31.png)
 
 
 
@@ -311,7 +311,7 @@ This way I could run the tests one by one on the various devices, without needin
 
 
 
-[![](http://docs.google.com/File?id=dcmzmbww_95g4tjkwcn_b)](http://docs.google.com/File?id=dcmzmbww_95g4tjkwcn_b)
+[![](/media/2010/01/drobopro-ts-859-pro-32.png)](/media/2010/01/drobopro-ts-859-pro-32.png)
 
 
 
@@ -359,31 +359,31 @@ The first set of tests were done using [ATTO Disk Benchmark 2.46](http://majorge
 
 Intel 160GB SSD:
 
-[![](http://docs.google.com/File?id=dcmzmbww_96gjqvgvfw_b)](http://docs.google.com/File?id=dcmzmbww_96gjqvgvfw_b)
+[![](/media/2010/01/drobopro-ts-859-pro-33.png)](/media/2010/01/drobopro-ts-859-pro-33.png)
 
 
 
 Hitachi A7K2000 2TB SATA:
 
-[![](http://docs.google.com/File?id=dcmzmbww_97cv72zxd5_b)](http://docs.google.com/File?id=dcmzmbww_97cv72zxd5_b)
+[![](/media/2010/01/drobopro-ts-859-pro-34.png)](/media/2010/01/drobopro-ts-859-pro-34.png)
 
 
 
 DroboPro iSCSI:
 
-[![](http://docs.google.com/File?id=dcmzmbww_98ghphtdhh_b)](http://docs.google.com/File?id=dcmzmbww_98ghphtdhh_b)
+[![](/media/2010/01/drobopro-ts-859-pro-35.png)](/media/2010/01/drobopro-ts-859-pro-35.png)
 
 
 
 TS-859 Pro (1500 MTU) iSCSI:
 
-![](http://docs.google.com/File?id=dcmzmbww_996qkgmff6_b)
+![](/media/2010/01/drobopro-ts-859-pro-36.png)
 
 
 
 TS-859 Pro Jumbo Frame (9000 MTU) iSCSI:
 
-[![](http://docs.google.com/File?id=dcmzmbww_100hsf37tgh_b)](http://docs.google.com/File?id=dcmzmbww_100hsf37tgh_b)
+[![](/media/2010/01/drobopro-ts-859-pro-37.png)](/media/2010/01/drobopro-ts-859-pro-37.png)
 
 
 
@@ -403,7 +403,7 @@ Write performance:
 
 Summary:
 
-[![](http://docs.google.com/File?id=dcmzmbww_104nm9mmkdq_b)](http://docs.google.com/File?id=dcmzmbww_104nm9mmkdq_b)
+[![](/media/2010/01/drobopro-ts-859-pro-38.png)](/media/2010/01/drobopro-ts-859-pro-38.png)
 
 
 
@@ -424,7 +424,7 @@ DroboPro iSCSI:
 
 System load during Ghost file copy to DroboPro:
 
-[![](http://docs.google.com/File?id=dcmzmbww_102mjd45rgd_b)](http://docs.google.com/File?id=dcmzmbww_102mjd45rgd_b)
+[![](/media/2010/01/drobopro-ts-859-pro-39.png)](/media/2010/01/drobopro-ts-859-pro-39.png)
 
 
 
@@ -444,7 +444,7 @@ TS-859 Pro Jumbo iSCSI:
 
 System load during Ghost file copy to TS-859 Pro Jumbo:
 
-[![](http://docs.google.com/File?id=dcmzmbww_103dmjgxqfk_b)](http://docs.google.com/File?id=dcmzmbww_103dmjgxqfk_b)
+[![](/media/2010/01/drobopro-ts-859-pro-40.png)](/media/2010/01/drobopro-ts-859-pro-40.png)
 
 
 
@@ -469,7 +469,7 @@ TS-859 Pro SMB:
 
 Summary:
 
-[![](http://docs.google.com/File?id=dcmzmbww_105dv5h63gg_b)](http://docs.google.com/File?id=dcmzmbww_105dv5h63gg_b)
+[![](/media/2010/01/drobopro-ts-859-pro-41.png)](/media/2010/01/drobopro-ts-859-pro-41.png)
 
 
 

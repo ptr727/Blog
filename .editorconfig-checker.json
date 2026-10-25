@@ -8,7 +8,7 @@
     "^static/media/",
     "^static/external/",
     "^themes/",
-    "\\.(ico|png|jpg|jpeg|gif|webp|mov|zip)$"
+    "\\.(ico|png|jpg|jpeg|gif|webp|mov|zip|woff2)$"
   ],
   "Disable": {
     "Charset": true,

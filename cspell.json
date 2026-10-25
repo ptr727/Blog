@@ -6,6 +6,7 @@
     "reports/*/**",
     "content/**",
     "static/**",
+    "sites/*/fonts/**",
     "themes/**",
     "deploy/maps/**",
     "checks/*.txt",

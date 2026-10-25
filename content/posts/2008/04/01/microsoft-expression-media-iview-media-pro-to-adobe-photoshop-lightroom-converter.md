@@ -11,8 +11,6 @@ tags:
 - microsoft
 post_id: '76'
 ---
-This article was originally posted [here](http://www.insanegenius.com/expressionmedia/).
-
 ### Introduction:
 
 
@@ -132,7 +130,7 @@ keywords to all items that fail using the main application.
 
 
 
-#### Version 1.0.1.1: [ExpressionMediaExport.1.0.1.1.zip](https://docs.google.com/open?id=0B_YiDruAPkKzZmNlNzdiZjAtYTZhZi00MDc1LWEwMjgtNDc3ZWJkODViOTEw)
+#### Version 1.0.1.1: [ExpressionMediaExport.1.0.1.1.zip](/media/2008/04/expressionmediaexport-1.0.1.1.zip)
 
 
 
@@ -141,7 +139,7 @@ keywords to all items that fail using the main application.
 
 
 
-#### Version 1.0.0.2: [ExpressionMediaExport.1.0.0.2.zip](https://docs.google.com/uc?id=0B_YiDruAPkKzYjA2MDAxNTgtZWI5YS00YTBjLWJiYjgtYTkwMjkwYzdlMWYx&export=download&hl=en)
+#### Version 1.0.0.2: [ExpressionMediaExport.1.0.0.2.zip](/media/2008/04/expressionmediaexport-1.0.0.2.zip)
 
 
 
@@ -152,8 +150,6 @@ keywords to all items that fail using the main application.
 
 
 
-
-- [Pieter Viljoen's homepage](http://www.insanegenius.com/).
 
 - ["Converting Catalog Sets and Keywords from iView to Lightroom"  
 post on The DAM Forum](http://thedambook.com/smf/index.php?topic=1631.0).

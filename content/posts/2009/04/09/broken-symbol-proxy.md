@@ -141,7 +141,7 @@ The parameters passed to SymbolServerByIndex() would look something like:
 
 Since I had access to the original path request, and I could intercept the call to SymbolServerByIndex(), I wrote code to replace the file name and identifier with the original cased versions.
 
-See the [source code](https://docs.google.com/uc?id=0B_YiDruAPkKzNzMzN2I3ODktOWM0OS00NmJjLThjYTEtZDhiOWVhNzY1NmMx&export=download&hl=en) for details.
+See the [source code](/media/2020/05/symproxyoptions.zip) for details.
 
 This fixed the case problem and I was now able to retrieve symbols from the Mozilla and Google symbol servers.
 
@@ -225,7 +225,7 @@ The result was that the symbol proxy now correctly retrieved compressed symbols.
 
 I now have a working symbol proxy that fixes the problems experienced with case sensitive web servers and compressed symbols.
 
-The [source code is available here](https://docs.google.com/uc?id=0B_YiDruAPkKzNzMzN2I3ODktOWM0OS00NmJjLThjYTEtZDhiOWVhNzY1NmMx&export=download&hl=en), normal disclaimers apply, use at your own risk.
+The [source code is available here](/media/2020/05/symproxyoptions.zip), normal disclaimers apply, use at your own risk.
 
 Installation instructions:
 

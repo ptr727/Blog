@@ -16,3 +16,4 @@
 static/media/** binary
 static/external/** binary
 *.ico binary
+*.woff2 binary

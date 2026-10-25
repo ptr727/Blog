@@ -302,4 +302,4 @@ The dimming linearity is quite different to halogens, but I can compensate in my
 
 +2 Years later, and I also replaced all the kitchen CFL's with retrofit LED's, using [Elco ECF41540W 4" 4000K LED CFL Retrofit Inserts](https://www.elcolighting.com/products/4-led-cfl-retrofit-insert). The LED replacement inserts are $30, and a CFL bulb (that recently got really expensive) is $18, and the CFL's need at least yearly replacement, so 2 year return is not bad.
 
-{{< figure src="https://www.elcolighting.com/sites/default/files/ECF41527W.png" alt="" caption="" >}}
+{{< figure src="/media/2015/08/elco-ecf41527w.png" alt="" caption="" >}}

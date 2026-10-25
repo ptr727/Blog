@@ -7,7 +7,7 @@ How the site is built, released, and served. The release is a **self-contained b
 | Tool | Used by | Needed for | Install |
 | --- | --- | --- | --- |
 | `hugo` (extended) | `make-release.sh` | building the site | see below |
-| `python3` (3.10+) | `check-url-parity.py`, `check-csp-scripts.py`, `check-csp-browser.py`, `capture/build-redirects.py` | the build-time gates, the browser trial, regenerating maps | `apt install python3` |
+| `python3` (3.10+) | `check-url-parity.py`, `check-csp.py`, `check-csp-browser.py`, `capture/build-redirects.py` | the build-time gates, the browser trial, regenerating maps | `apt install python3` |
 | PyYAML | `capture/clean-content.py` | reading front matter during a conversion | `apt install python3-yaml` |
 | `rsync` | `make-release.sh` | installing a release, hard-linking unchanged files | `apt install rsync` |
 | `gzip` | `make-release.sh` | precompression | coreutils, already present |
@@ -282,9 +282,9 @@ Every file the blog serves, and its error page, names its own lifetime. A browse
 | --- | --- | --- |
 | Pages, feeds, the sitemap, `index.json`, `robots.txt`, and every other path | `no-cache` | A copy may be kept but is revalidated on every use, so a deploy shows at once |
 | `/assets/`, the fingerprinted stylesheet and script | `public, max-age=31536000, immutable` | The name changes with the content, so a copy is never stale |
-| `/media/` and the root icons | `public, max-age=3600` | An image rarely changes, and an hour bounds how long a replaced one is still served from any copy |
+| `/media/`, the `/fonts/` files, and the root icons | `public, max-age=3600` | An image or a font rarely changes, and an hour bounds how long a replaced one is still served from any copy |
 
-A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the baseline header runs before them. A map entry a release changes is then followed at the next request. The family site follows the table's page and image rows, its SVGs included. Its stylesheet and script keep their names across releases, so they answer `no-cache` like its pages. A longer lifetime there would pair a new page with an old script. Its error page answers `no-cache` the same way, and so do its language redirects, because the `@page` matcher reaches them.
+A `404` answers with `no-cache` whatever its path, since a missing file in a cached class would otherwise keep that class's lifetime. The blog's redirects answer `no-cache` too, since the baseline header runs before them. A map entry a release changes is then followed at the next request. The family site follows the table's page and image rows, its SVGs and fonts included. Its stylesheet and script keep their names across releases, so they answer `no-cache` like its pages. A longer lifetime there would pair a new page with an old script. Its error page answers `no-cache` the same way, and so do its language redirects, because the `@page` matcher reaches them.
 
 **Two zone settings decide whether these lifetimes hold behind Cloudflare.** Both are the host side's to set.
 
@@ -303,13 +303,13 @@ The sites send the same security headers on every response, redirects and the `4
 
 The HSTS value carries neither `includeSubDomains` nor `preload`. `includeSubDomains` would extend the policy to every subdomain of the site's hostname, and this bundle serves none of them. `preload` asks for the whole domain to be built into browsers, where a removal takes months to reach readers. HSTS at the edge is the host side's setting, and it stays off because Cloudflare applies it to every name in the zone.
 
-**Each site sends its own `Content-Security-Policy`.** The family page loads few resources, so its policy names each kind: its own files, Google Fonts, inline styles, and `data:` images. The blog policy allows its own files, Google Fonts, and inline styles, which the theme and some archived posts carry. No post loads a script, frame, or object from another host. An embed from another host, such as a video or a map, needs that host in its directive first. Without it the browser blocks the embed, and the release build fails on it. Write a host as `https://<host>` and a scheme as `data:`, the forms the gate reads. Images load only from the site itself. That blocks the hotlinked images a few archived posts still reference, and each of those is already gone. Its `script-src` lists a hash for each inline script the theme writes, rather than allowing every inline script.
+**Each site sends its own `Content-Security-Policy`.** The family page loads few resources, so its policy names each kind: its own files and fonts, inline styles, and `data:` images. The blog policy allows its own files and fonts, and inline styles, which the theme and some archived posts carry. Both sites serve their fonts themselves, under `/fonts/`. Neither policy names another host, so every resource either site loads is its own. An embed from another host, such as a video or a map, is therefore not possible. The browser would block it, and the release build fails on it. A scheme such as `data:` names no host, so a directive may list one. Its `script-src` lists a hash for each inline script the theme writes, rather than allowing every inline script.
 
-**A Hugo update, a theme update, or a theme setting in `hugo.yaml` can change those scripts.** [`checks/check-csp-scripts.py`][checks-csp-scripts] runs in the release build and fails when the hashes and the built scripts differ. The fix is to copy each hash it reports into both the Caddyfile and `security-headers.txt`, and to drop each hash it reports as unused.
+**A Hugo update, a theme update, or a theme setting in `hugo.yaml` can change those scripts.** [`checks/check-csp.py`][checks-csp] runs in the release build and fails when the hashes and the built scripts differ. For a hash, the fix is to copy each one it reports into both the Caddyfile and `security-headers.txt`. Drop each one it reports as unused. It also fails when a page or stylesheet on either site fetches something its policy does not allow, or when a policy names another host. The fix there is to serve the resource from the site itself, and to drop the host from the policy.
 
-**The gate reads only what Hugo builds, so a policy change is also tried in a browser.** [`checks/check-csp-browser.py`][checks-csp-browser] loads every page of a running mirror in headless Chromium. It fails on anything the policy blocks that [`checks/csp-browser-allow.txt`][checks-csp-browser-allow] does not list. A run over the whole default list also fails on an entry there that nothing matched. The dead hotlinked images are its entries today. [OPERATIONS.md "Local Verification"][operations-local-verification] says when it runs and how.
+**The gate reads only the files each site ships, so a policy change is also tried in a browser.** [`checks/check-csp-browser.py`][checks-csp-browser] loads every page of a running mirror in headless Chromium. It fails on anything the policy blocks that [`checks/csp-browser-allow.txt`][checks-csp-browser-allow] does not list. A run over the whole default list also fails on an entry there that nothing matched. The list is empty today, so any blocked load fails the run. [OPERATIONS.md "Local Verification"][operations-local-verification] says when it runs and how.
 
-**The policy also blocks a script the proxy injects into a page.** Cloudflare's Rocket Loader, Email Address Obfuscation, and Web Analytics each inject one, so each stays off. They are the host side's to set, and the gate cannot see them, since it reads only what Hugo builds.
+**The policy also blocks a script the proxy injects into a page.** Cloudflare's Rocket Loader, Email Address Obfuscation, and Web Analytics each inject one, so each stays off. They are the host side's to set, and the gate cannot see them, since it reads only the files each site ships.
 
 **A change to any of these values changes [`checks/security-headers.txt`][checks-security-headers] with it.** The live check asserts each value exactly, and a unit case fails while the two differ.
 
@@ -436,7 +436,7 @@ Two orderings are load-bearing. `@post_child_feed` precedes `@post_child` becaus
 Each of these fails silently when it fails, which is why it is checked rather than assumed:
 
 - **The URL contract**, via `check-url-parity.py`, before anything is installed.
-- **The blog's script hashes and embed sources**, via `check-csp-scripts.py`, before anything is installed.
+- **Both sites' script hashes and every fetch their pages and stylesheets make**, via `check-csp.py`, before anything is installed.
 - **World-readability of the finished release.** `--chmod` and `--no-g` apply only to files
   rsync newly transfers. A file supplied by `--link-dest` is a hard link to the previous
   release's inode and keeps that inode's mode and ownership, so a badly moded file rides the
@@ -455,7 +455,7 @@ Each of these fails silently when it fails, which is why it is checked rather th
 [capture-readme]: ../capture/README.md
 [checks-csp-browser]: ../checks/check-csp-browser.py
 [checks-csp-browser-allow]: ../checks/csp-browser-allow.txt
-[checks-csp-scripts]: ../checks/check-csp-scripts.py
+[checks-csp]: ../checks/check-csp.py
 [checks-redirect-urls]: ../checks/redirect-urls.txt
 [checks-security-headers]: ../checks/security-headers.txt
 [example-env]: ../.secrets/example.env
