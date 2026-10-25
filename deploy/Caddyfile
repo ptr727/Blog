@@ -144,7 +144,7 @@
 		@fingerprinted path /assets/*
 		header @fingerprinted Cache-Control "public, max-age=31536000, immutable"
 		# An hour bounds how long a replaced image or font is still served from any copy.
-		@media path /media/* /fonts/*.woff2 /*.png /*.ico
+		@media path /media/* /fonts/* /*.png /*.ico
 		header @media Cache-Control "public, max-age=3600"
 
 		# The proxy forwards Accept-Encoding unchanged and adds no compression of its own.
