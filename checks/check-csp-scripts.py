@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Verify that the blog's Content-Security-Policy allows every script the built site runs.
 
-The policy is read from `checks/security-headers.txt`, which a unit case holds equal to the
-Caddyfile. Every inline script must carry a hash the policy lists. Every hash the policy lists
+The policy is read from `checks/security-headers.txt`, and `deploy/Caddyfile`, which ships, must
+send the same value. Without `script-src` the browser applies `default-src`, and so does this
+check. Every inline script must carry a hash the policy lists. Every hash the policy lists
 must match an inline script. A Hugo or theme update that changes a script's bytes then fails
 here rather than in a reader's browser. A script loaded by URL must come from an origin the
 policy names. An inline event handler or a `javascript:` URL fails outright, since a hash cannot
@@ -21,24 +22,29 @@ from urllib.parse import urlsplit
 
 CHECKS = pathlib.Path(__file__).resolve().parent
 HEADERS = CHECKS / "security-headers.txt"
+CADDYFILE = CHECKS.parent / "deploy" / "Caddyfile"
 CSP = "Content-Security-Policy"
 
 SCRIPT_TYPES = {"", "module", "text/javascript", "application/javascript"}
 
 
-def script_sources(headers_text):
-    """The script-src tokens of the blog's policy, or None where the blog sends no policy."""
+def blog_policy(headers_text):
+    """The blog's policy as security-headers.txt holds it, or None where the blog sends none."""
     for line in headers_text.splitlines():
         site, _, header = line.partition("\t")
         name, _, value = header.partition(": ")
-        if site != "blog" or name != CSP:
-            continue
-        for directive in value.split(";"):
-            tokens = directive.split()
-            if tokens and tokens[0] == "script-src":
-                return tokens[1:]
-        return []
+        if site == "blog" and name == CSP:
+            return value
     return None
+
+
+def script_sources(policy):
+    directives = {}
+    for directive in policy.split(";"):
+        tokens = directive.split()
+        if tokens:
+            directives.setdefault(tokens[0], tokens[1:])
+    return directives.get("script-src", directives.get("default-src", []))
 
 
 def digest(body):
@@ -96,7 +102,7 @@ def check(public, sources):
     used = collections.defaultdict(list)
     findings = []
     for path in sorted(public.rglob("*.html")):
-        rel = str(path.relative_to(public)).replace("\\", "/")
+        rel = path.relative_to(public).as_posix()
         scan = ScriptScan()
         scan.feed(path.read_text(encoding="utf-8", errors="replace"))
         scan.close()
@@ -133,11 +139,15 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not args.public.is_dir():
         sys.exit(f"FAIL: {args.public} is not a directory - run hugo first")
-    sources = script_sources(HEADERS.read_text(encoding="utf-8"))
-    if sources is None:
+    policy = blog_policy(HEADERS.read_text(encoding="utf-8"))
+    if policy is None:
         sys.exit(f"FAIL: {HEADERS.name} holds no {CSP} for the blog")
+    if f'{CSP} "{policy}"' not in CADDYFILE.read_text(encoding="utf-8"):
+        sys.exit(
+            f"FAIL: {CADDYFILE.name} does not send the blog {CSP} {HEADERS.name} holds"
+        )
 
-    findings = check(args.public, sources)
+    findings = check(args.public, script_sources(policy))
     if not findings:
         print("PASS - the blog's script-src allows every script the site runs")
         return 0

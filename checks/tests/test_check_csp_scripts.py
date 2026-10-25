@@ -102,7 +102,7 @@ class CheckTest(unittest.TestCase):
 
 
 class PolicyTest(unittest.TestCase):
-    def test_the_blog_script_sources_are_read(self) -> None:
+    def test_the_blog_policy_is_read(self) -> None:
         blog = policy("'self'", "'sha256-AAAA'")
         family = policy("'none'")
         text = (
@@ -110,17 +110,27 @@ class PolicyTest(unittest.TestCase):
             f"blog\tContent-Security-Policy: {blog}\n"
             f"family\tContent-Security-Policy: {family}\n"
         )
-        self.assertEqual(gate.script_sources(text), ["'self'", "'sha256-AAAA'"])
+        self.assertEqual(gate.blog_policy(text), blog)
 
     def test_a_blog_without_a_policy_reads_as_none(self) -> None:
         family = policy("'self'")
         text = f"family\tContent-Security-Policy: {family}\n"
-        self.assertIsNone(gate.script_sources(text))
+        self.assertIsNone(gate.blog_policy(text))
 
-    def test_the_carried_blog_policy_never_allows_every_inline_script(self) -> None:
-        sources = gate.script_sources(gate.HEADERS.read_text(encoding="utf-8"))
-        self.assertIsNotNone(sources)
-        assert sources is not None
+    def test_script_src_is_read_and_default_src_stands_in_for_it(self) -> None:
+        sources = gate.script_sources(policy("'self'", "'sha256-AAAA'"))
+        self.assertEqual(sources, ["'self'", "'sha256-AAAA'"])
+        fallback = gate.script_sources("default-src 'self'; img-src 'self'")
+        self.assertEqual(fallback, ["'self'"])
+        self.assertEqual(gate.script_sources("img-src 'self'"), [])
+
+    def test_the_carried_policy_is_what_the_caddyfile_sends(self) -> None:
+        carried = gate.blog_policy(gate.HEADERS.read_text(encoding="utf-8"))
+        self.assertIsNotNone(carried)
+        assert carried is not None
+        sent = gate.CADDYFILE.read_text(encoding="utf-8")
+        self.assertIn(f'Content-Security-Policy "{carried}"', sent)
+        sources = gate.script_sources(carried)
         self.assertIn("'self'", sources)
         self.assertNotIn("'unsafe-inline'", sources)
 
