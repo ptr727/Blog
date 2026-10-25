@@ -64,9 +64,9 @@
       "problemMatcher": []
     },
     {
-      "label": "Check: CSP Scripts",
+      "label": "Check: CSP",
       "type": "process",
-      "command": "checks/check-csp-scripts.py",
+      "command": "checks/check-csp.py",
       "args": [
         "public"
       ],
