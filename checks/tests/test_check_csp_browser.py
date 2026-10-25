@@ -197,6 +197,19 @@ class MainTest(unittest.TestCase):
             gate.main(["mirror.example"])
         self.assertEqual(raised.exception.code, 2)
 
+    def test_a_list_naming_no_page_is_a_usage_error(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            urls = pathlib.Path(folder) / "empty-urls.txt"
+            urls.write_text("\n  \n", encoding="utf-8")
+            with (
+                mock.patch.object(gate, "run_probe") as probe,
+                contextlib.redirect_stderr(io.StringIO()),
+                self.assertRaises(SystemExit) as raised,
+            ):
+                gate.main([BASE, "--urls", str(urls)])
+        self.assertEqual(raised.exception.code, 2)
+        probe.assert_not_called()
+
 
 class CommandTest(unittest.TestCase):
     def test_the_container_installs_the_tag_version_and_reaches_the_host(self) -> None:
