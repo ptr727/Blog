@@ -8,7 +8,7 @@ tags:
 - intel
 post_id: '71'
 ---
-I previously commented on this problem [here](http://www.insanegenius.com/dg33tl/) and [here](http://www.avsforum.com/avs-vb/showthread.php?t=1008286).  
+I previously commented on this problem [here](/2008/04/01/intel-dg33tl-motherboard/) and [here](http://www.avsforum.com/avs-vb/showthread.php?t=1008286).  
 
 I participated in the Microsoft Vista SP1 Beta program.
 

@@ -9,8 +9,6 @@ tags:
 - htpc
 post_id: '74'
 ---
-This article was originally posted [here](http://www.insanegenius.com/fusionblack/).
-
 ### Introduction:
 
 
@@ -78,17 +76,17 @@ the LCD of my Yamaha RX-V2700 receiver.
 Low contrast setting (text is visible):
 
 [  
-![LCD Contrast Low](/external/72aa0d6e3e2cfcb1.jpg)](/external/72aa0d6e3e2cfcb1.jpg)
+![LCD Contrast Low](/media/2008/04/lcd-contrast-low.jpg)](/media/2008/04/lcd-contrast-low-large.jpg)
 
 Medium contrast setting (text is partially visible):
 
 [  
-![LCD Contrast Medium](/external/d80a3c0b6707106c.jpg)](/external/d80a3c0b6707106c.jpg)
+![LCD Contrast Medium](/media/2008/04/lcd-contrast-medium.jpg)](/media/2008/04/lcd-contrast-medium-large.jpg)
 
 High contrast setting (you can't see the text at all):
 
 [  
-![LCD Contrast High](/external/42d0a91ca181ba3b.jpg)](/external/42d0a91ca181ba3b.jpg)
+![LCD Contrast High](/media/2008/04/lcd-contrast-high.jpg)](/media/2008/04/lcd-contrast-high-large.jpg)
 
 - Antec support sent me pictures of a similar LCD in a test system, they  
 do not have the actual case, and it looks marginally better than mine, but  
@@ -97,23 +95,23 @@ still very poor.
 Low contrast:
 
 [  
-![LCD Antec Contrast Low](/external/93d20c073b532276.jpg)](/external/4ce2094cde967177.jpg)
+![LCD Antec Contrast Low](/media/2008/04/lcd-antec-contrast-low.jpg)](/media/2008/04/lcd-antec-contrast-low-large.jpg)
 
 Medium contrast:
 
 [  
-![LCD Antec Contrast Medium](/external/264a96814da7012f.jpg)](/external/264a96814da7012f.jpg)
+![LCD Antec Contrast Medium](/media/2008/04/lcd-antec-contrast-medium.jpg)](/media/2008/04/lcd-antec-contrast-medium-large.jpg)
 
 High contrast:
 
 [  
-![LCD Antec Contrast High](/external/93d20c073b532276.jpg)](/external/65a187b1d590946f.jpg)
+![LCD Antec Contrast High](/media/2008/04/lcd-antec-contrast-high.jpg)](/media/2008/04/lcd-antec-contrast-high-large.jpg)
 
 Picture from SoundGraph website for iMON OEM LCD (very different to the  
 Antec version):
 
 [  
-![LCD SoundGraph iMon OEM](/external/fb4ad19b4a08077f.jpg)](http://www.soundgraph.com/Eng_/Products/oem3.aspx?topMenu=2&subMenu=1&leftMenu=43)
+![LCD SoundGraph iMon OEM](/media/2008/04/lcd-soundgraph-imon-oem.jpg)](http://www.soundgraph.com/Eng_/Products/oem3.aspx?topMenu=2&subMenu=1&leftMenu=43)
 
 - The LCD started flickering, I tried rebooting, removing power from the  
 LCD, does not stop.
@@ -121,8 +119,8 @@ LCD, does not stop.
 It does seem that while the PC boots the display does not flicker, but the  
 moment the iMON software starts the flickering starts.
 
-Here is a movie of the flickering in [DivX AVI format](https://docs.google.com/uc?id=0B_YiDruAPkKzYzRkNGU5ZGEtYThiYS00NTcwLThhZDctNWY3Mzk2MjI5Njg1&export=download&hl=en)  
-(4.27MB).
+Here is a movie of the flickering in [MP4 format](/media/2008/04/lcd-flicker.mp4)  
+(1.4MB).
 
 - I returned the LCD module to Antec under RMA, they were unable to  
 reproduce the flicker problem, but they did send me a replacement LCD  
@@ -135,7 +133,7 @@ As for the quality of the new LCD module, the
 text is now readable at the medium contrast setting, but not nearly as good as the picture from the iMON website.
 
 [  
-![Replacement LCD Module](/external/77fb3deeb97dc456.jpg)](/external/77fb3deeb97dc456.jpg)
+![Replacement LCD Module](/media/2008/04/lcd-replacement.jpg)](/media/2008/04/lcd-replacement-large.jpg)
 
 - The remote only starts working once you have logged in, you can not use  
 the remote prior to logging in. I am now forced to use a mouse or keyboard  
@@ -167,8 +165,6 @@ that is not satisfied to contact Antec and raise your concerns.
 
 
 
-
-- [Pieter Viljoen's homepage](http://www.insanegenius.com/).
 
 -   
 [Antec  
