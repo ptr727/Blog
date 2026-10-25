@@ -6,9 +6,10 @@ send the same value. Without `script-src` the browser applies `default-src`, and
 check. Every inline script must carry a hash the policy lists. Every hash the policy lists
 must match an inline script. A Hugo or theme update that changes a script's bytes then fails
 here rather than in a reader's browser. A script loaded by URL must come from an origin the
-policy names. An inline event handler or a `javascript:` URL fails outright, since a hash cannot
-allow either. A data block, whose type is not JavaScript, never runs, and the browser never
-checks an empty script, so neither needs a hash.
+policy names. An inline event handler or a `javascript:` URL fails outright, since a hash allows
+neither without `'unsafe-hashes'`, which the blog policy does not carry. An import map and a
+speculation rules block are checked like a script. Any other type is a data block that never
+runs, and the browser never checks an empty script, so neither needs a hash.
 """
 
 import argparse
@@ -25,7 +26,14 @@ HEADERS = CHECKS / "security-headers.txt"
 CADDYFILE = CHECKS.parent / "deploy" / "Caddyfile"
 CSP = "Content-Security-Policy"
 
-SCRIPT_TYPES = {"", "module", "text/javascript", "application/javascript"}
+SCRIPT_TYPES = {
+    "",
+    "module",
+    "text/javascript",
+    "application/javascript",
+    "importmap",
+    "speculationrules",
+}
 
 
 def blog_policy(headers_text):

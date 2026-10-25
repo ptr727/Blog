@@ -73,9 +73,12 @@ class CheckTest(unittest.TestCase):
         )
         self.assertEqual(self.run_gate({"index.html": html}, ["'self'"]), [])
 
-    def test_a_module_script_is_checked(self) -> None:
-        html = f'<script type="module">{THEME}</script>'
-        self.assertEqual(len(self.run_gate({"index.html": html}, ["'self'"])), 1)
+    def test_modules_import_maps_and_speculation_rules_are_checked(self) -> None:
+        for kind in ("module", "importmap", "speculationrules"):
+            with self.subTest(kind):
+                html = f'<script type="{kind}">{THEME}</script>'
+                findings = self.run_gate({"index.html": html}, ["'self'"])
+                self.assertEqual(len(findings), 1)
 
     def test_a_script_url_needs_its_origin_named(self) -> None:
         own = '<script src="/assets/js/search.js"></script>'
