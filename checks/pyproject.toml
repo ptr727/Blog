@@ -19,3 +19,7 @@ typeCheckingMode = "standard"
 [tool.coverage.run]
 source = ["."]
 omit = ["tests/*"]
+
+[[tool.mypy.overrides]]
+module = ["playwright.*"]
+ignore_missing_imports = true
