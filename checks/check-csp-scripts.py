@@ -112,7 +112,7 @@ def check(public, sources):
     for path in sorted(public.rglob("*.html")):
         rel = path.relative_to(public).as_posix()
         scan = ScriptScan()
-        scan.feed(path.read_text(encoding="utf-8", errors="replace"))
+        scan.feed(path.read_text(encoding="utf-8"))
         scan.close()
         findings += [f"{rel}: {finding}" for finding in scan.findings]
         findings += [

@@ -141,8 +141,10 @@ class PolicyTest(unittest.TestCase):
         self.assertEqual(self.load(held, sent), (blog, None))
 
     def test_a_caddyfile_sending_another_value_refuses(self) -> None:
-        sent = f'header {{\n\tContent-Security-Policy "{policy("'self'")}"\n}}\n'
-        held = f"blog\tContent-Security-Policy: {policy("'self'", "'sha256-AAAA'")}\n"
+        sent_policy = policy("'self'")
+        held_policy = policy("'self'", "'sha256-AAAA'")
+        sent = f'header {{\n\tContent-Security-Policy "{sent_policy}"\n}}\n'
+        held = f"blog\tContent-Security-Policy: {held_policy}\n"
         loaded, refusal = self.load(held, sent)
         self.assertIsNone(loaded)
         self.assertIn("Caddyfile does not send", refusal or "")
