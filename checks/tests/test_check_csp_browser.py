@@ -139,7 +139,9 @@ class MainTest(unittest.TestCase):
 
     def run_main(self, records, argv=()):
         with (
-            mock.patch.object(gate, "run_probe", return_value=(records, None)),
+            mock.patch.object(
+                gate, "run_probe", return_value=(records, None)
+            ) as self.probe,
             mock.patch.object(gate, "docker_command", return_value=["true"]),
             mock.patch.object(gate, "read_allow", return_value=[]),
             contextlib.redirect_stdout(io.StringIO()) as out,
@@ -157,19 +159,11 @@ class MainTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             urls = pathlib.Path(folder) / "family-urls.txt"
             urls.write_text("/en/\n/af/\n", encoding="utf-8")
-            with (
-                mock.patch.object(
-                    gate,
-                    "run_probe",
-                    return_value=([loaded("/en/"), loaded("/af/")], None),
-                ) as probe,
-                mock.patch.object(gate, "docker_command", return_value=["true"]),
-                mock.patch.object(gate, "read_allow", return_value=[]),
-                contextlib.redirect_stdout(io.StringIO()) as out,
-            ):
-                code = gate.main([BASE, "--urls", str(urls)])
-        self.assertEqual(code, 0, out.getvalue())
-        self.assertEqual(probe.call_args.args[1], ["/en/", "/af/"])
+            code, out = self.run_main(
+                [loaded("/en/"), loaded("/af/")], ["--urls", str(urls)]
+            )
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.probe.call_args.args[1], ["/en/", "/af/"])
 
     def test_a_page_that_never_reported_fails(self) -> None:
         code, out = self.run_main([loaded("/")])

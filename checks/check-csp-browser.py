@@ -52,7 +52,7 @@ def read_paths(texts, search):
     """The site paths the lists name, in order, once each, and the search page where asked.
 
     Only a run over the default list asks, since another list can be for a site with no search
-    page, and a list that wants it names it.
+    page. A list that wants it names it.
     """
     paths = []
     for text in texts:
@@ -238,7 +238,10 @@ def main(argv=None):
         "--urls",
         type=pathlib.Path,
         action="append",
-        help=f"a list of site paths, repeatable (default {URLS.name})",
+        help=(
+            f"a list of site paths, repeatable (default {URLS.name}, plus {SEARCH_PATH},"
+            f" which another list names where it wants it)"
+        ),
     )
     parser.add_argument(
         "--probe",
