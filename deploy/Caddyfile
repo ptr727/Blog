@@ -37,7 +37,7 @@
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-5ilQRTfItUB+Etsk1onTDCqBA1OpUBIKfJhdMlZ61Co=' 'sha256-QOwTHff6BrH8cmnR7hf10tIuyQ09hKSkEevZzo+G8WE=' 'sha256-UBD9lfFHKxagKGHh9S8B2hytN1cmDsFK1Tl1uedsZ0Q=' 'sha256-eyUVosQAviXm2qeOTG819D1n0kSst2gY8VmfgVsZlag='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-5ilQRTfItUB+Etsk1onTDCqBA1OpUBIKfJhdMlZ61Co=' 'sha256-QOwTHff6BrH8cmnR7hf10tIuyQ09hKSkEevZzo+G8WE=' 'sha256-UBD9lfFHKxagKGHh9S8B2hytN1cmDsFK1Tl1uedsZ0Q=' 'sha256-eyUVosQAviXm2qeOTG819D1n0kSst2gY8VmfgVsZlag='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
 	}
 
 	# One map serves four classes because their key spaces are disjoint.
@@ -143,8 +143,8 @@
 
 		@fingerprinted path /assets/*
 		header @fingerprinted Cache-Control "public, max-age=31536000, immutable"
-		# An hour bounds how long a replaced image is still served from any copy.
-		@media path /media/* /*.png /*.ico
+		# An hour bounds how long a replaced image or font is still served from any copy.
+		@media path /media/* /fonts/*.woff2 /*.png /*.ico
 		header @media Cache-Control "public, max-age=3600"
 
 		# The proxy forwards Accept-Encoding unchanged and adds no compression of its own.
@@ -182,14 +182,14 @@ http://viljoen.family:8080, http://viljoen.vps.insanegenius.net:8080 {$FAMILY_SI
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
-		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self'; img-src 'self' data:"
+		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; script-src 'self'; img-src 'self' data:"
 	}
 
-	@image path *.svg *.png *.ico
+	@image path *.svg *.png *.ico *.woff2
 	header @image Cache-Control "public, max-age=3600"
 	@code path *.css *.js
 	header @code Cache-Control "no-cache"
-	@page not path *.svg *.png *.ico *.css *.js
+	@page not path *.svg *.png *.ico *.woff2 *.css *.js
 	header @page Cache-Control "no-cache"
 
 	# The root follows the browser's first language, and /en/ and /af/ never redirect, so the language switch always holds.

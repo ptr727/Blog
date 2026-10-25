@@ -16,3 +16,5 @@
 static/media/** binary
 static/external/** binary
 *.ico binary
+# The self-hosted web fonts under each site's `fonts/` tree.
+*.woff2 binary
