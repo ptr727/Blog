@@ -124,15 +124,30 @@ class PolicyTest(unittest.TestCase):
         self.assertEqual(fallback, ["'self'"])
         self.assertEqual(gate.script_sources("img-src 'self'"), [])
 
-    def test_the_carried_policy_is_what_the_caddyfile_sends(self) -> None:
-        carried = gate.blog_policy(gate.HEADERS.read_text(encoding="utf-8"))
-        self.assertIsNotNone(carried)
-        assert carried is not None
-        sent = gate.CADDYFILE.read_text(encoding="utf-8")
-        self.assertIn(f'Content-Security-Policy "{carried}"', sent)
-        sources = gate.script_sources(carried)
-        self.assertIn("'self'", sources)
-        self.assertNotIn("'unsafe-inline'", sources)
+    def load(self, headers, caddyfile):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            (root / "security-headers.txt").write_text(headers, encoding="utf-8")
+            (root / "Caddyfile").write_text(caddyfile, encoding="utf-8")
+            return gate.load_policy(root / "security-headers.txt", root / "Caddyfile")
+
+    def test_a_policy_the_caddyfile_sends_loads(self) -> None:
+        blog = policy("'self'")
+        sent = f'header {{\n\tContent-Security-Policy "{blog}"\n}}\n'
+        held = f"blog\tContent-Security-Policy: {blog}\n"
+        self.assertEqual(self.load(held, sent), (blog, None))
+
+    def test_a_caddyfile_sending_another_value_refuses(self) -> None:
+        sent = f'header {{\n\tContent-Security-Policy "{policy("'self'")}"\n}}\n'
+        held = f"blog\tContent-Security-Policy: {policy("'self'", "'sha256-AAAA'")}\n"
+        loaded, refusal = self.load(held, sent)
+        self.assertIsNone(loaded)
+        self.assertIn("Caddyfile does not send", refusal or "")
+
+    def test_a_header_file_without_a_blog_policy_refuses(self) -> None:
+        loaded, refusal = self.load("blog\tReferrer-Policy: no-referrer\n", "")
+        self.assertIsNone(loaded)
+        self.assertIn("holds no Content-Security-Policy", refusal or "")
 
 
 if __name__ == "__main__":

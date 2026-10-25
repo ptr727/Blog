@@ -131,6 +131,19 @@ def check(public, sources):
     return findings
 
 
+def load_policy(headers, caddyfile):
+    """The blog's policy, or a refusal naming why it cannot be checked."""
+    policy = blog_policy(headers.read_text(encoding="utf-8"))
+    if policy is None:
+        return None, f"{headers.name} holds no {CSP} for the blog"
+    if f'{CSP} "{policy}"' not in caddyfile.read_text(encoding="utf-8"):
+        return (
+            None,
+            f"{caddyfile.name} does not send the blog {CSP} {headers.name} holds",
+        )
+    return policy, None
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
     parser.add_argument(
@@ -139,13 +152,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not args.public.is_dir():
         sys.exit(f"FAIL: {args.public} is not a directory - run hugo first")
-    policy = blog_policy(HEADERS.read_text(encoding="utf-8"))
+    policy, refusal = load_policy(HEADERS, CADDYFILE)
     if policy is None:
-        sys.exit(f"FAIL: {HEADERS.name} holds no {CSP} for the blog")
-    if f'{CSP} "{policy}"' not in CADDYFILE.read_text(encoding="utf-8"):
-        sys.exit(
-            f"FAIL: {CADDYFILE.name} does not send the blog {CSP} {HEADERS.name} holds"
-        )
+        sys.exit(f"FAIL: {refusal}")
 
     findings = check(args.public, script_sources(policy))
     if not findings:
