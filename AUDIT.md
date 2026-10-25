@@ -80,7 +80,7 @@ checks/check-url-parity.py public
 checks/check-live-urls.sh <base-url>
 ```
 
-Run the live gate against a local mirror, which checks every URL. Against the VPS production site, set `SAMPLE_CONTRACT=1`, because the edge there bans a client that requests the whole contract.
+Run the live gate against a local mirror, which checks every URL. Against the VPS production site, set `SAMPLE_CONTRACT=1`, so the run stays under the edge's 40-page crawl limit without the host's exemption for this site's names.
 
 - **The build gate** proves every URL that must render exists as a built page, that every legacy media URL resolves, and that every local asset reference points at a file that exists.
 - **The live gate** proves the redirects, which the build cannot: a redirect is the web server's job. It follows each redirect to its destination rather than trusting the status code, because a redirect into a hole returns a perfectly healthy 301. A sampled production run checks each redirect's status and `Location` without following it, so an audit proves destinations on a local mirror.
