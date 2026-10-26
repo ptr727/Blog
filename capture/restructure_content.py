@@ -139,10 +139,9 @@ def main(site: pathlib.Path, apply: bool):
     else:
         print("\nDRY RUN - pass --apply")
 
-    # A problem is a file this cannot place: no url: front matter, or a url that is not the
-    # dated shape. The valid moves still happen, because leaving them undone helps nobody,
-    # but the run is incomplete and must not report success. Contrast clean_content.py,
-    # whose recovered titles are a repair rather than a skip and correctly exit zero.
+    # A problem is a file this cannot place: no url: front matter, or a url that is not the dated shape.
+    # The valid moves still happen, because leaving them undone helps nobody, but the run is incomplete and must not report success.
+    # Contrast clean_content.py, whose recovered titles are a repair rather than a skip and correctly exit zero.
     if problems:
         print(f"{len(problems)} file(s) could not be placed, listed above")
         return 1

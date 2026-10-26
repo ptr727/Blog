@@ -651,10 +651,7 @@ class Sites(unittest.TestCase):
 
     def seeds(self) -> list[str]:
         """The carried seeds the fuzzer samples from the scratch repository."""
-        with (
-            mock.patch.object(fuzz, "REPO", self.root),
-            mock.patch.object(fuzz.gate, "REPO", self.root),
-        ):
+        with mock.patch.object(fuzz, "REPO", self.root):
             seeds = fuzz.carried_seeds(random.Random(0), 9, 1 << 20)
         return [name for name, _ in seeds]
 

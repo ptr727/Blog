@@ -24,7 +24,7 @@ omit = ["tests/*"]
 module = ["playwright.*"]
 ignore_missing_imports = true
 
-# The normalizer sits in scripts/, which needs Pillow, a library this directory's type check does not install.
+# The normalizer sits in scripts/, a directory of its own that this one's type check does not read.
 [[tool.mypy.overrides]]
 module = ["normalize_media"]
 ignore_missing_imports = true
