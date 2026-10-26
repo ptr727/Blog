@@ -4,15 +4,16 @@ description: >-
   Governs Python code style for ptr727/ProjectTemplate fleet repos: the build-versus-lint-only
   profile split, the uv/ruff/pyright/mypy/pytest toolchain, src layout, formatting and linting,
   comment and docstring conventions, type hints, naming, imports, patterns to avoid, test
-  conventions, and versioning. Use this whenever writing, reviewing, or editing a .py file, a
-  pyproject.toml, or a uv.lock, whenever running or choosing a Python formatting, lint, type-check,
-  or test command, whenever deciding whether a Python subtree is a shippable project or a lint-only
-  scripts tree, whenever choosing pyright versus mypy for a repo's CI gate, or whenever writing or
-  reviewing a Python test. Triggers even when the task looks like a small local fix ("just add a
-  helper function", "silence this lint warning", "add a dependency") or verification step ("run
-  the tests"), because choosing pytest before reading the profile turns an intentional unittest
-  suite into a false missing-dependency diagnosis. Applies only to a repo's Python side, a repo
-  with no Python has no use for this Skill.
+  conventions, versioning, and the --help and unknown-argument rule for a script. Use this
+  whenever writing, reviewing, or editing a .py file, a pyproject.toml, or a uv.lock, whenever
+  running or choosing a Python formatting, lint, type-check, or test command, whenever deciding
+  whether a Python subtree is a shippable project or a lint-only scripts tree, whenever choosing
+  pyright versus mypy for a repo's CI gate, or whenever writing or reviewing a Python test.
+  Triggers even when the task looks like a small local fix ("just add a helper function", "silence
+  this lint warning", "add a dependency") or verification step ("run the tests"), because choosing
+  pytest before reading the profile turns an intentional unittest suite into a false
+  missing-dependency diagnosis. Applies only to a repo's Python side, a repo with no Python has no
+  use for this Skill.
 ---
 
 # Python Codestyle
@@ -33,7 +34,8 @@ Then read the `pyproject.toml` shape and pick the profile before running Python 
 - **build** (Project): third-party runtime dependencies, or the repo's deliverable. Either a uv
   project (`[project]` + `[build-system]` + committed `uv.lock`, run with `uv run`) or a
   `pyproject.toml` beside a `requirements*.txt` and no `uv.lock`, installed with pip. Uses pytest,
-  and pyright strict, mypy with its strict flags, or both as the CI type checker.
+  and pyright strict or mypy with its strict flags as the CI type checker. A repo enforcing
+  pyright beside mypy runs pyright itself, per Toolchain below.
 - **lint-only** (Scripts): no `[project]`, no `[build-system]`, no lockfile, no `requirements*.txt`
   (the hub validator runs pytest wherever one sits). Uses `uvx` for third-party tools, unittest
   for tests, and mypy as the CI gate. Do not run pytest or diagnose its absence as an environment
@@ -44,7 +46,7 @@ owes lint, format, a type check, a `tests/` suite, and coverage, and a repo decl
 directory in the hub validator's `python-directories` input.
 
 For the full profile specification and per-repo adaptation axes (type checker, dependency
-declaration, versioning, VS Code config), see `references/profiles.md`.
+declaration, versioning), see `references/profiles.md`.
 
 ## Toolchain
 
@@ -62,8 +64,10 @@ default baseline on first-party code (a repo may instead run mypy with its stric
 and keep pyright editor-only via Pylance, per the next paragraph): `[tool.pyright]`
 `strict = ["src"]`, or the integration package for a Home Assistant repo, with tests run in
 standard mode. pyright is the anchor because Pylance embeds it, so where CI runs pyright, the
-editor and the CLI/CI (`uv run pyright` in the uv form, `uvx pyright@latest` in the pip form,
-pointed at the environment in a declared directory) run the same engine and never disagree.
+editor and the CLI/CI run the same engine. A pyright the requirements pin can lag the one Pylance
+bundles, though. The CLI/CI form is `uv run pyright` in the uv form. In the pip form a declared
+directory runs the environment's own pyright, or `uvx pyright@latest` pointed at the environment
+where it installs none.
 The standalone `ms-pyright.pyright` extension stays in
 `unwantedRecommendations` because Pylance covers it. Relax strictness on third-party code only
 when a dependency has no usable types and no alternative (e.g. `pandas`): a targeted, commented
@@ -76,7 +80,10 @@ than one checker is normal when each serves a purpose (the .NET side pairs CShar
 `mypy --strict` because the platinum `strict-typing` quality-scale tier requires it, and a
 pydantic-heavy library may opt in for the plugin. When a repo uses mypy it runs in CI and the
 editor (the `ms-python.mypy-type-checker` extension) so the two stay consistent, and its mypy
-command joins the clean-compile. mypy may also be a build repo's only CI checker, run with its
+command joins the clean-compile. The hub validator runs at most one checker in each Python
+directory, mypy where both are configured. A repo enforcing pyright beside mypy runs pyright from
+its own `.github/actions/validate/action.yml` hook. That hook starts from a bare checkout, so it
+sets up its own Python environment. mypy may also be a build repo's only CI checker, run with its
 strict flags, and Pylance's pyright diagnostics are then advisory, since CI never runs them. A
 pyright-only repo is the lightest and is inherently consistent, since the editor and CI run one
 engine.
@@ -101,9 +108,13 @@ uv build                         # produce wheel + sdist in ./dist (published pa
 ```
 
 The **build**-profile Python clean-compile, in its uv form, is `uv run ruff format` +
-`uv run ruff check` + the repo's type checker: `uv run pyright`, or `uv run mypy src` where mypy is
-the CI checker, or both where the repo runs both (see Type checking above). Run it, plus
-`uv run pytest`, before committing.
+`uv run ruff check` + the repo's type checker. That checker is `uv run pyright`, or `uv run mypy`
+where mypy is the CI checker, or both where the repo runs both (see Type checking above). Where the
+config sits in the project directory, CI passes the checker no path, so the config's own target
+settings decide what is checked. mypy left with no target that way exits with an error. A declared
+subdirectory with no config of its own uses the repository root's instead. CI then runs the checker
+from the root with the directory as its path, `uv run --project <dir> <checker> <dir>`, so run it
+the same way. Run the clean-compile, plus `uv run pytest`, before committing.
 
 A **build**-profile directory in its pip form builds its environment the way CI does, through uv's
 pip interface, which writes no `uv.lock`. It installs every `requirements*.txt` in one command, since
@@ -115,6 +126,7 @@ carries a `[project]` table it then installs the directory itself as editable, w
 uv venv --clear                           # creates .venv, replacing an existing one
 uv pip install -r requirements.txt -r requirements-dev.txt   # one -r per requirements*.txt
 uv pip install -e .                       # only where pyproject.toml has a [project] table
+# in a declared directory whose .venv installs ruff, .venv/bin/python -m ruff replaces uvx ruff@latest
 uvx ruff@latest format                    # auto-format
 uvx ruff@latest check --fix               # auto-fix lint
 uvx ruff@latest check                     # verify lint clean
@@ -125,8 +137,16 @@ uvx ruff@latest format --check            # verify format clean
 Its type checker runs against that environment. mypy runs as `.venv/bin/python -m mypy` where the
 environment installs it, and otherwise as `uvx mypy@latest --python-executable .venv/bin/python`,
 adding `--python-version` with the environment's version unless the mypy config pins one. pyright
-runs as `uvx pyright@latest --pythonpath .venv/bin/python`. On Windows the environment's interpreter
-is `.venv\Scripts\python.exe` instead. Those ruff commands and that type checker are the pip form's
+runs as `.venv/bin/python -m pyright --pythonpath .venv/bin/python` where the environment installs
+it, and otherwise as `uvx pyright@latest --pythonpath .venv/bin/python`. ruff follows the same
+precedence, as `.venv/bin/python -m ruff` where the environment installs it, in place of the
+`uvx ruff@latest` above. In a directory the validator's `python-directories` input declares, a tool
+the requirements pin is then the version CI runs. Where the config
+sits in the project directory, CI runs the checker there with no path, as in the uv form. A
+declared subdirectory with no config of its own uses the repository root's instead. CI then runs
+the checker from the root with the directory as its path and the interpreter as `<dir>/.venv/bin/python`. Run it the same
+way, as in `<dir>/.venv/bin/python -m mypy <dir>`. On Windows each interpreter path ends in
+`.venv\Scripts\python.exe` instead. Those ruff commands and that type checker are the pip form's
 clean-compile, run with pytest before committing.
 
 A **lint-only** profile's clean-compile substitutes its `uvx` and `unittest` equivalents, per Two
@@ -148,7 +168,7 @@ A repo that keeps no .NET tool manifest declaring Husky.Net, or one that prefers
 `pre-commit` framework, wires its local hook from the canonical `catalog/snippets/pre-commit/`
 directory, hub-local and not carried into every fleet repo. Any repo may instead wire an equivalent
 hook of its own at `.husky/pre-commit`, enabled with `core.hooksPath` and sourcing nothing. That
-path and `.pre-commit-config.yaml` are the two the audit reads. The runner is bounded by the
+path and `.pre-commit-config.yaml` are the ones the audit reads. The runner is bounded by the
 toolchain the repo already keeps rather than by the languages the hook checks, so a repo keeping a
 Husky.Net manifest may run these same Python checks from the `catalog/snippets/husky/` shape
 instead. Each shape carries whichever language checks its own repo keeps. The `pre-commit`
@@ -212,6 +232,15 @@ since `unittest` has no fixture-injection mechanism of its own. Fakes over mocks
 the docstring's contract, not implementation details. See `references/testing.md` for the full
 build-profile conventions, and `references/profiles.md` for the lint-only `unittest` conventions.
 
+## Tests and Script Dependencies
+
+<!-- include: CODESTYLE.md > Tests and Script Dependencies -->
+
+- **A test lives in a `tests/` directory, never inside the production file it tests.** A deployed script may keep a `--selftest` that runs a small smoke check in seconds, and the case matrix lives in `tests/`. A self-test shipped inside the file it tests grows the file every reviewer reads, and its cases can come to outweigh the code they test.
+- **A hub-hosted standalone script that needs a third-party library declares it in PEP 723 inline script metadata, and runs as `uv run --no-project --script <path>`.** The block opens on `# /// script`, closes on `# ///`, and carries `dependencies` and `requires-python`. The fleet already installs uv on hosts and in CI. `--no-project` keeps uv from syncing the project around a script that has no block yet, where it would write a lockfile and a virtual environment. A script with no such block runs under `python3` and uv alike. A hook an agent harness runs on every tool call stays standard-library only, since it runs before any toolchain is guaranteed.
+
+<!-- /include -->
+
 ## Versioning
 
 Published packages use `_version.py` with `__version__ = "0.0.0"` as a placeholder. Wire
@@ -225,15 +254,34 @@ Before pushing or opening a PR:
 - VS Code's Problems pane should be quiet for the files you touched. The relevant linters are ruff
   (via the `charliermarsh.ruff` extension) and pyright (via the `ms-python.python` extension's
   bundled Pylance).
-- The **build**-profile CI gate, in its uv form, is `uv run ruff check`,
-  `uv run ruff format --check`, the repo's type checker (`uv run pyright` or `uv run mypy src`), and
-  `uv run pytest`, the same commands as the local loop above, run from the Python project directory
-  (invoked as separate steps, not `&&`-chained, so the runner shell is irrelevant). The pip form's
+- The **build**-profile CI gate, in its uv form, runs the local loop's commands above, each from
+  where that loop runs it. Those are `uv run ruff check`, `uv run ruff format --check`, the repo's
+  type checker, and `uv run pytest`. CI invokes them as separate steps, not `&&`-chained, so the
+  runner shell is irrelevant. The pip form's
   CI gate is its commands in the local loop above, and a **lint-only** profile's is its `uvx`
   equivalents plus its `unittest` suite, each per `references/profiles.md`. The local loop names
   what CI relaxes for an undeclared root.
 - Markdown in this directory follows CODESTYLE.md's repo-wide Markdown and Spelling rules,
   packaged as the `comment-and-doc-style` Skill.
+
+## Parsing Structured Formats
+
+<!-- include: CODESTYLE.md > Parsing Structured Formats -->
+
+- **A program reading a structured format uses a maintained parser rather than a hand-written one, where a field-tested parser exists for the runtime in use.** That covers YAML, Markdown, TOML, JSON, a programming language's comments or strings, and a shell command line. The standard library's own parsers count, such as Python's `json`, `tomllib`, `ast`, `tokenize`, and `html.parser`. A hand-written reader converges on the format's full grammar one review finding at a time, and every script that grows one pays that cost again.
+
+<!-- /include -->
+
+## Command-Line Arguments
+
+<!-- include: CODESTYLE.md > Command-Line Arguments -->
+
+A command-line script is one a person or an agent runs by name. A hook its host runs, taking its input from that host rather than from a command line, is not one.
+
+- **Every command-line script answers `--help` and `-h`** with the same text on stdout, then exits 0, changing nothing. That text opens on a usage line naming the script. An agent learns a script's interface by asking it, so a script that reads `--help` as an input acts in a way nobody predicted.
+- **An argument the script does not recognize is refused**, with a non-zero exit before any read or write. The refusal names it as an unknown or unrecognized option, argument, flag, or parameter, and PowerShell's own refusal of a parameter it cannot bind counts. An unrecognized first argument is never taken as a default mode or as a target.
+
+<!-- /include -->
 
 <!-- External -->
 
