@@ -55,6 +55,9 @@ import struct
 import subprocess
 import sys
 
+# The one invocation that installs the pinned Pillow, named by both refusals below.
+RUN = "uv run --no-project --with-requirements scripts/requirements.txt scripts/redact_media.py"
+
 
 def arguments() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -77,10 +80,7 @@ except ModuleNotFoundError as error:
     if __name__ != "__main__":
         raise
     arguments().parse_args()
-    sys.exit(
-        f"{error.name} is not installed, so run this with: uv run --no-project"
-        " --with-requirements scripts/requirements.txt scripts/redact_media.py"
-    )
+    sys.exit(f"{error.name} is not installed, so run this with: {RUN}")
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "checks" / "media-redactions.json"
@@ -245,9 +245,7 @@ def main() -> int:
     pins = {line.strip().lower() for line in REQUIREMENTS.read_text().splitlines()}
     if f"pillow=={PIL.__version__}" not in pins:
         print(f"Pillow {PIL.__version__} is not the version {REQUIREMENTS.name} pins.")
-        print(
-            "Run with `uv run --no-project --with-requirements scripts/requirements.txt scripts/redact_media.py`."
-        )
+        print(f"Run with `{RUN}`.")
         return 1
 
     manifest = json.loads(MANIFEST.read_text())
