@@ -19,7 +19,7 @@ jobs:
 
   validate:
     name: Validate sources job
-    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@39afd751c51984a90139d6cf6c4f873619c84f8f # 2.0.1135
+    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@f610e4229f2acbb60d69f6d9386b341c81514534 # 2.0.1148
     permissions:
       contents: read
     with:
