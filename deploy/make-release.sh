@@ -10,12 +10,31 @@ umask 022
 KEEP_RELEASES=10
 
 usage() {
-	echo "usage: $0 [deploy-root] [version]" >&2
-	echo "       deploy-root defaults to DEPLOY_ROOT, from the environment or \$ENV_FILE" >&2
-	echo "       ENV_FILE defaults to ~/.secrets/blog.local.production.env, and a relative path resolves against ~/.secrets" >&2
-	echo "       deploy-root is required when the environment file sets DEPLOY_SSH_HOST, since that root is on another host" >&2
-	exit 2
+	echo "usage: $0 [deploy-root] [version]"
+	echo "       deploy-root defaults to DEPLOY_ROOT, from the environment or \$ENV_FILE"
+	echo "       ENV_FILE defaults to ~/.secrets/blog.local.production.env, and a relative path resolves against ~/.secrets"
+	echo "       deploy-root is required when the environment file sets DEPLOY_SSH_HOST, since that root is on another host"
 }
+
+# Arguments are checked before the environment file is read, since a flag taken as the deploy root starts a release.
+for arg in "$@"; do
+	case "$arg" in
+	-h | --help)
+		usage
+		exit 0
+		;;
+	-*)
+		echo "unknown option: $arg" >&2
+		usage >&2
+		exit 2
+		;;
+	esac
+done
+if [ "$#" -gt 2 ]; then
+	echo "unexpected argument: $3" >&2
+	usage >&2
+	exit 2
+fi
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -74,7 +93,10 @@ if [ -z "$ROOT_ARG" ] && [ -n "${DEPLOY_SSH_HOST:-}" ]; then
 fi
 
 ROOT="${ROOT_ARG:-${DEPLOY_ROOT:-}}"
-[ -n "$ROOT" ] || usage
+[ -n "$ROOT" ] || {
+	usage >&2
+	exit 2
+}
 
 # CI passes the version so a release directory traces back to the deploy run that built it.
 VERSION="${2:-$(date -u +%Y%m%d-%H%M%S)}"

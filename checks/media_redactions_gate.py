@@ -7,6 +7,7 @@ So does an entry whose declared digest is missing or no longer matches its fills
 `scripts/redact_media.py` is what brings either back.
 """
 
+import argparse
 import hashlib
 import json
 import pathlib
@@ -22,7 +23,9 @@ def declared(entry: dict) -> str:
     return hashlib.sha256(json.dumps(spec, sort_keys=True).encode()).hexdigest()
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
+    parser.parse_args(argv)
     files = json.loads(MANIFEST.read_text())["files"]
     failures = []
     for name, entry in files.items():

@@ -55,8 +55,32 @@ import struct
 import subprocess
 import sys
 
-import PIL
-from PIL import Image, ImageDraw, JpegImagePlugin
+# The one invocation that installs the pinned Pillow, named by both refusals below.
+RUN = "uv run --no-project --with-requirements scripts/requirements.txt scripts/redact_media.py"
+
+
+def arguments() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "--apply", action="store_true", help="write the files, rather than reporting"
+    )
+    parser.add_argument(
+        "--record",
+        action="store_true",
+        help="for each entry whose declared digest is missing or stale, take the file, which must be the original its source hash records where the entry has one, as the source and record the result",
+    )
+    return parser
+
+
+try:
+    import PIL
+    from PIL import Image, ImageDraw, JpegImagePlugin
+except ModuleNotFoundError as error:
+    # Run directly without Pillow, --help still answers and anything else is told how to run this.
+    if __name__ != "__main__":
+        raise
+    arguments().parse_args()
+    sys.exit(f"{error.name} is not installed, so run this with: {RUN}")
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "checks" / "media-redactions.json"
@@ -214,25 +238,14 @@ def recorded_results() -> set[str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument(
-        "--apply", action="store_true", help="write the files, rather than reporting"
-    )
-    parser.add_argument(
-        "--record",
-        action="store_true",
-        help="for each entry whose declared digest is missing or stale, take the file, which must be the original its source hash records where the entry has one, as the source and record the result",
-    )
-    args = parser.parse_args()
+    args = arguments().parse_args()
     apply = args.apply or args.record
 
     # The output is reproducible only under the pinned Pillow, which running this file directly does not install.
     pins = {line.strip().lower() for line in REQUIREMENTS.read_text().splitlines()}
     if f"pillow=={PIL.__version__}" not in pins:
         print(f"Pillow {PIL.__version__} is not the version {REQUIREMENTS.name} pins.")
-        print(
-            "Run with `uv run --no-project --with-requirements scripts/requirements.txt scripts/redact_media.py`."
-        )
+        print(f"Run with `{RUN}`.")
         return 1
 
     manifest = json.loads(MANIFEST.read_text())

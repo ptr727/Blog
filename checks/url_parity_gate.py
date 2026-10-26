@@ -7,6 +7,7 @@ linked from no page still equals its recorded baseline. Redirects need a running
 are checked by check-live-urls.sh instead.
 """
 
+import argparse
 import pathlib
 import re
 import sys
@@ -385,10 +386,12 @@ def check_galleries(public):
     return findings
 
 
-def main(argv):
-    if len(argv) != 2:
-        sys.exit(f"usage: {argv[0]} <public-dir>")
-    public = pathlib.Path(argv[1])
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
+    parser.add_argument(
+        "public", type=pathlib.Path, help="the built site, as hugo wrote it"
+    )
+    public = parser.parse_args(argv).public
     if not public.is_dir():
         sys.exit(f"FAIL: {public} is not a directory - run hugo first")
 
@@ -420,4 +423,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main())

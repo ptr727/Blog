@@ -5,17 +5,41 @@
 
 set -uo pipefail
 
+usage() {
+	echo "usage: $0 <base-url> | --print-sample"
+}
+
+# Help is answered wherever it appears, before the count is checked.
+for arg in "$@"; do
+	case "$arg" in
+	-h | --help)
+		usage
+		exit 0
+		;;
+	esac
+done
 PRINT_SAMPLE=''
 BASE="${1:-}"
-if [ "$BASE" = "--print-sample" ]; then
+if [ "$#" -gt 1 ]; then
+	echo "unexpected argument: $2" >&2
+	usage >&2
+	exit 2
+fi
+case "$BASE" in
+--print-sample)
 	PRINT_SAMPLE=1
 	BASE=''
-else
-	[ -n "$BASE" ] || {
-		echo "usage: $0 <base-url> | --print-sample" >&2
-		exit 2
-	}
-fi
+	;;
+'')
+	usage >&2
+	exit 2
+	;;
+-*)
+	echo "unknown option: $BASE" >&2
+	usage >&2
+	exit 2
+	;;
+esac
 BASE="${BASE%/}"
 
 case "${SAMPLE_CONTRACT:-}" in
