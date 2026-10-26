@@ -3,17 +3,16 @@
 Each script runs with `--help`, with `-h`, and with an unknown `--bogus-flag`. Help exits 0 and
 prints the same text for both spellings, opening on a usage line that names the script. The unknown
 flag exits non-zero with a refusal naming it. A script needing a positional refuses on the missing
-argument before it reaches the flag, so BEFORE_FLAG gives it one, and every other script is
-declared in NO_REQUIRED_ARGUMENT. A script declared in neither fails, so a new one is classified
-the moment it is tracked.
+argument before it reaches the flag, so BEFORE_FLAG gives it one. Every other script is declared
+in NO_REQUIRED_ARGUMENT. A script declared in neither fails, so a new one is classified the moment
+it is tracked.
 
-No run may change anything. Stubs ahead of the real commands on PATH record any call to them, the
+No run may change anything. Stubs ahead of the real commands on PATH record any call to them. The
 home and working directories are empty scratch directories that must stay empty, and the tree's
 status must not move. ENV_FILE names a file that does not exist, so make-release.sh refuses rather
 than building should its argument check ever regress.
 """
 
-import importlib.util
 import os
 import pathlib
 import re
@@ -53,12 +52,6 @@ NO_REQUIRED_ARGUMENT = frozenset(
         "scripts/redact_media.py",
     }
 )
-
-# A third-party module a script imports before it parses, skipped where this interpreter lacks it.
-NEEDS_MODULE = {
-    "capture/clean_content.py": "yaml",
-    "scripts/redact_media.py": "PIL",
-}
 
 REFUSED_AS_OPTION = re.compile(
     r"(unknown|unrecogni[sz]ed) (option|argument)[^\n]*--bogus-flag", re.IGNORECASE
@@ -168,11 +161,6 @@ class CliUsageTests(unittest.TestCase):
     def test_help_answers_and_unknown_flag_is_refused(self) -> None:
         for path in entry_points():
             with self.subTest(path=path):
-                module = NEEDS_MODULE.get(path)
-                if module and importlib.util.find_spec(module) is None:
-                    self.skipTest(
-                        f"{path} needs {module}, which this interpreter lacks"
-                    )
                 self.fresh(path)
                 before = tree_status()
                 long, short = (

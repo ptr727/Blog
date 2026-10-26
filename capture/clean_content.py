@@ -38,10 +38,11 @@ import sys
 import pathlib
 from pathlib import Path
 
+# A missing PyYAML is reported once the arguments are parsed, so --help answers without it.
 try:
     import yaml
 except ModuleNotFoundError:  # the only third-party import in capture/ or checks/
-    sys.exit("PyYAML is required by this script: pip install PyYAML (Debian: apt install python3-yaml)")
+    yaml = None
 
 KEEP = ["title", "date", "url", "categories", "tags", "post_id", "cover"]
 FM = re.compile(r"^---\n(.*?)\n---\n(.*)$", re.S)
@@ -128,4 +129,6 @@ if __name__ == "__main__":
     parser.add_argument("site", nargs="?", help="the converted site, else the one generated-* under the capture")
     parser.add_argument("--apply", action="store_true", help="write the changes rather than report them")
     args = parser.parse_args()
+    if yaml is None:
+        sys.exit("PyYAML is required by this script: pip install PyYAML (Debian: apt install python3-yaml)")
     main(converted_site(args.site), args.apply)
