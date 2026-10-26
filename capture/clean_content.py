@@ -30,6 +30,7 @@ earlier Blogger migration), `publicize_*` (dead social-share links), `geo_*` (no
 consumes it), and every `_`-prefixed WordPress internal.
 """
 
+import argparse
 import os
 import re
 import shutil
@@ -37,10 +38,11 @@ import sys
 import pathlib
 from pathlib import Path
 
+# A missing PyYAML is reported once the arguments are parsed, so --help answers without it.
 try:
     import yaml
 except ModuleNotFoundError:  # the only third-party import in capture/ or checks/
-    sys.exit("PyYAML is required by this script: pip install PyYAML (Debian: apt install python3-yaml)")
+    yaml = None
 
 KEEP = ["title", "date", "url", "categories", "tags", "post_id", "cover"]
 FM = re.compile(r"^---\n(.*?)\n---\n(.*)$", re.S)
@@ -59,15 +61,15 @@ def capture_root() -> pathlib.Path:
     return pathlib.Path(root)
 
 
-def converted_site(argv) -> pathlib.Path:
+def converted_site(site: str | None) -> pathlib.Path:
     """The converted site: a first argument, else the one generated-* under the capture.
 
     Ambiguity aborts rather than picking, the same rule build_redirects.py applies to the
     export. wp2hugo stamps the directory with a run timestamp, so there is no fixed name
     to default to and a glob that matched two would otherwise choose by filesystem order.
     """
-    if len(argv) > 1 and not argv[1].startswith("--"):
-        return pathlib.Path(argv[1])
+    if site:
+        return pathlib.Path(site)
     found = sorted((capture_root() / "converted").glob("generated-*"))
     if len(found) != 1:
         sys.exit(
@@ -123,4 +125,10 @@ def main(root: Path, apply: bool):
 
 
 if __name__ == "__main__":
-    main(converted_site(sys.argv), "--apply" in sys.argv)
+    parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
+    parser.add_argument("site", nargs="?", help="the converted site, else the one generated-* under the capture")
+    parser.add_argument("--apply", action="store_true", help="write the changes rather than report them")
+    args = parser.parse_args()
+    if yaml is None:
+        sys.exit("PyYAML is required by this script: pip install PyYAML (Debian: apt install python3-yaml)")
+    main(converted_site(args.site), args.apply)

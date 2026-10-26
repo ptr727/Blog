@@ -20,6 +20,7 @@ percent-encoded brackets and other characters that do not survive a filesystem),
 the mapping in external-media-map.tsv for auditability, and rewrites every reference.
 """
 
+import argparse
 import hashlib
 import pathlib
 import os
@@ -58,15 +59,15 @@ def capture_root() -> pathlib.Path:
     return pathlib.Path(root)
 
 
-def converted_site(argv) -> pathlib.Path:
+def converted_site(site: str | None) -> pathlib.Path:
     """The converted site: a first argument, else the one generated-* under the capture.
 
     Ambiguity aborts rather than picking, the same rule build_redirects.py applies to the
     export. wp2hugo stamps the directory with a run timestamp, so there is no fixed name
     to default to and a glob that matched two would otherwise choose by filesystem order.
     """
-    if len(argv) > 1 and not argv[1].startswith("--"):
-        return pathlib.Path(argv[1])
+    if site:
+        return pathlib.Path(site)
     found = sorted((capture_root() / "converted").glob("generated-*"))
     if len(found) != 1:
         sys.exit(
@@ -176,4 +177,8 @@ def main(site: pathlib.Path, apply: bool):
 
 
 if __name__ == "__main__":
-    sys.exit(main(converted_site(sys.argv), "--apply" in sys.argv))
+    parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
+    parser.add_argument("site", nargs="?", help="the converted site, else the one generated-* under the capture")
+    parser.add_argument("--apply", action="store_true", help="write the changes rather than report them")
+    args = parser.parse_args()
+    sys.exit(main(converted_site(args.site), args.apply))

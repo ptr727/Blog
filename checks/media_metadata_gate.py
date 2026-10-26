@@ -25,6 +25,7 @@ be vouched for, and `scripts/normalize_media.py` is what resolves that, by decod
 pixels and writing a fresh file that is clean by construction.
 """
 
+import argparse
 import hashlib
 import lzma
 import os
@@ -1439,7 +1440,9 @@ def walk_archive(path: pathlib.Path, name: str) -> list[tuple[str, set[str]]]:
     return out
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
+    parser.parse_args(argv)
     found = findings()
     scanned = sum(
         1

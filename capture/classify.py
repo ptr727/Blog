@@ -9,12 +9,16 @@ the authority - it lists exactly the posts and pages, so a one-segment URL absen
 from it is an attachment page, not content.
 """
 
+import argparse
 import os
 import re
 import sys
 import urllib.request
 from collections import Counter
 from pathlib import Path
+
+# Parsed before the capture values are read, so --help answers where none is set.
+argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0]).parse_args()
 
 
 

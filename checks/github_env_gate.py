@@ -29,6 +29,7 @@ failed query is never reported as agreement.
 
 from __future__ import annotations
 
+import argparse
 import re
 import subprocess
 import sys
@@ -191,7 +192,9 @@ def compare(listed: set[Entry], held: set[Entry]) -> list[str]:
     return findings
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
+    parser.parse_args(argv)
     try:
         listed = read_table(DOC.read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
