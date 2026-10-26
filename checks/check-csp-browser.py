@@ -8,7 +8,7 @@ check loads each page in a URL list against a mirror. It records every `security
 event in the page and in each frame it holds, as it fires. The event fires for an enforcing policy
 and a Report-Only one alike. Each page is scrolled to its end so lazy images load, and its
 code-copy buttons are clicked. The search page also gets a typed query, so the index fetch and the
-results run.
+results run. A run over the default list always loads it, and another list only where it names it.
 
 The browser runs in the Playwright image `browser/Dockerfile` pins, where Dependabot moves it. The
 Playwright package is installed at the image tag's own version, so the two never disagree. The
@@ -48,15 +48,19 @@ def pinned_image(dockerfile_text):
     return found.group(1), found.group(2)
 
 
-def read_paths(texts):
-    """The site paths the lists name, in order, once each, the search page always among them."""
+def read_paths(texts, search):
+    """The site paths the lists name, in order, once each, and the search page where asked.
+
+    Only a run over the default list asks, since another list can be for a site with no search
+    page. A list that wants it names it.
+    """
     paths = []
     for text in texts:
         for line in text.splitlines():
             path = line.strip()
             if path and path not in paths:
                 paths.append(path)
-    if SEARCH_PATH not in paths:
+    if search and SEARCH_PATH not in paths:
         paths.append(SEARCH_PATH)
     return paths
 
@@ -234,7 +238,10 @@ def main(argv=None):
         "--urls",
         type=pathlib.Path,
         action="append",
-        help=f"a list of site paths, repeatable (default {URLS.name})",
+        help=(
+            f"a list of site paths, repeatable (default {URLS.name}, plus {SEARCH_PATH},"
+            f" which another list names where it wants it)"
+        ),
     )
     parser.add_argument(
         "--probe",
@@ -253,7 +260,12 @@ def main(argv=None):
 
     image, version = pinned_image(DOCKERFILE.read_text(encoding="utf-8"))
     allow = read_allow(ALLOW.read_text(encoding="utf-8"))
-    paths = read_paths(p.read_text(encoding="utf-8") for p in (args.urls or [URLS]))
+    paths = read_paths(
+        (p.read_text(encoding="utf-8") for p in (args.urls or [URLS])),
+        search=args.urls is None,
+    )
+    if not paths:
+        parser.error("the --urls lists name no page, so there is nothing to load")
     cache = pathlib.Path(
         os.environ.get("UV_CACHE_DIR")
         or pathlib.Path(tempfile.gettempdir()) / "blog-csp-browser-uv"
