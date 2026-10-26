@@ -202,10 +202,10 @@ rm -rf public
 hugo --gc --minify --panicOnWarning
 
 echo "==> verifying the URL contract"
-checks/check-url-parity.py public
+checks/url_parity_gate.py public
 
 echo "==> verifying the Content-Security-Policy"
-checks/check-csp.py public
+checks/csp_gate.py public
 
 echo "==> precompressing"
 # Text only, because JPEG, PNG, and MP4 are already compressed.

@@ -21,7 +21,7 @@ are not enumerated here at all, because they do not need to be. They are not on 
 so they fail.
 
 A file this reports is not accused of carrying anything. It is a file whose form cannot
-be vouched for, and `scripts/normalize-media.py` is what resolves that, by decoding to
+be vouched for, and `scripts/normalize_media.py` is what resolves that, by decoding to
 pixels and writing a fresh file that is clean by construction.
 """
 
@@ -1453,7 +1453,7 @@ def main() -> int:
             print(f"{name}: {', '.join(sorted(tags))}")
         print(
             f"\n{len(found)} file(s) hold something this cannot vouch for."
-            " Run scripts/normalize-media.py on each, see CONTENT.md."
+            " Run scripts/normalize_media.py on each, see CONTENT.md."
             " An icon is rendered again instead."
         )
         return 1

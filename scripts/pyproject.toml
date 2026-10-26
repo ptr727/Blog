@@ -12,6 +12,11 @@ platform = "linux"
 files = ["."]
 exclude = ['^\.venv/']
 
+# The media gates sit in checks/, a directory of its own that this one's type check does not read.
+[[tool.mypy.overrides]]
+module = ["media_metadata_gate", "media_redactions_gate"]
+ignore_missing_imports = true
+
 [tool.pyright]
 pythonVersion = "3.12"
 pythonPlatform = "Linux"

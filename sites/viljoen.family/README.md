@@ -50,7 +50,7 @@ The arms derive from the French family Villon de Varennes, whose crest was a gol
 - Each side of the mantling is one group mirrored with `translate(342 0) scale(-1 1)`.
 - The saltire is one filled path clipped to `#shield-clip`, which is built from `#shield-outline`.
 - The lettering is vector paths rather than `<text>`, so it renders the same without the font. The page's `<h1>` is visually hidden text, so the name stays a real heading.
-- `favicon.svg` reuses the shield outline and saltire paths. `apple-touch-icon.png`, `og-image.png`, and the images inside `favicon.ico` are Chromium renders, and they carry no metadata chunks. [`check-media-metadata.py`][check-media-metadata] fails the build on one that does, reading each PNG inside `favicon.ico` as well.
+- `favicon.svg` reuses the shield outline and saltire paths. `apple-touch-icon.png`, `og-image.png`, and the images inside `favicon.ico` are Chromium renders, and they carry no metadata chunks. [`media_metadata_gate.py`][media-metadata-gate] fails the build on one that does, reading each PNG inside `favicon.ico` as well.
 
 ## Page Design
 
@@ -119,7 +119,7 @@ Serve the directory with any static server, for example `python3 -m http.server 
 - The c generation on the tree, starting with the Henning and Johannes lines, in place of the stubs.
 
 <!-- Local files -->
-[check-media-metadata]: ../../checks/check-media-metadata.py
+[media-metadata-gate]: ../../checks/media_metadata_gate.py
 [genealogy]: ../../GENEALOGY.md
 [operations]: ../../OPERATIONS.md
 

@@ -28,7 +28,6 @@ bounded by both a case count and a time budget, so it can run in CI.
 import argparse
 import contextlib
 import functools
-import importlib.util
 import io
 import itertools
 import pathlib
@@ -44,20 +43,11 @@ import zlib
 from collections.abc import Callable, Iterable, Iterator
 from typing import Any
 
+import media_metadata_gate as gate
+
 REPO = pathlib.Path(__file__).resolve().parent.parent
-
-
-def load(name: str, path: pathlib.Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load {path.name}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-gate = load("gate", REPO / "checks" / "check-media-metadata.py")
-normalizer = load("normalizer", REPO / "scripts" / "normalize-media.py")
+sys.path.insert(0, str(REPO / "scripts"))
+import normalize_media as normalizer
 
 # A comment segment, chunk, block or atom holding nothing, so no allowlist can admit it.
 PLANT_TEXT = b"planted"

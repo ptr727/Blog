@@ -61,7 +61,7 @@ One key covers both environments, a deliberate decision recorded in `OPERATIONS.
 `ENVIRONMENT.md`'s "The GitHub Environments" table declares every secret and variable name, its kind, and each store holding it. This repo's own check compares that table against GitHub:
 
 ```sh
-python3 checks/check-github-env.py
+python3 checks/github_env_gate.py
 ```
 
 It compares in both directions and reports three kinds of finding. A store lacks a declared name, a store holds a name the table does not list, or a value is held as the wrong kind. The second is the one presence-checking misses. A Pangolin access token on `production` is reported as unlisted rather than passed as a harmless extra. Production answers unauthenticated, so a token there means a check could pass through a gate production is not supposed to have.
@@ -76,7 +76,7 @@ This site's whole risk is silent URL loss, so the contract is audited like any o
 
 ```sh
 hugo --gc --minify --panicOnWarning
-checks/check-url-parity.py public
+checks/url_parity_gate.py public
 checks/check-live-urls.sh <base-url>
 ```
 

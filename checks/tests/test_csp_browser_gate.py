@@ -1,7 +1,6 @@
-"""Tests for check-csp-browser.py's host half, every record in them constructed rather than observed."""
+"""Tests for csp_browser_gate.py's host half, every record in them constructed rather than observed."""
 
 import contextlib
-import importlib.util
 import io
 import os
 import pathlib
@@ -11,13 +10,8 @@ import unittest
 from unittest import mock
 
 CHECKS = pathlib.Path(__file__).resolve().parent.parent
-SPEC = importlib.util.spec_from_file_location(
-    "check_csp_browser", CHECKS / "check-csp-browser.py"
-)
-if SPEC is None or SPEC.loader is None:
-    raise ImportError("cannot load check-csp-browser.py")
-gate = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(gate)
+sys.path.insert(0, str(CHECKS))
+import csp_browser_gate as gate
 
 BASE = "https://mirror.example/"
 ALLOWED = ("img-src", "https://images.example")
@@ -56,12 +50,16 @@ class PinTest(unittest.TestCase):
 
 class ListTest(unittest.TestCase):
     def test_paths_keep_order_drop_repeats_and_add_search(self) -> None:
-        paths = gate.read_paths(["/\n/a/\n\n", "/a/\n/b/\n"])
+        paths = gate.read_paths(["/\n/a/\n\n", "/a/\n/b/\n"], search=True)
         self.assertEqual(paths, ["/", "/a/", "/b/", gate.SEARCH_PATH])
 
     def test_a_listed_search_page_is_not_added_twice(self) -> None:
-        paths = gate.read_paths([f"{gate.SEARCH_PATH}\n/\n"])
+        paths = gate.read_paths([f"{gate.SEARCH_PATH}\n/\n"], search=True)
         self.assertEqual(paths, [gate.SEARCH_PATH, "/"])
+
+    def test_paths_not_asking_for_search_keep_only_their_own(self) -> None:
+        paths = gate.read_paths(["/en/\n/af/\n"], search=False)
+        self.assertEqual(paths, ["/en/", "/af/"])
 
     def test_an_allow_line_without_a_reason_is_refused(self) -> None:
         with self.assertRaises(ValueError):
@@ -135,7 +133,9 @@ class MainTest(unittest.TestCase):
 
     def run_main(self, records, argv=()):
         with (
-            mock.patch.object(gate, "run_probe", return_value=(records, None)),
+            mock.patch.object(
+                gate, "run_probe", return_value=(records, None)
+            ) as self.probe,
             mock.patch.object(gate, "docker_command", return_value=["true"]),
             mock.patch.object(gate, "read_allow", return_value=[]),
             contextlib.redirect_stdout(io.StringIO()) as out,
@@ -144,10 +144,20 @@ class MainTest(unittest.TestCase):
         return code, out.getvalue()
 
     def test_every_page_loaded_clean_passes(self) -> None:
-        paths = gate.read_paths([gate.URLS.read_text(encoding="utf-8")])
+        paths = gate.read_paths([gate.URLS.read_text(encoding="utf-8")], search=True)
         code, out = self.run_main([loaded(path) for path in paths])
         self.assertEqual(code, 0, out)
         self.assertIn("PASS", out)
+
+    def test_a_run_over_another_list_loads_only_its_own_pages(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            urls = pathlib.Path(folder) / "family-urls.txt"
+            urls.write_text("/en/\n/af/\n", encoding="utf-8")
+            code, out = self.run_main(
+                [loaded("/en/"), loaded("/af/")], ["--urls", str(urls)]
+            )
+        self.assertEqual(code, 0, out)
+        self.assertEqual(self.probe.call_args.args[1], ["/en/", "/af/"])
 
     def test_a_page_that_never_reported_fails(self) -> None:
         code, out = self.run_main([loaded("/")])
@@ -180,6 +190,19 @@ class MainTest(unittest.TestCase):
         ):
             gate.main(["mirror.example"])
         self.assertEqual(raised.exception.code, 2)
+
+    def test_a_list_naming_no_page_is_a_usage_error(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            urls = pathlib.Path(folder) / "empty-urls.txt"
+            urls.write_text("\n  \n", encoding="utf-8")
+            with (
+                mock.patch.object(gate, "run_probe") as probe,
+                contextlib.redirect_stderr(io.StringIO()),
+                self.assertRaises(SystemExit) as raised,
+            ):
+                gate.main([BASE, "--urls", str(urls)])
+        self.assertEqual(raised.exception.code, 2)
+        probe.assert_not_called()
 
 
 class CommandTest(unittest.TestCase):
