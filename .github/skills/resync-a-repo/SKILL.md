@@ -31,7 +31,7 @@ change from one resync to the next.
 
 Read RESYNC.md section 0. A repo with no instruction set at all, or a partial one, is not this
 skill's job, it is STANDUP.md sections 1A and 2 instead, since an absent carried file is a
-baseline that never arrived rather than drift to converge. Run `python3 spec/audit.py <RepoName>`,
+baseline that never arrived rather than drift to converge. Run `uv run --no-project --script spec/audit.py <RepoName>`,
 the target's `registry/repos.json` `name` field rather than an `owner/repo` slug or a checkout
 path, and read whether the findings are letters (absent) or drift (present but stale) before doing
 anything else. The finding kind names the procedure the repo is owed.
@@ -43,18 +43,21 @@ section 1, a file fetched with the hub rather than present in a carrier, since a
 answers confidently instead of failing. Never do the resync's own work in a checkout another task
 may be using, the maintainer's own primary checkout included, even one that looks current: for the
 hub and for the target repo alike, create a worktree of your own off that base clone and work
-there, per `repo-worktree`. On a machine carrying the hub's agent-safety install, Claude Code also
+there, per `repo-worktree`. Remove each one when the run ends, per that skill's "Listing and
+Cleanup". A merged pull request's worktree goes through
+`uv run --no-project --script scripts/pr_review.py cleanup <number> --repo <owner>/<repo> --checkout <base-clone>`. A
+hub worktree that only read the hub is removed by hand once it is clean, its branch with it. On a machine carrying the hub's agent-safety install, Claude Code also
 refuses a mutating git command run directly in a primary checkout, though its rules classify git
 and gh commands only, so a plain file write is never denied and the re-vendoring this skill exists
 to govern goes uncaught. A compound command is judged whole, so a copy chained to a denied git
 write does not run either. Prose is the enforcement here, and following it is not optional. Verify
 the host with `python3 scripts/host_gate.py --repo <path-to-target-worktree>`, run from your hub
 worktree, since `scripts/` is hub-hosted and no carrier holds it. Then run the audit end to end,
-`RESYNC.md` section 2. `python3 spec/audit.py <RepoName>` measures the target's ground-truth
+`RESYNC.md` section 2. `uv run --no-project --script spec/audit.py <RepoName>` measures the target's ground-truth
 branch, which the registry's `groundTruthBranch` names and which is `main` for every cataloged
 repo today, never `develop`. That is the invocation "Confirm the procedure before starting"
 already ran, run again here. Convergence lands on a ref `main` does not hold yet, so a run that
-previews in-flight work names that ref: `python3 spec/audit.py --branch <ref> <RepoName>`. Use it
+previews in-flight work names that ref: `uv run --no-project --script spec/audit.py --branch <ref> <RepoName>`. Use it
 to check whether a fix landed, since a run against `main` still reports what the in-flight ref
 already fixed. Section 2 carries two further commands that neither of these replaces. A finding is
 a snapshot, so quote the run stamp in anything derived from it and re-run before acting on a
@@ -66,6 +69,11 @@ section 2 requires, and do not leave the finding only in chat, a review thread, 
 repo, or agent memory.
 
 ## Apply, in this order
+
+A repository still on the old CRLF default converts first. Where `docs/eol-lf-rollout.md`
+"Per-Repo Conversion" says the repository needs the conversion, land it as its own merged pull
+request before step 1, carrying `.editorconfig` and `.gitattributes` itself. Once it merges,
+re-measure against `develop` and base the branch for the steps below on `develop`.
 
 1. **The instruction set first.** `CLAUDE.md`, then `AGENTS.md` and `GOVERNANCE.md` verbatim sections, then `CODESTYLE.md` and `WORKFLOW.md`, including the `AGENTS.md` skill-dependency pointer paragraph (naming `scripts/skills_install.py` and where the fleet's Skills live) as one more verbatim unit carried in this same step, not a separate pass. `CLAUDE.md` is the single `@AGENTS.md`-import file that gets `AGENTS.md` into a Claude Code session's context at all, a separate baseline entry from `AGENTS.md` itself, so carrying one without the other still leaves that provider unconfigured. **Before touching `AGENTS.md`, `GOVERNANCE.md`, `CODESTYLE.md`, or `WORKFLOW.md` in this step, run the `carried-instruction-file-guard` skill's distinctive-phrase probe against the target file, every time, without exception, regardless of whether the update is a verbatim re-vendor or an intent-fidelity edit.** This is not advisory language to weigh against how routine the diff looks, a diff that looks routine is exactly the shape the AGENTS.md-overwrite incident took. Do not proceed to the re-vendor until the probe has run and any local addition it finds has a destination, per that skill's own procedure. `CLAUDE.md` is outside that guard's scope: it carries no mixed or repo-specific content by design, so its re-vendor is an ordinary verbatim-fidelity copy, no probe needed.
 2. **Deletions second, before any re-vendor.** Only a `retire` disposition in
@@ -79,7 +87,7 @@ repo, or agent memory.
 5. **Settings, rulesets, and secrets.** Run
    `repo-config/configure.sh check "<owner>/<repo>" release` (substitute `operational` for an
    operational repo) from the hub at `main`, then `apply` for what it reports, never from a
-   carried copy. Run `python3 spec/audit.py <RepoName>` from the same checkout for secrets.
+   carried copy. Run `uv run --no-project --script spec/audit.py <RepoName>` from the same checkout for secrets.
 6. **Intent files last, and by hand,** since nothing mechanical judges these.
 
 Reconcile the registry entry (`status`, `types`, `releaseTrigger`, `workflowModel`,
