@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bring carried media into a form `checks/check-media-metadata.py` can vouch for.
+"""Bring carried media into a form `checks/media_metadata_gate.py` can vouch for.
 
 Run on demand rather than in CI, because it rewrites files.
 
@@ -25,7 +25,6 @@ list, and "not on the list" is the whole of the reason it goes.
 
 import argparse
 import contextlib
-import importlib.util
 import os
 import pathlib
 import shutil
@@ -41,14 +40,8 @@ from typing import BinaryIO
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
-# The gate's filename carries a hyphen, so it loads by path rather than by import.
-_spec = importlib.util.spec_from_file_location(
-    "gate", REPO / "checks" / "check-media-metadata.py"
-)
-if _spec is None or _spec.loader is None:
-    raise ImportError("cannot load check-media-metadata.py")
-gate = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(gate)
+sys.path.insert(0, str(REPO / "checks"))
+import media_metadata_gate as gate
 
 
 def png_chunk(name: bytes, body: bytes) -> bytes:

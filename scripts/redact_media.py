@@ -2,9 +2,9 @@
 """Apply the redactions declared in `checks/media-redactions.json` to carried media.
 
 Run on demand with
-`uv run --no-project --with-requirements scripts/requirements.txt scripts/redact-media.py`,
+`uv run --no-project --with-requirements scripts/requirements.txt scripts/redact_media.py`,
 rather than in CI, because it rewrites files.
-`checks/check-media-redactions.py` is the gate that proves the result.
+`checks/media_redactions_gate.py` is the gate that proves the result.
 
 **The manifest is the whole of the decision.** Each entry names a file, the flat
 opaque fills and the crop it takes, and why, so a redaction is reviewed as data and
@@ -20,7 +20,7 @@ for the platform, is what makes the output reproducible byte for byte.
 
 **A redacted file no longer holds its source, so changing one starts from history.**
 Restore the file's original with `git checkout <revision> -- <file>`, normalize it
-with `scripts/normalize-media.py --apply`, edit its entry, and run with `--record`.
+with `scripts/normalize_media.py --apply`, edit its entry, and run with `--record`.
 A restored file whose hash any committed revision of the manifest records as a result
 is refused, since it already carries an earlier round's fills.
 A restored file other than the one the entry's `source` hash records is refused too.
@@ -42,12 +42,11 @@ keeps its gamma, chromaticity, and sRGB chunks and its alpha channel, the fills 
 One whose transparency is a tRNS color key is refused, since the key carries across and
 a fill in the key's color would come out transparent. An animated PNG is refused, since
 a fill would reach only its first frame.
-The output then goes through the same lossless drop as `scripts/normalize-media.py`.
+The output then goes through the same lossless drop as `scripts/normalize_media.py`.
 """
 
 import argparse
 import hashlib
-import importlib.util
 import io
 import json
 import os
@@ -65,28 +64,11 @@ REQUIREMENTS = pathlib.Path(__file__).resolve().with_name("requirements.txt")
 FILL = (0, 0, 0)
 PNG_COLOR_CHUNKS = (b"gAMA", b"cHRM", b"sRGB")
 
-# The normalizer's filename carries a hyphen, so it loads by path rather than by import.
-_spec = importlib.util.spec_from_file_location(
-    "normalize", REPO / "scripts" / "normalize-media.py"
-)
-if _spec is None or _spec.loader is None:
-    raise ImportError("cannot load normalize-media.py")
-normalize = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(normalize)
-_spec = importlib.util.spec_from_file_location(
-    "check", REPO / "checks" / "check-media-redactions.py"
-)
-if _spec is None or _spec.loader is None:
-    raise ImportError("cannot load check-media-redactions.py")
-check = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(check)
-_spec = importlib.util.spec_from_file_location(
-    "gate", REPO / "checks" / "check-media-metadata.py"
-)
-if _spec is None or _spec.loader is None:
-    raise ImportError("cannot load check-media-metadata.py")
-gate = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(gate)
+sys.path.insert(0, str(REPO / "checks"))
+import media_metadata_gate as gate
+import media_redactions_gate as check
+
+import normalize_media as normalize
 
 
 def sha256(data: bytes) -> str:
@@ -249,7 +231,7 @@ def main() -> int:
     if f"pillow=={PIL.__version__}" not in pins:
         print(f"Pillow {PIL.__version__} is not the version {REQUIREMENTS.name} pins.")
         print(
-            "Run with `uv run --no-project --with-requirements scripts/requirements.txt scripts/redact-media.py`."
+            "Run with `uv run --no-project --with-requirements scripts/requirements.txt scripts/redact_media.py`."
         )
         return 1
 
@@ -299,7 +281,7 @@ def main() -> int:
             continue
         if changed and (unclean := gate.scan(data)):
             errors.append(
-                f"{name}: not normalized ({', '.join(sorted(unclean))}), run scripts/normalize-media.py --apply"
+                f"{name}: not normalized ({', '.join(sorted(unclean))}), run scripts/normalize_media.py --apply"
             )
             continue
         if changed and entry.get("source") not in (None, current):

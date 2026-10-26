@@ -1,15 +1,15 @@
-"""Tests for check-csp.py, every page and stylesheet in them constructed rather than built."""
+"""Tests for csp_gate.py, every page and stylesheet in them constructed rather than built."""
 
 import contextlib
 import io
 import pathlib
+import sys
 import tempfile
 import unittest
 
-import sibling
-
 CHECKS = pathlib.Path(__file__).resolve().parent.parent
-gate = sibling.load("check_csp", CHECKS / "check-csp.py")
+sys.path.insert(0, str(CHECKS))
+import csp_gate as gate
 
 THEME = "document.body.dataset.ready=1"
 PAGE = f"<!doctype html><html><head><script>{THEME}</script></head><body></body></html>"

@@ -43,33 +43,33 @@ Two downloads from the WordPress account, both from Tools then Export.
 
 In order. Each Python step is a dry run by default and takes `--apply` to write.
 
-Everything here is standard library except `clean-content.py`, which needs PyYAML to read front matter. It names the package if it is missing rather than raising an import error.
+Everything here is standard library except `clean_content.py`, which needs PyYAML to read front matter. It names the package if it is missing rather than raising an import error.
 
 ```sh
 set -a; . ~/.secrets/blog.local.production.env; set +a
 
 capture/run-wp2hugo.sh                        # convert, into $CAPTURE_ROOT/converted/
-capture/clean-content.py --apply              # drop comments, reduce the front matter
-capture/restructure-content.py --apply        # reshape the tree to match the URLs
-capture/localize-external.py --apply          # pull the hotlinked images local
-capture/build-redirects.py                    # regenerate deploy/maps/
+capture/clean_content.py --apply              # drop comments, reduce the front matter
+capture/restructure_content.py --apply        # reshape the tree to match the URLs
+capture/localize_external.py --apply          # pull the hotlinked images local
+capture/build_redirects.py                    # regenerate deploy/maps/
 ```
 
-`build-redirects.py` is the only one that writes into this repository, and what it writes is committed. The other four write into the capture.
+`build_redirects.py` is the only one that writes into this repository, and what it writes is committed. The other four write into the capture.
 
-**The export is selected by content, never by filename.** An account holds several exports and a media-only one carries the attachments and no posts, so a glob would choose by filesystem order and converting the wrong one yields a site that builds and is empty. `build-redirects.py` makes the choice, and `run-wp2hugo.sh` asks it with `--print-export` rather than repeating the logic, so the conversion and the maps are provably built from the same file.
+**The export is selected by content, never by filename.** An account holds several exports and a media-only one carries the attachments and no posts, so a glob would choose by filesystem order and converting the wrong one yields a site that builds and is empty. `build_redirects.py` makes the choice, and `run-wp2hugo.sh` asks it with `--print-export` rather than repeating the logic, so the conversion and the maps are provably built from the same file.
 
 ## What the conversion does not carry
 
-**Hotlinked images are in no export.** Images embedded from other hosts during the Windows Live Writer and Blogger era were never in the media library, so they are absent from the WXR, and the converter skips them as non-relative links. Left alone they stay a permanent dependency on someone else serving fifteen-year-old URLs. `localize-external.py` downloads them, names each by a hash of its source URL, because the originals carry characters that do not survive a filesystem, then rewrites every reference and records the mapping in the capture's inventory.
+**Hotlinked images are in no export.** Images embedded from other hosts during the Windows Live Writer and Blogger era were never in the media library, so they are absent from the WXR, and the converter skips them as non-relative links. Left alone they stay a permanent dependency on someone else serving fifteen-year-old URLs. `localize_external.py` downloads them, names each by a hash of its source URL, because the originals carry characters that do not survive a filesystem, then rewrites every reference and records the mapping in the capture's inventory.
 
 **Comments are dropped rather than scrubbed.** The blog is read-only going forward, so the data file is deleted outright. There is no partial scrub to get wrong and nothing to carry.
 
-**Front matter is reduced to what drives the site.** The converter carries every WordPress custom field through, most of them platform internals that no template reads. `clean-content.py` keeps a short list and drops the rest. The list is in the script rather than restated here, so a reader can diff it against a new export.
+**Front matter is reduced to what drives the site.** The converter carries every WordPress custom field through, most of them platform internals that no template reads. `clean_content.py` keeps a short list and drops the rest. The list is in the script rather than restated here, so a reader can diff it against a new export.
 
 ## Three results that look like success and are not
 
-- **A Picasa or ggpht URL whose size segment ends in `-h` returns HTTP 200 with an HTML page**, not an image, and a naive fetch writes a few hundred bytes of markup with a successful status. `localize-external.py` parses the wrapper and follows the `<img src>` it names, which is the platform's own answer rather than a guess.
+- **A Picasa or ggpht URL whose size segment ends in `-h` returns HTTP 200 with an HTML page**, not an image, and a naive fetch writes a few hundred bytes of markup with a successful status. `localize_external.py` parses the wrapper and follows the `<img src>` it names, which is the platform's own answer rather than a guess.
 - **Any non-image body is a failure regardless of status.** The magic bytes are checked, and anything that is not an image is reported rather than written.
 - **Selecting the export by filename yields empty maps that pass every check** until the redirects are live. See the note above on selection by content.
 
@@ -79,8 +79,8 @@ The contract in [`checks/`](../checks/) was not derived from the content tree. I
 
 | Script | Did |
 | --- | --- |
-| `enumerate-media.py` | pulled every post and page from the platform's REST API in **rendered** form, so shortcodes were expanded and a media reference was seen as a browser sees it, and split the results by host to separate library media from hotlinks |
-| `build-golden.py` | unioned the crawl, the sitemap and a derivation of the archive and pagination shapes, then requested every candidate against the live site and recorded what it answered |
+| `enumerate_media.py` | pulled every post and page from the platform's REST API in **rendered** form, so shortcodes were expanded and a media reference was seen as a browser sees it, and split the results by host to separate library media from hotlinks |
+| `build_golden.py` | unioned the crawl, the sitemap and a derivation of the archive and pagination shapes, then requested every candidate against the live site and recorded what it answered |
 | `classify.py` | split the verified set into what must render and what must redirect, using the sitemap as the discriminator for bare one-segment URLs, which are ambiguous between a real page and an attachment page |
 
 **These three cannot run again once the old hosting ends.** They are carried as the record behind an append-only contract, not as a step anyone re-runs. An append to `golden-urls.txt` is only reviewable against the derivation that produced the original, which is why the derivation is here rather than lost with the platform.
@@ -89,7 +89,7 @@ The contract in [`checks/`](../checks/) was not derived from the content tree. I
 
 ## Two properties of the maps that are easy to break
 
-**The Blogger map holds more entries than there are Blogger-era posts.** That platform truncated an auto-generated slug at a fixed length on a whole-word boundary. A long title was therefore served at the truncated address, which is the one search indexes hold. The importer registered the full slug, both answer, and both are mapped. The limit is a named constant in `build-redirects.py`, and changing it changes how many entries the map has. A few addresses Blogger served, or the contract lists, match neither form. `BLOGGER_ALIASES`, beside the limit, maps each through the Blogger address it stands for. Each post's Blogger comment feed is mapped as well, keyed on the numeric post id the export carries.
+**The Blogger map holds more entries than there are Blogger-era posts.** That platform truncated an auto-generated slug at a fixed length on a whole-word boundary. A long title was therefore served at the truncated address, which is the one search indexes hold. The importer registered the full slug, both answer, and both are mapped. The limit is a named constant in `build_redirects.py`, and changing it changes how many entries the map has. A few addresses Blogger served, or the contract lists, match neither form. `BLOGGER_ALIASES`, beside the limit, maps each through the Blogger address it stands for. Each post's Blogger comment feed is mapped as well, keyed on the numeric post id the export carries.
 
 **A term archive the old platform served is not always one Hugo builds.** Where it does not, the URL still has to answer, which is why the maps carry terms that no longer exist as pages.
 
@@ -104,7 +104,7 @@ Seven scripts stayed behind, and each is named here so nobody goes looking for s
 | `inventory/fetch-at-risk.sh` | downloaded every hotlinked image with its size and SHA-256 | The manifest it wrote is the durable artifact. Re-verification reads the manifest and never re-fetches. |
 | `inventory/fetch-missing.sh` | fetched library media the crawl did not reach | Same shape, same reason. |
 | `inventory/fetch-unattached.sh` | fetched media listed in the export but never embedded in a post | Same shape, same reason. |
-| `build-redirects.py` at the capture root | an older copy of the generator | **Stale.** Superseded by the copy here. |
+| `build_redirects.py` at the capture root | an older copy of the generator | **Stale.** Superseded by the copy here. |
 | a second copy under the capture's own `checks/` | byte-identical to the one above | **Stale.** Superseded by the copy here. That directory belongs to the capture and is not this repository's `checks/`. |
 
 **The two stale copies are named by path on purpose**, so that finding one is not mistaken for finding a source. Neither has the fixes this copy carries.

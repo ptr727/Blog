@@ -21,29 +21,29 @@ runs:
     # This check runs both directions: undocumented values, and rows describing nothing.
     - name: Check environment docs step
       shell: bash
-      run: python3 checks/check-env-docs.py
+      run: python3 checks/env_docs_gate.py
 
     # Hugo copies static/ byte for byte, so whatever a camera wrote is served with the image.
     # The build gate reads pages and the prose gate reads text, so nothing else looks inside a file.
     # This reads values rather than tag names, and opens archives, since both hid findings before.
     - name: Check media metadata step
       shell: bash
-      run: python3 checks/check-media-metadata.py
+      run: python3 checks/media_metadata_gate.py
 
     # The carried tree is all well formed, so this feeds the same parsers seeded malformed variants.
     - name: Fuzz media parsers step
       shell: bash
-      run: python3 checks/fuzz-media-parsers.py
+      run: python3 checks/media_parser_fuzz_gate.py
 
     # A redacted image replaced by its original passes every other check, so this compares hashes.
     - name: Check media redactions step
       shell: bash
-      run: python3 checks/check-media-redactions.py
+      run: python3 checks/media_redactions_gate.py
 
     # The prose gate reads characters, so this is what reads a post's text for personal data.
     - name: Check text personal data step
       shell: bash
-      run: python3 checks/check-text-pii.py
+      run: python3 checks/text_pii_gate.py
 
     # The hub's validate job checkout is shallow.
     # The mtime restore below needs full history to date each file from its last commit.
@@ -65,7 +65,7 @@ runs:
         args: static
 
     # This is the build and URL-contract gate, not an extra step beside one.
-    # The script runs `hugo --panicOnWarning` and check-url-parity itself, so a separate build would repeat both.
+    # The script runs `hugo --panicOnWarning` and url_parity_gate.py itself, so a separate build would repeat both.
     # --panicOnWarning is the real gate, and the swap overrides in layouts/ let it stay on.
     # Every local asset reference must resolve, and every legacy image URL from the WordPress import must too.
     #

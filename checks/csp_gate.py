@@ -40,7 +40,7 @@ import sys
 from html.parser import HTMLParser
 from urllib.parse import urlsplit
 
-import sibling
+import url_parity_gate
 
 CHECKS = pathlib.Path(__file__).resolve().parent
 HEADERS = CHECKS / "security-headers.txt"
@@ -364,9 +364,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not args.public.is_dir():
         sys.exit(f"FAIL: {args.public} is not a directory - run hugo first")
-    site_origin = sibling.load(
-        "check_url_parity", CHECKS / "check-url-parity.py"
-    ).site_origin
+    site_origin = url_parity_gate.site_origin
 
     findings = []
     for site, root in (("blog", args.public), ("family", FAMILY)):

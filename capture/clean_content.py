@@ -62,7 +62,7 @@ def capture_root() -> pathlib.Path:
 def converted_site(argv) -> pathlib.Path:
     """The converted site: a first argument, else the one generated-* under the capture.
 
-    Ambiguity aborts rather than picking, the same rule build-redirects.py applies to the
+    Ambiguity aborts rather than picking, the same rule build_redirects.py applies to the
     export. wp2hugo stamps the directory with a run timestamp, so there is no fixed name
     to default to and a glob that matched two would otherwise choose by filesystem order.
     """

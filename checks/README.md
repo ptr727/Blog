@@ -6,14 +6,14 @@ This README covers the URL contract alone. The other checks in this directory ea
 
 | Check | Fails when |
 | --- | --- |
-| [`check-csp-browser.py`][check-csp-browser] | a page on a running mirror makes the browser block something that `csp-browser-allow.txt` does not list |
-| [`check-csp.py`][check-csp] | a page or stylesheet on either site fetches something its site's policy does not allow, or a policy names another host |
-| [`check-env-docs.py`][check-env-docs] | a configuration value is declared without a description in `ENVIRONMENT.md`, or described there and declared nowhere |
-| [`check-github-env.py`][check-github-env] | the variables and secrets GitHub holds differ from the ones `ENVIRONMENT.md` lists |
-| [`check-media-metadata.py`][check-media-metadata] | carried media is not in a form the gate can vouch for |
-| [`check-media-redactions.py`][check-media-redactions] | a file declared in `media-redactions.json` is not its redacted result |
-| [`check-text-pii.py`][check-text-pii] | a Markdown file under `content/`, outside the imported archive years, carries personal data in its text |
-| [`fuzz-media-parsers.py`][fuzz-media-parsers] | malformed input breaks the media gate or its normalizer |
+| [`csp_browser_gate.py`][csp-browser-gate] | a page on a running mirror makes the browser block something that `csp-browser-allow.txt` does not list |
+| [`csp_gate.py`][csp-gate] | a page or stylesheet on either site fetches something its site's policy does not allow, or a policy names another host |
+| [`env_docs_gate.py`][env-docs-gate] | a configuration value is declared without a description in `ENVIRONMENT.md`, or described there and declared nowhere |
+| [`github_env_gate.py`][github-env-gate] | the variables and secrets GitHub holds differ from the ones `ENVIRONMENT.md` lists |
+| [`media_metadata_gate.py`][media-metadata-gate] | carried media is not in a form the gate can vouch for |
+| [`media_redactions_gate.py`][media-redactions-gate] | a file declared in `media-redactions.json` is not its redacted result |
+| [`text_pii_gate.py`][text-pii-gate] | a Markdown file under `content/`, outside the imported archive years, carries personal data in its text |
+| [`media_parser_fuzz_gate.py`][media-parser-fuzz-gate] | malformed input breaks the media gate or its normalizer |
 
 ## Why this exists
 
@@ -23,7 +23,7 @@ The contract is enforced by two gates, because one cannot cover both halves:
 
 | Gate | Proves | Runs |
 | --- | --- | --- |
-| [`check-url-parity.py`][check-url-parity] | Every URL that must render exists as a built page, every legacy image URL resolves, every local asset reference points at a real file, and the count of carried media linked from no page still equals its recorded baseline | Against `public/`, in CI and before any release is installed |
+| [`url_parity_gate.py`][url-parity-gate] | Every URL that must render exists as a built page, every legacy image URL resolves, every local asset reference points at a real file, and the count of carried media linked from no page still equals its recorded baseline | Against `public/`, in CI and before any release is installed |
 | [`check-live-urls.sh`][check-live-urls] | Every redirect resolves, and its destination answers | Against a running server, which is the only thing that exercises a redirect |
 
 **Production's deploy checks a sample of the contract rather than all of it.** The VPS edge bans a client that requests more than 40 distinct pages in a burst, and the full contract is over 1,200. The host side exempts the site's own names from that scenario, which is what lets staging's full run pass. Production stays under the limit without the exemption. Its deploy hook sets `SAMPLE_CONTRACT=1`, and `check-live-urls.sh` then requests the first URL of each class in file order. That covers every redirect class in [`deploy/README.md`][deploy-readme-redirects], every shape of page that must render, each media tree, and the family site. It also requests `/all/`, `/feed.xml`, and `/sitemap.xml`, the fixed redirect destinations, since no list names them and a sampled redirect is not followed to one. A sampled redirect is checked for its status and its `Location` and is not followed. The script asserts the sample's budget before its first request, and `checks/tests/test_check_live_urls_sample.py` holds the classes to the table's sizes and the sample to that budget. `checks/check-live-urls.sh --print-sample` prints the sample and its budget without requesting anything. Staging, the local mirrors, and any run without the variable check every URL, which is where the contract itself is proven.
@@ -85,7 +85,7 @@ The other property worth knowing belongs to the generator rather than to the con
 
 **Adding a URL.** Real traffic finds what the lists missed. When a server log shows a 404 for an address that should work, append it to the appropriate list and add a redirect rule or map entry to cover it. The lists are append-only, per Directionality below.
 
-**Regenerating the maps.** The generator is [`capture/build-redirects.py`][capture-build-redirects], and it lives there rather than here because it generates rather than gates. [`capture/README.md`][capture-readme] covers how to run it and how it chooses its input.
+**Regenerating the maps.** The generator is [`capture/build_redirects.py`][capture-build-redirects], and it lives there rather than here because it generates rather than gates. [`capture/README.md`][capture-readme] covers how to run it and how it chooses its input.
 
 **Checking a count.** Every count above is derivable from the files, so check rather than trust:
 
@@ -186,18 +186,18 @@ Three traps in that adjudication, each of which produced a wrong answer first an
 
 <!-- Repo -->
 
-[capture-build-redirects]: ../capture/build-redirects.py
+[capture-build-redirects]: ../capture/build_redirects.py
 [caddy-dockerfile]: ./caddy/Dockerfile
 [capture-readme]: ../capture/README.md
-[check-csp-browser]: ./check-csp-browser.py
-[check-csp]: ./check-csp.py
-[check-env-docs]: ./check-env-docs.py
-[check-github-env]: ./check-github-env.py
+[csp-browser-gate]: ./csp_browser_gate.py
+[csp-gate]: ./csp_gate.py
+[env-docs-gate]: ./env_docs_gate.py
+[github-env-gate]: ./github_env_gate.py
 [check-live-urls]: ./check-live-urls.sh
-[check-media-metadata]: ./check-media-metadata.py
-[check-media-redactions]: ./check-media-redactions.py
-[check-text-pii]: ./check-text-pii.py
-[check-url-parity]: ./check-url-parity.py
+[media-metadata-gate]: ./media_metadata_gate.py
+[media-redactions-gate]: ./media_redactions_gate.py
+[text-pii-gate]: ./text_pii_gate.py
+[url-parity-gate]: ./url_parity_gate.py
 [deploy-readme-redirects]: ../deploy/README.md#how-the-redirects-are-expressed
 [deploy-readme-security-headers]: ../deploy/README.md#security-headers
-[fuzz-media-parsers]: ./fuzz-media-parsers.py
+[media-parser-fuzz-gate]: ./media_parser_fuzz_gate.py

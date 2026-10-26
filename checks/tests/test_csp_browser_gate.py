@@ -1,4 +1,4 @@
-"""Tests for check-csp-browser.py's host half, every record in them constructed rather than observed."""
+"""Tests for csp_browser_gate.py's host half, every record in them constructed rather than observed."""
 
 import contextlib
 import io
@@ -9,10 +9,9 @@ import tempfile
 import unittest
 from unittest import mock
 
-import sibling
-
 CHECKS = pathlib.Path(__file__).resolve().parent.parent
-gate = sibling.load("check_csp_browser", CHECKS / "check-csp-browser.py")
+sys.path.insert(0, str(CHECKS))
+import csp_browser_gate as gate
 
 BASE = "https://mirror.example/"
 ALLOWED = ("img-src", "https://images.example")

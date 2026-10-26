@@ -1,4 +1,4 @@
-"""Tests for the free values check-media-metadata.py pins, every value in them constructed."""
+"""Tests for the free values media_metadata_gate.py pins, every value in them constructed."""
 
 import contextlib
 import io
@@ -7,18 +7,21 @@ import random
 import shutil
 import struct
 import subprocess
+import sys
 import tempfile
 import unittest
 import zipfile
 import zlib
 from unittest import mock
 
-import sibling
-
 REPO = pathlib.Path(__file__).resolve().parent.parent.parent
 
-normalizer = sibling.load("normalizer", REPO / "scripts" / "normalize-media.py")
-fuzz = sibling.load("fuzz", REPO / "checks" / "fuzz-media-parsers.py")
+sys.path.insert(0, str(REPO / "checks"))
+sys.path.insert(0, str(REPO / "scripts"))
+import normalize_media as normalizer
+
+import media_parser_fuzz_gate as fuzz
+
 gate = normalizer.gate
 
 # A stand-in profile, admitted by patching its digest into the set for the test that needs it.
@@ -562,7 +565,7 @@ class Sites(unittest.TestCase):
         data = gate.ICO_HEADER + b"free" + bytes(20)
         icon = self.root / "favicon.ico"
         icon.write_bytes(data)
-        argv = ["normalize-media.py", str(icon)]
+        argv = ["normalize_media.py", str(icon)]
         with (
             mock.patch.object(normalizer.shutil, "which", return_value="ffmpeg"),
             mock.patch.object(normalizer.sys, "argv", argv),
@@ -579,7 +582,7 @@ class Sites(unittest.TestCase):
         held.write_bytes(png_with(text_chunk()))
         with (
             mock.patch.object(normalizer, "REPO", self.root),
-            mock.patch.object(normalizer.sys, "argv", ["normalize-media.py"]),
+            mock.patch.object(normalizer.sys, "argv", ["normalize_media.py"]),
             contextlib.redirect_stdout(io.StringIO()) as out,
         ):
             self.assertEqual(normalizer.main(), 0)
@@ -592,7 +595,7 @@ class Sites(unittest.TestCase):
             self.skipTest(f"symlinks need a privilege here: {exc}")
         with (
             mock.patch.object(normalizer, "REPO", self.root),
-            mock.patch.object(normalizer.sys, "argv", ["normalize-media.py"]),
+            mock.patch.object(normalizer.sys, "argv", ["normalize_media.py"]),
             contextlib.redirect_stdout(io.StringIO()) as out,
         ):
             self.assertEqual(normalizer.main(), 0)
@@ -617,7 +620,7 @@ class Sites(unittest.TestCase):
         return target
 
     def normalize(self, *argv: str) -> str:
-        args = ["normalize-media.py", *argv]
+        args = ["normalize_media.py", *argv]
         with (
             mock.patch.object(normalizer, "REPO", self.root),
             mock.patch.object(normalizer.sys, "argv", args),

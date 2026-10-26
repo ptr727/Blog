@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Load a running site in headless Chromium and report what its Content-Security-Policy blocks.
 
-`check-csp.py` proves the built scripts match the policy's hashes and that every fetch the pages
+`csp_gate.py` proves the built scripts match the policy's hashes and that every fetch the pages
 and stylesheets name is one the policy allows. It cannot see what a browser blocks at run time: a
 fetch a script makes, or a script a proxy injects. This
 check loads each page in a URL list against a mirror. It records every `securitypolicyviolation`
@@ -157,7 +157,7 @@ def docker_command(image, version, base_url, cache):
         "--with",
         f"playwright=={version}",
         "python",
-        "/checks/check-csp-browser.py",
+        "/checks/csp_browser_gate.py",
         "--probe",
         base_url,
     ]

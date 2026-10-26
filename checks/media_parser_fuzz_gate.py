@@ -43,12 +43,11 @@ import zlib
 from collections.abc import Callable, Iterable, Iterator
 from typing import Any
 
-import sibling
+import media_metadata_gate as gate
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-
-gate = sibling.load("gate", REPO / "checks" / "check-media-metadata.py")
-normalizer = sibling.load("normalizer", REPO / "scripts" / "normalize-media.py")
+sys.path.insert(0, str(REPO / "scripts"))
+import normalize_media as normalizer
 
 # A comment segment, chunk, block or atom holding nothing, so no allowlist can admit it.
 PLANT_TEXT = b"planted"

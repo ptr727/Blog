@@ -1,15 +1,15 @@
-"""Tests for check-github-env.py, every value in them constructed rather than observed."""
+"""Tests for github_env_gate.py, every value in them constructed rather than observed."""
 
 import contextlib
 import io
 import pathlib
+import sys
 import unittest
 from unittest import mock
 
-import sibling
-
 CHECKS = pathlib.Path(__file__).resolve().parent.parent
-gate = sibling.load("check_github_env", CHECKS / "check-github-env.py")
+sys.path.insert(0, str(CHECKS))
+import github_env_gate as gate
 
 DOC = """# Environment
 

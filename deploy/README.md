@@ -7,15 +7,15 @@ How the site is built, released, and served. The release is a **self-contained b
 | Tool | Used by | Needed for | Install |
 | --- | --- | --- | --- |
 | `hugo` (extended) | `make-release.sh` | building the site | see below |
-| `python3` (3.10+) | `check-url-parity.py`, `check-csp.py`, `check-csp-browser.py`, `capture/build-redirects.py` | the build-time gates, the browser trial, regenerating maps | `apt install python3` |
-| PyYAML | `capture/clean-content.py` | reading front matter during a conversion | `apt install python3-yaml` |
+| `python3` (3.10+) | `url_parity_gate.py`, `csp_gate.py`, `csp_browser_gate.py`, `capture/build_redirects.py` | the build-time gates, the browser trial, regenerating maps | `apt install python3` |
+| PyYAML | `capture/clean_content.py` | reading front matter during a conversion | `apt install python3-yaml` |
 | `rsync` | `make-release.sh` | installing a release, hard-linking unchanged files | `apt install rsync` |
 | `gzip` | `make-release.sh` | precompression | coreutils, already present |
 | `brotli` | `make-release.sh` | precompression | `apt install brotli` |
 | `curl` 7.84+ | `check-live-urls.sh` | verifying a running server, reading a header with `%header{}` | `apt install curl` |
 | `bash` 4.4+ | all scripts | arrays, `mapfile` | already present |
-| `docker` | serving, `check-csp-browser.py` | running Caddy, the headless browser | orchestrated elsewhere |
-| `uv` | `check-csp-browser.py` | installing Playwright in the browser container | the upstream installer |
+| `docker` | serving, `csp_browser_gate.py` | running Caddy, the headless browser | orchestrated elsewhere |
+| `uv` | `csp_browser_gate.py` | installing Playwright in the browser container | the upstream installer |
 
 **These scripts run on Linux, which is a dependency ceiling rather than an omission.** They use
 `mv -Tf`, `find -printf`, `mapfile`, and `sed -i` without an argument, all of which are GNU or
@@ -27,7 +27,7 @@ macOS or Windows contributor runs them through a container or a remote Linux hos
 
 **`brotli` is easy to miss and degrades silently.** The Caddyfile serves `precompressed br gzip`, so without the binary every text response falls back to gzip while the site keeps working and nothing errors. `make-release.sh` warns loudly when it is absent, and `REQUIRE_BROTLI=1` turns that into a hard failure. **CI must set it.** Measured on the home page: 18,845 bytes raw, 6,395 gzip, 5,105 brotli.
 
-[`capture/build-redirects.py`][capture-build-redirects] additionally needs the capture directory holding the source export, which is not in this repo. It runs by hand rather than in CI, and its outputs under `deploy/maps/` are committed.
+[`capture/build_redirects.py`][capture-build-redirects] additionally needs the capture directory holding the source export, which is not in this repo. It runs by hand rather than in CI, and its outputs under `deploy/maps/` are committed.
 
 ## Container contract
 
@@ -305,9 +305,9 @@ The HSTS value carries neither `includeSubDomains` nor `preload`. `includeSubDom
 
 **Each site sends its own `Content-Security-Policy`.** The family page loads few resources, so its policy names each kind: its own files and fonts, inline styles, and `data:` images. The blog policy allows its own files and fonts, and inline styles, which the theme and some archived posts carry. Both sites serve their fonts themselves, under `/fonts/`. Neither policy names another host, so every resource either site loads is its own. An embed from another host, such as a video or a map, is therefore not possible. The browser would block it, and the release build fails on it. A scheme such as `data:` names no host, so a directive may list one. Its `script-src` lists a hash for each inline script the theme writes, rather than allowing every inline script.
 
-**A Hugo update, a theme update, or a theme setting in `hugo.yaml` can change those scripts.** [`checks/check-csp.py`][checks-csp] runs in the release build and fails when the hashes and the built scripts differ. For a hash, the fix is to copy each one it reports into both the Caddyfile and `security-headers.txt`. Drop each one it reports as unused. It also fails when a page or stylesheet on either site fetches something its policy does not allow, or when a policy names another host. The fix there is to serve the resource from the site itself, and to drop the host from the policy.
+**A Hugo update, a theme update, or a theme setting in `hugo.yaml` can change those scripts.** [`checks/csp_gate.py`][checks-csp] runs in the release build and fails when the hashes and the built scripts differ. For a hash, the fix is to copy each one it reports into both the Caddyfile and `security-headers.txt`. Drop each one it reports as unused. It also fails when a page or stylesheet on either site fetches something its policy does not allow, or when a policy names another host. The fix there is to serve the resource from the site itself, and to drop the host from the policy.
 
-**The gate reads only the files each site ships, so a policy change is also tried in a browser.** [`checks/check-csp-browser.py`][checks-csp-browser] loads every page of a running mirror in headless Chromium. It fails on anything the policy blocks that [`checks/csp-browser-allow.txt`][checks-csp-browser-allow] does not list. A run over the whole default list also fails on an entry there that nothing matched. The list is empty today, so any blocked load fails the run. [OPERATIONS.md "Local Verification"][operations-local-verification] says when it runs and how.
+**The gate reads only the files each site ships, so a policy change is also tried in a browser.** [`checks/csp_browser_gate.py`][checks-csp-browser] loads every page of a running mirror in headless Chromium. It fails on anything the policy blocks that [`checks/csp-browser-allow.txt`][checks-csp-browser-allow] does not list. A run over the whole default list also fails on an entry there that nothing matched. The list is empty today, so any blocked load fails the run. [OPERATIONS.md "Local Verification"][operations-local-verification] says when it runs and how.
 
 **The policy also blocks a script the proxy injects into a page.** Cloudflare's Rocket Loader, Email Address Obfuscation, and Web Analytics each inject one, so each stays off. They are the host side's to set, and the gate cannot see them, since it reads only the files each site ships.
 
@@ -427,7 +427,7 @@ Every class below is a legacy shape, closed by the migration, so no count here m
 
 Two orderings are load-bearing. `@post_child_feed` precedes `@post_child` because both match the same shape and the broader one would claim both. No golden URL is five segments under a date, so `@post_child` cannot swallow a page that must render, and `@uploads` rewrites under a prefix no rendered page occupies.
 
-`blogger.map` carries more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms answer. A few addresses Blogger served, or the contract lists, match neither form. The mechanism is in [`capture/README.md`][capture-readme], beside the generator that implements it. `slugs.map` is generated by [`capture/build-redirects.py`][capture-build-redirects], which recovers each attachment's parent from the media inventory, since each has `post_parent = 0` in the export. 85 entries resolve to a real post, and 21 go to `/` because nothing on the site claims them. The generator gives the rest a fixed destination.
+`blogger.map` carries more entries than there are Blogger-era posts, because that platform served a long title at a truncated address and both forms answer. A few addresses Blogger served, or the contract lists, match neither form. The mechanism is in [`capture/README.md`][capture-readme], beside the generator that implements it. `slugs.map` is generated by [`capture/build_redirects.py`][capture-build-redirects], which recovers each attachment's parent from the media inventory, since each has `post_parent = 0` in the export. 85 entries resolve to a real post, and 21 go to `/` because nothing on the site claims them. The generator gives the rest a fixed destination.
 
 **Two shapes in the Caddyfile look wrong and are correct.** The `map` on `{re.label.1}` sits outside `route`, before the matcher that sets that placeholder runs. A map resolves lazily, when a directive reads its output, so it sees the matched request. And `handle_errors` rewrites to `/404.html` and serves it with `file_server`, which keeps the error's `404` status rather than answering `200`.
 
@@ -435,8 +435,8 @@ Two orderings are load-bearing. `@post_child_feed` precedes `@post_child` becaus
 
 Each of these fails silently when it fails, which is why it is checked rather than assumed:
 
-- **The URL contract**, via `check-url-parity.py`, before anything is installed.
-- **Both sites' script hashes and every fetch their pages and stylesheets make**, via `check-csp.py`, before anything is installed.
+- **The URL contract**, via `url_parity_gate.py`, before anything is installed.
+- **Both sites' script hashes and every fetch their pages and stylesheets make**, via `csp_gate.py`, before anything is installed.
 - **World-readability of the finished release.** `--chmod` and `--no-g` apply only to files
   rsync newly transfers. A file supplied by `--link-dest` is a hard link to the previous
   release's inode and keeps that inode's mode and ownership, so a badly moded file rides the
@@ -451,11 +451,11 @@ Each of these fails silently when it fails, which is why it is checked rather th
 <!-- Repo -->
 
 [caddyfile]: ./Caddyfile
-[capture-build-redirects]: ../capture/build-redirects.py
+[capture-build-redirects]: ../capture/build_redirects.py
 [capture-readme]: ../capture/README.md
-[checks-csp-browser]: ../checks/check-csp-browser.py
+[checks-csp-browser]: ../checks/csp_browser_gate.py
 [checks-csp-browser-allow]: ../checks/csp-browser-allow.txt
-[checks-csp]: ../checks/check-csp.py
+[checks-csp]: ../checks/csp_gate.py
 [checks-redirect-urls]: ../checks/redirect-urls.txt
 [checks-security-headers]: ../checks/security-headers.txt
 [example-env]: ../.secrets/example.env
