@@ -16,25 +16,6 @@ The interim hostname `blog.insanegenius.net` has no DNS record, and no setting h
 
 No gate here catches a wrong `SITE_BASE_URL`, for the reason in [`checks/README.md`](./checks/README.md) "The robots check, and the one thing no gate here can do".
 
-## Threat Model
-
-What earns hardening effort here, and what does not.
-
-**Hostile input reaches code in this tree through three surfaces.**
-
-- Requests to the public sites, from browsers, crawlers, and scanners.
-- A pull request's checks, which run whatever code the pull request carries. A fork's run gets a read-only token and no secrets, so its reach ends with that run.
-- Upstream releases that Dependabot proposes. The merge bot merges each one into `develop` and `main` once the required checks pass, with no human review.
-
-Hardening pays for itself where a hostile input on one of these surfaces can do damage beyond failing its own check.
-
-**The media tooling is not such a place.** The media gate and the normalizer read the maintainer's own images and captured media. A fork can put a crafted file in front of the gate, and the worst outcome is that its own check fails. The tooling exists to keep the maintainer's metadata from leaking and to catch accidental damage, such as a truncated copy. Its existing checks stay, and nothing new is added to defend it against a crafted file.
-
-**A hardening finding needs damage before it earns work.** Before fixing or filing one, name an input that reaches the code and the damage it does beyond failing its own check. Where there is none, decline the finding with that absence as the evidence, cite this section, and file nothing. A reviewer, human or bot, can always find one more malformed-input edge, so a correct finding is not by itself a reason to act. Two cases are worked anyway, each with the smallest change that settles it:
-
-- A fuzzer failure, since it blocks every merge until it passes.
-- A functional gap that a real committed file hits, such as metadata the normalizer cannot remove.
-
 ## Local Verification
 
 What verifying a change here requires, including the half a pipeline cannot reach.
@@ -482,6 +463,26 @@ The family token is created with Pangolin's session persistence off. The check s
 ## Configuration Layout
 
 What this repository holds, what the host holds, and which side owns each piece.
+
+### Trust Boundaries
+
+This is where [GOVERNANCE.md "Trust Boundaries and Hardening Effort"](./GOVERNANCE.md#trust-boundaries-and-hardening-effort) needs this repository's own inputs named. That section sets the effort each class gets.
+
+**Untrusted input reaches code in this tree through these surfaces.**
+
+- Requests to the public sites, from browsers, crawlers, and scanners.
+- The log lines that record those requests, which `checks/log-review.jq` and the procedures under "Logs and Debugging" read. Every field a client sends is the client's, such as the path, the user agent, and the referrer.
+- A pull request's checks, which run whatever code the pull request carries. A fork's run gets a read-only token and no secrets, so its reach ends with that run.
+- Upstream releases that Dependabot proposes. The merge bot merges each one into `develop` and `main` once the required checks pass, with no human review.
+
+**Everything else here is trusted.** That covers the maintainer's own images, captured media, posts, and configuration, and what the maintainer's hosts return other than the log lines above.
+
+**The media tooling reads trusted input.** The media gate and the normalizer read the maintainer's own images and captured media. A fork can put a crafted file in front of the gate, and the worst outcome is that its own check fails. The tooling exists to keep the maintainer's metadata from leaking and to catch accidental damage, such as a truncated copy. Its existing checks stay, and nothing new is added to defend it against a crafted file.
+
+**These cases are worked whatever the class of their input**, each with the smallest change that settles it:
+
+- A fuzzer failure, since it blocks every merge until it passes.
+- A functional gap that a real committed file hits, such as metadata the normalizer cannot remove.
 
 ### Environments
 

@@ -43,9 +43,9 @@ Review effort is user-controlled. The automation observes `Lite`, `Balanced`, or
 **The entries are this repository's own.** Each names a file and a revision. A repository holding a copy of this file therefore carries the shape and the rules above rather than these findings. That repository deletes an entry whose subject it does not carry and records what it has proved itself. An entry is never about hub-hosted machinery, the tooling a repository reaches rather than carries per [GOVERNANCE.md "Hub-Hosted Tooling"](../GOVERNANCE.md#hub-hosted-tooling). A repository without that tooling has nothing to re-check such a claim against, so a constraint on that tooling is recorded in that tooling's code.
 
 - **Ruff refuses a test's import that follows `sys.path.insert`, as E402, so the Python gate fails until each such import carries a suppression.** Raised by Copilot as a P1 on two renamed test files, and the pattern recurs in every test that imports the script it tests.
-  - **Disproved by** - running the gate CI runs, `uvx ruff@latest check .` from inside `checks/` and from inside `scripts/`. Both print `All checks passed!` with ruff 0.17.2. Each `pyproject.toml` adds only `extend-select = ["I"]` to ruff's defaults, which leave E402 unselected, and the same run with `--select E402` reports the imports, so the pattern is present and the rule is off.
-  - **Proved against** - `checks/pyproject.toml`, `scripts/pyproject.toml`, and the tests under `checks/tests/` and `scripts/tests/` on `develop` at `b18f7cc`.
-  - **Delete when** - either `pyproject.toml` selects E402 or a rule set holding it, or the tests stop importing after `sys.path.insert`.
+  - **Disproved by** - running the gate CI runs, `uvx ruff@latest check .` from inside `checks/` and from inside `scripts/`. Both print `All checks passed!`. Each `pyproject.toml` adds only `extend-select = ["I"]` to ruff's default rule set. The rule list `ruff check --show-settings` prints holds no E402. The same run with `--select E402` reports the imports, so the pattern is present and the rule is off.
+  - **Proved against** - ruff 0.17.2, and `checks/pyproject.toml`, `scripts/pyproject.toml`, and the tests under `checks/tests/` and `scripts/tests/` on `develop` at `b18f7cc`.
+  - **Delete when** - either `pyproject.toml` selects E402 or a rule set holding it, or a ruff release adds E402 to its default rule set. Tests that stop importing after `sys.path.insert` end it too.
 
 ## When in Doubt
 
