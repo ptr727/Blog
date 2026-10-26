@@ -1,16 +1,16 @@
-"""Tests for `scripts/redact-media.py`, on images built here rather than taken from the archive.
+"""Tests for `scripts/redact_media.py`, on images built here rather than taken from the archive.
 
 Run with `uv run --no-project --with-requirements scripts/requirements.txt python -m pytest scripts`.
 """
 
 import contextlib
 import hashlib
-import importlib.util
 import io
 import json
 import os
 import pathlib
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -18,11 +18,8 @@ from unittest import mock
 from PIL import Image
 
 SCRIPTS = pathlib.Path(__file__).resolve().parent.parent
-_spec = importlib.util.spec_from_file_location("redact", SCRIPTS / "redact-media.py")
-if _spec is None or _spec.loader is None:
-    raise ImportError("cannot load redact-media.py")
-redact = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(redact)
+sys.path.insert(0, str(SCRIPTS))
+import redact_media as redact
 
 
 def sha256(data: bytes) -> str:

@@ -1,17 +1,12 @@
-"""Tests for `scripts/normalize-text.py`, on posts built here rather than taken from the archive."""
+"""Tests for `scripts/normalize_text.py`, on posts built here rather than taken from the archive."""
 
-import importlib.util
 import pathlib
+import sys
 import unittest
 
 SCRIPTS = pathlib.Path(__file__).resolve().parent.parent
-_spec = importlib.util.spec_from_file_location(
-    "normalize_text", SCRIPTS / "normalize-text.py"
-)
-if _spec is None or _spec.loader is None:
-    raise ImportError("cannot load normalize-text.py")
-normalize_text = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(normalize_text)
+sys.path.insert(0, str(SCRIPTS))
+import normalize_text
 
 CURLY = "\N{LEFT DOUBLE QUOTATION MARK}quoted\N{RIGHT DOUBLE QUOTATION MARK}"
 

@@ -3,7 +3,7 @@
 # Media is downloaded here because that is what drives absolute->relative URL rewriting, but the bytes are replaced afterwards from the official media tar.
 # WordPress.com serves optimized derivatives over HTTP for some images, one of them at a fraction of the original's dimensions.
 #
-# The export is chosen by build-redirects.py --print-export rather than by a glob here, so the conversion and the redirect maps are provably built from the same file.
+# The export is chosen by build_redirects.py --print-export rather than by a glob here, so the conversion and the redirect maps are provably built from the same file.
 # An account holds several exports and a media-only one carries the attachments and no posts, and converting that one yields a site that builds and is empty.
 # The selection cannot be reimplemented in shell: the test is that ONE item carries both post_type=post and status=publish, where two greps over a whole file would accept the media-only export.
 set -Eeuo pipefail
@@ -22,7 +22,7 @@ CAPTURE_ROOT="$(cd "$CAPTURE_ROOT" && pwd)"
 export CAPTURE_ROOT
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export_xml="$("$here/build-redirects.py" --print-export)"
+export_xml="$("$here/build_redirects.py" --print-export)"
 echo "==> export: $export_xml"
 
 cd "$CAPTURE_ROOT"

@@ -4,7 +4,7 @@
 The manifest records the hash each redaction produces, so this needs no image
 decoder. A file replaced by its original, re-exported, or edited by hand fails here.
 So does an entry whose declared digest is missing or no longer matches its fills and crop.
-`scripts/redact-media.py` is what brings either back.
+`scripts/redact_media.py` is what brings either back.
 """
 
 import hashlib
@@ -39,7 +39,7 @@ def main() -> int:
         print(line)
     if failures:
         print(
-            f"\n{len(failures)} file(s) fail. Run scripts/redact-media.py"
+            f"\n{len(failures)} file(s) fail. Run scripts/redact_media.py"
             " under scripts/requirements.txt, see CONTENT.md."
         )
         return 1

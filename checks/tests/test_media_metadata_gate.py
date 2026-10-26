@@ -1,13 +1,13 @@
-"""Tests for the free values check-media-metadata.py pins, every value in them constructed."""
+"""Tests for the free values media_metadata_gate.py pins, every value in them constructed."""
 
 import contextlib
-import importlib.util
 import io
 import pathlib
 import random
 import shutil
 import struct
 import subprocess
+import sys
 import tempfile
 import unittest
 import zipfile
@@ -16,18 +16,12 @@ from unittest import mock
 
 REPO = pathlib.Path(__file__).resolve().parent.parent.parent
 
+sys.path.insert(0, str(REPO / "checks"))
+sys.path.insert(0, str(REPO / "scripts"))
+import normalize_media as normalizer
 
-def load(name: str, path: pathlib.Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"cannot load {path.name}")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+import media_parser_fuzz_gate as fuzz
 
-
-normalizer = load("normalizer", REPO / "scripts" / "normalize-media.py")
-fuzz = load("fuzz", REPO / "checks" / "fuzz-media-parsers.py")
 gate = normalizer.gate
 
 # A stand-in profile, admitted by patching its digest into the set for the test that needs it.
@@ -571,7 +565,7 @@ class Sites(unittest.TestCase):
         data = gate.ICO_HEADER + b"free" + bytes(20)
         icon = self.root / "favicon.ico"
         icon.write_bytes(data)
-        argv = ["normalize-media.py", str(icon)]
+        argv = ["normalize_media.py", str(icon)]
         with (
             mock.patch.object(normalizer.shutil, "which", return_value="ffmpeg"),
             mock.patch.object(normalizer.sys, "argv", argv),
@@ -588,7 +582,7 @@ class Sites(unittest.TestCase):
         held.write_bytes(png_with(text_chunk()))
         with (
             mock.patch.object(normalizer, "REPO", self.root),
-            mock.patch.object(normalizer.sys, "argv", ["normalize-media.py"]),
+            mock.patch.object(normalizer.sys, "argv", ["normalize_media.py"]),
             contextlib.redirect_stdout(io.StringIO()) as out,
         ):
             self.assertEqual(normalizer.main(), 0)
@@ -601,7 +595,7 @@ class Sites(unittest.TestCase):
             self.skipTest(f"symlinks need a privilege here: {exc}")
         with (
             mock.patch.object(normalizer, "REPO", self.root),
-            mock.patch.object(normalizer.sys, "argv", ["normalize-media.py"]),
+            mock.patch.object(normalizer.sys, "argv", ["normalize_media.py"]),
             contextlib.redirect_stdout(io.StringIO()) as out,
         ):
             self.assertEqual(normalizer.main(), 0)
@@ -626,7 +620,7 @@ class Sites(unittest.TestCase):
         return target
 
     def normalize(self, *argv: str) -> str:
-        args = ["normalize-media.py", *argv]
+        args = ["normalize_media.py", *argv]
         with (
             mock.patch.object(normalizer, "REPO", self.root),
             mock.patch.object(normalizer.sys, "argv", args),
@@ -657,10 +651,7 @@ class Sites(unittest.TestCase):
 
     def seeds(self) -> list[str]:
         """The carried seeds the fuzzer samples from the scratch repository."""
-        with (
-            mock.patch.object(fuzz, "REPO", self.root),
-            mock.patch.object(fuzz.gate, "REPO", self.root),
-        ):
+        with mock.patch.object(fuzz, "REPO", self.root):
             seeds = fuzz.carried_seeds(random.Random(0), 9, 1 << 20)
         return [name for name, _ in seeds]
 

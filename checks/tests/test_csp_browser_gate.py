@@ -1,7 +1,6 @@
-"""Tests for check-csp-browser.py's host half, every record in them constructed rather than observed."""
+"""Tests for csp_browser_gate.py's host half, every record in them constructed rather than observed."""
 
 import contextlib
-import importlib.util
 import io
 import os
 import pathlib
@@ -11,13 +10,8 @@ import unittest
 from unittest import mock
 
 CHECKS = pathlib.Path(__file__).resolve().parent.parent
-SPEC = importlib.util.spec_from_file_location(
-    "check_csp_browser", CHECKS / "check-csp-browser.py"
-)
-if SPEC is None or SPEC.loader is None:
-    raise ImportError("cannot load check-csp-browser.py")
-gate = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(gate)
+sys.path.insert(0, str(CHECKS))
+import csp_browser_gate as gate
 
 BASE = "https://mirror.example/"
 ALLOWED = ("img-src", "https://images.example")
