@@ -9,13 +9,15 @@
 set -Eeuo pipefail
 
 # Arguments are checked before CAPTURE_ROOT is read, so --help answers where none is set.
-case "${1:-}" in
--h | --help)
-	echo "usage: $0"
-	echo "       converts the export build_redirects.py selects under CAPTURE_ROOT"
-	exit 0
-	;;
-esac
+for arg in "$@"; do
+	case "$arg" in
+	-h | --help)
+		echo "usage: $0"
+		echo "       converts the export build_redirects.py selects under CAPTURE_ROOT"
+		exit 0
+		;;
+	esac
+done
 if [ "$#" -gt 0 ]; then
 	echo "unknown argument: $1" >&2
 	echo "usage: $0" >&2

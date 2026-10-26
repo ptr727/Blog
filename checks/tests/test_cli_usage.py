@@ -1,7 +1,8 @@
 """Hold every tracked script to the fleet's command-line argument rule by running it.
 
 Each script runs with `--help`, with `-h`, and with an unknown `--bogus-flag`. Help exits 0 and
-prints the same text for both spellings, opening on a usage line that names the script. The unknown
+prints the same text for both spellings, opening on a usage line that names the script. Help after
+another argument answers the same way, rather than being refused as an extra one. The unknown
 flag exits non-zero with a refusal naming it. A script needing a positional refuses on the missing
 argument before it reaches the flag, so BEFORE_FLAG gives it one. Every other script is declared
 in NO_REQUIRED_ARGUMENT. A script declared in neither fails, so a new one is classified the moment
@@ -170,6 +171,9 @@ class CliUsageTests(unittest.TestCase):
                 self.assertEqual(0, long.returncode, long.stderr)
                 self.assertEqual(0, short.returncode, short.stderr)
                 self.assertEqual(long.stdout, short.stdout)
+                late = self.run_script(path, "extra", "--help")
+                self.assertEqual(0, late.returncode, late.stderr)
+                self.assertEqual(long.stdout, late.stdout)
                 self.assertRegex(
                     long.stdout.splitlines()[0] if long.stdout else "",
                     rf"^usage: \S*{re.escape(pathlib.PurePosixPath(path).name)}\b",

@@ -9,6 +9,15 @@ usage() {
 	echo "usage: $0 <base-url> | --print-sample"
 }
 
+# Help is answered wherever it appears, before the count is checked.
+for arg in "$@"; do
+	case "$arg" in
+	-h | --help)
+		usage
+		exit 0
+		;;
+	esac
+done
 PRINT_SAMPLE=''
 BASE="${1:-}"
 if [ "$#" -gt 1 ]; then
@@ -17,10 +26,6 @@ if [ "$#" -gt 1 ]; then
 	exit 2
 fi
 case "$BASE" in
--h | --help)
-	usage
-	exit 0
-	;;
 --print-sample)
 	PRINT_SAMPLE=1
 	BASE=''
