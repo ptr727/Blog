@@ -3,10 +3,9 @@ name: Publish project release action
 on:
   workflow_dispatch:
 
-# A publish is a deliberate dispatch, so runs serialize on one group and queue rather than cancel.
-# That keeps a run from being left with a half-created GitHub release.
+# GOVERNANCE.md "Workflow YAML Conventions" Concurrency exception (2).
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 permissions: {}
