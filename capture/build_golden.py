@@ -17,6 +17,7 @@ live site answers for it. The output is split by how Hugo must satisfy each URL:
                       choose to redirect to the parent post rather than reproduce.
 """
 
+import argparse
 import json
 import math
 import os
@@ -28,6 +29,9 @@ import urllib.request
 from collections import Counter
 from pathlib import Path
 from queue import Queue
+
+# Parsed before the capture values are read, so --help answers where none is set.
+argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0]).parse_args()
 
 def env(name: str) -> str:
     """A required capture value, refused rather than guessed when unset.

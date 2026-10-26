@@ -210,7 +210,7 @@ class MainTests(unittest.TestCase):
             contextlib.redirect_stdout(out),
             contextlib.redirect_stderr(err),
         ):
-            code = gate.main()
+            code = gate.main([])
         return code, out.getvalue(), err.getvalue()
 
     def test_agreement_exits_zero(self) -> None:

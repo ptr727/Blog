@@ -24,6 +24,7 @@ Read-only. Exit 1 on any finding.
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -36,7 +37,7 @@ TEMPLATES = [REPO / ".secrets" / "example.env"]
 
 # Workflow references.
 # `vars.X` and `secrets.X` are the GitHub Environment surface, and a value added there is exactly as undocumented as one added to a template.
-WORKFLOWS = sorted((REPO / ".github" / "workflows").glob("*.yml"))
+WORKFLOWS = REPO / ".github" / "workflows"
 
 # Set per invocation rather than stored, so they appear in no template and would otherwise be invisible to this check.
 # Listed here because the doc has a table for them, and a knob nobody documented is the same failure as an undocumented file value.
@@ -76,7 +77,9 @@ DOC_ROW = re.compile(r"^\|\s*`([A-Z][A-Z0-9_]*)(?:=[^`]*)?`", re.MULTILINE)
 DOC_INLINE = re.compile(r"`([A-Z][A-Z0-9_]{2,})(?:=[^`]*)?`")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
+    parser.parse_args(argv)
     if not DOC.exists():
         print(f"ERROR: {DOC.name} does not exist", file=sys.stderr)
         return 1
@@ -103,7 +106,7 @@ def main() -> int:
         for name in COMMENTED_DECL.findall(text):
             note(name, rel)
 
-    for path in WORKFLOWS:
+    for path in sorted(WORKFLOWS.glob("*.yml")):
         rel = path.relative_to(REPO).as_posix()
         for name in GH_REF.findall(path.read_text(encoding="utf-8")):
             note(name, rel)

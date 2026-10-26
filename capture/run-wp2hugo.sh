@@ -8,6 +8,20 @@
 # The selection cannot be reimplemented in shell: the test is that ONE item carries both post_type=post and status=publish, where two greps over a whole file would accept the media-only export.
 set -Eeuo pipefail
 
+# Arguments are checked before CAPTURE_ROOT is read, so --help answers where none is set.
+case "${1:-}" in
+-h | --help)
+	echo "usage: $0"
+	echo "       converts the export build_redirects.py selects under CAPTURE_ROOT"
+	exit 0
+	;;
+esac
+if [ "$#" -gt 0 ]; then
+	echo "unknown argument: $1" >&2
+	echo "usage: $0" >&2
+	exit 2
+fi
+
 # A `go install`ed wp2hugo lands here. $HOME rather than a literal path.
 export PATH="$HOME/.local/bin:$PATH"
 

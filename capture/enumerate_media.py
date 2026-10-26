@@ -15,6 +15,7 @@ silent-data-loss risk, so it gets enumerated explicitly.
 Writes: media-urls.tsv (host, url, post_id, post_url), posts.json (raw archive).
 """
 
+import argparse
 import json
 import os
 import re
@@ -23,6 +24,9 @@ import urllib.parse
 import urllib.request
 from collections import Counter, defaultdict
 from pathlib import Path
+
+# Parsed before the capture values are read, so --help answers where none is set.
+argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0]).parse_args()
 
 def env(name: str) -> str:
     """A required capture value, refused rather than guessed when unset.

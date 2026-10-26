@@ -9,6 +9,7 @@ generates rather than gates, which is why it sits in capture/ beside the other s
 that read the capture rather than in checks/ beside the gates.
 """
 
+import argparse
 import os
 import pathlib
 import re
@@ -69,27 +70,20 @@ def write_map(path, pairs):
     return len(pairs)
 
 
-def main(argv):
+def main(argv=None):
     # CAPTURE_ROOT is the default and an argument wins over it, the same shape DEPLOY_ROOT uses.
     # Unset and unsupplied is refused rather than guessed: a wrong-but-plausible capture yields maps that are empty and indistinguishable from working ones.
     # --print-export names the selected export and writes nothing.
     # The run-wp2hugo.sh script calls it rather than reimplementing the choice, so the conversion and the maps are provably built from the same file.
     # A shell reimplementation cannot match this anyway: the test is that ONE item carries both post_type=post and status=publish, and two greps over a whole file would accept a media-only export that happens to contain both words.
-    args = [a for a in argv[1:] if a != "--print-export"]
-    print_export = "--print-export" in argv[1:]
-    # An unknown option is refused rather than taken as a path.
-    # Without this, `--help` is read as a capture directory and the run fails with "no export XML found under --help", which sends the reader looking for a missing file rather than a mistyped flag.
-    unknown = [a for a in args if a.startswith("-")]
-    if unknown:
-        print(f"unknown option: {unknown[0]}", file=sys.stderr)
-        print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
-        return 2
-    if len(args) > 1:
-        print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
-        return 2
-    root = args[0] if args else os.environ.get("CAPTURE_ROOT", "")
+    parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
+    parser.add_argument("--print-export", action="store_true", help="name the selected export and write nothing")
+    parser.add_argument("capture", nargs="?", help="the capture directory, else CAPTURE_ROOT")
+    args = parser.parse_args(argv)
+    print_export = args.print_export
+    root = args.capture or os.environ.get("CAPTURE_ROOT", "")
     if not root:
-        print(f"usage: {argv[0]} [--print-export] [capture-dir]", file=sys.stderr)
+        parser.print_usage(sys.stderr)
         print("CAPTURE_ROOT is not set and no capture directory was given", file=sys.stderr)
         print("see .secrets/example.env and ENVIRONMENT.md", file=sys.stderr)
         return 2
@@ -273,4 +267,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main())
