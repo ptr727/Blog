@@ -226,7 +226,7 @@ Licensed under the [MIT License][license]\
 
 [last-commit-shield]: https://img.shields.io/github/last-commit/ptr727/Blog?logo=github&label=Last%20Commit
 [license-shield]: https://img.shields.io/github/license/ptr727/Blog?label=License
-[pre-release-version-shield]: https://img.shields.io/github/v/release/ptr727/Blog?include_prereleases&label=GitHub%20Pre-Release&logo=github
+[pre-release-version-shield]: https://img.shields.io/github/v/release/ptr727/Blog?include_prereleases&filter=*-g*&label=GitHub%20Pre-Release&logo=github
 [release-status-shield]: https://img.shields.io/github/actions/workflow/status/ptr727/Blog/publish-release.yml?event=workflow_dispatch&logo=github&label=Release%20Status
 [release-version-shield]: https://img.shields.io/github/v/release/ptr727/Blog?logo=github&label=GitHub%20Release
 
@@ -243,9 +243,6 @@ Licensed under the [MIT License][license]\
 
 [capture]: ./capture/
 [capture-readme]: ./capture/README.md
-[media-metadata-gate]: ./checks/media_metadata_gate.py
-[media-redactions-gate]: ./checks/media_redactions_gate.py
-[text-pii-gate]: ./checks/text_pii_gate.py
 [checks]: ./checks/
 [content]: ./CONTENT.md
 [deploy]: ./deploy/
@@ -258,11 +255,14 @@ Licensed under the [MIT License][license]\
 [history]: ./HISTORY.md
 [hugo-config]: ./hugo.yaml
 [license]: ./LICENSE
+[media-metadata-gate]: ./checks/media_metadata_gate.py
 [media-redactions]: ./checks/media-redactions.json
+[media-redactions-gate]: ./checks/media_redactions_gate.py
 [migration-post]: ./content/posts/2026/08/01/moving-this-blog-from-wordpress-to-hugo.md
 [normalize-media]: ./scripts/normalize_media.py
 [operations]: ./OPERATIONS.md
 [operations-family]: ./OPERATIONS.md#the-family-site
+[text-pii-gate]: ./checks/text_pii_gate.py
 [workflow]: ./WORKFLOW.md
 
 <!-- External -->
