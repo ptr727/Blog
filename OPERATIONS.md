@@ -468,20 +468,19 @@ What this repository holds, what the host holds, and which side owns each piece.
 
 This is where [GOVERNANCE.md "Trust Boundaries and Hardening Effort"](./GOVERNANCE.md#trust-boundaries-and-hardening-effort) needs this repository's own inputs named. That section sets the effort each class gets.
 
-**Untrusted input reaches code in this tree through these surfaces.**
+**Untrusted input reaches this repository's code and procedures through these surfaces.**
 
 - Requests to the public sites, from browsers, crawlers, and scanners.
-- The log lines that record those requests, and the CrowdSec alerts and decisions drawn from them, which `checks/log-review.jq` and the procedures under "Logs and Debugging" read. Every field a client sends is the client's, such as the path, the user agent, and the referrer.
+- The log lines that record those requests, which `checks/log-review.jq` and the procedures under "Logs and Debugging" read. Every field a client sends is the client's, such as the path, the user agent, and the referrer.
 - A pull request's checks, which run whatever code the pull request carries. A fork's run gets a read-only token and no secrets, so its reach ends with that run.
 - Upstream releases that Dependabot proposes. The merge bot merges each one into `develop` and `main` once the required checks pass, with no human review.
+- CrowdSec alert and decision output, including the community blocklist, which the procedures under "Logs and Debugging" read.
 - Content from outside contributors, such as a post in the repository's public Discussions or a comment on an issue.
 - Third-party answers the log procedures read, such as a reverse-DNS name or an archive lookup. Anyone can set a reverse name.
 
 **Everything else this repository's code and procedures read is trusted.** That covers the maintainer's own images, captured media, posts, and configuration, and what the maintainer's hosts return, except the log lines and CrowdSec output above.
 
 **The media tooling reads the maintainer's own media.** The media gate and the normalizer exist to keep the maintainer's metadata from leaking and to catch accidental damage, such as a truncated copy. In a fork's run they read the pull request's files, which are untrusted. The worst a crafted file does there is fail that run's own check. So nothing is added to defend the tooling against a crafted file.
-
-**A fuzzer failure is a crafted-file case like any other.** Where its input cannot arise from the maintainer's own media, it is declined under that section. The fuzzer property that raised it is narrowed, rather than the tooling hardened.
 
 ### Environments
 
