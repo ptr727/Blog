@@ -11,7 +11,7 @@ on:
           - staging
           - production
 
-# Runs queue rather than cancel, because a cancelled deploy leaves a release uploaded and unflipped.
+# GOVERNANCE.md "Workflow YAML Conventions" Concurrency exception (3).
 concurrency:
   group: ${{ github.workflow }}-${{ inputs.environment }}
   cancel-in-progress: false
