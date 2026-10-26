@@ -474,15 +474,13 @@ This is where [GOVERNANCE.md "Trust Boundaries and Hardening Effort"](./GOVERNAN
 - The log lines that record those requests, which `checks/log-review.jq` and the procedures under "Logs and Debugging" read. Every field a client sends is the client's, such as the path, the user agent, and the referrer.
 - A pull request's checks, which run whatever code the pull request carries. A fork's run gets a read-only token and no secrets, so its reach ends with that run.
 - Upstream releases that Dependabot proposes. The merge bot merges each one into `develop` and `main` once the required checks pass, with no human review.
+- Third-party answers the log procedures read, such as a reverse-DNS name or an archive lookup. Anyone can set a reverse name.
 
 **Everything else here is trusted.** That covers the maintainer's own images, captured media, posts, and configuration, and what the maintainer's hosts return other than the log lines above.
 
-**The media tooling reads trusted input.** The media gate and the normalizer read the maintainer's own images and captured media. A fork can put a crafted file in front of the gate, and the worst outcome is that its own check fails. The tooling exists to keep the maintainer's metadata from leaking and to catch accidental damage, such as a truncated copy. Its existing checks stay, and nothing new is added to defend it against a crafted file.
+**The media tooling reads the maintainer's own media.** The media gate and the normalizer exist to keep the maintainer's metadata from leaking and to catch accidental damage, such as a truncated copy. In a fork's run they read the pull request's files, which are untrusted. The worst a crafted file does there is fail that run's own check. So nothing is added to defend the tooling against a crafted file.
 
-**These cases are worked whatever the class of their input**, each with the smallest change that settles it:
-
-- A fuzzer failure, since it blocks every merge until it passes.
-- A functional gap that a real committed file hits, such as metadata the normalizer cannot remove.
+**A fuzzer failure blocks every merge until it passes**, which makes it an ordinary-path failure rather than a hardening case. Fix it, and a gap a real committed file hits, with the smallest change that settles each.
 
 ### Environments
 
