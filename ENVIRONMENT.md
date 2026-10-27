@@ -8,7 +8,7 @@ Every configuration value this repository reads or writes, described once. [`OPE
 
 ## The mechanism
 
-A local run reads one file. `~/.secrets/blog.<server>.<environment>.env` is sourced with `set -a`, selected by `ENV_FILE`, and defaults to `~/.secrets/blog.local.production.env`. The real files live on the host, never in this checkout, and [`.secrets/example.env`](./.secrets/example.env) is the tracked template that documents the shape.
+A local run reads one file. `~/.secrets/blog_<server>_<environment>.env` is sourced with `set -a`, selected by `ENV_FILE`, and defaults to `~/.secrets/blog_local_production.env`. The real files live on the host, never in this checkout, and [`.secrets/example.env`](./.secrets/example.env) is the tracked template that documents the shape.
 
 Two consequences of `set -a` are worth stating because both have surprised someone. Sourcing overwrites a variable the caller exported first, so exporting `DEPLOY_ROOT` by hand does not switch environments and only `ENV_FILE` does. And a named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
 
@@ -16,7 +16,7 @@ CI reads no file. The deploy workflow resolves the same values from the GitHub E
 
 ## Repository environment files
 
-Held in `~/.secrets/blog.<server>.<environment>.env`, one file per environment, on the host rather than in this checkout. Template: [`.secrets/example.env`](./.secrets/example.env).
+Held in `~/.secrets/blog_<server>_<environment>.env`, one file per environment, on the host rather than in this checkout. Template: [`.secrets/example.env`](./.secrets/example.env).
 
 | Value | Names | Notes |
 | --- | --- | --- |
@@ -62,9 +62,9 @@ Every variable and secret this repository stores for GitHub Actions, Dependabot,
 
 **[`checks/github_env_gate.py`](./checks/github_env_gate.py) compares this table against GitHub.** It reads the names those stores hold, never a value, and leaves the Codespaces secret store unread. It reports a value missing from a store, held on a store the table does not name, or held as the wrong kind. Every environment GitHub has is read, so an environment the table never names must hold nothing. Run it after changing a value on GitHub or a row here. It needs a `gh` login that can administer the repository, since listing environment secrets requires that. A workflow's `GITHUB_TOKEN` cannot, so CI does not run it.
 
-**The family values take the hub's names for a second site.** The hub's deploy task reads `SITE_EXTRA_BASE_URL` and the `SITE_EXTRA_AUTH_TOKEN_ID`/`SITE_EXTRA_AUTH_TOKEN` pair by those names from the environment. `check-live-urls.sh` and the `~/.secrets/blog.*.env` files use the same three names, so nothing translates between them. A deploy therefore checks the family host with its own token.
+**The family values take the hub's names for a second site.** The hub's deploy task reads `SITE_EXTRA_BASE_URL` and the `SITE_EXTRA_AUTH_TOKEN_ID`/`SITE_EXTRA_AUTH_TOKEN` pair by those names from the environment. `check-live-urls.sh` and the `~/.secrets/blog_*.env` files use the same three names, so nothing translates between them. A deploy therefore checks the family host with its own token.
 
-**`SITE_BASE_URL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes. Its generic name is the hub's own `deploy-site-task.yml` interface, and it is also the one this repository's own scripts and `~/.secrets/blog.*.env` files read: `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` in one place, since only Hugo requires that name.
+**`SITE_BASE_URL` being read twice is the trap worth knowing.** A wrong value bakes the wrong address into every canonical tag and then runs the full URL contract against that same wrong address, so the deploy verifies itself and passes. Its generic name is the hub's own `deploy-site-task.yml` interface, and it is also the one this repository's own scripts and `~/.secrets/blog_*.env` files read: `make-release.sh` bridges it to Hugo's own `HUGO_BASEURL` in one place, since only Hugo requires that name.
 
 **A host rebuild regenerates the SSH host keys and the pinned value stops matching**, which fails every deploy closed and blocks the rollback path at the same moment a rebuild makes both matter. Replace `DEPLOY_SSH_KNOWN_HOSTS` on **both** environments before the first deploy after a rebuild.
 
@@ -74,7 +74,7 @@ Set on the command line for one run rather than stored anywhere.
 
 | Value | Effect |
 | --- | --- |
-| `ENV_FILE` | which environment file to source. Defaults to `~/.secrets/blog.local.production.env` |
+| `ENV_FILE` | which environment file to source. Defaults to `~/.secrets/blog_local_production.env` |
 | `REQUIRE_BROTLI=1` | fail rather than shipping gzip-only. CI sets it |
 | `NO_LINK_DEST=1` | full copy instead of hard-linking from the previous release |
 | `KEEP_RELEASES` | how many releases `make-release.sh` leaves behind |
