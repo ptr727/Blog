@@ -67,7 +67,7 @@ EXPECT_RELEASE=<version> checks/check-live-urls.sh "$SITE_BASE_URL"
 
 Sourcing the environment file first puts the base URL, and the other values `check-live-urls.sh` reads, in the shell, so no literal value is typed. `make-release.sh` needs no arguments. Its deploy root falls back to the `DEPLOY_ROOT` it reads from its own file, and its version falls back to a timestamp. It still accepts both arguments, and the deploy workflow passes a bundle path and a version, as [Deploying](#deploying) below shows. Either form works locally, and the argument wins over the file's `DEPLOY_ROOT`.
 
-`ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script reads its own file regardless, so leaving `ENV_FILE` off would build and install against `~/.secrets/blog_local_production.env` while the shell's `$SITE_BASE_URL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
+The file is both sourced in the shell and named in `ENV_FILE`, and the redundancy is deliberate. The script reads its own file regardless, so leaving `ENV_FILE` off would build and install against `~/.secrets/blog_local_production.env` while the shell's `$SITE_BASE_URL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
 
 It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$SITE_BASE_URL` goes. It follows every URL in the contract against the running mirror, checking each redirect's destination rather than trusting its status code.
 
