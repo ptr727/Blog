@@ -207,7 +207,7 @@ ENV_FILE=~/.secrets/blog_local_production.env deploy/make-release.sh "" "$RELEAS
 EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-The deploy root and the base URL come from a file per environment in `~/.secrets/`, named `blog_<server>_<environment>.env`, copied from [example.env][env-example], made mode 600, and selected with `ENV_FILE`. `~/.secrets/blog_local_production.env` is the one read when `ENV_FILE` is unset. The real files live on the host, never in this checkout.
+The deploy root and the base URL come from a file per environment in `~/.secrets/`, named `blog_<server>_<environment>.env`, copied from [example.env][env-example] and selected with `ENV_FILE`. Make each one mode 600, since `make-release.sh` refuses a file group or other can read. `~/.secrets/blog_local_production.env` is the one read when `ENV_FILE` is unset. The real files live on the host, never in this checkout.
 
 ## 3rd Party Tools <!-- omit from toc -->
 

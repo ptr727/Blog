@@ -75,7 +75,7 @@ bundle path explicitly instead, then uploads the bundle to the host's deploy roo
 SITE_BASE_URL=<base-url> deploy/make-release.sh <bundle-path> <release-id>
 ```
 
-**That command-prefix form is CI-only.** A local run whose default environment file exists reads it after the command-prefix assignment and overwrites it, since a value read from the file replaces one the caller exported. Locally, select the environment through `ENV_FILE` instead, per the table below.
+**That command-prefix form is CI-only.** A local run whose default environment file exists reads it after the command-prefix assignment and overwrites it. A value read from the file replaces one the caller exported. Locally, select the environment through `ENV_FILE` instead, per the table below.
 
 **One file per environment, named `~/.secrets/blog_<server>_<environment>.env`, selected by `ENV_FILE`.**
 Both halves are spelled out, so a name says which machine it describes as well as which
