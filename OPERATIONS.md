@@ -67,7 +67,7 @@ EXPECT_RELEASE=<version> checks/check-live-urls.sh "$SITE_BASE_URL"
 
 Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both arguments, and the deploy workflow passes a bundle path and a version, as [Deploying](#deploying) below shows. Either form works locally, and the argument wins over the environment.
 
-`ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script sources its own file regardless, so leaving `ENV_FILE` off would build and install against `~/.secrets/blog_local_production.env` while the shell's `$SITE_BASE_URL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
+`ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script reads its own file regardless, so leaving `ENV_FILE` off would build and install against `~/.secrets/blog_local_production.env` while the shell's `$SITE_BASE_URL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
 
 It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$SITE_BASE_URL` goes. It follows every URL in the contract against the running mirror, checking each redirect's destination rather than trusting its status code.
 
@@ -119,9 +119,9 @@ SITE_BASE_URL=<base-url> deploy/make-release.sh <bundle-path> <release-id>
 EXPECT_RELEASE=<release-id> checks/check-live-urls.sh <base-url>
 ```
 
-The deploy root and the base URL are the only host-specific values. A local run reads them from a file under `~/.secrets/`, one per environment, copied from [`.secrets/example.env`](./.secrets/example.env). CI passes the base URL and a scratch bundle path, then uploads the bundle to the host's deploy root. The real files live on the host, never in this checkout.
+The deploy root and the base URL are the only host-specific values. A local run reads them from a file under `~/.secrets/`, one per environment, copied from [`.secrets/example.env`](./.secrets/example.env) and made mode 600, since `make-release.sh` refuses a file group or other can read. CI passes the base URL and a scratch bundle path, then uploads the bundle to the host's deploy root. The real files live on the host, never in this checkout.
 
-**The command-prefix form above is CI-only.** A local run whose default environment file exists sources it after the command-prefix assignment and overwrites it, since `set -a` overwrites a value the caller exported first. Locally, select the environment through `ENV_FILE` instead, as the two examples earlier in this section do.
+**The command-prefix form above is CI-only.** A local run whose default environment file exists reads it after the command-prefix assignment and overwrites it, since a value read from the file replaces one the caller exported. Locally, select the environment through `ENV_FILE` instead, as the two examples earlier in this section do.
 
 **A VPS release is named by its deploy run, never by a commit.** The hub's deploy task names each release `<UTC yyyymmdd-HHMMSS>-<run id>-<run attempt>` and verifies the site against that id itself. To check a VPS site by hand afterwards, pass that id as `EXPECT_RELEASE`. Read it from the **Deploy site job**'s log, where `make-release.sh` prints `==> installing release <id>` with the id ending in the run's own id and attempt. The Validate sources job prints the same line earlier in the run, for a scratch bundle stamped with a bare timestamp, so the first match of a log search is the wrong id. Never copy it from the site's `X-Blog-Release` header, since a stale config still serves the previous id and the check would then pass against it. A short SHA never matches, so the check waits out its timeout and fails.
 
@@ -139,7 +139,7 @@ The deploy root and the base URL are the only host-specific values. A local run 
 
 | Variable | Effect |
 | --- | --- |
-| `ENV_FILE` | Which environment file to source. Defaults to `~/.secrets/blog_local_production.env`. |
+| `ENV_FILE` | Which environment file to read. Defaults to `~/.secrets/blog_local_production.env`. |
 | `DEPLOY_ROOT` | Fallback deploy root. The first argument wins. |
 | `SITE_BASE_URL` | Overrides the site base URL. |
 | `REQUIRE_BROTLI=1` | Fails rather than shipping gzip-only. CI sets this. |
@@ -497,7 +497,7 @@ The local mirrors are not staging. They run the same bundle against the same web
 
 **The two words are `production` and `staging`, spelled out, in every position.** No `prod`, no `stage`. The same two name the container, the deploy root, the environment file, the `X-Blog-Env` value, and the GitHub Environment. This is not tidiness: the environment name is a value that gets **compared**, by `EXPECT_SITE_ENV` and by the deploy, so a spelling that differs in one position fails a deploy for a reason that reads like an outage. The local mirrors prefix the same words, `mirror-production` and `mirror-staging`, so a header names exactly one of the four environments in the fleet.
 
-Each environment is one file under `~/.secrets/`, named `blog_<server>_<environment>.env`, selected with `ENV_FILE`, and holding the deploy root, the base URL, and the container name. The name carries both halves because the two pairs differ in server as well as environment, so a file says which machine it describes rather than leaving that to the value inside it, and the four in the table above are the four files. `~/.secrets/blog_local_production.env` is the one read when `ENV_FILE` is unset. Selecting the file is how an environment is chosen: the file is sourced with `set -a`, so it overwrites a `DEPLOY_ROOT` the caller exported and setting that variable by hand does not switch anything. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
+Each environment is one file under `~/.secrets/`, named `blog_<server>_<environment>.env`, selected with `ENV_FILE`, and holding the deploy root, the base URL, and the container name. The name carries both halves because the two pairs differ in server as well as environment, so a file says which machine it describes rather than leaving that to the value inside it, and the four in the table above are the four files. `~/.secrets/blog_local_production.env` is the one read when `ENV_FILE` is unset. Selecting the file is how an environment is chosen: the script reads `DEPLOY_ROOT` from the file and overwrites one the caller exported, and setting that variable by hand does not switch anything. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
 
 **The staging FQDN sits under the VPS wildcard deliberately.** `blog.vps.insanegenius.net` needs no new certificate and no new DNS record, and it keeps the staging name off the production domain.
 

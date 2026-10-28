@@ -45,7 +45,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MTIME_MIN=2025.08
 
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
-# ENV_FILE selects the environment, because a value read from it replaces one the caller exported.
+# ENV_FILE selects the environment, because the file's values replace the caller's, set or not.
 # The first argument overrides the root, being read after this.
 # Files are named ~/.secrets/blog_<server>_<environment>.env, both words spelled out, so the default names the environment it actually selects rather than being the one file whose name says nothing.
 # The leading blog field disambiguates this repo's files in ~/.secrets, since other repos on the same host also write there.
