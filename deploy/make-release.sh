@@ -37,13 +37,15 @@ if [ "$#" -gt 2 ]; then
 fi
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/fleet/sh/secrets.sh
+. "$REPO/lib/fleet/sh/secrets.sh"
 
 # The release upstream replaced `git whatchanged` with `git log`.
 # Anything older restores nothing and exits 0, so this is the floor rather than a preference.
 MTIME_MIN=2025.08
 
 # The deploy root and the base URL are the only host-specific values, and they pair per environment.
-# ENV_FILE selects the environment, because `set -a` overwrites a value the caller exported.
+# ENV_FILE selects the environment, because the file's values replace the caller's, set or not.
 # The first argument overrides the root, being read after this.
 # Files are named ~/.secrets/blog_<server>_<environment>.env, both words spelled out, so the default names the environment it actually selects rather than being the one file whose name says nothing.
 # The leading blog field disambiguates this repo's files in ~/.secrets, since other repos on the same host also write there.
@@ -59,17 +61,14 @@ case "$ENV_FILE" in
 	;;
 *) ENV_FILE="$HOME/.secrets/$ENV_FILE" ;;
 esac
-if [ -f "$ENV_FILE" ]; then
+# The default file is optional, because CI passes every value explicitly and reads no file.
+# A named file is not, since a typo would fall through to the other environment's root.
+if [ "$ENV_FILE" != "$DEFAULT_ENV_FILE" ] || [ "$(secret_verdict "$ENV_FILE")" != absent ]; then
+	require_secret "$ENV_FILE"
 	echo "==> environment: $ENV_FILE"
-	set -a
-	# shellcheck disable=SC1090,SC1091
-	. "$ENV_FILE"
-	set +a
-elif [ "$ENV_FILE" != "$DEFAULT_ENV_FILE" ]; then
-	# The default file is optional, because CI passes every value explicitly and reads no file.
-	# A named file is not, since a typo would fall through to the other environment's root.
-	echo "environment file not found: $ENV_FILE" >&2
-	exit 1
+	DEPLOY_ROOT="$(read_env_value "$ENV_FILE" DEPLOY_ROOT)"
+	DEPLOY_SSH_HOST="$(read_env_value "$ENV_FILE" DEPLOY_SSH_HOST)"
+	SITE_BASE_URL="$(read_env_value "$ENV_FILE" SITE_BASE_URL)"
 fi
 
 # Hugo maps HUGO_<KEY> onto config natively, and only that name, so this is the one place SITE_BASE_URL becomes the name Hugo actually reads.

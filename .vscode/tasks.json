@@ -27,7 +27,8 @@
       "command": "shellcheck",
       "args": [
         "deploy/make-release.sh",
-        "checks/check-live-urls.sh"
+        "checks/check-live-urls.sh",
+        "lib/fleet/sh/secrets.sh"
       ],
       "problemMatcher": []
     },
@@ -38,7 +39,8 @@
       "args": [
         "-d",
         "deploy/make-release.sh",
-        "checks/check-live-urls.sh"
+        "checks/check-live-urls.sh",
+        "lib/fleet/sh/secrets.sh"
       ],
       "problemMatcher": []
     },
