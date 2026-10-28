@@ -66,7 +66,7 @@ EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 The deploy root and the base URL are the only host-specific values, and they pair per
 environment. Copy [`example.env`][example-env] to `~/.secrets/blog_local_production.env`, which is the
 file read when `ENV_FILE` is unset, and add `~/.secrets/blog_<server>_<environment>.env` for each further
-environment. `chmod 600` each one, since the script refuses a file group or other can read. A single environment therefore needs `~/.secrets/blog_local_production.env` and nothing
+environment. `chmod 600` each one, since the script refuses a file that group or other can read. A single environment therefore needs `~/.secrets/blog_local_production.env` and nothing
 else, since a differently named file is read only when `ENV_FILE` names it. The real files
 live on the host, in `~/.secrets/`, never in this checkout. CI passes the base URL and a scratch
 bundle path explicitly instead, then uploads the bundle to the host's deploy root:

@@ -119,7 +119,7 @@ SITE_BASE_URL=<base-url> deploy/make-release.sh <bundle-path> <release-id>
 EXPECT_RELEASE=<release-id> checks/check-live-urls.sh <base-url>
 ```
 
-The deploy root and the base URL are the only host-specific values. A local run reads them from a file under `~/.secrets/`, one per environment, copied from [`.secrets/example.env`](./.secrets/example.env). Make each one mode 600, since `make-release.sh` refuses a file group or other can read. CI passes the base URL and a scratch bundle path, then uploads the bundle to the host's deploy root. The real files live on the host, never in this checkout.
+The deploy root and the base URL are the only host-specific values. A local run reads them from a file under `~/.secrets/`, one per environment, copied from [`.secrets/example.env`](./.secrets/example.env). Make each one mode 600, since `make-release.sh` refuses a file that group or other can read. CI passes the base URL and a scratch bundle path, then uploads the bundle to the host's deploy root. The real files live on the host, never in this checkout.
 
 **The command-prefix form above is CI-only.** A local run whose default environment file exists reads it after the command-prefix assignment and overwrites it. A value read from the file replaces one the caller exported. Locally, select the environment through `ENV_FILE` instead, as the two examples earlier in this section do.
 

@@ -24,4 +24,4 @@ than the documented shape.
 | `~/.secrets/blog_vps_staging.env` | The VPS staging environment. |
 
 Every value each file holds, and what reads it, is described once in
-[`ENVIRONMENT.md`](../ENVIRONMENT.md). Start a new one from [`example.env`](./example.env), then `chmod 600` it, since `make-release.sh` refuses a file group or other can read.
+[`ENVIRONMENT.md`](../ENVIRONMENT.md). Start a new one from [`example.env`](./example.env), then `chmod 600` it, since `make-release.sh` refuses a file that group or other can read.
