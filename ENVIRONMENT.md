@@ -8,9 +8,9 @@ Every configuration value this repository reads or writes, described once. [`OPE
 
 ## The mechanism
 
-A local run reads one file. `~/.secrets/blog_<server>_<environment>.env` is sourced with `set -a`, selected by `ENV_FILE`, and defaults to `~/.secrets/blog_local_production.env`. The real files live on the host, never in this checkout, and [`.secrets/example.env`](./.secrets/example.env) is the tracked template that documents the shape.
+A local run reads one file. `~/.secrets/blog_<server>_<environment>.env` is selected by `ENV_FILE`, and defaults to `~/.secrets/blog_local_production.env`. `make-release.sh` checks it with the carried `lib/fleet/sh/secrets.sh` readers. It reads each value it needs in a child shell, so the file's other credentials never enter its environment. The real files live on the host, never in this checkout, and [`.secrets/example.env`](./.secrets/example.env) is the tracked template that documents the shape.
 
-Two consequences of `set -a` are worth stating because both have surprised someone. Sourcing overwrites a variable the caller exported first, so exporting `DEPLOY_ROOT` by hand does not switch environments and only `ENV_FILE` does. And a named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
+Two consequences are worth stating because both have surprised someone. A value read from the file replaces one the caller exported first, so exporting `DEPLOY_ROOT` by hand does not switch environments and only `ENV_FILE` does. And a named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root. A file that is there must give group and other no access and use LF line endings, or the script refuses it and says why.
 
 CI reads no file. The deploy workflow resolves the same values from the GitHub Environment, which is why the shapes have to match even though the sources do not.
 

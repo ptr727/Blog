@@ -39,7 +39,7 @@ ENV_FILE=~/.secrets/blog_local_production.env deploy/make-release.sh "" "$RELEAS
 EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-Name the file in both places, even when it is the default, since `make-release.sh` sources `ENV_FILE` independently of the shell above and a value already exported earlier in the same session would otherwise win silently over the sourced one. The empty first argument leaves the deploy root at the sourced `DEPLOY_ROOT`, and `RELEASE` is reused so `EXPECT_RELEASE` verifies the release the command just built rather than skipping the release-stamp guard. `set -e` matters here too: a failed `git rev-parse` would otherwise leave `RELEASE` empty, which silently skips the check's own release-stamp verification instead of failing loud:
+Name the file in both places, even when it is the default, since `make-release.sh` reads `ENV_FILE` independently of the shell above and a value already exported earlier in the same session would otherwise win silently over the sourced one. The empty first argument leaves the deploy root at the sourced `DEPLOY_ROOT`, and `RELEASE` is reused so `EXPECT_RELEASE` verifies the release the command just built rather than skipping the release-stamp guard. `set -e` matters here too: a failed `git rev-parse` would otherwise leave `RELEASE` empty, which silently skips the check's own release-stamp verification instead of failing loud:
 
 ```sh
 set -e

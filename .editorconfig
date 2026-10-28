@@ -29,6 +29,11 @@ trim_trailing_whitespace = true
 [*.sh]
 indent_style = tab
 
+# The carried tree is byte-identical to the hub's copy, which indents with four spaces.
+[lib/fleet/**.sh]
+indent_style = space
+indent_size = 4
+
 # Markdown files
 # Two trailing spaces are a hard line break in Markdown, so trimming them silently rewrites content.
 [*.md]
