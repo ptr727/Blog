@@ -39,7 +39,7 @@ ENV_FILE=~/.secrets/blog_local_production.env deploy/make-release.sh "" "$RELEAS
 EXPECT_RELEASE="$RELEASE" checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-Name the file in both places, even when it is the default, since `make-release.sh` reads `ENV_FILE` independently of the shell above and a value already exported earlier in the same session would otherwise win silently over the sourced one. The empty first argument leaves the deploy root at the sourced `DEPLOY_ROOT`, and `RELEASE` is reused so `EXPECT_RELEASE` verifies the release the command just built rather than skipping the release-stamp guard. `set -e` matters here too: a failed `git rev-parse` would otherwise leave `RELEASE` empty, which silently skips the check's own release-stamp verification instead of failing loud:
+Name the file in both places, even when it is the default, since `make-release.sh` reads `ENV_FILE` independently of the shell above and a value already exported earlier in the same session would otherwise win silently over the sourced one. The empty first argument leaves the deploy root at the `DEPLOY_ROOT` the script reads from that file. `RELEASE` is reused so `EXPECT_RELEASE` verifies the release the command just built rather than skipping the release-stamp guard. `set -e` matters here too: a failed `git rev-parse` would otherwise leave `RELEASE` empty, which silently skips the check's own release-stamp verification instead of failing loud:
 
 ```sh
 set -e
@@ -65,7 +65,7 @@ So the bundle stamps its own version as `X-Blog-Release`, and `check-live-urls.s
 EXPECT_RELEASE=<version> checks/check-live-urls.sh "$SITE_BASE_URL"
 ```
 
-Sourcing the environment file first puts the deploy root and the base URL in the environment, so no literal value is typed. `make-release.sh` then needs no arguments, because its deploy root falls back to `$DEPLOY_ROOT` and its version falls back to a timestamp. It still accepts both arguments, and the deploy workflow passes a bundle path and a version, as [Deploying](#deploying) below shows. Either form works locally, and the argument wins over the environment.
+Sourcing the environment file first puts the base URL, and the other values `check-live-urls.sh` reads, in the shell, so no literal value is typed. `make-release.sh` needs no arguments. Its deploy root falls back to the `DEPLOY_ROOT` it reads from its own file, and its version falls back to a timestamp. It still accepts both arguments, and the deploy workflow passes a bundle path and a version, as [Deploying](#deploying) below shows. Either form works locally, and the argument wins over the file's `DEPLOY_ROOT`.
 
 `ENV_FILE` is set as well as sourced, and the redundancy is deliberate. The script reads its own file regardless, so leaving `ENV_FILE` off would build and install against `~/.secrets/blog_local_production.env` while the shell's `$SITE_BASE_URL` still named staging, and the run would check the staging site after publishing to the production root. The script prints the file it read, on every build, for that reason.
 
