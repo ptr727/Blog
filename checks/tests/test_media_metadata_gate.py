@@ -3,7 +3,6 @@
 import contextlib
 import io
 import pathlib
-import random
 import shutil
 import struct
 import subprocess
@@ -18,9 +17,8 @@ REPO = pathlib.Path(__file__).resolve().parent.parent.parent
 
 sys.path.insert(0, str(REPO / "checks"))
 sys.path.insert(0, str(REPO / "scripts"))
+import media_fixtures as fixtures
 import normalize_media as normalizer
-
-import media_parser_fuzz_gate as fuzz
 
 gate = normalizer.gate
 
@@ -34,9 +32,9 @@ def known():
 
 
 def jpeg_with(*segments: bytes) -> bytes:
-    data = fuzz.jpeg_fixture(False)
-    bare = data.replace(fuzz.jpeg_segment(0xE0, fuzz.JFIF), b"")
-    bare = bare.replace(fuzz.exif_segment(), b"")
+    data = fixtures.jpeg_fixture()
+    bare = data.replace(fixtures.jpeg_segment(0xE0, fixtures.JFIF), b"")
+    bare = bare.replace(fixtures.exif_segment(), b"")
     return bare[:2] + b"".join(segments) + bare[2:]
 
 
@@ -44,13 +42,13 @@ def icc_chunks(profile: bytes, order: tuple[int, ...]) -> list[bytes]:
     half = len(profile) // 2
     pieces = (profile[:half], profile[half:])
     return [
-        fuzz.jpeg_segment(0xE2, fuzz.ICC[:12] + bytes((n, 2)) + pieces[n - 1])
+        fixtures.jpeg_segment(0xE2, fixtures.ICC[:12] + bytes((n, 2)) + pieces[n - 1])
         for n in order
     ]
 
 
 def png_with(chunk: bytes) -> bytes:
-    data = fuzz.png_fixture()
+    data = fixtures.png_fixture()
     return data[:33] + chunk + data[33:]
 
 
@@ -59,20 +57,20 @@ def span(data: bytes, name: bytes) -> tuple[int, int]:
 
 
 def truecolor_png(chunks: bytes) -> bytes:
-    ihdr = fuzz.png_chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
-    idat = fuzz.png_chunk(b"IDAT", zlib.compress(bytes(4)))
-    end = fuzz.png_chunk(b"IEND", b"")
+    ihdr = fixtures.png_chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
+    idat = fixtures.png_chunk(b"IDAT", zlib.compress(bytes(4)))
+    end = fixtures.png_chunk(b"IEND", b"")
     return b"\x89PNG\r\n\x1a\n" + ihdr + chunks + idat + end
 
 
 def iccp(name: bytes, stream: bytes) -> bytes:
-    return fuzz.png_chunk(b"iCCP", name + b"\x00\x00" + stream)
+    return fixtures.png_chunk(b"iCCP", name + b"\x00\x00" + stream)
 
 
 def webp_with_profile(flags: int, profile: bytes) -> bytes:
-    body = fuzz.riff_chunk(b"VP8X", bytes((flags,)) + bytes(9))
-    body += fuzz.riff_chunk(b"ICCP", profile)
-    body += fuzz.riff_chunk(b"VP8L", b"\x2f\x00\x00\x00\x00")
+    body = fixtures.riff_chunk(b"VP8X", bytes((flags,)) + bytes(9))
+    body += fixtures.riff_chunk(b"ICCP", profile)
+    body += fixtures.riff_chunk(b"VP8L", b"\x2f\x00\x00\x00\x00")
     return b"RIFF" + struct.pack("<I", len(body) + 4) + b"WEBP" + body
 
 
@@ -88,7 +86,7 @@ def ico_of(*images: bytes, bits: int = 8, tail: bytes = b"") -> bytes:
 
 
 def text_chunk() -> bytes:
-    return fuzz.png_chunk(b"tEXt", b"Author\x00someone")
+    return fixtures.png_chunk(b"tEXt", b"Author\x00someone")
 
 
 def iso_with_title() -> bytes:
@@ -102,7 +100,7 @@ def iso_with_title() -> bytes:
 
 class Profiles(unittest.TestCase):
     def test_known_jpeg_profile_passes_as_one_chunk(self) -> None:
-        segment = fuzz.jpeg_segment(0xE2, fuzz.ICC + PROFILE)
+        segment = fixtures.jpeg_segment(0xE2, fixtures.ICC + PROFILE)
         with known():
             self.assertEqual(gate.scan(jpeg_with(segment)), set())
 
@@ -116,11 +114,11 @@ class Profiles(unittest.TestCase):
                 new = normalizer.normalize_bytes(data)
                 self.assertIsNotNone(new)
                 self.assertEqual(gate.scan(new), set())
-                self.assertIn(fuzz.ICC + PROFILE, new)
+                self.assertIn(fixtures.ICC + PROFILE, new)
 
     def test_jpeg_profile_after_the_scan_is_refused(self) -> None:
         first, second = icc_chunks(PROFILE, (1, 2))
-        whole = fuzz.jpeg_segment(0xE2, fuzz.ICC + PROFILE)
+        whole = fixtures.jpeg_segment(0xE2, fixtures.ICC + PROFILE)
         with known():
             for before, after in (([first], second), ([], whole)):
                 data = jpeg_with(*before)
@@ -134,7 +132,7 @@ class Profiles(unittest.TestCase):
         self.assertIsNone(normalizer.normalize_bytes(data))
 
     def test_known_png_profile_in_its_canonical_body_passes(self) -> None:
-        data = png_with(fuzz.png_chunk(b"iCCP", gate.png_icc_body(PROFILE)))
+        data = png_with(fixtures.png_chunk(b"iCCP", gate.png_icc_body(PROFILE)))
         with known():
             self.assertEqual(gate.scan(data), set())
 
@@ -181,7 +179,9 @@ class Profiles(unittest.TestCase):
 
 class Fields(unittest.TestCase):
     def test_jfif_out_of_its_values_is_restated(self) -> None:
-        data = jpeg_with(fuzz.jpeg_segment(0xE0, fuzz.bend(fuzz.JFIF, 8, b"\x00\x48")))
+        data = jpeg_with(
+            fixtures.jpeg_segment(0xE0, fixtures.bend(fixtures.JFIF, 8, b"\x00\x48"))
+        )
         self.assertTrue(gate.scan(data))
         new = normalizer.normalize_bytes(data)
         self.assertIsNotNone(new)
@@ -194,21 +194,29 @@ class Fields(unittest.TestCase):
             (b"\x01\x00", 2, b"\x00\x00"),
         ):
             fields = (
-                fuzz.JFIF[:5] + version + bytes((units,)) + density * 2 + b"\x00\x00"
+                fixtures.JFIF[:5]
+                + version
+                + bytes((units,))
+                + density * 2
+                + b"\x00\x00"
             )
             self.assertEqual(
-                gate.scan(jpeg_with(fuzz.jpeg_segment(0xE0, fields))), set()
+                gate.scan(jpeg_with(fixtures.jpeg_segment(0xE0, fields))), set()
             )
 
     def test_adobe_flags_are_cleared_and_transform_kept(self) -> None:
-        data = jpeg_with(fuzz.jpeg_segment(0xEE, fuzz.bend(fuzz.ADOBE, 7, b"\x40\x00")))
+        data = jpeg_with(
+            fixtures.jpeg_segment(0xEE, fixtures.bend(fixtures.ADOBE, 7, b"\x40\x00"))
+        )
         new = normalizer.normalize_bytes(data)
         self.assertIsNotNone(new)
         self.assertEqual(gate.scan(new), set())
-        self.assertIn(fuzz.ADOBE, new)
+        self.assertIn(fixtures.ADOBE, new)
 
     def test_adobe_transform_out_of_its_values_is_refused(self) -> None:
-        data = jpeg_with(fuzz.jpeg_segment(0xEE, fuzz.bend(fuzz.ADOBE, 11, b"\x09")))
+        data = jpeg_with(
+            fixtures.jpeg_segment(0xEE, fixtures.bend(fixtures.ADOBE, 11, b"\x09"))
+        )
         self.assertTrue(gate.scan(data))
         self.assertIsNone(normalizer.normalize_bytes(data))
 
@@ -216,18 +224,20 @@ class Fields(unittest.TestCase):
         for value in range(1, 9):
             entry = (0x0112, 3, 1, struct.pack("<H", value))
             self.assertEqual(
-                gate.scan(jpeg_with(fuzz.exif_ifd_segment([entry]))), set()
+                gate.scan(jpeg_with(fixtures.exif_ifd_segment([entry]))), set()
             )
         versions = [(0x9000, 7, 4, b"0232"), (0xA000, 7, 4, b"0100")]
-        self.assertEqual(gate.scan(jpeg_with(fuzz.exif_ifd_segment(versions))), set())
+        self.assertEqual(
+            gate.scan(jpeg_with(fixtures.exif_ifd_segment(versions))), set()
+        )
 
     def test_zero_exif_pad_byte_passes(self) -> None:
-        entries = [fuzz.ORIENTATION, (0x0132, 2, 20, fuzz.DATE)]
-        segment = fuzz.exif_ifd_segment(entries, b"\x00")
+        entries = [fixtures.ORIENTATION, (0x0132, 2, 20, fixtures.DATE)]
+        segment = fixtures.exif_ifd_segment(entries, b"\x00")
         self.assertEqual(gate.scan(jpeg_with(segment)), set())
 
     def test_zero_webp_pad_byte_passes(self) -> None:
-        self.assertEqual(gate.scan(fuzz.webp_fixture()), set())
+        self.assertEqual(gate.scan(fixtures.webp_fixture()), set())
 
 
 class FreeValues(unittest.TestCase):
@@ -246,40 +256,42 @@ class FreeValues(unittest.TestCase):
             (b"bKGD", bytes(2)),
             (b"tRNS", struct.pack(">H", 255)),
         ):
-            self.assertEqual(gate.scan(png_with(fuzz.png_chunk(chunk, body))), set())
+            self.assertEqual(
+                gate.scan(png_with(fixtures.png_chunk(chunk, body))), set()
+            )
 
     def test_png_undrawn_chunk_out_of_its_value_is_dropped(self) -> None:
         for chunk, body in ((b"sBIT", b"\x05"), (b"bKGD", b"\x00\x07")):
             self.assert_restated(
-                png_with(fuzz.png_chunk(chunk, body)), fuzz.png_fixture()
+                png_with(fixtures.png_chunk(chunk, body)), fixtures.png_fixture()
             )
 
     def test_png_misplaced_chunk_is_dropped_or_refused(self) -> None:
-        data = fuzz.png_fixture()
-        late = fuzz.png_chunk(b"sBIT", b"\x08")
+        data = fixtures.png_fixture()
+        late = fixtures.png_chunk(b"sBIT", b"\x08")
         self.assert_restated(data[:-12] + late + data[-12:], data)
-        late = fuzz.png_chunk(b"pHYs", fuzz.SQUARE)
+        late = fixtures.png_chunk(b"pHYs", fixtures.SQUARE)
         data = data[:-12] + late + data[-12:]
         self.assertIn("PNG pHYs chunk out of place", gate.scan(data))
         self.assertIsNone(normalizer.normalize_bytes(data))
 
     def test_png_repeated_gamma_is_refused(self) -> None:
-        data = png_with(fuzz.png_chunk(b"gAMA", struct.pack(">I", 45455)))
+        data = png_with(fixtures.png_chunk(b"gAMA", struct.pack(">I", 45455)))
         self.assertIn("PNG repeated gAMA chunk", gate.scan(data))
         self.assertIsNone(normalizer.normalize_bytes(data))
 
     def test_png_repeated_palette_is_refused(self) -> None:
-        palette = fuzz.png_chunk(b"PLTE", bytes(6))
+        palette = fixtures.png_chunk(b"PLTE", bytes(6))
         data = truecolor_png(palette * 2)
         self.assertIn("PNG repeated PLTE chunk", gate.scan(data))
         self.assertIsNone(normalizer.normalize_bytes(data))
 
     def test_png_animation_is_refused(self) -> None:
-        data = fuzz.png_fixture()
-        control = fuzz.png_chunk(b"acTL", struct.pack(">II", 1, 0))
-        frame = fuzz.png_chunk(b"fdAT", bytes(4))
+        data = fixtures.png_fixture()
+        control = fixtures.png_chunk(b"acTL", struct.pack(">II", 1, 0))
+        frame = fixtures.png_chunk(b"fdAT", bytes(4))
         header = struct.pack(">IIIIIHHBB", 0, 1, 1, 0, 0, 1, 1, 0, 0)
-        region = fuzz.png_chunk(b"fcTL", header)
+        region = fixtures.png_chunk(b"fcTL", header)
         for chunk, bent in (
             (b"acTL", png_with(control)),
             (b"fcTL", png_with(region)),
@@ -289,18 +301,18 @@ class FreeValues(unittest.TestCase):
             self.assertIsNone(normalizer.normalize_bytes(bent))
 
     def test_png_suggested_palette_goes_after_its_transparency(self) -> None:
-        color_key = fuzz.png_chunk(b"tRNS", bytes(6))
-        data = truecolor_png(color_key + fuzz.png_chunk(b"PLTE", bytes(6)))
+        color_key = fixtures.png_chunk(b"tRNS", bytes(6))
+        data = truecolor_png(color_key + fixtures.png_chunk(b"PLTE", bytes(6)))
         self.assertEqual(
             gate.scan(data), {"PNG PLTE fields not values its format defines"}
         )
         self.assert_restated(data, truecolor_png(color_key))
 
     def test_png_refused_for_its_structure_is_not_inflated(self) -> None:
-        data = fuzz.png_fixture()
+        data = fixtures.png_fixture()
         signature, ihdr, end = data[:8], data[8:33], data[-12:]
         idat = data[slice(*span(data, b"IDAT"))]
-        palette = fuzz.palette_png_fixture()
+        palette = fixtures.palette_png_fixture()
         plte = palette[slice(*span(palette, b"PLTE"))]
         twice = palette.replace(plte, plte * 2)
         with mock.patch.object(gate.zlib, "decompressobj") as inflate:
@@ -312,8 +324,8 @@ class FreeValues(unittest.TestCase):
         inflate.assert_not_called()
         # A stream fault beside a droppable chunk is still named, since it is why the normalizer refuses.
         start, stop = span(data, b"IDAT")
-        cut = fuzz.png_chunk(b"IDAT", data[start + 8 : stop - 8])
-        text = fuzz.png_chunk(b"tEXt", b"Comment\x00planted")
+        cut = fixtures.png_chunk(b"IDAT", data[start + 8 : stop - 8])
+        text = fixtures.png_chunk(b"tEXt", b"Comment\x00planted")
         bent = data[:start] + cut + text + data[stop:]
         self.assertEqual(
             gate.scan(bent),
@@ -322,10 +334,10 @@ class FreeValues(unittest.TestCase):
         self.assertIsNone(normalizer.normalize_bytes(bent))
 
     def test_png_missing_critical_chunk_is_refused(self) -> None:
-        data = fuzz.png_fixture()
+        data = fixtures.png_fixture()
         signature, ihdr, end = data[:8], data[8:33], data[-12:]
         idat = data[slice(*span(data, b"IDAT"))]
-        palette = fuzz.palette_png_fixture()
+        palette = fixtures.palette_png_fixture()
         first, last = span(palette, b"PLTE")
         for problem, bent in (
             ("PNG without IHDR", signature + idat + end),
@@ -348,38 +360,39 @@ class FreeValues(unittest.TestCase):
             bytes(4) + good[4:],
             good + b"\x00",
         ):
-            data = fuzz.png_fixture()
-            bent = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:]
+            data = fixtures.png_fixture()
+            bent = data[:8] + fixtures.png_chunk(b"IHDR", header) + data[33:]
             self.assertIn(
                 "PNG IHDR fields not values its format defines", gate.scan(bent)
             )
             self.assertIsNone(normalizer.normalize_bytes(bent))
-        data = fuzz.png_fixture()
+        data = fixtures.png_fixture()
         self.assertEqual(
-            gate.scan(data[:8] + fuzz.png_chunk(b"IHDR", interlaced) + data[33:]), set()
+            gate.scan(data[:8] + fixtures.png_chunk(b"IHDR", interlaced) + data[33:]),
+            set(),
         )
 
     def test_png_side_past_libpng_limit_is_refused(self) -> None:
         limit = gate.PNG_SIDE_LIMIT
         for width, height in ((limit + 1, 1), (1, limit + 1)):
             header = struct.pack(">IIBBBBB", width, height, 8, 0, 0, 0, 0)
-            data = fuzz.png_fixture()
-            bent = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:]
+            data = fixtures.png_fixture()
+            bent = data[:8] + fixtures.png_chunk(b"IHDR", header) + data[33:]
             self.assertEqual(gate.scan(bent), {"PNG IHDR side past libpng's limit"})
             self.assertIsNone(normalizer.normalize_bytes(bent))
         header = struct.pack(">IIBBBBB", limit, 1, 8, 0, 0, 0, 0)
-        rows = fuzz.png_chunk(b"IDAT", zlib.compress(bytes(limit + 1)))
-        data = fuzz.png_fixture()
+        rows = fixtures.png_chunk(b"IDAT", zlib.compress(bytes(limit + 1)))
+        data = fixtures.png_fixture()
         start, end = span(data, b"IDAT")
-        wide = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:start] + rows
+        wide = data[:8] + fixtures.png_chunk(b"IHDR", header) + data[33:start] + rows
         self.assertEqual(gate.scan(wide + data[end:]), set())
 
     def test_png_picture_past_the_size_limit_is_refused_before_inflating(self) -> None:
         side = gate.PNG_SIDE_LIMIT // 10
         header = struct.pack(">IIBBBBB", side, side, 8, 0, 0, 0, 0)
         self.assertGreater(gate.png_picture_size(header), gate.SIZE_LIMIT)
-        data = fuzz.png_fixture()
-        bent = data[:8] + fuzz.png_chunk(b"IHDR", header) + data[33:]
+        data = fixtures.png_fixture()
+        bent = data[:8] + fixtures.png_chunk(b"IHDR", header) + data[33:]
         with mock.patch.object(gate.zlib, "decompressobj") as inflate:
             self.assertEqual(
                 gate.scan(bent), {"PNG IHDR picture larger than the gate inflates"}
@@ -401,7 +414,7 @@ class FreeValues(unittest.TestCase):
         self.assertEqual(gate.png_picture_size(small[:12] + b"\x00"), 3 * 2)
 
     def test_png_picture_data_not_one_whole_stream_is_refused(self) -> None:
-        data = fuzz.png_fixture()
+        data = fixtures.png_fixture()
         start, end = span(data, b"IDAT")
         stream = data[start + 8 : end - 4]
         rows = zlib.decompress(stream)
@@ -418,27 +431,27 @@ class FreeValues(unittest.TestCase):
                 [zlib.compress(b"\x05" + rows[1:])],
             ),
         ):
-            idat = b"".join(fuzz.png_chunk(b"IDAT", body) for body in bodies)
+            idat = b"".join(fixtures.png_chunk(b"IDAT", body) for body in bodies)
             bent = data[:start] + idat + data[end:]
             self.assertEqual(gate.scan(bent), {problem})
             self.assertIsNone(normalizer.normalize_bytes(bent))
         # A stream split across chunks at any byte is still one stream.
         split = [stream[:1], stream[1:3], stream[3:]]
-        whole = b"".join(fuzz.png_chunk(b"IDAT", body) for body in split)
+        whole = b"".join(fixtures.png_chunk(b"IDAT", body) for body in split)
         self.assertEqual(gate.scan(data[:start] + whole + data[end:]), set())
-        text = fuzz.png_chunk(b"tEXt", b"Comment\x00planted")
-        parted = fuzz.png_chunk(b"IDAT", split[0]) + text
-        parted += fuzz.png_chunk(b"IDAT", b"".join(split[1:]))
+        text = fixtures.png_chunk(b"tEXt", b"Comment\x00planted")
+        parted = fixtures.png_chunk(b"IDAT", split[0]) + text
+        parted += fixtures.png_chunk(b"IDAT", b"".join(split[1:]))
         bent = data[:start] + parted + data[end:]
         self.assertIn("PNG IDAT chunks not consecutive", gate.scan(bent))
         self.assertIsNone(normalizer.normalize_bytes(bent))
 
     def test_png_end_with_a_body_is_emptied(self) -> None:
-        data = fuzz.png_fixture()
-        self.assert_restated(data[:-12] + fuzz.png_chunk(b"IEND", b"\x00"), data)
+        data = fixtures.png_fixture()
+        self.assert_restated(data[:-12] + fixtures.png_chunk(b"IEND", b"\x00"), data)
 
     def test_png_chunk_whose_crc_is_not_its_own_is_dropped_or_refused(self) -> None:
-        data = fuzz.png_fixture()
+        data = fixtures.png_fixture()
         self.assert_restated(data[:-4] + bytes(4), data)
         start, end = span(data, b"gAMA")
         bent = data[: end - 4] + bytes(4) + data[end:]
@@ -449,19 +462,19 @@ class FreeValues(unittest.TestCase):
         self.assertIsNone(normalizer.normalize_bytes(bent))
 
     def test_gif_unused_control_fields_are_zeroed(self) -> None:
-        data = fuzz.gif_fixture()
+        data = fixtures.gif_fixture()
         at = data.index(b"\x21\xf9") + 3
         bent = data[:at] + b"\xe0" + data[at + 1 : at + 3] + b"\x05" + data[at + 4 :]
         self.assert_restated(bent, data)
 
     def test_gif_aspect_ratio_is_zeroed(self) -> None:
-        data = fuzz.gif_fixture()
+        data = fixtures.gif_fixture()
         bent = data[:12] + b"\x31" + data[13:]
         self.assertIn("GIF aspect ratio not zero", gate.scan(bent))
         self.assert_restated(bent, data)
 
     def test_gif_unused_descriptor_fields_are_zeroed(self) -> None:
-        data = fuzz.gif_fixture()
+        data = fixtures.gif_fixture()
         at = data.index(b"\x2c") + 9
         for bent in (
             b"GIF87a" + data[6:],
@@ -471,13 +484,13 @@ class FreeValues(unittest.TestCase):
             self.assert_restated(bent, data)
 
     def test_gif_unread_global_table_is_dropped(self) -> None:
-        data = fuzz.gif_fixture()
+        data = fixtures.gif_fixture()
         at = data.index(b"\x2c") + 9
         local = data[:at] + b"\x80" + bytes(6) + data[at + 1 :]
         self.assert_restated(local, data[:10] + bytes(3) + local[19:])
 
     def test_webp_background_is_zeroed_and_loop_count_kept(self) -> None:
-        data = fuzz.animated_webp_fixture()
+        data = fixtures.animated_webp_fixture()
         at = data.index(b"ANIM") + 8
         looped = data[:at] + bytes(4) + b"\x03\x00" + data[at + 6 :]
         self.assertEqual(gate.scan(looped), set())
@@ -485,12 +498,12 @@ class FreeValues(unittest.TestCase):
         self.assert_restated(bent, looped)
 
     def test_jpeg_fill_before_a_marker_is_dropped(self) -> None:
-        data = fuzz.jpeg_fixture(False)
+        data = fixtures.jpeg_fixture()
         for at in (2, len(data) - 2):
             self.assert_restated(data[:at] + b"\xff" * 3 + data[at:], data)
 
     def test_jpeg_fill_inside_a_scan_is_refused(self) -> None:
-        data = fuzz.jpeg_fixture(False).replace(b"\xff\xd0", b"\xff\xff\xd0")
+        data = fixtures.jpeg_fixture().replace(b"\xff\xd0", b"\xff\xff\xd0")
         self.assertIn("JPEG fill bytes inside a scan", gate.scan(data))
         self.assertIsNone(normalizer.normalize_bytes(data))
 
@@ -649,31 +662,6 @@ class Sites(unittest.TestCase):
         self.link("static", target)
         self.assertEqual(gate.findings(), [("static/media", {"symlink, not read"})])
 
-    def seeds(self) -> list[str]:
-        """The carried seeds the fuzzer samples from the scratch repository."""
-        with mock.patch.object(fuzz, "REPO", self.root):
-            seeds = fuzz.carried_seeds(random.Random(0), 9, 1 << 20)
-        return [name for name, _ in seeds]
-
-    def test_fuzzer_samples_a_real_tree(self) -> None:
-        held = self.root / "static" / "media" / "held.png"
-        held.parent.mkdir(parents=True)
-        held.write_bytes(png_with(text_chunk()))
-        self.assertEqual(
-            self.seeds(), [str(pathlib.Path("static", "media", "held.png"))]
-        )
-
-    def test_fuzzer_does_not_sample_a_symlinked_root(self) -> None:
-        self.link("sites", self.outside())
-        self.assertEqual(self.seeds(), [])
-
-    def test_fuzzer_does_not_sample_a_root_under_a_symlink(self) -> None:
-        target = self.outside()
-        (target / "media").mkdir()
-        (target / "media" / "held.png").write_bytes(png_with(text_chunk()))
-        self.link("static", target)
-        self.assertEqual(self.seeds(), [])
-
     def test_normalizer_does_not_follow_a_symlinked_root(self) -> None:
         target = self.outside()
         before = (target / "held.png").read_bytes()
@@ -826,17 +814,19 @@ class Sites(unittest.TestCase):
         self.assertIn(self.key("icons.zip") + "!favicon.ico", found)
 
     def test_large_icon_entry_states_its_side_as_zero(self) -> None:
-        ihdr = fuzz.png_chunk(b"IHDR", struct.pack(">IIBBBBB", 512, 1, 8, 0, 0, 0, 0))
-        idat = fuzz.png_chunk(b"IDAT", zlib.compress(bytes(513)))
-        image = b"\x89PNG\r\n\x1a\n" + ihdr + idat + fuzz.png_chunk(b"IEND", b"")
+        ihdr = fixtures.png_chunk(
+            b"IHDR", struct.pack(">IIBBBBB", 512, 1, 8, 0, 0, 0, 0)
+        )
+        idat = fixtures.png_chunk(b"IDAT", zlib.compress(bytes(513)))
+        image = b"\x89PNG\r\n\x1a\n" + ihdr + idat + fixtures.png_chunk(b"IEND", b"")
         data = ico_of(image)
         wide = data[:6] + b"\x00" + data[7:]
         self.assertEqual(self.found("favicon.ico", wide), {})
 
     def test_clean_site_png_and_icon_pass(self) -> None:
-        self.found("apple-touch-icon.png", fuzz.png_fixture())
+        self.found("apple-touch-icon.png", fixtures.png_fixture())
         self.assertEqual(
-            self.found("favicon.ico", ico_of(*[fuzz.png_fixture()] * 2)), {}
+            self.found("favicon.ico", ico_of(*[fixtures.png_fixture()] * 2)), {}
         )
 
     def test_icon_entry_holding_text_is_reported(self) -> None:
@@ -845,13 +835,13 @@ class Sites(unittest.TestCase):
         self.assertTrue(all(tag.startswith("ICO entry 0: ") for tag in tags), tags)
 
     def test_icon_bytes_outside_its_entries_are_reported(self) -> None:
-        found = self.found("favicon.ico", ico_of(fuzz.png_fixture(), tail=b"note"))
+        found = self.found("favicon.ico", ico_of(fixtures.png_fixture(), tail=b"note"))
         self.assertEqual(
             found[self.key("favicon.ico")], {"ICO bytes past the last entry"}
         )
 
     def test_icon_entry_past_the_end_is_reported(self) -> None:
-        data = ico_of(fuzz.png_fixture())
+        data = ico_of(fixtures.png_fixture())
         found = self.found("favicon.ico", data[:-1])
         self.assertEqual(
             found[self.key("favicon.ico")],
@@ -859,7 +849,7 @@ class Sites(unittest.TestCase):
         )
 
     def test_icon_bytes_before_an_entry_are_reported(self) -> None:
-        image = fuzz.png_fixture()
+        image = fixtures.png_fixture()
         entry = struct.pack("<BBBBHHII", 1, 1, 0, 0, 1, 8, len(image), 26)
         data = gate.ICO_HEADER + b"\x01\x00" + entry + b"note" + image
         found = self.found("favicon.ico", data)
@@ -873,7 +863,7 @@ class Sites(unittest.TestCase):
         self.assertEqual(found[self.key("favicon.ico")], {"ICO entry 0 not a PNG"})
 
     def test_icon_directory_disagreeing_with_its_image_is_reported(self) -> None:
-        found = self.found("favicon.ico", ico_of(fuzz.png_fixture(), bits=32))
+        found = self.found("favicon.ico", ico_of(fixtures.png_fixture(), bits=32))
         self.assertEqual(
             found[self.key("favicon.ico")],
             {"ICO entry 0 directory not its image's own"},
