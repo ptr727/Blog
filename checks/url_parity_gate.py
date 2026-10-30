@@ -121,7 +121,11 @@ def check_robots(public):
     happens, and it catches a sitemap advertised but not built.
     """
     robots = public / "robots.txt"
-    if not robots.is_file():
+    # This uses errors="replace" rather than strict, or invalid UTF-8 raises out of the whole parity run and a gate that exists to report a bad robots.txt stack-traces on one instead.
+    # A committed static/robots.txt is the file most likely to carry it, and it is the case this check is for.
+    try:
+        text = robots.read_text(encoding="utf-8", errors="replace")
+    except FileNotFoundError:
         # Naming one cause as the cause sends a reader to check a setting that is already correct.
         # The likely one is enableRobotsTXT, and a partial build or the wrong output directory reach the same state, which is the same reason the orphan messages name both of their causes.
         print("robots : missing")
@@ -133,9 +137,6 @@ def check_robots(public):
         ]
 
     origin = site_origin(public)
-    # This uses errors="replace" rather than strict, or invalid UTF-8 raises out of the whole parity run and a gate that exists to report a bad robots.txt stack-traces on one instead.
-    # A committed static/robots.txt is the file most likely to carry it, and it is the case this check is for.
-    text = robots.read_text(encoding="utf-8", errors="replace")
     advertised = re.findall(r"(?mi)^\s*Sitemap:\s*(\S+)\s*$", text)
     if not advertised:
         print("robots : built, no Sitemap line")
@@ -170,9 +171,10 @@ def site_origin(public):
     one environment's output against another's and silently match nothing.
     """
     home = public / "index.html"
-    if not home.is_file():
+    try:
+        text = home.read_text(encoding="utf-8", errors="ignore")
+    except FileNotFoundError:
         sys.exit(f"FAIL: {home} is missing - run hugo first")
-    text = home.read_text(encoding="utf-8", errors="ignore")
     found = re.search(
         r'rel=["\']?canonical["\']?\s+href=["\']?(https?://[^/"\'>\s]+)', text
     )

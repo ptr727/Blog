@@ -80,11 +80,11 @@ DOC_INLINE = re.compile(r"`([A-Z][A-Z0-9_]{2,})(?:=[^`]*)?`")
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
     parser.parse_args(argv)
-    if not DOC.exists():
+    try:
+        doc_text = DOC.read_text(encoding="utf-8")
+    except FileNotFoundError:
         print(f"ERROR: {DOC.name} does not exist", file=sys.stderr)
         return 1
-
-    doc_text = DOC.read_text(encoding="utf-8")
     documented_rows = set(DOC_ROW.findall(doc_text))
     documented_any = documented_rows | set(DOC_INLINE.findall(doc_text))
 
@@ -95,10 +95,11 @@ def main(argv: list[str] | None = None) -> int:
             declared.setdefault(name, set()).add(where)
 
     for path in TEMPLATES:
-        if not path.exists():
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError:
             print(f"ERROR: template {path} is missing", file=sys.stderr)
             return 1
-        text = path.read_text(encoding="utf-8")
         rel = path.relative_to(REPO).as_posix()
         for name in DECL.findall(text):
             note(name, rel)
