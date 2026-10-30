@@ -13,7 +13,6 @@ This README covers the URL contract alone. The other checks in this directory ea
 | [`media_metadata_gate.py`][media-metadata-gate] | carried media is not in a form the gate can vouch for |
 | [`media_redactions_gate.py`][media-redactions-gate] | a file declared in `media-redactions.json` is not its redacted result |
 | [`text_pii_gate.py`][text-pii-gate] | a Markdown file under `content/`, outside the imported archive years, carries personal data in its text |
-| [`media_parser_fuzz_gate.py`][media-parser-fuzz-gate] | malformed input breaks the media gate or its normalizer |
 
 ## Why this exists
 
@@ -200,4 +199,3 @@ Three traps in that adjudication, each of which produced a wrong answer first an
 [url-parity-gate]: ./url_parity_gate.py
 [deploy-readme-redirects]: ../deploy/README.md#how-the-redirects-are-expressed
 [deploy-readme-security-headers]: ../deploy/README.md#security-headers
-[media-parser-fuzz-gate]: ./media_parser_fuzz_gate.py

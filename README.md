@@ -142,7 +142,7 @@ A post is public the moment it deploys, and a photo or a pasted configuration ca
 - **Redactions.** A house number, a face, or a serial number is covered with a flat opaque fill, never a blur. A fill on an image already published is declared in [`checks/media-redactions.json`][media-redactions] and applied by a script. [`checks/media_redactions_gate.py`][media-redactions-gate] fails when a redacted file no longer matches its recorded hash, which is how a quietly restored original is caught.
 - **Text.** [`checks/text_pii_gate.py`][text-pii-gate] reads every page and post under `content/` outside the imported archive years, front matter and code blocks included. It reports email addresses, hardware addresses, public IP addresses, coordinates, street addresses, and phone numbers. It also reports a URL that carries coordinates or names one specific sensor or station. A finding names the file, the line, and the class, never the value, so the CI log does not republish it. A value a post prints on purpose is declared in an allow file with a reason, and an entry that stops matching fails the gate.
 
-A fuzzer feeds the metadata parsers malformed images in the same action, because the carried tree is all well formed and would never exercise a refusal. What no gate can judge, whether a picture locates the home or identifies a person, is the checklist in [CONTENT.md][content].
+What no gate can judge, whether a picture locates the home or identifies a person, is the checklist in [CONTENT.md][content].
 
 ### What Happens While the Site Runs
 
