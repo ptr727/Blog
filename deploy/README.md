@@ -462,7 +462,7 @@ Each of these fails silently when it fails, which is why it is checked rather th
 [how-the-redirects-are-expressed]: #how-the-redirects-are-expressed
 [identifying-the-environment]: #identifying-the-environment
 [operations-local-verification]: ../OPERATIONS.md#local-verification
-[operations-log-tiers]: ../OPERATIONS.md#the-log-is-three-tiers-and-each-is-blind-to-something
+[operations-log-tiers]: ../OPERATIONS.md#the-log-is-tiered-and-each-tier-is-blind-to-something
 [reloading-without-a-restart]: #reloading-without-a-restart
 [serving-the-family-site-on-a-local-name]: #serving-the-family-site-on-a-local-name
 [trusting-the-proxy]: #trusting-the-proxy

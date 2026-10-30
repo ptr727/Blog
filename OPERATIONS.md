@@ -8,7 +8,7 @@ How this site is built, released, served, and rolled back. [`GOVERNANCE.md`](./G
 
 - The VPS production site at `blog.insanegenius.com`, updated by `deploy-site.yml` with `environment=production`.
 - The VPS staging site at `blog.vps.insanegenius.net`, behind the auth gate, updated by `deploy-site.yml` with `environment=staging`.
-- The two local mirrors on the maintainer's homelab, updated only by `make-release.sh` from the maintainer's machine.
+- The local mirrors on the maintainer's homelab, updated only by `make-release.sh` from the maintainer's machine.
 
 The interim hostname `blog.insanegenius.net` has no DNS record, and no setting here names it.
 
@@ -71,9 +71,9 @@ The file is both sourced in the shell and named in `ENV_FILE`, and the redundanc
 
 It refuses to install a release that fails the build gate. `check-live-urls.sh` does take a base URL, which is where the sourced `$SITE_BASE_URL` goes. It follows every URL in the contract against the running mirror, checking each redirect's destination rather than trusting its status code.
 
-Expect a `PASS` naming the number of URLs honored. That is the three lists' combined length plus one missing file that must answer `404`. Where `SITE_EXTRA_BASE_URL` is set, the family pages and a family missing file add to it. Every response must also carry the security headers in [`checks/security-headers.txt`](./checks/security-headers.txt) with their exact values. Anything less is a finding, and the output names each URL that failed and what it answered.
+Expect a `PASS` naming the number of URLs honored. That is the combined length of the contract lists `check-live-urls.sh` reads, plus one missing file that must answer `404`. Where `SITE_EXTRA_BASE_URL` is set, the family pages and a family missing file add to it. Every response must also carry the security headers in [`checks/security-headers.txt`](./checks/security-headers.txt) with their exact values. Anything less is a finding, and the output names each URL that failed and what it answered.
 
-A documentation-only or workflow-only change does not need this. A change to the four paths above does, because for those CI's green is not evidence.
+A documentation-only or workflow-only change does not need this. A change to a path in the table above does, because for those CI's green is not evidence.
 
 **A change to a `Content-Security-Policy` in `security-headers.txt` is also tried in a browser**, on the local staging mirror, before its pull request opens. So is a theme or `layouts/` change that adds a style, a font, a fetch, or a script. [`checks/csp_browser_gate.py`](./checks/csp_browser_gate.py) loads every page of `golden-urls.txt` plus `/search/` in headless Chromium. It scrolls each page to its end, clicks its code-copy buttons, and types a search query. It reads each `securitypolicyviolation` event from the page and from each frame in it. It reports them by directive and blocked origin, with the first page each occurred on. The event fires for an enforcing policy and a `Content-Security-Policy-Report-Only` one alike, so a trial can run Report-Only first:
 
@@ -88,9 +88,9 @@ checks/csp_browser_gate.py "$SITE_BASE_URL"
 - **A violation fails the run unless [`checks/csp-browser-allow.txt`](./checks/csp-browser-allow.txt) lists it.** Each line is a directive, a blocked origin, and the reason, tab separated. A blocked scheme is written as the browser reports it, such as `data` with no colon. An entry that nothing matched fails a run over the default list, so an entry goes when its cause does. `--urls` takes another list, and such a partial run leaves unused entries alone. It also loads `/search/` only where the list names it, since a list can be for the family site, which has no search page.
 - **A page that does not answer `200` fails the run**, since a trial over error pages proves nothing.
 - **It runs only against the local mirrors.** VPS staging sits behind the auth gate, which the check does not present. A full run is hundreds of pages. Production takes only a handful of probes per pass, since a burst there can get the reviewing network banned.
-- **It runs by hand rather than in the release.** It needs Docker, a browser image, and a running server, and neither the release build nor the unit suite has all three.
+- **It runs by hand rather than in the release.** It needs Docker, a browser image, and a running server, and neither the release build nor the unit suite has them all.
 
-**The Python gates run per directory, the way CI runs them.** The validator gates [`checks/`](./checks/) and [`scripts/`](./scripts/), the two directories the workflows declare in its `python-directories` input, with ruff, mypy, and a test suite under coverage. `checks/` is standard library only, so its tools run through `uvx` and its suite runs under `unittest`. The browser trial's container half is the one exception. `scripts/` installs Pillow, pytest, and pytest-cov from its `requirements.txt`, which holds the one Pillow pin, and runs its suite under pytest. [`capture/`](./capture/) is not declared, because it is one-shot WordPress migration tooling that has already run and owes no test suite. The validator's warning about its files is therefore expected.
+**The Python gates run per directory, the way CI runs them.** The validator gates [`checks/`](./checks/) and [`scripts/`](./scripts/), the directories the workflows declare in its `python-directories` input, with ruff, mypy, and a test suite under coverage. `checks/` is standard library only, so its tools run through `uvx` and its suite runs under `unittest`. The browser trial's container half is the one exception. `scripts/` installs Pillow, pytest, and pytest-cov from its `requirements.txt`, which holds the one Pillow pin, and runs its suite under pytest. [`capture/`](./capture/) is not declared, because it is one-shot WordPress migration tooling that has already run and owes no test suite. The validator's warning about its files is therefore expected.
 
 ```sh
 set -e
@@ -121,7 +121,7 @@ EXPECT_RELEASE=<release-id> checks/check-live-urls.sh <base-url>
 
 The deploy root and the base URL are the only host-specific values. A local run reads them from a file under `~/.secrets/`, one per environment, copied from [`.secrets/example.env`](./.secrets/example.env). Make each one mode 600, since `make-release.sh` refuses a file that group or other can read. CI passes the base URL and a scratch bundle path, then uploads the bundle to the host's deploy root. The real files live on the host, never in this checkout.
 
-**The command-prefix form above is CI-only.** A local run whose default environment file exists reads it after the command-prefix assignment and overwrites it. A value read from the file replaces one the caller exported. Locally, select the environment through `ENV_FILE` instead, as the two examples earlier in this section do.
+**The command-prefix form above is CI-only.** A local run whose default environment file exists reads it after the command-prefix assignment and overwrites it. A value read from the file replaces one the caller exported. Locally, select the environment through `ENV_FILE` instead, as the examples earlier in this section do.
 
 **A VPS release is named by its deploy run, never by a commit.** The hub's deploy task names each release `<UTC yyyymmdd-HHMMSS>-<run id>-<run attempt>` and verifies the site against that id itself. To check a VPS site by hand afterwards, pass that id as `EXPECT_RELEASE`. Read it from the **Deploy site job**'s log, where `make-release.sh` prints `==> installing release <id>` with the id ending in the run's own id and attempt. The Validate sources job prints the same line earlier in the run, for a scratch bundle stamped with a bare timestamp, so the first match of a log search is the wrong id. Never copy it from the site's `X-Blog-Release` header, since a stale config still serves the previous id and the check would then pass against it. A short SHA never matches, so the check waits out its timeout and fails.
 
@@ -133,7 +133,7 @@ The deploy root and the base URL are the only host-specific values. A local run 
 
 **Never promote a staging build to production.** The base URL is baked into the canonicals, the feeds, and every absolute permalink at build time. A staging artifact served as production points every page at the staging host. Each environment's deploy builds its own release from the ref instead.
 
-**The deploy workflow reaches only the VPS `staging` and `production` sites.** Dispatching it with `environment=staging` deploys `blog.vps.insanegenius.net`, never a local mirror. The two local mirrors are deployed from the maintainer's own machine with `make-release.sh` and nothing else. So "deploy staging" names two different targets depending on who says it. A run reporting that staging deployed says nothing about what a local mirror serves, so check the mirror itself.
+**The deploy workflow reaches only the VPS `staging` and `production` sites.** Dispatching it with `environment=staging` deploys `blog.vps.insanegenius.net`, never a local mirror. The local mirrors are deployed from the maintainer's own machine with `make-release.sh` and nothing else. So "deploy staging" names two different targets depending on who says it. A run reporting that staging deployed says nothing about what a local mirror serves, so check the mirror itself.
 
 **`make-release.sh` builds the working tree, not the commit.** Hugo reads the checkout as it stands, so an uncommitted file ships. The release carries whatever version you pass. The documented local procedure passes a commit SHA, and a VPS deploy passes its run-based id. It defaults to a timestamp when you pass nothing. A SHA then names a commit that does not describe what is served. `EXPECT_RELEASE` still matches, because it compares the stamp against itself rather than against the tree. Commit before deploying, or read the release id as a label rather than a description.
 
@@ -166,7 +166,7 @@ Verify with `checks/check-live-urls.sh` against the environment before consideri
 
 ### Retention
 
-Ten releases are kept at every deploy root, by two independent mechanisms that agree on the number rather than by one mechanism reaching both.
+Ten releases are kept at every deploy root, by independent mechanisms that agree on the number rather than by one mechanism reaching every root. A local mirror's limit is `KEEP_RELEASES` in `make-release.sh`, and a VPS root's is the host's own.
 
 **On a local mirror, [`deploy/make-release.sh`](./deploy/make-release.sh) prunes as its last step.** Unchanged files hard-link to the previous release, so the static tree is stored once rather than ten times, and a release costs roughly the size of the generated output.
 
@@ -191,7 +191,7 @@ ssh "$VPS_SSH_HOST" true && echo reachable
 | `VPS_TRAEFIK_LOG` | today's live access log, still being appended to | the VPS |
 | `LOG_ARCHIVE_ROOT` | the off-host copy of the rotated logs | the backup host |
 
-**There are two credentials to this host and picking the wrong one is the first mistake to avoid.** `DEPLOY_SSH_USER` is held per environment and used only by the deploy. It reaches a confined account behind an `rrsync` forced command that can write the release trees and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for everything on this page. They are deliberately separate credentials with different blast radii. Reaching for the deploy account to read a log fails in a way that reads like an outage. Reaching for the admin account to deploy grants far more than the deploy needs.
+**This host takes separate credentials, and picking the wrong one is the first mistake to avoid.** `DEPLOY_SSH_USER` is held per environment and used only by the deploy. It reaches a confined account behind an `rrsync` forced command that can write the release trees and read nothing else. `VPS_SSH_HOST` is the ordinary administrative login used for everything on this page. They are deliberately separate credentials with different blast radii. Reaching for the deploy account to read a log fails in a way that reads like an outage. Reaching for the admin account to deploy grants far more than the deploy needs.
 
 **The off-host copy, maintained outside this repository, writes the rotated access logs to `LOG_ARCHIVE_ROOT`, and this section covers nothing more about it.** Its installation, how the VPS itself is provisioned, and its trust model are the backup host's own configuration to document, not this repository's. What "Logs and Debugging" needs from its schedule and copy behavior, to read the logs correctly, is covered there instead. Read the unit and its last run on the backup host rather than trusting a schedule written down anywhere, including here.
 
@@ -229,7 +229,7 @@ The deploy key is the one credential CI holds for the host. Each rule below cove
 - **Rotation swaps one line, in an order that never breaks a deploy.** Add the new key as a second line with the same `restrict` and forced command. Replace the secret in both GitHub Environments, since one key covers both. Then delete the old line.
 - **Test a revocation from the server's log, not from the client's message.** `Permission denied` also appears when the client fails to sign, for example with a mismatched key pair. The server then never verified a signature at all. Before revoking, confirm the test logs `Accepted publickey` for the deploy user. After revoking, confirm the same test reached sshd and logged no `Accepted publickey`. The key's fingerprint on a refusal appears only at `LogLevel VERBOSE`.
 
-**The confinement is testable without the private key.** Running the forced command directly tests authorization apart from authentication. The shape is an `rsync -e` wrapper, which rsync calls with the host and then the remote command. The wrapper drops the host argument and runs `sudo -u <deploy user> env SSH_ORIGINAL_COMMAND="<the remote command>" <the forced command>`, with the forced command copied from `authorized_keys`. The `env` must follow `sudo`, because `sudo` scrubs the environment. An `rrsync error: Not invoked via sshd` means the variable never arrived, not that the guard held. Three results show the confinement holds:
+**The confinement is testable without the private key.** Running the forced command directly tests authorization apart from authentication. The shape is an `rsync -e` wrapper, which rsync calls with the host and then the remote command. The wrapper drops the host argument and runs `sudo -u <deploy user> env SSH_ORIGINAL_COMMAND="<the remote command>" <the forced command>`, with the forced command copied from `authorized_keys`. The `env` must follow `sudo`, because `sudo` scrubs the environment. An `rrsync error: Not invoked via sshd` means the variable never arrived, not that the guard held. The results below show the confinement holds:
 
 - A write to each environment root succeeds.
 - A path containing `..` is refused.
@@ -237,7 +237,7 @@ The deploy key is the one credential CI holds for the host. Each rule below cove
 
 Run a `--delete` check separately, by deploying after withdrawing a page. The write checks only overwrite existing files, so they pass with `--delete` broken.
 
-**A transfer by hand with the key meets three client traps.**
+**A transfer by hand with the key meets the client traps below.**
 
 - `-i` adds a key rather than replacing the others. An agent holding several keys reaches the server's attempt limit first, failing with `Too many authentication failures`. Pass `-o IdentitiesOnly=yes`.
 - `IdentitiesOnly` still offers every `IdentityFile` a matching `Host` block adds, a `Host *` one included. Read `ssh -G <host>` to list them.
@@ -270,7 +270,7 @@ Review runs in both directions, which are the same two the media checks read and
 
 **The inward pass answers a question nothing else can.** Subtracting every URL that has ever returned 200 from the set the site builds names the content no reader has reached. It is slow evidence and deliberately so, since a post can go a year without a visit and still be worth keeping. Its first concrete use is the carried media that no page links and that the old platform never published, counted exactly by the parity gate and broken down in [`checks/README.md`](./checks/README.md): if nothing requests those files across a year, that settles whether carrying them is preservation or clutter, and no reasoning from the repository alone can settle it.
 
-### The log is three tiers, and each is blind to something
+### The log is tiered, and each tier is blind to something
 
 A request crosses the proxy before it reaches the site, so no single log answers both questions.
 
@@ -290,11 +290,11 @@ A request crosses the proxy before it reaches the site, so no single log answers
 
 **A hostname Cloudflare proxies adds a tier above Traefik, and that tier keeps no record you can read.** The free plan shows aggregates and a sample, never a line per request. A request its rules block or its cache answers therefore reaches no tier below. Cloudflare caches no HTML or JSON by default, and XML and text are not among its cached extensions. Every real-content `404` therefore still reaches Traefik. `robots.txt` is the one exception Cloudflare caches by default, and its `no-cache` answer has any copy revalidated before use. A file type it does cache is answered from Cloudflare for as long as the bundle's `Cache-Control` allows, which [`deploy/README.md`](./deploy/README.md#cache-lifetimes) sets. A count for `/media/` is then a floor, and a first sighting is still logged, which is all the inward pass needs. `ClientHost` on a proxied request is the forwarded chain rather than one address, where Traefik trusts Cloudflare's ranges. Without that trust Traefik strips the header, and the field is Cloudflare's own address, which a pass would read as a reader. That trust is the host side's setting. A client may send a chain of its own, and Cloudflare appends the address it saw. [`checks/log-review.jq`](./checks/log-review.jq) keeps the last element for that reason, and the `403` cross-check below does the same.
 
-Two properties of the Caddy side are worth knowing before parsing it. Its access log is `format console`, so each line is a timestamp, a level, and a logger name followed by a JSON object. The line is not JSON itself, and a parser that assumes one object per line reads nothing. And `trusted_proxies` is what makes `client_ip` the reader rather than the proxy, which is the same setting "Serving" describes as a security boundary. Without it every request in the log appears to come from one internal address. The inward pass then cannot distinguish a reader from a health check. That holds only where Cloudflare does not proxy the hostname. Behind Cloudflare the forwarded chain can start with an address the client wrote. Caddy reads the chain from the left, so `client_ip` is then whatever the client chose. Nothing in the Caddyfile matches on it, so nothing is exposed. On a proxied hostname, read the reader from the last element of `ClientHost` in the edge log instead.
+These properties of the Caddy side are worth knowing before parsing it. Its access log is `format console`, so each line is a timestamp, a level, and a logger name followed by a JSON object. The line is not JSON itself, and a parser that assumes one object per line reads nothing. And `trusted_proxies` is what makes `client_ip` the reader rather than the proxy, which is the same setting "Serving" describes as a security boundary. Without it every request in the log appears to come from one internal address. The inward pass then cannot distinguish a reader from a health check. That holds only where Cloudflare does not proxy the hostname. Behind Cloudflare the forwarded chain can start with an address the client wrote. Caddy reads the chain from the left, so `client_ip` is then whatever the client chose. Nothing in the Caddyfile matches on it, so nothing is exposed. On a proxied hostname, read the reader from the last element of `ClientHost` in the edge log instead.
 
 ### Reading a 404 list without being fooled by it
 
-The outward pass is four filters over the edge log, and each one exists because skipping it produced a wrong answer once.
+The outward pass is a series of filters over the edge log, and each one exists because skipping it produced a wrong answer once.
 
 **Exclude this repository's own deploy gate first.** `check-live-urls.sh` requests about 30 pages on each production deploy, one per contract class. Archived days from before that sampling carry the whole contract per deploy. An unfiltered day from then is mostly a recording of our own `curl`. A count that omits this step is measuring the pipeline rather than the readers.
 
@@ -305,7 +305,7 @@ The mechanism is the `X-Blog-Check` request header, which the scripted checks se
 - **A hand probe carries it only because whoever runs it adds it.** `check-live-urls.sh` sends it on every request and a bare `curl` sends nothing, so an interactive probe passes `-H "X-Blog-Check: proxmox/media-dev"`. The source half stays `proxmox`, which is where the probe came from, and the id half is where the purpose goes. Two untagged probes turned up against 3,100 tagged ones in the 2026-08-09 deploy window.
 - **Absence is not proof of a human**, since a scanner sends no header either, so this pairs with the scanner-shape filters below rather than replacing them. The field is forgeable and must never reach auth, rate limiting, robots handling, or caching.
 - **Before 2026-08-09 the log carries no such field**, and user agent is the only key for those days: on 2026-08-08, 9,285 of 9,996 requests were `curl/8.5.0`, leaving 711 real ones. That key is a coincidence rather than a rule, since the CI runner's curl and the host's are byte-identical and only the rotating client address separates them, which is why the header exists.
-- **The header won over four alternatives, and each lost for a reason that still holds.** Other consumers read the user agent, and a runner image bumping curl would silently break a filter built on it. A query parameter pollutes the path, which is the analysis key, and collides with the `?p=` redirects. A source address fails because CI runner addresses rotate daily. A separate check hostname would exercise a different router and certificate, so the check would stop testing what production serves.
+- **The header won over every alternative, and each lost for a reason that still holds.** Other consumers read the user agent, and a runner image bumping curl would silently break a filter built on it. A query parameter pollutes the path, which is the analysis key, and collides with the `?p=` redirects. A source address fails because CI runner addresses rotate daily. A separate check hostname would exercise a different router and certificate, so the check would stop testing what production serves.
 - **Keep production probes to a handful per pass, because a burst gets the reviewing network banned.** The edge runs CrowdSec. Its `crowdsecurity/http-probing` scenario overflows past about 10 distinct non-static paths answered 404, 403, or 400, and drains one every 10 seconds. Its `crowdsecurity/http-crawl-non_statics` scenario overflows past about 40 distinct non-static paths, and drains one every 0.5 seconds. The blog and family names are exempt from the crawl scenario alone, so a probe of them meets only the probing one. Each overflow sets a 4-hour ban. A ban shows as an empty 403 on every production site, which reads like an outage. The allowlist for the reviewing network is host-side and owned by HomeAutomation-Config. Prefer the Wayback evidence below to a probe wherever it answers the question.
 
 **A referer does not implicate this site unless it points somewhere else.** The rule worth applying is that a 404 carrying a referer is a broken link and a 404 without one is a typed or probed address, and it fails on scanners, which set `Referer` to the request URL itself. Every one of the 36 referer-bearing site-host 404s on 2026-08-08 was self-referential, so the unrefined rule reported three dozen broken links on a site that had none. Discard the matches before counting, and **normalize the scheme rather than comparing it**, because a scanner reaching an HTTPS site routinely sends an `http://` referer for the same address. Comparing against the request's own scheme therefore matches nothing and leaves every false positive in place: on the 2026-08-08 data the naive form kept all 36 where the normalized form kept none.
@@ -322,7 +322,7 @@ jq -c 'select(.DownstreamStatus == 404)
 
 Widen `== 404` to `>= 400` for the whole non-200 sweep the table above describes. The 404 list is the half with an action, which is why it is the default here.
 
-**Filter the scanner shapes by shape, never by investigating them.** A site that used to run WordPress attracts probes for `.env` and its dozen variants, `wp-config.php`, `.git/config`, `phpinfo.php`, cloud credential files, and framework config paths. They dominate the raw list and none is ever a finding. What is left after the three filters above is small enough to read line by line, which is the point of running them.
+**Filter the scanner shapes by shape, never by investigating them.** A site that used to run WordPress attracts probes for `.env` and its dozen variants, `wp-config.php`, `.git/config`, `phpinfo.php`, cloud credential files, and framework config paths. They dominate the raw list and none is ever a finding. What is left after the filters above is small enough to read line by line, which is the point of running them.
 
 **The filters live in [`checks/log-review.jq`](./checks/log-review.jq), so every pass runs the same ones.** The file holds the tag, host, status and shape filters, and the referer step above is read from its output. A filter rebuilt each pass drifts, and a drifted filter hides a finding without saying so. Join the archived days with the live log, keep the window since the last pass, and run the filter over it:
 
@@ -348,9 +348,9 @@ The subshell runs under `set -euo pipefail`, so an unset value or a failed `find
 
 **Use the Wayback Machine's CDX API, not a production probe, to establish that an address was ever served.** Run one query per path prefix, for example `https://web.archive.org/cdx/search/cdx?url=blog.example.com/<prefix>/&matchType=prefix&filter=original:<regex>&output=json`. URL-encode the regex, since a raw `+` or `&` changes the filter. Add `&filter=statuscode:200` to keep only captures that answered. A 200 capture is the evidence. An empty result is only an absence of evidence, since Wayback coverage is incomplete, so it does not prove the address was never served. A wildcard `url` combined with a filter returns nothing, so use `matchType=prefix`. Older captures name the host as `blog.example.com:80`, so strip the port before comparing a capture against the maps.
 
-**A missing `Host` header is the third way this data breaks a filter.** `RequestHost` is null on a request that sends none, which router exploits do. String functions reject that where arithmetic tolerates it, so `.RequestHost | startswith(...)` fails with `startswith() requires string inputs` and takes the whole run with it, while `.RequestHost + .RequestPath` quietly yields the path alone. The failure is loud but partial, which is the worst combination, since it aborts part way through a file having already printed real output. Guard the string functions with `// ""`. Equality and concatenation both tolerate a null, so a guard on those is inert and reads as protection that is not there.
+**A missing `Host` header is another way this data breaks a filter.** `RequestHost` is null on a request that sends none, which router exploits do. String functions reject that where arithmetic tolerates it, so `.RequestHost | startswith(...)` fails with `startswith() requires string inputs` and takes the whole run with it, while `.RequestHost + .RequestPath` quietly yields the path alone. The failure is loud but partial, which is the worst combination, since it aborts part way through a file having already printed real output. Guard the string functions with `// ""`. Equality and concatenation both tolerate a null, so a guard on those is inert and reads as protection that is not there.
 
-**Two `jq` mistakes each read as a plausible answer rather than as an error.** A hyphenated key parses as subtraction, so `.request_User-Agent` silently is not the field you meant and `.["request_User-Agent"]` is, and the same holds for `Referer`. And `jq 'select(...)'` with no projection pretty-prints each match across many lines, so piping it to `wc -l` counts lines rather than records and overstates by roughly the width of the object. It reported 37 and 1,332 where the true counts were 1 and 36. Project with `@tsv` or pass `-c` before counting anything.
+**These `jq` mistakes each read as a plausible answer rather than as an error.** A hyphenated key parses as subtraction, so `.request_User-Agent` silently is not the field you meant and `.["request_User-Agent"]` is, and the same holds for `Referer`. And `jq 'select(...)'` with no projection pretty-prints each match across many lines, so piping it to `wc -l` counts lines rather than records and overstates by roughly the width of the object. It reported 37 and 1,332 where the true counts were 1 and 36. Project with `@tsv` or pass `-c` before counting anything.
 
 ### A 403 is CrowdSec's until shown otherwise
 
@@ -380,9 +380,9 @@ name="$(getent hosts <client address> | awk '{ print $2 }')"
 if [ -z "$name" ]; then echo 'no reverse name, so not a crawler'; else getent ahosts "$name" | awk '{ print $1 }' | sort -u; fi
 ```
 
-### Checking that search engines can index both sites
+### Checking that search engines can index the sites
 
-Five facts settle it, and each is read from production rather than from the repository:
+The facts below settle it, and each is read from production rather than from the repository:
 
 - **Nothing asks not to be indexed.** `X-Robots-Tag` says `index, follow`, no `robots` meta tag on the page says otherwise, and the canonical link names the production origin.
 - **`robots.txt` allows every crawler and names a sitemap.** A missing `robots.txt` also allows everything, but it advertises no sitemap, and a crawler is told where a sitemap is rather than guessing.
@@ -390,7 +390,7 @@ Five facts settle it, and each is read from production rather than from the repo
 - **Verified crawlers receive `200`s.** Count the window's crawler requests by host and status, then check any crawler `403` or `404` by reverse DNS as above.
 - **The sitemap is submitted** in Google Search Console and Bing Webmaster Tools. Those accounts are the maintainer's, and the edge log shows only whether a crawler fetched the file.
 
-The first three take six tagged requests, well inside the probe budget:
+The header, `robots.txt`, and sitemap facts take three tagged requests per site, well inside the probe budget:
 
 ```sh
 for u in https://blog.insanegenius.com/ https://viljoen.family/; do
@@ -403,11 +403,11 @@ for u in https://blog.insanegenius.com/ https://viljoen.family/; do
 done
 ```
 
-The cleartext-to-HTTPS redirect in front of both sites is the host side's, per [Who Owns What](#who-owns-what). A permanent status there is the stronger canonical signal, so a temporary one is a finding to hand to the host side.
+The cleartext-to-HTTPS redirect in front of every site is the host side's, per [Who Owns What](#who-owns-what). A permanent status there is the stronger canonical signal, so a temporary one is a finding to hand to the host side.
 
 ### Retention Is the Prerequisite, and It Belongs to the Host
 
-**On the VPS the reviewable record is Traefik's access log**, at `/var/log/traefik/access.log`, one JSON object per line, one line per request, across every hostname the host serves. `RequestPath` carries the query string, so the legacy `/?p=<id>` traffic is visible as itself. The log records only three request headers, which appear as the keys `request_Referer`, `request_User-Agent`, and `request_X-Blog-Check`, and omits the rest from the record rather than stripping them from the request, which still arrives intact. That omission is what keeps the Pangolin resource access token out of a file that is retained and copied, and query strings are logged in full, so treat an extract as sensitive. That keep-list is the host's to hold and is the precondition the outward pass depends on: a header absent from it does not appear in the log at all, which is indistinguishable from a request that never sent one.
+**On the VPS the reviewable record is Traefik's access log**, at `/var/log/traefik/access.log`, one JSON object per line, one line per request, across every hostname the host serves. `RequestPath` carries the query string, so the legacy `/?p=<id>` traffic is visible as itself. The log records only the request headers that appear as the keys `request_Referer`, `request_User-Agent`, and `request_X-Blog-Check`. It omits the rest from the record rather than stripping them from the request, which still arrives intact. That omission is what keeps the Pangolin resource access token out of a file that is retained and copied, and query strings are logged in full, so treat an extract as sensitive. That keep-list is the host's to hold and is the precondition the outward pass depends on: a header absent from it does not appear in the log at all, which is indistinguishable from a request that never sent one.
 
 **That log rotates and is eventually deleted, on a schedule the host sets and can change.** The window is long, and it is finite, so anything the inward pass depends on has to be copied off the host before the archive ages out. Read the current retention from the host rather than from this file, because a number written here is a number nothing checks.
 
@@ -445,7 +445,7 @@ The gate is the VPS staging environment's, so this is `~/.secrets/blog_vps_stagi
 
 Set both or neither. Half a pair is a typo rather than a choice, and it is rejected as one rather than presented as a failing site. A pair is also refused unless its base URL starts with a lowercase `https://`, since a token sent over plain HTTP travels in the clear.
 
-Three properties of how the credential is handled, each there for a reason worth keeping:
+These properties of how the credential is handled are each there for a reason worth keeping:
 
 - **It travels in a mode-`600` curl config file, not in `-H` arguments.** A command line is readable in `ps` for the life of the process, and this runs one per URL in the contract. The config file is also the only form that survives the `export -f` the parallel checks run under, because bash cannot export an array.
 - **It is sent to the base URL's own origin and nowhere else.** The check follows every redirect's destination, and every destination in the contract is same-origin today. A rule that one day points off-site must not mail the credential to whoever is on the other end.
@@ -458,7 +458,7 @@ The family site's staging host sits behind a gate of its own. A Pangolin token o
 | `SITE_EXTRA_AUTH_TOKEN_ID` | `P-Access-Token-Id` |
 | `SITE_EXTRA_AUTH_TOKEN` | `P-Access-Token` |
 
-The family token is created with Pangolin's session persistence off. The check sends both headers on every request and keeps no cookie, so a persisted session would only hand a cookie to nobody. The token never goes in the `p_token` query parameter. Pangolin answers that form with a redirect and a session cookie rather than the page, and the proxy's access log records the query. The family pair gets neither the preflight nor redirect following. Its three pages are requested after the URL contract. A wrong family token therefore surfaces at the end of the run, as a `302` on each page. Where `EXPECT_SITE_ENV` is set, each family page must also report that `X-Blog-Env`, and where `EXPECT_RELEASE` is set, that `X-Blog-Release`. The deploy workflow runs this part too, from the values [`ENVIRONMENT.md`](./ENVIRONMENT.md#the-github-environments) lists, and a local run does from any environment file that sets `SITE_EXTRA_BASE_URL`.
+The family token is created with Pangolin's session persistence off. The check sends both headers on every request and keeps no cookie, so a persisted session would only hand a cookie to nobody. The token never goes in the `p_token` query parameter. Pangolin answers that form with a redirect and a session cookie rather than the page, and the proxy's access log records the query. The family pair gets neither the preflight nor redirect following. Its pages are requested after the URL contract. A wrong family token therefore surfaces at the end of the run, as a `302` on each page. Where `EXPECT_SITE_ENV` is set, each family page must also report that `X-Blog-Env`, and where `EXPECT_RELEASE` is set, that `X-Blog-Release`. The deploy workflow runs this part too, from the values [`ENVIRONMENT.md`](./ENVIRONMENT.md#the-github-environments) lists, and a local run does from any environment file that sets `SITE_EXTRA_BASE_URL`.
 
 ## Configuration Layout
 
@@ -484,7 +484,7 @@ This is where [GOVERNANCE.md "Trust Boundaries and Hardening Effort"](./GOVERNAN
 
 ### Environments
 
-Four environments, in two pairs. Each pair is one publish site and one staging site, and the local pair exists to rehearse the remote one.
+The environments come in pairs. Each pair is one publish site and one staging site, and the local pair exists to rehearse the remote one.
 
 | Environment | Address | Fronted by | Purpose |
 | --- | --- | --- | --- |
@@ -495,9 +495,9 @@ Four environments, in two pairs. Each pair is one publish site and one staging s
 
 The local mirrors are not staging. They run the same bundle against the same web server, so they catch a broken redirect or a bad permission for free, but they exercise none of the routing, authentication, or certificate machinery that only exists on the VPS. Passing locally says the artifact is right. It says nothing about whether the server in front of it is.
 
-**The two words are `production` and `staging`, spelled out, in every position.** No `prod`, no `stage`. The same two name the container, the deploy root, the environment file, the `X-Blog-Env` value, and the GitHub Environment. This is not tidiness: the environment name is a value that gets **compared**, by `EXPECT_SITE_ENV` and by the deploy, so a spelling that differs in one position fails a deploy for a reason that reads like an outage. The local mirrors prefix the same words, `mirror-production` and `mirror-staging`, so a header names exactly one of the four environments in the fleet.
+**The words are `production` and `staging`, spelled out, in every position.** No `prod`, no `stage`. The same words name the container, the deploy root, the environment file, the `X-Blog-Env` value, and the GitHub Environment. This is not tidiness: the environment name is a value that gets **compared**, by `EXPECT_SITE_ENV` and by the deploy, so a spelling that differs in one position fails a deploy for a reason that reads like an outage. The local mirrors prefix the same words, `mirror-production` and `mirror-staging`, so a header names exactly one environment in the fleet.
 
-Each environment is one file under `~/.secrets/`, named `blog_<server>_<environment>.env`, selected with `ENV_FILE`, and holding the deploy root, the base URL, and the container name. The name carries both halves because the two pairs differ in server as well as environment, so a file says which machine it describes rather than leaving that to the value inside it, and the four in the table above are the four files. `~/.secrets/blog_local_production.env` is the one read when `ENV_FILE` is unset. Selecting the file is how an environment is chosen. The script reads `DEPLOY_ROOT` from the file and overwrites one the caller exported. Setting that variable by hand therefore switches nothing. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
+Each environment is one file under `~/.secrets/`, named `blog_<server>_<environment>.env`, selected with `ENV_FILE`, and holding the deploy root, the base URL, and the container name. The name carries both halves because the pairs differ in server as well as environment. A file therefore says which machine it describes, rather than leaving that to the value inside it. Each row of the table above is one file. `~/.secrets/blog_local_production.env` is the one read when `ENV_FILE` is unset. Selecting the file is how an environment is chosen. The script reads `DEPLOY_ROOT` from the file and overwrites one the caller exported. Setting that variable by hand therefore switches nothing. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
 
 **The staging FQDN sits under the VPS wildcard deliberately.** `blog.vps.insanegenius.net` needs no new certificate and no new DNS record, and it keeps the staging name off the production domain.
 
@@ -541,7 +541,7 @@ This site has served the same domain across earlier platforms, so its whole oper
 
 Everything derived is in this repository. Everything it was derived *from* is a capture directory outside it, at `CAPTURE_ROOT`, which is where a rebuild starts. The capture is not a git repository, so it has no history to revert to, and it is read-only in normal use.
 
-**[`capture/README.md`](./capture/README.md) holds the procedure**: what is under the capture and which parts of it can be fetched again, the two exports and the counts they must reconcile against, the ordered rebuild, and the results that look like success and are not.
+**[`capture/README.md`](./capture/README.md) holds the procedure**: what is under the capture and which parts of it can be fetched again, the exports and the counts they must reconcile against, the ordered rebuild, and the results that look like success and are not.
 
 ### Serving
 
@@ -555,11 +555,11 @@ Routing differs by environment and the bundle does not. Traefik on the home host
 
 That last sentence is also the risk. **The container is the only thing that distinguishes one environment from another**, so a proxy rule aimed at the wrong one serves the wrong site under the right hostname and returns a healthy `200` with nothing logged anywhere. The bundle stamps `X-Blog-Env` and `X-Robots-Tag` from container variables so a response says which environment produced it, and `checks/check-live-urls.sh` fails on a mismatch when `EXPECT_SITE_ENV` is set. [`deploy/README.md`](./deploy/README.md#identifying-the-environment) carries the mechanism and, more importantly, why `SITE_ROBOTS` defaults to `index, follow` rather than to the safer-looking `noindex`.
 
-Caddy also sets `trusted_proxies`, because a proxy fronts it in every environment and the peer address is therefore always the proxy. Without it the access log records that one internal address as the client for every request the site serves, and `X-Forwarded-For` is ignored rather than trusted. The ranges come from the container, since the same bundle runs on hosts whose docker subnets differ. **Exclude the bridge gateway from whatever range is trusted**: it is inside the subnet and it is how the host itself reaches the container, so trusting the subnet trusts every process on the host. Verified on the home mirrors by forging a header from the host, which succeeded until the gateway was excluded. **Trusting a range means believing `X-Forwarded-For` from anything in it**, so it is a security boundary rather than a formality, and the bundle's RFC1918 default is only correct where a proxy is genuinely the only thing that can reach the port. [`deploy/README.md`](./deploy/README.md#trusting-the-proxy) carries the three behaviors and why binding to `127.0.0.1` does not make direct access impossible.
+Caddy also sets `trusted_proxies`, because a proxy fronts it in every environment and the peer address is therefore always the proxy. Without it the access log records that one internal address as the client for every request the site serves, and `X-Forwarded-For` is ignored rather than trusted. The ranges come from the container, since the same bundle runs on hosts whose docker subnets differ. **Exclude the bridge gateway from whatever range is trusted**: it is inside the subnet and it is how the host itself reaches the container, so trusting the subnet trusts every process on the host. Verified on the home mirrors by forging a header from the host, which succeeded until the gateway was excluded. **Trusting a range means believing `X-Forwarded-For` from anything in it**, so it is a security boundary rather than a formality, and the bundle's RFC1918 default is only correct where a proxy is genuinely the only thing that can reach the port. [`deploy/README.md`](./deploy/README.md#trusting-the-proxy) carries the behaviors and why binding to `127.0.0.1` does not make direct access impossible.
 
 #### The bootstrap, and why it is not in the release
 
-The container reads three host paths, and only one of them a release ever writes:
+The container reads the host paths below, and a release writes only one of them:
 
 | Host path | Mounted at | Written by |
 | --- | --- | --- |
@@ -609,9 +609,9 @@ The maps are generated by [`capture/build_redirects.py`](./capture/build_redirec
 
 The bundle also carries `viljoen.family`, a single static page whose source is [`sites/viljoen.family/`](./sites/viljoen.family/). `make-release.sh` copies it to `family/` beside `site/`, leaving out its README, and precompresses it the same way. It shares the release, the containers, and the rollback with the blog, so a family change ships as a blog release.
 
-A second site block in `deploy/Caddyfile` serves it on the same port, selected by the `Host` header the proxy forwards. Any other hostname falls through to the blog's `:8080` block, so the blog's redirects never answer on the family host. The family block adds a CSP to the security headers every block sends. It answers a missing path with the page itself at a `404` status. It also routes the page's two languages: `/` redirects to `/af/` for a browser whose first language is Afrikaans, while `/en/` and `/af/` never redirect.
+A second site block in `deploy/Caddyfile` serves it on the same port, selected by the `Host` header the proxy forwards. Any other hostname falls through to the blog's `:8080` block, so the blog's redirects never answer on the family host. The family block adds a CSP to the security headers every block sends. It answers a missing path with the page itself at a `404` status. It also routes the page's languages: `/` redirects to `/af/` for a browser whose first language is Afrikaans, while `/en/` and `/af/` never redirect.
 
-Two container variables belong to it, both part of the [container contract](./deploy/README.md#container-contract). `FAMILY_SITE_ROBOTS` sets the family site's `X-Robots-Tag` apart from the blog's `SITE_ROBOTS`, for the reason given in [Identifying the environment](./deploy/README.md#identifying-the-environment). `FAMILY_SITE_ADDRESS` adds a local mirror's private name, per [Serving the family site on a local name](./deploy/README.md#serving-the-family-site-on-a-local-name).
+The family site has container variables of its own, each part of the [container contract](./deploy/README.md#container-contract). `FAMILY_SITE_ROBOTS` sets the family site's `X-Robots-Tag` apart from the blog's `SITE_ROBOTS`, for the reason given in [Identifying the environment](./deploy/README.md#identifying-the-environment). `FAMILY_SITE_ADDRESS` adds a local mirror's private name, per [Serving the family site on a local name](./deploy/README.md#serving-the-family-site-on-a-local-name).
 
 **A rollback to a release older than the family block drops it.** Every hostname then reaches the blog block, so `viljoen.family` serves the blog until a release carrying the block is live again. On production that copy is indexable. A production rollback to a release that predates `FAMILY_SITE_ROBOTS` stamps the family site with the blog's `SITE_ROBOTS`. That deindexes it whenever the blog holds `noindex`. A local mirror rolled back to a release that predates `FAMILY_SITE_ADDRESS` loses its private family name, which then serves the blog.
 
