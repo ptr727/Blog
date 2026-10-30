@@ -8,11 +8,11 @@ def jpeg_segment(marker: int, body: bytes) -> bytes:
     return bytes((0xFF, marker)) + struct.pack(">H", len(body) + 2) + body
 
 
-def exif_segment(tail: bytes = b"") -> bytes:
-    """An Exif APP1 carrying only Orientation, with optional bytes after its one IFD."""
+def exif_segment() -> bytes:
+    """An Exif APP1 carrying only Orientation."""
     entry = struct.pack("<HHIHH", 0x0112, 3, 1, 6, 0)
     tiff = b"II" + struct.pack("<HI", 42, 8) + struct.pack("<H", 1) + entry
-    return jpeg_segment(0xE1, b"Exif\x00\x00" + tiff + struct.pack("<I", 0) + tail)
+    return jpeg_segment(0xE1, b"Exif\x00\x00" + tiff + struct.pack("<I", 0))
 
 
 def exif_ifd_segment(
@@ -52,22 +52,17 @@ SQUARE = struct.pack(">IIB", 3779, 3779, 1)
 ICC = b"ICC_PROFILE\x00\x01\x01"
 
 
-def jpeg_fixture(progressive: bool) -> bytes:
-    """A structurally complete JPEG, with stuffed bytes and a restart marker in its scans."""
-    sof = 0xC2 if progressive else 0xC0
+def jpeg_fixture() -> bytes:
+    """A structurally complete JPEG, with stuffed bytes and a restart marker in its scan."""
     out = b"\xff\xd8" + jpeg_segment(
         0xE0, b"JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
     )
     out += exif_segment()
     out += jpeg_segment(0xDB, b"\x00" + bytes(range(64)))
-    out += jpeg_segment(sof, b"\x08\x00\x08\x00\x08\x01\x01\x11\x00")
+    out += jpeg_segment(0xC0, b"\x08\x00\x08\x00\x08\x01\x01\x11\x00")
     out += jpeg_segment(0xC4, b"\x00" + bytes(16) + b"")
     out += jpeg_segment(0xDA, b"\x01\x01\x00\x00\x3f\x00")
     out += b"\x12\x34\xff\x00\x56\xff\xd0\x78\x9a"
-    if progressive:
-        out += jpeg_segment(0xC4, b"\x10" + bytes(16))
-        out += jpeg_segment(0xDA, b"\x01\x01\x00\x01\x3f\x00")
-        out += b"\xab\xff\x00\xcd\xff\xd1\xef"
     return out + b"\xff\xd9"
 
 

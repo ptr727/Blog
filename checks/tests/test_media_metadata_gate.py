@@ -32,7 +32,7 @@ def known():
 
 
 def jpeg_with(*segments: bytes) -> bytes:
-    data = fixtures.jpeg_fixture(False)
+    data = fixtures.jpeg_fixture()
     bare = data.replace(fixtures.jpeg_segment(0xE0, fixtures.JFIF), b"")
     bare = bare.replace(fixtures.exif_segment(), b"")
     return bare[:2] + b"".join(segments) + bare[2:]
@@ -498,12 +498,12 @@ class FreeValues(unittest.TestCase):
         self.assert_restated(bent, looped)
 
     def test_jpeg_fill_before_a_marker_is_dropped(self) -> None:
-        data = fixtures.jpeg_fixture(False)
+        data = fixtures.jpeg_fixture()
         for at in (2, len(data) - 2):
             self.assert_restated(data[:at] + b"\xff" * 3 + data[at:], data)
 
     def test_jpeg_fill_inside_a_scan_is_refused(self) -> None:
-        data = fixtures.jpeg_fixture(False).replace(b"\xff\xd0", b"\xff\xff\xd0")
+        data = fixtures.jpeg_fixture().replace(b"\xff\xd0", b"\xff\xff\xd0")
         self.assertIn("JPEG fill bytes inside a scan", gate.scan(data))
         self.assertIsNone(normalizer.normalize_bytes(data))
 
