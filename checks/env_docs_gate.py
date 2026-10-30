@@ -80,11 +80,11 @@ DOC_INLINE = re.compile(r"`([A-Z][A-Z0-9_]{2,})(?:=[^`]*)?`")
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=(__doc__ or "").partition("\n")[0])
     parser.parse_args(argv)
-    if not DOC.exists():
+    try:
+        doc_text = DOC.read_text(encoding="utf-8")
+    except FileNotFoundError:
         print(f"ERROR: {DOC.name} does not exist", file=sys.stderr)
         return 1
-
-    doc_text = DOC.read_text(encoding="utf-8")
     documented_rows = set(DOC_ROW.findall(doc_text))
     documented_any = documented_rows | set(DOC_INLINE.findall(doc_text))
 

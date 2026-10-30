@@ -236,10 +236,11 @@ def scan_line(text: str) -> Iterator[tuple[str, str]]:
 
 def excluded_prefixes(root: pathlib.Path) -> tuple[str, ...]:
     """The archive boundary, read the way the prose gate reads it."""
-    path = root / EXCLUDES
-    if not path.is_file():
+    try:
+        text = (root / EXCLUDES).read_text(encoding="utf-8")
+    except FileNotFoundError:
         return ()
-    lines = (line.strip() for line in path.read_text(encoding="utf-8").splitlines())
+    lines = (line.strip() for line in text.splitlines())
     return tuple(line for line in lines if line and not line.startswith("#"))
 
 
@@ -270,9 +271,11 @@ def findings(root: pathlib.Path) -> list[Finding]:
 
 def load_allow(path: pathlib.Path) -> list[dict]:
     """The declared values, each checked for a known class, one matcher, and a reason."""
-    if not path.is_file():
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
         return []
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(text)
     entries = data.get("allow") if isinstance(data, dict) else None
     if not isinstance(entries, list):
         raise SystemExit(f"{path}: needs an object with an allow list")
