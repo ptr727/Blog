@@ -95,10 +95,11 @@ def main(argv: list[str] | None = None) -> int:
             declared.setdefault(name, set()).add(where)
 
     for path in TEMPLATES:
-        if not path.exists():
+        try:
+            text = path.read_text(encoding="utf-8")
+        except FileNotFoundError:
             print(f"ERROR: template {path} is missing", file=sys.stderr)
             return 1
-        text = path.read_text(encoding="utf-8")
         rel = path.relative_to(REPO).as_posix()
         for name in DECL.findall(text):
             note(name, rel)
