@@ -29,10 +29,12 @@ def main(argv: list[str] | None = None) -> int:
     files = json.loads(MANIFEST.read_text())["files"]
     failures = []
     for name, entry in files.items():
-        path = REPO / name
-        if not path.is_file():
+        try:
+            data = (REPO / name).read_bytes()
+        except FileNotFoundError:
             failures.append(f"{name}: missing")
-        elif hashlib.sha256(path.read_bytes()).hexdigest() != entry.get("result"):
+            continue
+        if hashlib.sha256(data).hexdigest() != entry.get("result"):
             failures.append(f"{name}: not its redacted result")
         elif declared(entry) != entry.get("declared"):
             failures.append(
