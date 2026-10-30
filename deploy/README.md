@@ -325,8 +325,8 @@ Behind Cloudflare the forwarded chain can start with an address the client wrote
 subnets differ, so any literal in the bundle is wrong on one of them.
 
 **Trusting a range means believing `X-Forwarded-For` from anything inside it**, so the range is a
-security boundary, and it should be no wider than what can actually reach the port. Three
-behaviors, all verified:
+security boundary, and it should be no wider than what can actually reach the port. Each
+behavior below is verified:
 
 | `TRUSTED_PROXIES` | Result |
 | --- | --- |
