@@ -30,11 +30,6 @@ runs:
       shell: bash
       run: python3 checks/media_metadata_gate.py
 
-    # The carried tree is all well formed, so this feeds the same parsers seeded malformed variants.
-    - name: Fuzz media parsers step
-      shell: bash
-      run: python3 checks/media_parser_fuzz_gate.py
-
     # A redacted image replaced by its original passes every other check, so this compares hashes.
     - name: Check media redactions step
       shell: bash

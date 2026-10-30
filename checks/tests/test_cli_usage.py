@@ -44,7 +44,6 @@ NO_REQUIRED_ARGUMENT = frozenset(
         "checks/env_docs_gate.py",
         "checks/github_env_gate.py",
         "checks/media_metadata_gate.py",
-        "checks/media_parser_fuzz_gate.py",
         "checks/media_redactions_gate.py",
         "checks/text_pii_gate.py",
         "deploy/make-release.sh",
