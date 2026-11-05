@@ -309,7 +309,7 @@ The HSTS value carries neither `includeSubDomains` nor `preload`. `includeSubDom
 
 **The gate reads only the files each site ships, so a policy change is also tried in a browser.** [`checks/csp_browser_gate.py`][checks-csp-browser] loads every page of a running mirror in headless Chromium. It fails on anything the policy blocks that [`checks/csp-browser-allow.txt`][checks-csp-browser-allow] does not list. A run over the whole default list also fails on an entry there that nothing matched. The list is empty today, so any blocked load fails the run. [OPERATIONS.md "Local Verification"][operations-local-verification] says when it runs and how.
 
-**The policy also blocks a script the proxy injects into a page.** Cloudflare's Rocket Loader, Email Address Obfuscation, and Web Analytics each inject one, so each stays off. They are the host side's to set, and the gate cannot see them, since it reads only the files each site ships.
+**The policy also blocks a script the proxy injects into a page.** Cloudflare's Rocket Loader rewrites script tags, which breaks the hash-allowed inline scripts. JavaScript detections inject an inline loader, which `script-src` blocks. Web Analytics and Zaraz inject scripts and add no security. So each of these stays off. Email Address Obfuscation stays on, since its decode script is same-origin and passed the browser gate. These are the host side's to set, and the static gate cannot see them, since it reads only the files each site ships.
 
 **A change to any of these values changes [`checks/security-headers.txt`][checks-security-headers] with it.** The live check asserts each value exactly, and a unit case fails while the two differ.
 
