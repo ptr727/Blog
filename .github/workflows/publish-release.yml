@@ -16,7 +16,7 @@ jobs:
   # Also replaces this repo's own dispatch-ref assertion: the hub task errors identically on a ref other than main/develop.
   plan:
     name: Plan release job
-    uses: ptr727/ProjectTemplate/.github/workflows/publish-plan-task.yml@320713d9d491f578b5604a8d67b82478717d7b05 # 2.0.1319
+    uses: ptr727/ProjectTemplate/.github/workflows/publish-plan-task.yml@3a83cd0974ee481c9321bd3b6cf223e5112f876b # 2.0.1337
     with:
       event_name: ${{ github.event_name }}
       actor: ${{ github.actor }}
@@ -30,7 +30,7 @@ jobs:
     name: Validate sources job
     needs: [plan]
     if: ${{ needs.plan.outputs.publish == 'true' }}
-    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@320713d9d491f578b5604a8d67b82478717d7b05 # 2.0.1319
+    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@3a83cd0974ee481c9321bd3b6cf223e5112f876b # 2.0.1337
     permissions:
       contents: read
     with:
@@ -54,7 +54,7 @@ jobs:
     # An if: on a job replaces the implicit success() over its needs.
     # Without the validate arm a failed gate would publish anyway.
     if: ${{ needs.plan.outputs.publish == 'true' && needs.validate.result == 'success' }}
-    uses: ptr727/ProjectTemplate/.github/workflows/build-release-task.yml@320713d9d491f578b5604a8d67b82478717d7b05 # 2.0.1319
+    uses: ptr727/ProjectTemplate/.github/workflows/build-release-task.yml@3a83cd0974ee481c9321bd3b6cf223e5112f876b # 2.0.1337
     permissions:
       contents: write
       actions: write
