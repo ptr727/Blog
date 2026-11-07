@@ -7,7 +7,7 @@ How this site is built, released, served, and rolled back. [`GOVERNANCE.md`](./G
 **`blog.insanegenius.com` is served by the VPS production site.** Its DNS moved off WordPress.com on 2026-10-04. The `production` environment's `SITE_BASE_URL` is `https://blog.insanegenius.com/`, and the production container serves `X-Robots-Tag: index, follow`. This repository's builds appear in these places, and each one shows a change only after its own deploy:
 
 - The VPS production site at `blog.insanegenius.com`, updated by `deploy-site.yml` with `environment=production`.
-- The VPS staging site at `blog.vps.insanegenius.net`, behind the auth gate, updated by `deploy-site.yml` with `environment=staging`.
+- The VPS staging site at `blog-staging.insanegenius.net`, behind the auth gate, updated by `deploy-site.yml` with `environment=staging`.
 - The local mirrors on the maintainer's homelab, updated only by `make-release.sh` from the maintainer's machine.
 
 The interim hostname `blog.insanegenius.net` has no DNS record, and no setting here names it.
@@ -133,7 +133,7 @@ The deploy root and the base URL are the only host-specific values. A local run 
 
 **Never promote a staging build to production.** The base URL is baked into the canonicals, the feeds, and every absolute permalink at build time. A staging artifact served as production points every page at the staging host. Each environment's deploy builds its own release from the ref instead.
 
-**The deploy workflow reaches only the VPS `staging` and `production` sites.** Dispatching it with `environment=staging` deploys `blog.vps.insanegenius.net`, never a local mirror. The local mirrors are deployed from the maintainer's own machine with `make-release.sh` and nothing else. So "deploy staging" names a different target depending on who says it. A run reporting that staging deployed says nothing about what a local mirror serves, so check the mirror itself.
+**The deploy workflow reaches only the VPS `staging` and `production` sites.** Dispatching it with `environment=staging` deploys `blog-staging.insanegenius.net`, never a local mirror. The local mirrors are deployed from the maintainer's own machine with `make-release.sh` and nothing else. So "deploy staging" names a different target depending on who says it. A run reporting that staging deployed says nothing about what a local mirror serves, so check the mirror itself.
 
 **`make-release.sh` builds the working tree, not the commit.** Hugo reads the checkout as it stands, so an uncommitted file ships. The release carries whatever version you pass. The documented local procedure passes a commit SHA, and a VPS deploy passes its run-based id. It defaults to a timestamp when you pass nothing. A SHA then names a commit that does not describe what is served. `EXPECT_RELEASE` still matches, because it compares the stamp against itself rather than against the tree. Commit before deploying, or read the release id as a label rather than a description.
 
@@ -490,7 +490,7 @@ The environments come in pairs. Each pair is one publish site and one staging si
 | --- | --- | --- | --- |
 | Local publish mirror | a private hostname, set in `~/.secrets/blog_local_production.env` | Traefik, on the maintainer's own network | Proves the artifact. The redirect rules, the maps, and the release mechanics. |
 | Local staging mirror | a second private hostname, set in `~/.secrets/blog_local_staging.env` | Traefik | Proves that two environments on one host stay independent, before that matters on a server. |
-| Staging | `blog.vps.insanegenius.net`, behind the auth gate, set in `~/.secrets/blog_vps_staging.env` | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
+| Staging | `blog-staging.insanegenius.net`, behind the auth gate, set in `~/.secrets/blog_vps_staging.env` | Pangolin | Proves the infrastructure. Routing, TLS, and the deploy path. |
 | Production | `blog.insanegenius.com`, set in `~/.secrets/blog_vps_production.env` | Pangolin | The public site, per [Current State](#current-state). |
 
 The local mirrors are not staging. They run the same bundle against the same web server, so they catch a broken redirect or a bad permission for free, but they exercise none of the routing, authentication, or certificate machinery that only exists on the VPS. Passing locally says the artifact is right. It says nothing about whether the server in front of it is.
@@ -499,7 +499,7 @@ The local mirrors are not staging. They run the same bundle against the same web
 
 Each environment is one file under `~/.secrets/`, named `blog_<server>_<environment>.env`, selected with `ENV_FILE`, and holding the deploy root, the base URL, and the container name. The name carries both halves because the pairs differ in server as well as environment. A file therefore says which machine it describes, rather than leaving that to the value inside it. Each row of the table above is one file. `~/.secrets/blog_local_production.env` is the one read when `ENV_FILE` is unset. Selecting the file is how an environment is chosen. The script reads `DEPLOY_ROOT` from the file and overwrites one the caller exported. Setting that variable by hand therefore switches nothing. A named file that does not exist is a hard failure rather than a fall-through, because on a host serving two sites the ambient value is the other site's root.
 
-**The staging FQDN sits under the VPS wildcard deliberately.** `blog.vps.insanegenius.net` needs no new certificate and no new DNS record, and it keeps the staging name off the production domain.
+**The staging names sit one level under `insanegenius.net` deliberately.** Cloudflare's proxy fronts them, and its free Universal certificate covers only the zone apex and one level below it. A two-level name such as `blog.vps.insanegenius.net` would get no edge certificate. The names also keep staging off the production domains.
 
 **Staging keeps its auth gate on.** It serves a byte-identical copy of the public site, so exposing it publicly would hand every crawler a duplicate of a site whose entire migration risk is URL preservation. `checks/check-live-urls.sh` gets through with a Pangolin resource access token instead. See [Checking a Site Behind the Auth Gate](#checking-a-site-behind-the-auth-gate).
 
@@ -618,7 +618,7 @@ The family site has container variables of its own, each part of the [container 
 | Hostname | Reaches |
 | --- | --- |
 | `viljoen.family` | The production container |
-| `viljoen.vps.insanegenius.net` | The staging container, behind the auth gate |
+| `viljoen-staging.insanegenius.net` | The staging container, behind the auth gate |
 | The private names in a local mirror's `FAMILY_SITE_ADDRESS` | That local mirror |
 
 Pointing these names at their containers is the host side's work, per [Who Owns What](#who-owns-what). So are the DNS records, the certificates, and the redirects that send the family's other domains to `viljoen.family`, and the host side documents them.
