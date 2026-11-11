@@ -18,6 +18,7 @@ hugo_stats.json
 .DS_Store
 *.user
 .claude
+.vscode/settings.json
 
 # Python byproducts, coverage reports included, from the gates under `checks/`, the tools under `scripts/`, and the provenance tools under `capture/`.
 __pycache__/
