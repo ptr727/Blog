@@ -39,7 +39,7 @@ jobs:
   # Its name is the ruleset-bound required status-check context.
   # Rename it and the ruleset context together, never independently.
   check-workflow-status:
-    name: Check pull request workflow status job
+    name: ${{ github.event_name == 'pull_request' && 'Check pull request workflow status job' || 'Check workflow status job' }}
     runs-on: ubuntu-latest
     needs: [ validate ]
     if: always()
