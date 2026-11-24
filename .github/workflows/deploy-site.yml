@@ -40,7 +40,7 @@ jobs:
   validate:
     name: Validate sources job
     needs: [ assert-ref ]
-    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@d42ad0e095e93845521f4c47653fec8c992089d6 # 2.0.1509
+    uses: ptr727/ProjectTemplate/.github/workflows/validate-task.yml@df0ddfde9ed4b80a0d197e8b83a0f9541cf7e842 # 2.0.1521
     permissions:
       contents: read
     with:
@@ -58,7 +58,7 @@ jobs:
   deploy:
     name: Deploy site job
     needs: [ validate ]
-    uses: ptr727/ProjectTemplate/.github/workflows/deploy-site-task.yml@d42ad0e095e93845521f4c47653fec8c992089d6 # 2.0.1509
+    uses: ptr727/ProjectTemplate/.github/workflows/deploy-site-task.yml@df0ddfde9ed4b80a0d197e8b83a0f9541cf7e842 # 2.0.1521
     with:
       environment: ${{ inputs.environment }}
     permissions:
